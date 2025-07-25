@@ -7,14 +7,32 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
     "mobile:setup:ubuntu": "cd mobile && ./setup-ubuntu.sh",
     "mobile:setup:windows": "echo 'Please follow the setup guide in mobile/setup-windows.md'",
     "mobile:init": "cd mobile && npx react-native init ForumClubMobile --template react-native-template-typescript",
     "mobile:android": "cd mobile/ForumClubMobile && npm run android",
     "mobile:ios": "cd mobile/ForumClubMobile && npm run ios"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@headlessui/react": "^2.2.6",
+    "@prisma/client": "^6.12.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcryptjs": "^3.0.2",
+    "framer-motion": "^12.23.9",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.525.0",
     "next": "15.4.4",
+    "next-auth": "^4.24.11",
+    "prisma": "^6.12.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
@@ -29,6 +47,7 @@
     "eslint-config-next": "15.4.4",
     "react-native": "^0.80.2",
     "tailwindcss": "^4",
+    "tsx": "^4.20.3",
     "typescript": "^5"
   }
 }

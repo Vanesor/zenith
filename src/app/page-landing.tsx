@@ -1,52 +1,52 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { 
-  ChevronRight, 
-  Calendar, 
-  Users, 
-  BookOpen, 
+import { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  ChevronRight,
+  Calendar,
+  Users,
+  BookOpen,
   Lightbulb,
   Code,
   MessageSquare,
   GraduationCap,
-  Heart
-} from 'lucide-react';
-import ZenChatbot from '@/components/ZenChatbot';
+  Heart,
+} from "lucide-react";
+import ZenChatbot from "@/components/ZenChatbot";
 
 const clubs = [
   {
-    name: 'Ascend',
-    type: 'Coding Club',
-    description: 'Programming challenges, hackathons, and tech innovation',
+    name: "Ascend",
+    type: "Coding Club",
+    description: "Programming challenges, hackathons, and tech innovation",
     icon: Code,
-    color: 'from-blue-500 to-cyan-500',
+    color: "from-blue-500 to-cyan-500",
     members: 156,
   },
   {
-    name: 'Aster',
-    type: 'Soft Skills Club',
-    description: 'Communication, leadership, and interpersonal development',
+    name: "Aster",
+    type: "Soft Skills Club",
+    description: "Communication, leadership, and interpersonal development",
     icon: MessageSquare,
-    color: 'from-green-500 to-emerald-500',
+    color: "from-green-500 to-emerald-500",
     members: 89,
   },
   {
-    name: 'Achievers',
-    type: 'Higher Studies Club',
-    description: 'Graduate preparation and competitive exam guidance',
+    name: "Achievers",
+    type: "Higher Studies Club",
+    description: "Graduate preparation and competitive exam guidance",
     icon: GraduationCap,
-    color: 'from-purple-500 to-violet-500',
+    color: "from-purple-500 to-violet-500",
     members: 67,
   },
   {
-    name: 'Altogether',
-    type: 'Holistic Growth',
-    description: 'Wellness, life skills, and personality development',
+    name: "Altogether",
+    type: "Holistic Growth",
+    description: "Wellness, life skills, and personality development",
     icon: Heart,
-    color: 'from-pink-500 to-rose-500',
+    color: "from-pink-500 to-rose-500",
     members: 134,
   },
 ];
@@ -54,29 +54,29 @@ const clubs = [
 const upcomingEvents = [
   {
     id: 1,
-    title: 'Tech Talk: AI in Education',
-    club: 'Ascend',
-    date: '2025-01-30',
-    time: '2:00 PM',
-    location: 'Auditorium A',
+    title: "Tech Talk: AI in Education",
+    club: "Ascend",
+    date: "2025-01-30",
+    time: "2:00 PM",
+    location: "Auditorium A",
     attendees: 45,
   },
   {
     id: 2,
-    title: 'Leadership Workshop',
-    club: 'Aster',
-    date: '2025-02-02',
-    time: '10:00 AM',
-    location: 'Conference Room B',
+    title: "Leadership Workshop",
+    club: "Aster",
+    date: "2025-02-02",
+    time: "10:00 AM",
+    location: "Conference Room B",
     attendees: 28,
   },
   {
     id: 3,
-    title: 'GRE Prep Session',
-    club: 'Achievers',
-    date: '2025-02-05',
-    time: '4:00 PM',
-    location: 'Study Hall',
+    title: "GRE Prep Session",
+    club: "Achievers",
+    date: "2025-02-05",
+    time: "4:00 PM",
+    location: "Study Hall",
     attendees: 23,
   },
 ];
@@ -100,24 +100,33 @@ export default function HomePage() {
             </div>
 
             <div className="hidden md:flex items-center space-x-8">
-              <Link href="#about" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <Link
+                href="#about"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
                 About
               </Link>
-              <Link href="#clubs" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <Link
+                href="#clubs"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
                 Clubs
               </Link>
-              <Link href="#events" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <Link
+                href="#events"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+              >
                 Events
               </Link>
               {isLoggedIn ? (
-                <Link 
+                <Link
                   href="/dashboard"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
                 >
                   Dashboard
                 </Link>
               ) : (
-                <Link 
+                <Link
                   href="/login"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
                 >
@@ -139,15 +148,15 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Welcome to{' '}
+                Welcome to{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Zenith
                 </span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Join our vibrant college community where learning meets growth. 
-                Connect with four specialized clubs designed to enhance your skills, 
-                expand your network, and prepare you for the future.
+                Join our vibrant college community where learning meets growth.
+                Connect with four specialized clubs designed to enhance your
+                skills, expand your network, and prepare you for the future.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
@@ -219,11 +228,14 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">What is Zenith?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              What is Zenith?
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Zenith is more than just a forum&mdash;it&apos;s a comprehensive platform designed to foster 
-              academic excellence, personal growth, and professional development. Our four specialized 
-              clubs work together to provide a holistic educational experience.
+              Zenith is more than just a forum&mdash;it&apos;s a comprehensive
+              platform designed to foster academic excellence, personal growth,
+              and professional development. Our four specialized clubs work
+              together to provide a holistic educational experience.
             </p>
           </motion.div>
 
@@ -231,23 +243,27 @@ export default function HomePage() {
             {[
               {
                 icon: Code,
-                title: 'Technical Skills',
-                description: 'Master programming, development, and cutting-edge technologies',
+                title: "Technical Skills",
+                description:
+                  "Master programming, development, and cutting-edge technologies",
               },
               {
                 icon: MessageSquare,
-                title: 'Communication',
-                description: 'Develop leadership, presentation, and interpersonal abilities',
+                title: "Communication",
+                description:
+                  "Develop leadership, presentation, and interpersonal abilities",
               },
               {
                 icon: GraduationCap,
-                title: 'Academic Excellence',
-                description: 'Prepare for higher studies and competitive examinations',
+                title: "Academic Excellence",
+                description:
+                  "Prepare for higher studies and competitive examinations",
               },
               {
                 icon: Heart,
-                title: 'Personal Growth',
-                description: 'Focus on wellness, life skills, and holistic development',
+                title: "Personal Growth",
+                description:
+                  "Focus on wellness, life skills, and holistic development",
               },
             ].map((item, index) => (
               <motion.div
@@ -261,7 +277,9 @@ export default function HomePage() {
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <item.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{item.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {item.title}
+                </h3>
                 <p className="text-gray-600">{item.description}</p>
               </motion.div>
             ))}
@@ -270,7 +288,10 @@ export default function HomePage() {
       </section>
 
       {/* Clubs Section */}
-      <section id="clubs" className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+      <section
+        id="clubs"
+        className="py-20 bg-gradient-to-br from-slate-50 to-blue-50"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -279,10 +300,12 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Four Specialized Clubs</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              Our Four Specialized Clubs
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Each club is designed to focus on specific aspects of your development, 
-              ensuring comprehensive growth in all areas.
+              Each club is designed to focus on specific aspects of your
+              development, ensuring comprehensive growth in all areas.
             </p>
           </motion.div>
 
@@ -300,20 +323,28 @@ export default function HomePage() {
                 <div className="p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 bg-gradient-to-r ${club.color} rounded-xl flex items-center justify-center`}>
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-r ${club.color} rounded-xl flex items-center justify-center`}
+                      >
                         <club.icon className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">{club.name}</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">
+                          {club.name}
+                        </h3>
                         <p className="text-gray-600">{club.type}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">{club.members}</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {club.members}
+                      </p>
                       <p className="text-sm text-gray-600">members</p>
                     </div>
                   </div>
-                  <p className="text-gray-700 mb-6 leading-relaxed">{club.description}</p>
+                  <p className="text-gray-700 mb-6 leading-relaxed">
+                    {club.description}
+                  </p>
                   <Link
                     href={`/clubs/${club.name.toLowerCase()}`}
                     className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors"
@@ -338,9 +369,12 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Upcoming Events</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              Upcoming Events
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Stay updated with the latest events, workshops, and activities across all clubs.
+              Stay updated with the latest events, workshops, and activities
+              across all clubs.
             </p>
           </motion.div>
 
@@ -358,13 +392,20 @@ export default function HomePage() {
                   <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                     {event.club}
                   </span>
-                  <span className="text-sm text-gray-500">{event.attendees} attending</span>
+                  <span className="text-sm text-gray-500">
+                    {event.attendees} attending
+                  </span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{event.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {event.title}
+                </h3>
                 <div className="space-y-2 text-gray-600">
                   <div className="flex items-center space-x-2">
                     <Calendar className="w-4 h-4" />
-                    <span>{new Date(event.date).toLocaleDateString()} at {event.time}</span>
+                    <span>
+                      {new Date(event.date).toLocaleDateString()} at{" "}
+                      {event.time}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Users className="w-4 h-4" />
@@ -398,28 +439,112 @@ export default function HomePage() {
             <div>
               <h4 className="text-lg font-semibold mb-4">Clubs</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/clubs/ascend" className="hover:text-white transition-colors">Ascend</Link></li>
-                <li><Link href="/clubs/aster" className="hover:text-white transition-colors">Aster</Link></li>
-                <li><Link href="/clubs/achievers" className="hover:text-white transition-colors">Achievers</Link></li>
-                <li><Link href="/clubs/altogether" className="hover:text-white transition-colors">Altogether</Link></li>
+                <li>
+                  <Link
+                    href="/clubs/ascend"
+                    className="hover:text-white transition-colors"
+                  >
+                    Ascend
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/clubs/aster"
+                    className="hover:text-white transition-colors"
+                  >
+                    Aster
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/clubs/achievers"
+                    className="hover:text-white transition-colors"
+                  >
+                    Achievers
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/clubs/altogether"
+                    className="hover:text-white transition-colors"
+                  >
+                    Altogether
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Resources</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/events" className="hover:text-white transition-colors">Events</Link></li>
-                <li><Link href="/discussions" className="hover:text-white transition-colors">Discussions</Link></li>
-                <li><Link href="/assignments" className="hover:text-white transition-colors">Assignments</Link></li>
-                <li><Link href="/announcements" className="hover:text-white transition-colors">Announcements</Link></li>
+                <li>
+                  <Link
+                    href="/events"
+                    className="hover:text-white transition-colors"
+                  >
+                    Events
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/discussions"
+                    className="hover:text-white transition-colors"
+                  >
+                    Discussions
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/assignments"
+                    className="hover:text-white transition-colors"
+                  >
+                    Assignments
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/announcements"
+                    className="hover:text-white transition-colors"
+                  >
+                    Announcements
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
-                <li><Link href="/guidelines" className="hover:text-white transition-colors">Guidelines</Link></li>
-                <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                <li>
+                  <Link
+                    href="/help"
+                    className="hover:text-white transition-colors"
+                  >
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/contact"
+                    className="hover:text-white transition-colors"
+                  >
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/guidelines"
+                    className="hover:text-white transition-colors"
+                  >
+                    Guidelines
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/faq"
+                    className="hover:text-white transition-colors"
+                  >
+                    FAQ
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
