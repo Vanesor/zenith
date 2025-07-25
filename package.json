@@ -6,22 +6,29 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "mobile:setup:ubuntu": "cd mobile && ./setup-ubuntu.sh",
+    "mobile:setup:windows": "echo 'Please follow the setup guide in mobile/setup-windows.md'",
+    "mobile:init": "cd mobile && npx react-native init ForumClubMobile --template react-native-template-typescript",
+    "mobile:android": "cd mobile/ForumClubMobile && npm run android",
+    "mobile:ios": "cd mobile/ForumClubMobile && npm run ios"
   },
   "dependencies": {
+    "next": "15.4.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.4.4"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@react-native-community/cli": "^19.1.1",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.4.4",
-    "@eslint/eslintrc": "^3"
+    "react-native": "^0.80.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
