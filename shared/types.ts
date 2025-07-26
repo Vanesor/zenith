@@ -2,11 +2,26 @@
 
 export interface User {
   id: string;
-  username: string;
+  username?: string;
   email: string;
+  name: string;
   avatar?: string;
-  role: 'admin' | 'moderator' | 'member';
-  joinDate: Date;
+  role:
+    | "admin"
+    | "moderator"
+    | "member"
+    | "student"
+    | "coordinator"
+    | "co_coordinator"
+    | "secretary"
+    | "media"
+    | "president"
+    | "vice_president"
+    | "innovation_head"
+    | "treasurer"
+    | "outreach";
+  club_id: string | null; // Single club membership
+  joinDate?: Date;
   bio?: string;
 }
 

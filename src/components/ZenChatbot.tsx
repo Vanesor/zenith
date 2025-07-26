@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Minimize2 } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Minimize2,
+  Maximize2,
+  Bot,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
@@ -50,6 +57,10 @@ export default function ZenChatbot() {
     setIsLoading(true);
 
     try {
+      // Get current page context
+      const currentPath = window.location.pathname;
+      const pageContent = document.body.innerText.substring(0, 2000); // Get page content for context
+
       const response = await fetch("/api/chatbot/zen", {
         method: "POST",
         headers: {
@@ -58,26 +69,29 @@ export default function ZenChatbot() {
         body: JSON.stringify({
           message: inputMessage,
           history: messages.slice(-5), // Send last 5 messages for context
+          currentPage: currentPath,
+          pageContent: pageContent,
         }),
       });
 
-      const data = await response.json();
-
-      const zenMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content:
-          data.response || "Sorry, I encountered an error. Please try again.",
-        sender: "zen",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, zenMessage]);
+      if (response.ok) {
+        const data = await response.json();
+        const zenMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: data.response,
+          sender: "zen",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, zenMessage]);
+      } else {
+        throw new Error("Failed to get response");
+      }
     } catch (error) {
-      console.error("Chatbot error:", error);
+      console.error("Error sending message:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content:
-          "Sorry, I'm having trouble connecting right now. Please try again later.",
+          "Sorry, I'm having trouble connecting right now. Please try again later!",
         sender: "zen",
         timestamp: new Date(),
       };
@@ -94,72 +108,85 @@ export default function ZenChatbot() {
     }
   };
 
+  const quickReplies = [
+    "Tell me about Ascend club",
+    "What events are coming up?",
+    "Summarize this page",
+    "How do I join a club?",
+    "Show me navigation help",
+  ];
+
   return (
     <>
       {/* Floating Chat Button */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-          >
-            <MessageCircle size={24} />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <motion.button
+        onClick={() => setIsOpen(true)}
+        className={`fixed bottom-6 right-6 z-50 ${
+          isOpen ? "hidden" : "flex"
+        } items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group`}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 1, type: "spring", stiffness: 260, damping: 20 }}
+      >
+        <MessageCircle size={24} className="group-hover:animate-pulse" />
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+          <Bot size={12} className="text-gray-800" />
+        </div>
+      </motion.button>
 
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{
-              opacity: 1,
-              scale: isMinimized ? 0.1 : 1,
-              y: 0,
-              height: isMinimized ? "60px" : "500px",
-            }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="fixed bottom-6 right-6 z-50 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden"
+            initial={{ opacity: 0, scale: 0.8, x: 50, y: 50 }}
+            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, x: 50, y: 50 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className={`fixed z-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-2xl ${
+              isMinimized
+                ? "bottom-6 right-6 w-80 h-16"
+                : "bottom-6 right-6 w-96 h-[600px]"
+            } transition-all duration-300 flex flex-col`}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold">Z</span>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl flex-shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <Bot size={20} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Zen Assistant</h3>
-                  <p className="text-xs opacity-90">Zenith Forum Helper</p>
+                  <h3 className="text-white font-semibold">Zen Assistant</h3>
+                  <p className="text-white/80 text-xs">
+                    Here to help with Zenith Forum
+                  </p>
                 </div>
               </div>
-              <div className="flex space-x-1">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setIsMinimized(!isMinimized)}
-                  className="p-1 hover:bg-white/20 rounded"
+                  className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
                 >
-                  <Minimize2 size={16} />
+                  {isMinimized ? (
+                    <Maximize2 size={16} />
+                  ) : (
+                    <Minimize2 size={16} />
+                  )}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-1 hover:bg-white/20 rounded"
+                  className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
                 >
                   <X size={16} />
                 </button>
               </div>
             </div>
 
-            {/* Chat Content */}
             {!isMinimized && (
               <>
                 {/* Messages */}
-                <div className="h-80 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
                   {messages.map((message) => (
                     <div
                       key={message.id}
@@ -170,14 +197,16 @@ export default function ZenChatbot() {
                       }`}
                     >
                       <div
-                        className={`max-w-[80%] p-3 rounded-lg ${
+                        className={`max-w-[80%] p-3 rounded-2xl ${
                           message.sender === "user"
-                            ? "bg-blue-600 text-white rounded-br-none"
-                            : "bg-gray-100 text-gray-800 rounded-bl-none"
+                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-none"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-none"
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
-                        <p className="text-xs opacity-70 mt-1">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {message.content}
+                        </p>
+                        <p className="text-xs opacity-70 mt-2">
                           {message.timestamp.toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -189,15 +218,15 @@ export default function ZenChatbot() {
 
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-gray-100 p-3 rounded-lg rounded-bl-none">
+                      <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl rounded-bl-none">
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                           <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
                             style={{ animationDelay: "0.2s" }}
                           ></div>
                           <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
                             style={{ animationDelay: "0.4s" }}
                           ></div>
                         </div>
@@ -208,22 +237,37 @@ export default function ZenChatbot() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* Quick Replies */}
+                <div className="px-4 pb-2 flex-shrink-0">
+                  <div className="flex flex-wrap gap-2">
+                    {quickReplies.map((reply) => (
+                      <button
+                        key={reply}
+                        onClick={() => setInputMessage(reply)}
+                        className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                      >
+                        {reply}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Input */}
-                <div className="p-4 border-t border-gray-200">
-                  <div className="flex space-x-2">
+                <div className="p-4 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
+                  <div className="flex space-x-3">
                     <input
                       type="text"
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Ask Zen about Zenith..."
-                      className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       disabled={isLoading}
                     />
                     <button
                       onClick={sendMessage}
                       disabled={isLoading || !inputMessage.trim()}
-                      className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0"
                     >
                       <Send size={16} />
                     </button>

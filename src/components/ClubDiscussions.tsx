@@ -1,0 +1,240 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { MessageSquare, Users, Hash } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import DiscussionList from "@/components/DiscussionList";
+import ChatRoom from "@/components/ChatRoom";
+
+interface ChatRoomData {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  club_id: string;
+}
+
+interface ClubDiscussionsProps {
+  clubId: string;
+  clubName: string;
+}
+
+export default function ClubDiscussions({
+  clubId,
+  clubName,
+}: ClubDiscussionsProps) {
+  const [activeTab, setActiveTab] = useState<"discussions" | "chat">(
+    "discussions"
+  );
+  const [activeChatRoom, setActiveChatRoom] = useState<string>("");
+  const [chatRooms, setChatRooms] = useState<ChatRoomData[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+
+  const fetchChatRooms = useCallback(async () => {
+    setLoadingRooms(true);
+    try {
+      const response = await fetch(`/api/chat/rooms?club_id=${clubId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setChatRooms(data.chatRooms || []);
+        // Auto-select first room
+        if (data.chatRooms && data.chatRooms.length > 0) {
+          setActiveChatRoom(data.chatRooms[0].id);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching chat rooms:", error);
+    } finally {
+      setLoadingRooms(false);
+    }
+  }, [clubId]);
+
+  // Fetch chat rooms when chat tab is selected and component mounts
+  useEffect(() => {
+    if (activeTab === "chat" && chatRooms.length === 0) {
+      fetchChatRooms();
+    }
+  }, [activeTab, chatRooms.length, fetchChatRooms]);
+
+  return (
+    <div
+      className={`min-h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1
+            className={`text-3xl font-bold mb-2 ${
+              isDarkMode ? "text-white" : "text-gray-900"
+            }`}
+          >
+            {clubName} Community
+          </h1>
+          <p
+            className={`text-lg ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            Connect, discuss, and collaborate with club members
+          </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div
+          className={`border-b mb-8 ${
+            isDarkMode ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab("discussions")}
+              className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === "discussions"
+                  ? "border-blue-500 text-blue-600"
+                  : isDarkMode
+                  ? "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              <MessageSquare className="w-4 h-4" />
+              Discussions
+            </button>
+            <button
+              onClick={() => setActiveTab("chat")}
+              className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === "chat"
+                  ? "border-blue-500 text-blue-600"
+                  : isDarkMode
+                  ? "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              Chat Rooms
+            </button>
+          </nav>
+        </div>
+
+        {/* Content */}
+        {activeTab === "discussions" ? (
+          <DiscussionList clubId={clubId} />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[700px]">
+            {/* Chat Room Sidebar */}
+            <div
+              className={`lg:col-span-1 p-4 rounded-lg border ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-700"
+                  : "bg-white border-gray-200"
+              }`}
+            >
+              <h3
+                className={`text-lg font-semibold mb-4 ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Chat Rooms
+              </h3>
+              <div className="space-y-2">
+                {loadingRooms ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                    <p
+                      className={`text-sm mt-2 ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Loading rooms...
+                    </p>
+                  </div>
+                ) : chatRooms.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      No chat rooms available
+                    </p>
+                  </div>
+                ) : (
+                  chatRooms.map((room) => (
+                    <button
+                      key={room.id}
+                      onClick={() => setActiveChatRoom(room.id)}
+                      className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${
+                        activeChatRoom === room.id
+                          ? "bg-blue-600 text-white"
+                          : isDarkMode
+                          ? "hover:bg-gray-700 text-gray-300"
+                          : "hover:bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      <Hash className="w-4 h-4" />
+                      <div>
+                        <p className="font-medium">{room.name}</p>
+                        <p
+                          className={`text-xs ${
+                            activeChatRoom === room.id
+                              ? "text-blue-200"
+                              : isDarkMode
+                              ? "text-gray-500"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {room.description ||
+                            (room.type === "announcement"
+                              ? "Announcements only"
+                              : "Open chat")}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Chat Area */}
+            <div
+              className={`lg:col-span-3 rounded-lg border overflow-hidden ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-700"
+                  : "bg-white border-gray-200"
+              }`}
+            >
+              {activeChatRoom ? (
+                <ChatRoom roomId={activeChatRoom} />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <Hash
+                      className={`w-12 h-12 mx-auto mb-4 ${
+                        isDarkMode ? "text-gray-600" : "text-gray-400"
+                      }`}
+                    />
+                    <h3
+                      className={`text-lg font-medium mb-2 ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      Select a chat room
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Choose a room from the sidebar to start chatting
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

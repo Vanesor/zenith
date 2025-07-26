@@ -1,0 +1,46 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B8860B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E3A8A;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1E40AF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#blueGradient)"/>
+  
+  <!-- Decorative frame -->
+  <rect x="30" y="30" width="340" height="340" fill="none" stroke="url(#goldGradient)" stroke-width="3"/>
+  <rect x="35" y="35" width="330" height="330" fill="none" stroke="url(#goldGradient)" stroke-width="2"/>
+  
+  <!-- Eagle/Wings -->
+  <g transform="translate(200,120)">
+    <!-- Left wing -->
+    <path d="M-60,-20 Q-80,-30 -90,-10 Q-85,0 -70,5 Q-50,10 -40,0 Q-45,-10 -60,-20" fill="url(#goldGradient)"/>
+    <path d="M-70,-15 Q-85,-25 -95,-5 Q-90,5 -75,10 Q-55,15 -45,5 Q-50,-5 -70,-15" fill="url(#goldGradient)" opacity="0.8"/>
+    
+    <!-- Right wing -->
+    <path d="M60,-20 Q80,-30 90,-10 Q85,0 70,5 Q50,10 40,0 Q45,-10 60,-20" fill="url(#goldGradient)"/>
+    <path d="M70,-15 Q85,-25 95,-5 Q90,5 75,10 Q55,15 45,5 Q50,-5 70,-15" fill="url(#goldGradient)" opacity="0.8"/>
+    
+    <!-- Eagle head/body -->
+    <ellipse cx="0" cy="0" rx="15" ry="20" fill="url(#goldGradient)"/>
+    <path d="M0,-20 Q-5,-25 0,-30 Q5,-25 0,-20" fill="url(#goldGradient)"/>
+  </g>
+  
+  <!-- ZENITH text -->
+  <text x="200" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="url(#goldGradient)">ZENITH</text>
+  
+  <!-- Tagline -->
+  <text x="200" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="normal" fill="url(#goldGradient)">DRIVEN BY PASSION, BUILT FOR EXCELLENCE</text>
+  
+  <!-- Bottom decorative line -->
+  <line x1="60" y1="280" x2="340" y2="280" stroke="url(#goldGradient)" stroke-width="2"/>
+  <line x1="70" y1="285" x2="330" y2="285" stroke="url(#goldGradient)" stroke-width="1"/>
+</svg>
