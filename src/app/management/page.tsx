@@ -4,18 +4,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Plus,
   Calendar,
   FileText,
   Users,
-  BarChart,
   Settings,
   Edit,
   Trash2,
   Eye,
+  BookOpen,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
 
 interface Event {
   id: string;
@@ -26,6 +27,7 @@ interface Event {
   location: string;
   attendeeCount: number;
   status: string;
+  created_at?: string;
 }
 
 interface Post {
@@ -49,6 +51,7 @@ interface Announcement {
 
 export default function ManagementDashboard() {
   const { user, isLoading } = useAuth();
+  const { showToast } = useToast();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -57,7 +60,22 @@ export default function ManagementDashboard() {
     totalMembers: 0,
     activeEvents: 0,
     totalPosts: 0,
-    unreadNotifications: 0,
+    totalAssignments: 0,
+  });
+
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    isLoading: false,
   });
 
   const isManager =
@@ -115,7 +133,7 @@ export default function ManagementDashboard() {
                 totalMembers: 0,
                 activeEvents: 0,
                 totalAssignments: 0,
-                unreadNotifications: 0,
+                totalPosts: 0,
               });
             }
           }
@@ -129,6 +147,154 @@ export default function ManagementDashboard() {
       fetchDashboardData();
     }
   }, [user, isManager]);
+
+  const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Event',
+      message: `Are you sure you want to delete "${eventTitle}"? This action cannot be undone.`,
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        
+        try {
+          const token = localStorage.getItem("zenith-token");
+          const response = await fetch(`/api/events/${eventId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            setEvents(events.filter((e) => e.id !== eventId));
+            setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            showToast({
+              type: 'success',
+              title: 'Event Deleted',
+              message: `"${eventTitle}" has been successfully deleted.`
+            });
+          } else {
+            const errorData = await response.json();
+            setConfirmModal(prev => ({ ...prev, isLoading: false }));
+            showToast({
+              type: 'error',
+              title: 'Deletion Failed',
+              message: errorData.error || 'Failed to delete event'
+            });
+          }
+        } catch {
+          setConfirmModal(prev => ({ ...prev, isLoading: false }));
+          showToast({
+            type: 'error',
+            title: 'Deletion Failed',
+            message: 'An unexpected error occurred while deleting the event'
+          });
+        }
+      }
+    });
+  };
+
+  const handleDeletePost = async (postId: string, postTitle: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Post',
+      message: `Are you sure you want to delete "${postTitle}"? This action cannot be undone.`,
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        
+        try {
+          const token = localStorage.getItem("zenith-token");
+          const response = await fetch(`/api/posts/${postId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            setPosts(posts.filter((p) => p.id !== postId));
+            setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            showToast({
+              type: 'success',
+              title: 'Post Deleted',
+              message: `"${postTitle}" has been successfully deleted.`
+            });
+          } else {
+            const errorData = await response.json();
+            setConfirmModal(prev => ({ ...prev, isLoading: false }));
+            showToast({
+              type: 'error',
+              title: 'Deletion Failed',
+              message: errorData.error || 'Failed to delete post'
+            });
+          }
+        } catch {
+          setConfirmModal(prev => ({ ...prev, isLoading: false }));
+          showToast({
+            type: 'error',
+            title: 'Deletion Failed',
+            message: 'An unexpected error occurred while deleting the post'
+          });
+        }
+      }
+    });
+  };
+
+  const handleDeleteAnnouncement = async (announcementId: string, announcementTitle: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Announcement',
+      message: `Are you sure you want to delete "${announcementTitle}"? This action cannot be undone.`,
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        
+        try {
+          const token = localStorage.getItem("zenith-token");
+          const response = await fetch(`/api/announcements/${announcementId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            setAnnouncements(announcements.filter((a) => a.id !== announcementId));
+            setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            showToast({
+              type: 'success',
+              title: 'Announcement Deleted',
+              message: `"${announcementTitle}" has been successfully deleted.`
+            });
+          } else {
+            const errorData = await response.json();
+            setConfirmModal(prev => ({ ...prev, isLoading: false }));
+            showToast({
+              type: 'error',
+              title: 'Deletion Failed',
+              message: errorData.error || 'Failed to delete announcement'
+            });
+          }
+        } catch {
+          setConfirmModal(prev => ({ ...prev, isLoading: false }));
+          showToast({
+            type: 'error',
+            title: 'Deletion Failed',
+            message: 'An unexpected error occurred while deleting the announcement'
+          });
+        }
+      }
+    });
+  };
+
+  const canEdit = (createdAt: string): boolean => {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffInHours = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+    return diffInHours <= 3;
+  };
 
   if (isLoading || !user || !isManager) {
     return (
@@ -196,51 +362,77 @@ export default function ManagementDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Analytics
+                  Assignments
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  View
+                  {stats.totalAssignments}
                 </p>
               </div>
-              <BarChart className="w-8 h-8 text-orange-600" />
+              <BookOpen className="w-8 h-8 text-orange-600" />
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Link
-            href="/management/create-event"
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-4 transition-colors"
-          >
-            <Plus className="w-6 h-6 mb-2" />
-            <h3 className="font-semibold">Create Event</h3>
-            <p className="text-sm opacity-90">Schedule new events</p>
-          </Link>
-          <Link
-            href="/management/create-post"
-            className="bg-green-600 hover:bg-green-700 text-white rounded-xl p-4 transition-colors"
-          >
-            <FileText className="w-6 h-6 mb-2" />
-            <h3 className="font-semibold">Create Post</h3>
-            <p className="text-sm opacity-90">Share with members</p>
-          </Link>
-          <Link
-            href="/management/create-announcement"
-            className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-4 transition-colors"
-          >
-            <Edit className="w-6 h-6 mb-2" />
-            <h3 className="font-semibold">Announcement</h3>
-            <p className="text-sm opacity-90">Important updates</p>
-          </Link>
-          <Link
-            href="/management/settings"
-            className="bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-4 transition-colors"
-          >
-            <Settings className="w-6 h-6 mb-2" />
-            <h3 className="font-semibold">Settings</h3>
-            <p className="text-sm opacity-90">Manage preferences</p>
-          </Link>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Link
+              href="/management/create-event"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <Calendar className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-xl mb-2">Create Event</h3>
+              <p className="text-sm opacity-90">Schedule new events for your club members</p>
+            </Link>
+            <Link
+              href="/management/create-post"
+              className="bg-green-600 hover:bg-green-700 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <FileText className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-xl mb-2">Create Post</h3>
+              <p className="text-sm opacity-90">Share updates and content with members</p>
+            </Link>
+            <Link
+              href="/management/create-assignment"
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-orange-300"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <BookOpen className="w-10 h-10 group-hover:scale-110 transition-transform" />
+                <span className="bg-white bg-opacity-20 text-xs font-bold px-2 py-1 rounded-full">
+                  NEW
+                </span>
+              </div>
+              <h3 className="font-bold text-xl mb-2">Create Assignment</h3>
+              <p className="text-sm opacity-90">Assign tasks and projects to members</p>
+            </Link>
+            <Link
+              href="/management/create-announcement"
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <Edit className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-xl mb-2">Announcement</h3>
+              <p className="text-sm opacity-90">Important club updates and news</p>
+            </Link>
+            <Link
+              href="/management/members"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <Users className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-xl mb-2">Manage Members</h3>
+              <p className="text-sm opacity-90">View and manage club memberships</p>
+            </Link>
+            <Link
+              href="/management/settings"
+              className="bg-gray-600 hover:bg-gray-700 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <Settings className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-xl mb-2">Settings</h3>
+              <p className="text-sm opacity-90">Manage club preferences and configuration</p>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -268,13 +460,23 @@ export default function ManagementDashboard() {
                       {event.title}
                     </h3>
                     <div className="flex space-x-2">
-                      <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800">
+                      <Link
+                        href={`/events/${event.id}`}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800"
+                      >
                         <Eye size={16} />
-                      </button>
-                      <button className="text-gray-600 dark:text-gray-400 hover:text-gray-800">
+                      </Link>
+                      <Link
+                        href={`/management/edit-event/${event.id}`}
+                        className="text-gray-600 dark:text-gray-400 hover:text-gray-800"
+                      >
                         <Edit size={16} />
-                      </button>
-                      <button className="text-red-600 dark:text-red-400 hover:text-red-800">
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteEvent(event.id, event.title)}
+                        className="text-red-600 dark:text-red-400 hover:text-red-800"
+                        title={!canEdit(event.created_at || new Date().toISOString()) && !isManager ? "Can only delete within 3 hours" : "Delete event"}
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -317,13 +519,28 @@ export default function ManagementDashboard() {
                       {post.title}
                     </h3>
                     <div className="flex space-x-2">
-                      <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800">
+                      <Link
+                        href={`/posts/${post.id}`}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800"
+                      >
                         <Eye size={16} />
-                      </button>
-                      <button className="text-gray-600 dark:text-gray-400 hover:text-gray-800">
+                      </Link>
+                      <Link
+                        href={`/management/edit-post/${post.id}`}
+                        className={`text-gray-600 dark:text-gray-400 hover:text-gray-800 ${
+                          !canEdit(post.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
                         <Edit size={16} />
-                      </button>
-                      <button className="text-red-600 dark:text-red-400 hover:text-red-800">
+                      </Link>
+                      <button
+                        onClick={() => handleDeletePost(post.id, post.title)}
+                        className={`text-red-600 dark:text-red-400 hover:text-red-800 ${
+                          !canEdit(post.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                        disabled={!canEdit(post.created_at) && !isManager}
+                        title={!canEdit(post.created_at) && !isManager ? "Can only delete within 3 hours" : "Delete post"}
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -378,10 +595,22 @@ export default function ManagementDashboard() {
                       {announcement.priority}
                     </span>
                     <div className="flex space-x-2">
-                      <button className="text-gray-600 dark:text-gray-400 hover:text-gray-800">
+                      <Link
+                        href={`/management/edit-announcement/${announcement.id}`}
+                        className={`text-gray-600 dark:text-gray-400 hover:text-gray-800 ${
+                          !canEdit(announcement.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
                         <Edit size={16} />
-                      </button>
-                      <button className="text-red-600 dark:text-red-400 hover:text-red-800">
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteAnnouncement(announcement.id, announcement.title)}
+                        className={`text-red-600 dark:text-red-400 hover:text-red-800 ${
+                          !canEdit(announcement.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                        disabled={!canEdit(announcement.created_at) && !isManager}
+                        title={!canEdit(announcement.created_at) && !isManager ? "Can only delete within 3 hours" : "Delete announcement"}
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -401,6 +630,17 @@ export default function ManagementDashboard() {
           </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        isLoading={confirmModal.isLoading}
+        confirmText="Delete"
+        type="danger"
+      />
 
       <ZenChatbot />
     </div>

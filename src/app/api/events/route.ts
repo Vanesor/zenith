@@ -45,14 +45,14 @@ export async function GET(request: NextRequest) {
       LEFT JOIN event_attendees ea ON e.id = ea.event_id
       LEFT JOIN event_attendees eua ON e.id = eua.event_id AND eua.user_id = $1
       WHERE c.id IN (
-        SELECT club_id FROM club_members WHERE user_id = $1
+        SELECT cm.club_id FROM club_members cm WHERE cm.user_id = $1
       )
     `;
 
     const queryParams: (string | number)[] = [userId];
 
     if (clubId) {
-      query += ` AND c.id = $2`;
+      query += ` AND e.club_id = $2`;
       queryParams.push(clubId);
     }
 

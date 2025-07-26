@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: { clubId: string } }
 ) {
   try {
-    const { clubId } = params;
+    const { clubId } = await params;
 
     const club = await Database.getClubById(clubId);
     if (!club) {

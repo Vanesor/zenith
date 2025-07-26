@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     const { userId } = await request.json();
-    const postId = params.id;
+    const { id: postId } = await params;
 
     if (!userId || !postId) {
       return NextResponse.json(

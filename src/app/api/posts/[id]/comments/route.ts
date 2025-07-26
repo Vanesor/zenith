@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const postId = params.id;
+    const { id: postId } = await params;
 
     const query = `
       SELECT 
@@ -40,7 +40,7 @@ export async function POST(
 ) {
   try {
     const { content, author_id } = await request.json();
-    const postId = params.id;
+    const { id: postId } = await params;
 
     if (!content || !author_id || !postId) {
       return NextResponse.json(

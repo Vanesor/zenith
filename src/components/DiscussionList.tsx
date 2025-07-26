@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { MessageSquare, Eye, Pin, Lock, Clock, User } from "lucide-react";
+import { MessageSquare, Eye, Pin, Lock, Clock, User, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,6 +65,83 @@ export default function DiscussionList({
   useEffect(() => {
     fetchDiscussions();
   }, [fetchDiscussions]);
+
+  const handleDeleteDiscussion = async (discussionId: string, authorId: string, createdAt: string) => {
+    if (!user) return;
+    
+    // Check if user can delete (author within 3 hours or manager)
+    const isAuthor = user.id === authorId;
+    const isManager = [
+      "coordinator",
+      "co_coordinator",
+      "secretary",
+      "media",
+      "president",
+      "vice_president",
+      "innovation_head",
+      "treasurer",
+      "outreach",
+    ].includes(user.role);
+
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffInHours = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+    const canDelete = isManager || (isAuthor && diffInHours <= 3);
+
+    if (!canDelete) {
+      alert("You can only delete discussions within 3 hours of creation");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this discussion?")) return;
+
+    try {
+      const token = localStorage.getItem("zenith-token");
+      const response = await fetch(`/api/discussions/${discussionId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setDiscussions(discussions.filter((d) => d.id !== discussionId));
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete discussion: ${errorData.error}`);
+      }
+    } catch (error) {
+      alert("Failed to delete discussion");
+    }
+  };
+
+  const canEditOrDelete = (authorId: string, createdAt: string): boolean => {
+    if (!user) return false;
+    
+    const isAuthor = user.id === authorId;
+    const isManager = [
+      "coordinator",
+      "co_coordinator",
+      "secretary",
+      "media",
+      "president",
+      "vice_president",
+      "innovation_head",
+      "treasurer",
+      "outreach",
+    ].includes(user.role);
+
+    if (isManager) return true;
+    
+    if (isAuthor) {
+      const created = new Date(createdAt);
+      const now = new Date();
+      const diffInHours = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+      return diffInHours <= 3;
+    }
+    
+    return false;
+  };
 
   const createDiscussion = async (formData: {
     title: string;
@@ -309,6 +386,37 @@ export default function DiscussionList({
                     {formatDate(discussion.last_activity)}
                   </span>
                 </div>
+                
+                {/* Edit/Delete buttons for authors within 3 hours or managers */}
+                {canEditOrDelete(discussion.author_id, discussion.created_at) && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // TODO: Implement edit functionality
+                        alert("Edit functionality not implemented yet");
+                      }}
+                      className={`p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
+                        isDarkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-800"
+                      }`}
+                      title="Edit discussion"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteDiscussion(discussion.id, discussion.author_id, discussion.created_at);
+                      }}
+                      className={`p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors ${
+                        isDarkMode ? "text-red-400 hover:text-red-200" : "text-red-600 hover:text-red-800"
+                      }`}
+                      title="Delete discussion"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
