@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // Get active events count (events happening in the future)
     const activeEventsResult = await Database.query(
-      "SELECT COUNT(*) as count FROM events WHERE date >= CURRENT_DATE"
+      "SELECT COUNT(*) as count FROM events WHERE event_date >= CURRENT_DATE"
     );
 
     // Get total assignments count

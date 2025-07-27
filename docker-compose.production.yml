@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: zenith-load-balancer
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - app1
+      - app2
+      - app3
+    networks:
+      - zenith-network
+    restart: unless-stopped
+
+  # Application Instances (3 for high availability)
+  app1:
+    build: .
+    container_name: zenith-app-1
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - INSTANCE_ID=app1
+      - DB_HOST=postgres-master
+      - DB_READ_REPLICAS=postgres-replica1,postgres-replica2
+      - REDIS_HOST=redis-cluster
+    depends_on:
+      - postgres-master
+      - redis-cluster
+    networks:
+      - zenith-network
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  app2:
+    build: .
+    container_name: zenith-app-2
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - INSTANCE_ID=app2
+      - DB_HOST=postgres-master
+      - DB_READ_REPLICAS=postgres-replica1,postgres-replica2
+      - REDIS_HOST=redis-cluster
+    depends_on:
+      - postgres-master
+      - redis-cluster
+    networks:
+      - zenith-network
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  app3:
+    build: .
+    container_name: zenith-app-3
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - INSTANCE_ID=app3
+      - DB_HOST=postgres-master
+      - DB_READ_REPLICAS=postgres-replica1,postgres-replica2
+      - REDIS_HOST=redis-cluster
+    depends_on:
+      - postgres-master
+      - redis-cluster
+    networks:
+      - zenith-network
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  # PostgreSQL Master
+  postgres-master:
+    image: postgres:15
+    container_name: zenith-postgres-master
+    environment:
+      POSTGRES_DB: zenith
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_REPLICATION_MODE: master
+      POSTGRES_REPLICATION_USER: repluser
+      POSTGRES_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
+    volumes:
+      - postgres_master_data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - zenith-network
+    restart: unless-stopped
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+
+  # PostgreSQL Read Replica 1
+  postgres-replica1:
+    image: postgres:15
+    container_name: zenith-postgres-replica1
+    environment:
+      POSTGRES_DB: zenith
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_REPLICATION_MODE: replica
+      POSTGRES_MASTER_SERVICE: postgres-master
+      POSTGRES_REPLICATION_USER: repluser
+      POSTGRES_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
+    volumes:
+      - postgres_replica1_data:/var/lib/postgresql/data
+    networks:
+      - zenith-network
+    depends_on:
+      - postgres-master
+    restart: unless-stopped
+
+  # PostgreSQL Read Replica 2
+  postgres-replica2:
+    image: postgres:15
+    container_name: zenith-postgres-replica2
+    environment:
+      POSTGRES_DB: zenith
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_REPLICATION_MODE: replica
+      POSTGRES_MASTER_SERVICE: postgres-master
+      POSTGRES_REPLICATION_USER: repluser
+      POSTGRES_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
+    volumes:
+      - postgres_replica2_data:/var/lib/postgresql/data
+    networks:
+      - zenith-network
+    depends_on:
+      - postgres-master
+    restart: unless-stopped
+
+  # Redis Cluster
+  redis-cluster:
+    image: redis:7-alpine
+    container_name: zenith-redis-cluster
+    command: redis-server --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    volumes:
+      - redis_data:/data
+    networks:
+      - zenith-network
+    restart: unless-stopped
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus
+    container_name: zenith-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - zenith-network
+    restart: unless-stopped
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana
+    container_name: zenith-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - zenith-network
+    restart: unless-stopped
+
+volumes:
+  postgres_master_data:
+  postgres_replica1_data:
+  postgres_replica2_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  zenith-network:
+    driver: bridge

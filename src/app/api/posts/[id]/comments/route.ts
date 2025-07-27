@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import Database from "@/lib/database";
+import { NotificationService } from "@/lib/NotificationService";
 
 // GET /api/posts/[id]/comments - Get comments for a post
 export async function GET(
@@ -72,6 +73,22 @@ export async function POST(
     const fullComment = await Database.query(fullCommentQuery, [
       result.rows[0].id,
     ]);
+
+    // Get post author for notification
+    const postQuery = `SELECT author_id FROM posts WHERE id = $1`;
+    const postResult = await Database.query(postQuery, [postId]);
+
+    if (
+      postResult.rows.length > 0 &&
+      postResult.rows[0].author_id !== author_id
+    ) {
+      // Don't notify if commenting on own post
+      await NotificationService.notifyCommentOnPost(
+        postId,
+        postResult.rows[0].author_id,
+        fullComment.rows[0].author_name
+      );
+    }
 
     return NextResponse.json({ comment: fullComment.rows[0] }, { status: 201 });
   } catch (error) {

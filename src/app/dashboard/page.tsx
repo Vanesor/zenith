@@ -55,8 +55,8 @@ interface Event {
   id: string;
   title: string;
   description: string;
-  date: string;
-  time: string;
+  event_date: string;
+  event_time: string;
   location: string;
   club_name: string;
   club_color: string;
@@ -81,7 +81,7 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
@@ -90,6 +90,11 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Don't redirect during initial loading
+    if (isLoading) {
+      return;
+    }
+
     if (!user) {
       router.push("/login");
       return;
@@ -97,7 +102,26 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch("/api/dashboard");
+        const token = localStorage.getItem("zenith-token");
+        if (!token) {
+          logout();
+          router.push("/login");
+          return;
+        }
+
+        const response = await fetch("/api/dashboard", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        
+        if (response.status === 401) {
+          logout();
+          router.push("/login");
+          return;
+        }
+        
         if (!response.ok) throw new Error("Failed to fetch dashboard data");
         const data = await response.json();
         setDashboardData(data);
@@ -110,7 +134,16 @@ export default function DashboardPage() {
     };
 
     fetchDashboardData();
-  }, [user, router]);
+  }, [user, router, logout, isLoading]);
+
+  // Show loading spinner during auth validation
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   if (!user) {
     return null;
@@ -361,7 +394,7 @@ export default function DashboardPage() {
                     <div className="flex items-center text-xs text-gray-500 dark:text-gray-500 space-x-2">
                       <Clock size={12} />
                       <span>
-                        {event.date} at {event.time}
+                        {event.event_date} at {event.event_time}
                       </span>
                     </div>
                     <div className="flex items-center text-xs text-gray-500 dark:text-gray-500 space-x-2 mt-1">

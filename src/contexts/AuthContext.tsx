@@ -32,24 +32,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token on mount
-    if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("zenith-token");
-      const storedUser = localStorage.getItem("zenith-user");
+    // Check for stored token on mount and validate it
+    const validateStoredAuth = async () => {
+      if (typeof window !== "undefined") {
+        const storedToken = localStorage.getItem("zenith-token");
+        const storedUser = localStorage.getItem("zenith-user");
 
-      if (storedToken && storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setToken(storedToken);
-          setUser(userData);
-        } catch (error) {
-          console.error("Error parsing stored user data:", error);
-          localStorage.removeItem("zenith-token");
-          localStorage.removeItem("zenith-user");
+        if (storedToken && storedUser) {
+          try {
+            // Validate token with server
+            const response = await fetch("/api/auth/validate", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${storedToken}`,
+                "Content-Type": "application/json",
+              },
+            });
+
+            if (response.ok) {
+              const validationData = await response.json();
+              if (validationData.valid) {
+                const userData = JSON.parse(storedUser);
+                setToken(storedToken);
+                setUser(userData);
+              } else {
+                // Token invalid, clear storage
+                localStorage.removeItem("zenith-token");
+                localStorage.removeItem("zenith-user");
+              }
+            } else {
+              // Server validation failed, clear storage
+              localStorage.removeItem("zenith-token");
+              localStorage.removeItem("zenith-user");
+            }
+          } catch (error) {
+            console.error("Error validating stored auth:", error);
+            localStorage.removeItem("zenith-token");
+            localStorage.removeItem("zenith-user");
+          }
         }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    validateStoredAuth();
   }, []);
 
   const login = (newToken: string, userData: User) => {

@@ -8,9 +8,11 @@ const noHeaderPaths = ["/", "/login", "/register"];
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  const shouldShowHeader = user && !noHeaderPaths.includes(pathname);
+  // Show header when user is authenticated and not on excluded paths
+  // Don't show header while still loading to prevent flashing
+  const shouldShowHeader = !isLoading && user && !noHeaderPaths.includes(pathname);
 
   return (
     <>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
 import jwt from "jsonwebtoken";
+import { NotificationService } from "@/lib/NotificationService";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -112,16 +113,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is a club admin/leader
-    const memberCheck = await Database.query(
-      "SELECT role FROM club_members WHERE user_id = $1 AND club_id = $2",
-      [userId, clubId]
+    // Check if user is a manager (has management role)
+    const userCheck = await Database.query(
+      "SELECT role, club_id FROM users WHERE id = $1",
+      [userId]
     );
 
-    if (!memberCheck.rows.length || memberCheck.rows[0].role === "member") {
+    if (!userCheck.rows.length) {
       return NextResponse.json(
-        { error: "Insufficient permissions" },
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const user = userCheck.rows[0];
+    const isManager = [
+      "coordinator",
+      "co_coordinator", 
+      "secretary",
+      "media",
+      "president",
+      "vice_president",
+      "innovation_head",
+      "treasurer",
+      "outreach",
+    ].includes(user.role);
+
+    if (!isManager) {
+      return NextResponse.json(
+        { error: "Only management positions can create assignments" },
         { status: 403 }
+      );
+    }
+
+    // Use the user's club_id instead of the provided clubId for security
+    const actualClubId = user.club_id;
+
+    if (!actualClubId) {
+      return NextResponse.json(
+        { error: "User is not associated with a club" },
+        { status: 400 }
       );
     }
 
@@ -132,13 +163,35 @@ export async function POST(request: NextRequest) {
       [
         title,
         description,
-        clubId,
+        actualClubId,
         userId,
         dueDate,
         maxPoints || 100,
         instructions || "",
       ]
     );
+
+    // Create notifications for all club members
+    const clubMembersQuery = `
+      SELECT id FROM users WHERE club_id = $1 AND id != $2
+    `;
+    const clubMembers = await Database.query(clubMembersQuery, [
+      actualClubId,
+      userId,
+    ]);
+
+    if (clubMembers.rows.length > 0) {
+      const clubQuery = `SELECT name FROM clubs WHERE id = $1`;
+      const clubResult = await Database.query(clubQuery, [actualClubId]);
+      const clubName = clubResult.rows[0]?.name || "Club";
+
+      const memberIds = clubMembers.rows.map((member: { id: string }) => member.id);
+      await NotificationService.notifyAssignmentCreated(
+        result.rows[0].id,
+        memberIds,
+        clubName
+      );
+    }
 
     return NextResponse.json(result.rows[0]);
   } catch (error) {

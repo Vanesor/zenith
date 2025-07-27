@@ -21,13 +21,9 @@ export async function GET(request: NextRequest) {
         cm.*,
         u.name as author_name,
         u.role as author_role,
-        u.avatar as author_avatar,
-        reply_msg.content as reply_content,
-        reply_user.name as reply_author_name
+        u.avatar as author_avatar
       FROM chat_messages cm
-      JOIN users u ON cm.author_id = u.id
-      LEFT JOIN chat_messages reply_msg ON cm.reply_to = reply_msg.id
-      LEFT JOIN users reply_user ON reply_msg.author_id = reply_user.id
+      JOIN users u ON cm.user_id = u.id
       WHERE cm.room_id = $1
       ORDER BY cm.created_at DESC
       LIMIT $2 OFFSET $3
@@ -48,29 +44,28 @@ export async function GET(request: NextRequest) {
 // POST /api/chat/messages
 export async function POST(request: NextRequest) {
   try {
-    const { room_id, author_id, content, type, reply_to, attachments } =
+    const { room_id, user_id, content, message_type, file_url } =
       await request.json();
 
-    if (!room_id || !author_id || !content) {
+    if (!room_id || !user_id || !content) {
       return NextResponse.json(
-        { error: "room_id, author_id, and content are required" },
+        { error: "room_id, user_id, and content are required" },
         { status: 400 }
       );
     }
 
     const query = `
-      INSERT INTO chat_messages (room_id, author_id, content, type, reply_to, attachments)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO chat_messages (room_id, user_id, message, message_type, file_url)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
 
     const result = await Database.query(query, [
       room_id,
-      author_id,
+      user_id,
       content,
-      type || "text",
-      reply_to || null,
-      attachments || [],
+      message_type || "text",
+      file_url || null,
     ]);
 
     // Get full message data with user info
@@ -81,7 +76,7 @@ export async function POST(request: NextRequest) {
         u.role as author_role,
         u.avatar as author_avatar
       FROM chat_messages cm
-      JOIN users u ON cm.author_id = u.id
+      JOIN users u ON cm.user_id = u.id
       WHERE cm.id = $1
     `;
 

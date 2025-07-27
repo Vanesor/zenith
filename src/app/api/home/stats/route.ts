@@ -10,7 +10,7 @@ export async function GET() {
         Database.query("SELECT COUNT(*) as count FROM clubs"),
         Database.query("SELECT COUNT(*) as count FROM users"),
         Database.query(
-          "SELECT COUNT(*) as count FROM events WHERE date >= CURRENT_DATE"
+          "SELECT COUNT(*) as count FROM events WHERE event_date >= CURRENT_DATE"
         ),
         Database.query("SELECT COUNT(*) as count FROM posts"),
       ]);
@@ -25,7 +25,7 @@ export async function GET() {
         c.color,
         c.icon,
         COUNT(u.id) as member_count,
-        COUNT(CASE WHEN e.date >= CURRENT_DATE THEN 1 END) as upcoming_events
+        COUNT(CASE WHEN e.event_date >= CURRENT_DATE THEN 1 END) as upcoming_events
       FROM clubs c
       LEFT JOIN users u ON c.id = u.club_id
       LEFT JOIN events e ON c.id = e.club_id
@@ -43,8 +43,8 @@ export async function GET() {
       FROM events e
       LEFT JOIN clubs c ON e.club_id = c.id
       LEFT JOIN users u ON e.created_by = u.id
-      WHERE e.date >= CURRENT_DATE
-      ORDER BY e.date ASC, e.time ASC
+      WHERE e.event_date >= CURRENT_DATE
+      ORDER BY e.event_date ASC, e.event_time ASC
       LIMIT 6
     `);
 

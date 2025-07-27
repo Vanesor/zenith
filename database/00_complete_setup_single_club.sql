@@ -234,43 +234,44 @@ INSERT INTO clubs (id, name, type, description, long_description, icon, color, g
 
 -- Step 5: Insert dynamic user data with college emails and single club memberships
 -- =============================================================================
+-- Note: All passwords are "password123" - bcrypt hash with salt rounds 10
 INSERT INTO users (id, email, password_hash, name, role, club_id, bio, avatar) VALUES
 -- Management Users (College Emails)
-('550e8400-e29b-41d4-a716-446655440001', 'president@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Arjun Patel', 'president', NULL, 'President of Zenith Forum, Computer Science student passionate about technology and leadership.', 'https://i.pravatar.cc/150?img=1'),
+('550e8400-e29b-41d4-a716-446655440001', 'president@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Arjun Patel', 'president', NULL, 'President of Zenith Forum, Computer Science student passionate about technology and leadership.', 'https://i.pravatar.cc/150?img=1'),
 
-('550e8400-e29b-41d4-a716-446655440002', 'vicepresident@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Priya Sharma', 'vice_president', NULL, 'Vice President of Zenith, Information Technology student with focus on innovation.', 'https://i.pravatar.cc/150?img=2'),
+('550e8400-e29b-41d4-a716-446655440002', 'vicepresident@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Priya Sharma', 'vice_president', NULL, 'Vice President of Zenith, Information Technology student with focus on innovation.', 'https://i.pravatar.cc/150?img=2'),
 
-('550e8400-e29b-41d4-a716-446655440003', 'innovation@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Rahul Kumar', 'innovation_head', 'ascend', 'Innovation Head and Ascend member, passionate about cutting-edge technology and startups.', 'https://i.pravatar.cc/150?img=3'),
+('550e8400-e29b-41d4-a716-446655440003', 'innovation@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Rahul Kumar', 'innovation_head', 'ascend', 'Innovation Head and Ascend member, passionate about cutting-edge technology and startups.', 'https://i.pravatar.cc/150?img=3'),
 
-('550e8400-e29b-41d4-a716-446655440004', 'treasurer@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Anjali Singh', 'treasurer', 'aster', 'Treasurer of Zenith and Aster member, Commerce student with strong financial acumen.', 'https://i.pravatar.cc/150?img=4'),
+('550e8400-e29b-41d4-a716-446655440004', 'treasurer@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Anjali Singh', 'treasurer', 'aster', 'Treasurer of Zenith and Aster member, Commerce student with strong financial acumen.', 'https://i.pravatar.cc/150?img=4'),
 
-('550e8400-e29b-41d4-a716-446655440005', 'outreach@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Vikram Reddy', 'outreach', 'achievers', 'Outreach Head and Achievers member, MBA student focused on building external partnerships.', 'https://i.pravatar.cc/150?img=5'),
+('550e8400-e29b-41d4-a716-446655440005', 'outreach@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Vikram Reddy', 'outreach', 'achievers', 'Outreach Head and Achievers member, MBA student focused on building external partnerships.', 'https://i.pravatar.cc/150?img=5'),
 
 -- Club Coordinators (College Emails)
-('550e8400-e29b-41d4-a716-446655440006', 'ascend.coordinator@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Dev Patel', 'coordinator', 'ascend', 'Ascend Club Coordinator, Computer Science final year, full-stack developer and competitive programmer.', 'https://i.pravatar.cc/150?img=6'),
+('550e8400-e29b-41d4-a716-446655440006', 'ascend.coordinator@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Dev Patel', 'coordinator', 'ascend', 'Ascend Club Coordinator, Computer Science final year, full-stack developer and competitive programmer.', 'https://i.pravatar.cc/150?img=6'),
 
-('550e8400-e29b-41d4-a716-446655440007', 'aster.coordinator@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Sneha Gupta', 'coordinator', 'aster', 'Aster Club Coordinator, MBA student specializing in organizational behavior and communication.', 'https://i.pravatar.cc/150?img=7'),
+('550e8400-e29b-41d4-a716-446655440007', 'aster.coordinator@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Sneha Gupta', 'coordinator', 'aster', 'Aster Club Coordinator, MBA student specializing in organizational behavior and communication.', 'https://i.pravatar.cc/150?img=7'),
 
-('550e8400-e29b-41d4-a716-446655440008', 'achievers.coordinator@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Ravi Mehta', 'coordinator', 'achievers', 'Achievers Club Coordinator, preparing for civil services and guiding students in higher studies.', 'https://i.pravatar.cc/150?img=8'),
+('550e8400-e29b-41d4-a716-446655440008', 'achievers.coordinator@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Ravi Mehta', 'coordinator', 'achievers', 'Achievers Club Coordinator, preparing for civil services and guiding students in higher studies.', 'https://i.pravatar.cc/150?img=8'),
 
-('550e8400-e29b-41d4-a716-446655440009', 'altogether.coordinator@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Kavya Nair', 'coordinator', 'altogether', 'Altogether Club Coordinator, Psychology student focused on holistic personality development.', 'https://i.pravatar.cc/150?img=9'),
+('550e8400-e29b-41d4-a716-446655440009', 'altogether.coordinator@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Kavya Nair', 'coordinator', 'altogether', 'Altogether Club Coordinator, Psychology student focused on holistic personality development.', 'https://i.pravatar.cc/150?img=9'),
 
 -- Regular College Students (College Emails)
-('550e8400-e29b-41d4-a716-446655440010', 'student1@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Amit Joshi', 'student', 'ascend', 'Computer Science student passionate about web development and machine learning.', 'https://i.pravatar.cc/150?img=10'),
+('550e8400-e29b-41d4-a716-446655440010', 'student1@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Amit Joshi', 'student', 'ascend', 'Computer Science student passionate about web development and machine learning.', 'https://i.pravatar.cc/150?img=10'),
 
-('550e8400-e29b-41d4-a716-446655440011', 'student2@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Meera Shah', 'student', 'aster', 'Commerce student interested in public speaking and leadership development.', 'https://i.pravatar.cc/150?img=11'),
+('550e8400-e29b-41d4-a716-446655440011', 'student2@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Meera Shah', 'student', 'aster', 'Commerce student interested in public speaking and leadership development.', 'https://i.pravatar.cc/150?img=11'),
 
-('550e8400-e29b-41d4-a716-446655440012', 'student3@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Kiran Desai', 'student', 'achievers', 'Arts student preparing for competitive exams and higher studies abroad.', 'https://i.pravatar.cc/150?img=12'),
+('550e8400-e29b-41d4-a716-446655440012', 'student3@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Kiran Desai', 'student', 'achievers', 'Arts student preparing for competitive exams and higher studies abroad.', 'https://i.pravatar.cc/150?img=12'),
 
-('550e8400-e29b-41d4-a716-446655440013', 'student4@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Pooja Rao', 'student', 'altogether', 'Psychology student interested in mindfulness and personal growth techniques.', 'https://i.pravatar.cc/150?img=13'),
+('550e8400-e29b-41d4-a716-446655440013', 'student4@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Pooja Rao', 'student', 'altogether', 'Psychology student interested in mindfulness and personal growth techniques.', 'https://i.pravatar.cc/150?img=13'),
 
 -- External Users (Non-college emails but still limited to one club)
-('550e8400-e29b-41d4-a716-446655440014', 'external.user1@gmail.com', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Alex Johnson', 'student', 'ascend', 'External developer interested in joining coding club activities and workshops.', 'https://i.pravatar.cc/150?img=14'),
+('550e8400-e29b-41d4-a716-446655440014', 'external.user1@gmail.com', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Alex Johnson', 'student', 'ascend', 'External developer interested in joining coding club activities and workshops.', 'https://i.pravatar.cc/150?img=14'),
 
-('550e8400-e29b-41d4-a716-446655440015', 'external.user2@yahoo.com', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Sarah Williams', 'student', 'aster', 'Professional looking to improve soft skills and networking abilities.', 'https://i.pravatar.cc/150?img=15'),
+('550e8400-e29b-41d4-a716-446655440015', 'external.user2@yahoo.com', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Sarah Williams', 'student', 'aster', 'Professional looking to improve soft skills and networking abilities.', 'https://i.pravatar.cc/150?img=15'),
 
 -- Demo Account for Testing
-('550e8400-e29b-41d4-a716-446655440000', 'demo@stvincentngp.edu.in', '$2b$10$8K1p/nq8H2VgN8ZlXgvB3e7BVKJYk6XvRTgPd4wGhA5oEjCqF7YWa', 'Demo User', 'student', 'ascend', 'Demo account for testing purposes - Computer Science student.', 'https://i.pravatar.cc/150?img=20');
+('550e8400-e29b-41d4-a716-446655440000', 'demo@stvincentngp.edu.in', '$2b$12$KE/XbD9UrHpIbEITP5.TJO9woKePujNik8e7xg0tl.bNYZqoFZ9bS', 'Demo User', 'student', 'ascend', 'Demo account for testing purposes - Computer Science student.', 'https://i.pravatar.cc/150?img=20');
 
 -- Update club coordinators
 UPDATE clubs SET coordinator_id = '550e8400-e29b-41d4-a716-446655440006' WHERE id = 'ascend';

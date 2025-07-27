@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const SALT_ROUNDS = 12; // Strong security setting
 
 function generateToken(payload: {
   userId: string;
@@ -11,6 +12,34 @@ function generateToken(payload: {
   role: string;
 }): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
+}
+
+// Password validation function
+function validatePassword(password: string): { isValid: boolean; message?: string } {
+  if (!password || password.length < 8) {
+    return { isValid: false, message: "Password must be at least 8 characters long" };
+  }
+  
+  if (password.length > 128) {
+    return { isValid: false, message: "Password must be less than 128 characters long" };
+  }
+
+  // Check for at least 3 of 4 character types
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  
+  const strengthScore = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
+  
+  if (strengthScore < 3) {
+    return { 
+      isValid: false, 
+      message: "Password must contain at least 3 of: lowercase, uppercase, numbers, special characters" 
+    };
+  }
+
+  return { isValid: true };
 }
 
 export async function POST(request: NextRequest) {
@@ -30,6 +59,15 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: "Invalid email format" },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        { error: passwordValidation.message },
         { status: 400 }
       );
     }
@@ -61,8 +99,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Hash password with secure salt rounds
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Determine user type based on email domain
     const isCollegeStudent = email.endsWith("@stvincentngp.edu.in");

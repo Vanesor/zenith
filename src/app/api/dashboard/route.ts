@@ -13,7 +13,7 @@ export async function GET() {
         c.color,
         c.icon,
         COUNT(DISTINCT u.id) as member_count,
-        COUNT(DISTINCT CASE WHEN e.date >= CURRENT_DATE THEN e.id END) as upcoming_events
+        COUNT(DISTINCT CASE WHEN e.event_date >= CURRENT_DATE THEN e.id END) as upcoming_events
       FROM clubs c
       LEFT JOIN users u ON c.id = u.club_id
       LEFT JOIN events e ON c.id = e.club_id
@@ -27,7 +27,6 @@ export async function GET() {
         a.id,
         a.title,
         a.content,
-        a.type,
         a.priority,
         a.created_at,
         c.name as club_name,
@@ -46,8 +45,8 @@ export async function GET() {
         e.id,
         e.title,
         e.description,
-        e.date,
-        e.time,
+        e.event_date,
+        e.event_time,
         e.location,
         c.name as club_name,
         c.color as club_color,
@@ -55,8 +54,8 @@ export async function GET() {
       FROM events e
       JOIN clubs c ON e.club_id = c.id
       LEFT JOIN users u ON e.created_by = u.id
-      WHERE e.date >= CURRENT_DATE
-      ORDER BY e.date ASC, e.time ASC
+      WHERE e.event_date >= CURRENT_DATE
+      ORDER BY e.event_date ASC, e.event_time ASC
       LIMIT 6
     `);
 
@@ -92,7 +91,6 @@ export async function GET() {
         id: announcement.id,
         title: announcement.title,
         content: announcement.content,
-        type: announcement.type,
         priority: announcement.priority,
         created_at: announcement.created_at,
         club_name: announcement.club_name,
@@ -103,8 +101,8 @@ export async function GET() {
         id: event.id,
         title: event.title,
         description: event.description,
-        date: event.date,
-        time: event.time,
+        date: event.event_date,
+        time: event.event_time,
         location: event.location,
         club_name: event.club_name,
         club_color: event.club_color,

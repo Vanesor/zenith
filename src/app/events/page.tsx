@@ -86,7 +86,7 @@ export default function EventsPage() {
           clubColor: getClubColor(event.club),
           bgColor: getBgColor(event.club),
           borderColor: getBorderColor(event.club),
-          time: event.startTime || event.time,
+          time: event.startTime || event.event_time,
           tags: event.tags || [],
           image: event.image || "/images/default-event.jpg",
           price: event.price || "Free",
@@ -363,11 +363,11 @@ export default function EventsPage() {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Calendar className="w-4 h-4 mr-2" />
-                      {formatDate(event.date)}
+                      {formatDate(event.event_date)}
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Clock className="w-4 h-4 mr-2" />
-                      {event.time}
+                      {event.event_time}
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <MapPin className="w-4 h-4 mr-2" />

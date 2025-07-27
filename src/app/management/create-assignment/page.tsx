@@ -86,7 +86,9 @@ export default function CreateAssignmentPage() {
         router.push("/management");
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create assignment");
+      setError(
+        err instanceof Error ? err.message : "Failed to create assignment"
+      );
     } finally {
       setLoading(false);
     }
@@ -292,7 +294,9 @@ export default function CreateAssignmentPage() {
             {/* Error Display */}
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
+                <p className="text-red-800 dark:text-red-400 text-sm">
+                  {error}
+                </p>
               </div>
             )}
 

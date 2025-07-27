@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
+import TokenManager from "@/lib/TokenManager";
 
 interface Assignment {
   id: string;
@@ -29,6 +30,7 @@ interface Assignment {
   maxPoints: number;
   instructions: string;
   feedback?: string;
+  created_at: string;
 }
 
 export default function AssignmentsPage() {
@@ -53,13 +55,8 @@ export default function AssignmentsPage() {
 
       try {
         setLoading(true);
-        const token = localStorage.getItem("zenith-token");
-        const response = await fetch("/api/assignments", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const tokenManager = TokenManager.getInstance();
+        const response = await tokenManager.authenticatedFetch("/api/assignments");
 
         if (response.ok) {
           const data = await response.json();

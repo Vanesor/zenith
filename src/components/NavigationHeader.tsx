@@ -13,6 +13,7 @@ import {
   Calendar,
   BookOpen,
   ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,7 +50,7 @@ export function NavigationHeader() {
         if (response.ok) {
           const data = await response.json();
           setNotifications(data);
-          const unread = data.filter((n: any) => !n.read).length;
+          const unread = data.filter((n: { read: boolean }) => !n.read).length;
           setUnreadCount(unread);
         }
       } catch (error) {
@@ -69,12 +70,28 @@ export function NavigationHeader() {
     return null;
   }
 
+  const isManager =
+    user &&
+    [
+      "coordinator",
+      "co_coordinator",
+      "secretary",
+      "media",
+      "president",
+      "vice_president",
+      "innovation_head",
+      "treasurer",
+      "outreach",
+    ].includes(user.role);
+
   const navigationItems = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Clubs", href: "/clubs", icon: Users },
+    { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Assignments", href: "/assignments", icon: BookOpen },
     { name: "Notifications", href: "/notifications", icon: Bell },
+    ...(isManager ? [{ name: "Club Management", href: "/club-management", icon: Settings }] : []),
   ];
 
   return (

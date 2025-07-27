@@ -1,19 +1,17 @@
 // Shared API utilities
 import type { ApiResponse, PaginatedResponse } from "./types";
+import TokenManager from "../src/lib/TokenManager";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export class ApiClient {
   private baseUrl: string;
-  private token: string | null = null;
+  private tokenManager: TokenManager;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-  }
-
-  setToken(token: string | null) {
-    this.token = token;
+    this.tokenManager = TokenManager.getInstance();
   }
 
   private async request<T>(
@@ -21,17 +19,10 @@ export class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    const config: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...(this.token && { Authorization: `Bearer ${this.token}` }),
-        ...options.headers,
-      },
-      ...options,
-    };
-
+    
     try {
-      const response = await fetch(url, config);
+      // Use TokenManager for authenticated requests
+      const response = await this.tokenManager.authenticatedFetch(url, options);
       const data = await response.json();
 
       if (!response.ok) {

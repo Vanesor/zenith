@@ -35,10 +35,7 @@ export async function GET(request: NextRequest, { params }: Props) {
     const result = await Database.query(query, [id]);
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { error: "Event not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
     return NextResponse.json(result.rows[0]);
@@ -64,7 +61,8 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const userId = decoded.userId;
 
     const { id } = await params;
-    const { title, description, date, time, location, max_attendees } = await request.json();
+    const { title, description, date, time, location, max_attendees } =
+      await request.json();
 
     // Get current event
     const currentEvent = await Database.query(
@@ -73,10 +71,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     );
 
     if (currentEvent.rows.length === 0) {
-      return NextResponse.json(
-        { error: "Event not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
     const event = currentEvent.rows[0];
@@ -84,17 +79,19 @@ export async function PUT(request: NextRequest, { params }: Props) {
     // Check if user is organizer or manager
     const user = await Database.getUserById(userId);
     const isOrganizer = event.organizer_id === userId;
-    const isManager = user && [
-      "coordinator",
-      "co_coordinator",
-      "secretary",
-      "media",
-      "president",
-      "vice_president",
-      "innovation_head",
-      "treasurer",
-      "outreach",
-    ].includes(user.role);
+    const isManager =
+      user &&
+      [
+        "coordinator",
+        "co_coordinator",
+        "secretary",
+        "media",
+        "president",
+        "vice_president",
+        "innovation_head",
+        "treasurer",
+        "outreach",
+      ].includes(user.role);
 
     if (!isOrganizer && !isManager) {
       return NextResponse.json(
@@ -111,13 +108,13 @@ export async function PUT(request: NextRequest, { params }: Props) {
     `;
 
     const result = await Database.query(query, [
-      title, 
-      description, 
-      date, 
-      time, 
-      location, 
+      title,
+      description,
+      date,
+      time,
+      location,
       max_attendees,
-      id
+      id,
     ]);
 
     return NextResponse.json(result.rows[0]);
@@ -151,10 +148,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     );
 
     if (currentEvent.rows.length === 0) {
-      return NextResponse.json(
-        { error: "Event not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
     const event = currentEvent.rows[0];
@@ -162,17 +156,19 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     // Check if user is organizer or manager
     const user = await Database.getUserById(userId);
     const isOrganizer = event.organizer_id === userId;
-    const isManager = user && [
-      "coordinator",
-      "co_coordinator",
-      "secretary",
-      "media",
-      "president",
-      "vice_president",
-      "innovation_head",
-      "treasurer",
-      "outreach",
-    ].includes(user.role);
+    const isManager =
+      user &&
+      [
+        "coordinator",
+        "co_coordinator",
+        "secretary",
+        "media",
+        "president",
+        "vice_president",
+        "innovation_head",
+        "treasurer",
+        "outreach",
+      ].includes(user.role);
 
     if (!isOrganizer && !isManager) {
       return NextResponse.json(
@@ -185,7 +181,8 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     if (!isManager) {
       const createdAt = new Date(event.created_at);
       const now = new Date();
-      const diffInHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+      const diffInHours =
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
       if (diffInHours > 3) {
         return NextResponse.json(
@@ -196,8 +193,11 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     // Delete related data first (foreign key constraints)
-    await Database.query("DELETE FROM event_registrations WHERE event_id = $1", [id]);
-    
+    await Database.query(
+      "DELETE FROM event_registrations WHERE event_id = $1",
+      [id]
+    );
+
     // Delete the event
     await Database.query("DELETE FROM events WHERE id = $1", [id]);
 

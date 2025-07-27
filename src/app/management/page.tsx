@@ -34,9 +34,9 @@ interface Post {
   id: string;
   title: string;
   content: string;
-  author: { name: string };
-  likeCount: number;
-  commentCount: number;
+  author_name: string;
+  like_count: number;
+  comment_count: number;
   created_at: string;
 }
 
@@ -72,8 +72,8 @@ export default function ManagementDashboard() {
     isLoading: boolean;
   }>({
     isOpen: false,
-    title: '',
-    message: '',
+    title: "",
+    message: "",
     onConfirm: () => {},
     isLoading: false,
   });
@@ -151,12 +151,12 @@ export default function ManagementDashboard() {
   const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
     setConfirmModal({
       isOpen: true,
-      title: 'Delete Event',
+      title: "Delete Event",
       message: `Are you sure you want to delete "${eventTitle}"? This action cannot be undone.`,
       isLoading: false,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isLoading: true }));
-        
+        setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+
         try {
           const token = localStorage.getItem("zenith-token");
           const response = await fetch(`/api/events/${eventId}`, {
@@ -168,42 +168,46 @@ export default function ManagementDashboard() {
 
           if (response.ok) {
             setEvents(events.filter((e) => e.id !== eventId));
-            setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            setConfirmModal((prev) => ({
+              ...prev,
+              isOpen: false,
+              isLoading: false,
+            }));
             showToast({
-              type: 'success',
-              title: 'Event Deleted',
-              message: `"${eventTitle}" has been successfully deleted.`
+              type: "success",
+              title: "Event Deleted",
+              message: `"${eventTitle}" has been successfully deleted.`,
             });
           } else {
             const errorData = await response.json();
-            setConfirmModal(prev => ({ ...prev, isLoading: false }));
+            setConfirmModal((prev) => ({ ...prev, isLoading: false }));
             showToast({
-              type: 'error',
-              title: 'Deletion Failed',
-              message: errorData.error || 'Failed to delete event'
+              type: "error",
+              title: "Deletion Failed",
+              message: errorData.error || "Failed to delete event",
             });
           }
         } catch {
-          setConfirmModal(prev => ({ ...prev, isLoading: false }));
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
           showToast({
-            type: 'error',
-            title: 'Deletion Failed',
-            message: 'An unexpected error occurred while deleting the event'
+            type: "error",
+            title: "Deletion Failed",
+            message: "An unexpected error occurred while deleting the event",
           });
         }
-      }
+      },
     });
   };
 
   const handleDeletePost = async (postId: string, postTitle: string) => {
     setConfirmModal({
       isOpen: true,
-      title: 'Delete Post',
+      title: "Delete Post",
       message: `Are you sure you want to delete "${postTitle}"? This action cannot be undone.`,
       isLoading: false,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isLoading: true }));
-        
+        setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+
         try {
           const token = localStorage.getItem("zenith-token");
           const response = await fetch(`/api/posts/${postId}`, {
@@ -215,42 +219,49 @@ export default function ManagementDashboard() {
 
           if (response.ok) {
             setPosts(posts.filter((p) => p.id !== postId));
-            setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            setConfirmModal((prev) => ({
+              ...prev,
+              isOpen: false,
+              isLoading: false,
+            }));
             showToast({
-              type: 'success',
-              title: 'Post Deleted',
-              message: `"${postTitle}" has been successfully deleted.`
+              type: "success",
+              title: "Post Deleted",
+              message: `"${postTitle}" has been successfully deleted.`,
             });
           } else {
             const errorData = await response.json();
-            setConfirmModal(prev => ({ ...prev, isLoading: false }));
+            setConfirmModal((prev) => ({ ...prev, isLoading: false }));
             showToast({
-              type: 'error',
-              title: 'Deletion Failed',
-              message: errorData.error || 'Failed to delete post'
+              type: "error",
+              title: "Deletion Failed",
+              message: errorData.error || "Failed to delete post",
             });
           }
         } catch {
-          setConfirmModal(prev => ({ ...prev, isLoading: false }));
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
           showToast({
-            type: 'error',
-            title: 'Deletion Failed',
-            message: 'An unexpected error occurred while deleting the post'
+            type: "error",
+            title: "Deletion Failed",
+            message: "An unexpected error occurred while deleting the post",
           });
         }
-      }
+      },
     });
   };
 
-  const handleDeleteAnnouncement = async (announcementId: string, announcementTitle: string) => {
+  const handleDeleteAnnouncement = async (
+    announcementId: string,
+    announcementTitle: string
+  ) => {
     setConfirmModal({
       isOpen: true,
-      title: 'Delete Announcement',
+      title: "Delete Announcement",
       message: `Are you sure you want to delete "${announcementTitle}"? This action cannot be undone.`,
       isLoading: false,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isLoading: true }));
-        
+        setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+
         try {
           const token = localStorage.getItem("zenith-token");
           const response = await fetch(`/api/announcements/${announcementId}`, {
@@ -261,31 +272,38 @@ export default function ManagementDashboard() {
           });
 
           if (response.ok) {
-            setAnnouncements(announcements.filter((a) => a.id !== announcementId));
-            setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            setAnnouncements(
+              announcements.filter((a) => a.id !== announcementId)
+            );
+            setConfirmModal((prev) => ({
+              ...prev,
+              isOpen: false,
+              isLoading: false,
+            }));
             showToast({
-              type: 'success',
-              title: 'Announcement Deleted',
-              message: `"${announcementTitle}" has been successfully deleted.`
+              type: "success",
+              title: "Announcement Deleted",
+              message: `"${announcementTitle}" has been successfully deleted.`,
             });
           } else {
             const errorData = await response.json();
-            setConfirmModal(prev => ({ ...prev, isLoading: false }));
+            setConfirmModal((prev) => ({ ...prev, isLoading: false }));
             showToast({
-              type: 'error',
-              title: 'Deletion Failed',
-              message: errorData.error || 'Failed to delete announcement'
+              type: "error",
+              title: "Deletion Failed",
+              message: errorData.error || "Failed to delete announcement",
             });
           }
         } catch {
-          setConfirmModal(prev => ({ ...prev, isLoading: false }));
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
           showToast({
-            type: 'error',
-            title: 'Deletion Failed',
-            message: 'An unexpected error occurred while deleting the announcement'
+            type: "error",
+            title: "Deletion Failed",
+            message:
+              "An unexpected error occurred while deleting the announcement",
           });
         }
-      }
+      },
     });
   };
 
@@ -385,7 +403,9 @@ export default function ManagementDashboard() {
             >
               <Calendar className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Create Event</h3>
-              <p className="text-sm opacity-90">Schedule new events for your club members</p>
+              <p className="text-sm opacity-90">
+                Schedule new events for your club members
+              </p>
             </Link>
             <Link
               href="/management/create-post"
@@ -393,7 +413,9 @@ export default function ManagementDashboard() {
             >
               <FileText className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Create Post</h3>
-              <p className="text-sm opacity-90">Share updates and content with members</p>
+              <p className="text-sm opacity-90">
+                Share updates and content with members
+              </p>
             </Link>
             <Link
               href="/management/create-assignment"
@@ -406,7 +428,9 @@ export default function ManagementDashboard() {
                 </span>
               </div>
               <h3 className="font-bold text-xl mb-2">Create Assignment</h3>
-              <p className="text-sm opacity-90">Assign tasks and projects to members</p>
+              <p className="text-sm opacity-90">
+                Assign tasks and projects to members
+              </p>
             </Link>
             <Link
               href="/management/create-announcement"
@@ -414,7 +438,9 @@ export default function ManagementDashboard() {
             >
               <Edit className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Announcement</h3>
-              <p className="text-sm opacity-90">Important club updates and news</p>
+              <p className="text-sm opacity-90">
+                Important club updates and news
+              </p>
             </Link>
             <Link
               href="/management/members"
@@ -422,7 +448,9 @@ export default function ManagementDashboard() {
             >
               <Users className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Manage Members</h3>
-              <p className="text-sm opacity-90">View and manage club memberships</p>
+              <p className="text-sm opacity-90">
+                View and manage club memberships
+              </p>
             </Link>
             <Link
               href="/management/settings"
@@ -430,7 +458,9 @@ export default function ManagementDashboard() {
             >
               <Settings className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Settings</h3>
-              <p className="text-sm opacity-90">Manage club preferences and configuration</p>
+              <p className="text-sm opacity-90">
+                Manage club preferences and configuration
+              </p>
             </Link>
           </div>
         </div>
@@ -475,7 +505,13 @@ export default function ManagementDashboard() {
                       <button
                         onClick={() => handleDeleteEvent(event.id, event.title)}
                         className="text-red-600 dark:text-red-400 hover:text-red-800"
-                        title={!canEdit(event.created_at || new Date().toISOString()) && !isManager ? "Can only delete within 3 hours" : "Delete event"}
+                        title={
+                          !canEdit(
+                            event.created_at || new Date().toISOString()
+                          ) && !isManager
+                            ? "Can only delete within 3 hours"
+                            : "Delete event"
+                        }
                       >
                         <Trash2 size={16} />
                       </button>
@@ -486,7 +522,7 @@ export default function ManagementDashboard() {
                   </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>
-                      {event.date} at {event.time}
+                      {event.event_date} at {event.event_time}
                     </span>
                     <span>{event.attendeeCount} attendees</span>
                   </div>
@@ -528,7 +564,9 @@ export default function ManagementDashboard() {
                       <Link
                         href={`/management/edit-post/${post.id}`}
                         className={`text-gray-600 dark:text-gray-400 hover:text-gray-800 ${
-                          !canEdit(post.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                          !canEdit(post.created_at) && !isManager
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
                         }`}
                       >
                         <Edit size={16} />
@@ -536,24 +574,30 @@ export default function ManagementDashboard() {
                       <button
                         onClick={() => handleDeletePost(post.id, post.title)}
                         className={`text-red-600 dark:text-red-400 hover:text-red-800 ${
-                          !canEdit(post.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                          !canEdit(post.created_at) && !isManager
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
                         }`}
                         disabled={!canEdit(post.created_at) && !isManager}
-                        title={!canEdit(post.created_at) && !isManager ? "Can only delete within 3 hours" : "Delete post"}
+                        title={
+                          !canEdit(post.created_at) && !isManager
+                            ? "Can only delete within 3 hours"
+                            : "Delete post"
+                        }
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    By {post.author.name}
+                    By {post.author_name}
                   </p>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>
                       {new Date(post.created_at).toLocaleDateString()}
                     </span>
                     <span>
-                      {post.likeCount} likes • {post.commentCount} comments
+                      {post.like_count} likes • {post.comment_count} comments
                     </span>
                   </div>
                 </div>
@@ -598,18 +642,33 @@ export default function ManagementDashboard() {
                       <Link
                         href={`/management/edit-announcement/${announcement.id}`}
                         className={`text-gray-600 dark:text-gray-400 hover:text-gray-800 ${
-                          !canEdit(announcement.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                          !canEdit(announcement.created_at) && !isManager
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
                         }`}
                       >
                         <Edit size={16} />
                       </Link>
                       <button
-                        onClick={() => handleDeleteAnnouncement(announcement.id, announcement.title)}
+                        onClick={() =>
+                          handleDeleteAnnouncement(
+                            announcement.id,
+                            announcement.title
+                          )
+                        }
                         className={`text-red-600 dark:text-red-400 hover:text-red-800 ${
-                          !canEdit(announcement.created_at) && !isManager ? "opacity-50 cursor-not-allowed" : ""
+                          !canEdit(announcement.created_at) && !isManager
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
                         }`}
-                        disabled={!canEdit(announcement.created_at) && !isManager}
-                        title={!canEdit(announcement.created_at) && !isManager ? "Can only delete within 3 hours" : "Delete announcement"}
+                        disabled={
+                          !canEdit(announcement.created_at) && !isManager
+                        }
+                        title={
+                          !canEdit(announcement.created_at) && !isManager
+                            ? "Can only delete within 3 hours"
+                            : "Delete announcement"
+                        }
                       >
                         <Trash2 size={16} />
                       </button>
@@ -633,7 +692,7 @@ export default function ManagementDashboard() {
 
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         message={confirmModal.message}

@@ -153,17 +153,19 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     // Check if user is author or manager
     const user = await Database.getUserById(userId);
     const isAuthor = discussion.author_id === userId;
-    const isManager = user && [
-      "coordinator",
-      "co_coordinator",
-      "secretary",
-      "media",
-      "president",
-      "vice_president",
-      "innovation_head",
-      "treasurer",
-      "outreach",
-    ].includes(user.role);
+    const isManager =
+      user &&
+      [
+        "coordinator",
+        "co_coordinator",
+        "secretary",
+        "media",
+        "president",
+        "vice_president",
+        "innovation_head",
+        "treasurer",
+        "outreach",
+      ].includes(user.role);
 
     if (!isAuthor && !isManager) {
       return NextResponse.json(
@@ -176,24 +178,27 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     if (!isManager) {
       const createdAt = new Date(discussion.created_at);
       const now = new Date();
-      const diffInHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+      const diffInHours =
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
       if (diffInHours > 3) {
         return NextResponse.json(
-          { error: "You can only delete discussions within 3 hours of creation" },
+          {
+            error: "You can only delete discussions within 3 hours of creation",
+          },
           { status: 403 }
         );
       }
     }
 
     // Delete related data first (foreign key constraints)
-    await Database.query("DELETE FROM discussion_replies WHERE discussion_id = $1", [id]);
-    
-    // Delete the discussion
     await Database.query(
-      "DELETE FROM discussions WHERE id = $1",
+      "DELETE FROM discussion_replies WHERE discussion_id = $1",
       [id]
     );
+
+    // Delete the discussion
+    await Database.query("DELETE FROM discussions WHERE id = $1", [id]);
 
     return NextResponse.json({ message: "Discussion deleted successfully" });
   } catch (error) {

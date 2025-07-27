@@ -80,17 +80,19 @@ export async function PUT(request: NextRequest, { params }: Props) {
     // Check if user is author or manager
     const user = await Database.getUserById(userId);
     const isAuthor = announcement.created_by === userId;
-    const isManager = user && [
-      "coordinator",
-      "co_coordinator",
-      "secretary",
-      "media",
-      "president",
-      "vice_president",
-      "innovation_head",
-      "treasurer",
-      "outreach",
-    ].includes(user.role);
+    const isManager =
+      user &&
+      [
+        "coordinator",
+        "co_coordinator",
+        "secretary",
+        "media",
+        "president",
+        "vice_president",
+        "innovation_head",
+        "treasurer",
+        "outreach",
+      ].includes(user.role);
 
     if (!isAuthor && !isManager) {
       return NextResponse.json(
@@ -103,11 +105,14 @@ export async function PUT(request: NextRequest, { params }: Props) {
     if (!isManager) {
       const createdAt = new Date(announcement.created_at);
       const now = new Date();
-      const diffInHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+      const diffInHours =
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
       if (diffInHours > 3) {
         return NextResponse.json(
-          { error: "You can only edit announcements within 3 hours of creation" },
+          {
+            error: "You can only edit announcements within 3 hours of creation",
+          },
           { status: 403 }
         );
       }
@@ -120,7 +125,13 @@ export async function PUT(request: NextRequest, { params }: Props) {
       RETURNING *
     `;
 
-    const result = await Database.query(query, [title, content, type, priority, id]);
+    const result = await Database.query(query, [
+      title,
+      content,
+      type,
+      priority,
+      id,
+    ]);
 
     return NextResponse.json(result.rows[0]);
   } catch (error) {
@@ -164,17 +175,19 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     // Check if user is author or manager
     const user = await Database.getUserById(userId);
     const isAuthor = announcement.created_by === userId;
-    const isManager = user && [
-      "coordinator",
-      "co_coordinator",
-      "secretary",
-      "media",
-      "president",
-      "vice_president",
-      "innovation_head",
-      "treasurer",
-      "outreach",
-    ].includes(user.role);
+    const isManager =
+      user &&
+      [
+        "coordinator",
+        "co_coordinator",
+        "secretary",
+        "media",
+        "president",
+        "vice_president",
+        "innovation_head",
+        "treasurer",
+        "outreach",
+      ].includes(user.role);
 
     if (!isAuthor && !isManager) {
       return NextResponse.json(
@@ -187,11 +200,15 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     if (!isManager) {
       const createdAt = new Date(announcement.created_at);
       const now = new Date();
-      const diffInHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+      const diffInHours =
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
       if (diffInHours > 3) {
         return NextResponse.json(
-          { error: "You can only delete announcements within 3 hours of creation" },
+          {
+            error:
+              "You can only delete announcements within 3 hours of creation",
+          },
           { status: 403 }
         );
       }

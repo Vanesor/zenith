@@ -1,5 +1,5 @@
-import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import React from "react";
+import { AlertTriangle, X } from "lucide-react";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -9,7 +9,7 @@ interface ConfirmationModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  type?: 'danger' | 'warning' | 'info';
+  type?: "danger" | "warning" | "info";
   isLoading?: boolean;
 }
 
@@ -19,38 +19,38 @@ export default function ConfirmationModal({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
-  type = 'danger',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  type = "danger",
   isLoading = false,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
   const getTypeStyles = () => {
     switch (type) {
-      case 'danger':
+      case "danger":
         return {
-          icon: 'text-red-600',
-          button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
-          accent: 'text-red-600',
+          icon: "text-red-600",
+          button: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
+          accent: "text-red-600",
         };
-      case 'warning':
+      case "warning":
         return {
-          icon: 'text-yellow-600',
-          button: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
-          accent: 'text-yellow-600',
+          icon: "text-yellow-600",
+          button: "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500",
+          accent: "text-yellow-600",
         };
-      case 'info':
+      case "info":
         return {
-          icon: 'text-blue-600',
-          button: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
-          accent: 'text-blue-600',
+          icon: "text-blue-600",
+          button: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
+          accent: "text-blue-600",
         };
       default:
         return {
-          icon: 'text-red-600',
-          button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
-          accent: 'text-red-600',
+          icon: "text-red-600",
+          button: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
+          accent: "text-red-600",
         };
     }
   };
@@ -81,9 +81,7 @@ export default function ConfirmationModal({
 
         {/* Content */}
         <div className="px-6 pb-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {message}
-          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
         </div>
 
         {/* Actions */}

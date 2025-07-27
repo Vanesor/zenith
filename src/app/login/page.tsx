@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -16,7 +16,14 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, isLoading: authLoading } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push("/dashboard");
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,39 +31,20 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Real API call to login endpoint
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Successful login - use the real user data from database
-        const userData = {
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.name,
-          role: data.user.role,
-          club_id: data.user.club_id, // Single club membership
-          avatar: data.user.avatar,
-          bio: data.user.bio,
-        };
-
-        // Use auth context to store token and user data
-        login(data.token, userData);
-
-        // Redirect to dashboard
+        login(data.token, data.user);
         router.push("/dashboard");
       } else {
-        // Login failed - show error message from API
         setError(data.error || "Login failed. Please check your credentials.");
       }
     } catch (error) {

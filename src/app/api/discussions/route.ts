@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       FROM discussions d
       JOIN users u ON d.author_id = u.id
       ${clubId ? "WHERE d.club_id = $1" : ""}
-      ORDER BY d.pinned DESC, d.last_activity DESC
+      ORDER BY d.is_pinned DESC, d.last_activity DESC
       LIMIT $${clubId ? "2" : "1"} OFFSET $${clubId ? "3" : "2"}
     `;
 

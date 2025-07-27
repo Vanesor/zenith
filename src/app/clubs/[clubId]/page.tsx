@@ -367,8 +367,8 @@ export default function ClubPage() {
                         {event.title}
                       </h3>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                        {new Date(event.date).toLocaleDateString()} at{" "}
-                        {event.time}
+                        {new Date(event.event_date).toLocaleDateString()} at{" "}
+                        {event.event_time}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-500">
                         {event.location}

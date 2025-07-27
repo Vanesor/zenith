@@ -10,19 +10,13 @@ import UserBadge from "./UserBadge";
 interface ChatMessage {
   id: string;
   room_id: string;
-  author_id: string;
+  user_id: string;
   author_name: string;
   author_role: string;
   author_avatar: string;
-  content: string;
-  type: string;
-  attachments: string[];
-  reply_to: string | null;
-  reply_content?: string;
-  reply_author_name?: string;
-  edited: boolean;
-  edited_at: string | null;
-  reactions: Record<string, string[]>;
+  message: string;
+  message_type: string;
+  file_url?: string;
   created_at: string;
 }
 
@@ -48,7 +42,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -94,10 +87,9 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           room_id: roomId,
-          author_id: currentUserId,
+          user_id: currentUserId,
           content: newMessage.trim(),
-          type: "text",
-          reply_to: replyTo?.id || null,
+          message_type: "text",
         }),
       });
 
@@ -105,7 +97,6 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         const data = await response.json();
         setMessages((prev) => [...prev, data.message]);
         setNewMessage("");
-        setReplyTo(null);
       } else {
         const error = await response.json();
         console.error("Error sending message:", error);
@@ -248,7 +239,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                       {message.author_name}
                     </span>
                     <UserBadge
-                      userId={message.author_id}
+                      userId={message.user_id}
                       role={message.author_role}
                       className="text-xs"
                     />
@@ -261,36 +252,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     </span>
                   </div>
 
-                  {/* Reply Context */}
-                  {message.reply_to && message.reply_content && (
-                    <div
-                      className={`mb-2 p-2 rounded border-l-4 border-blue-400 ${
-                        isDarkMode ? "bg-gray-800" : "bg-gray-100"
-                      }`}
-                    >
-                      <p
-                        className={`text-xs mb-1 ${
-                          isDarkMode ? "text-gray-400" : "text-gray-600"
-                        }`}
-                      >
-                        Replying to {message.reply_author_name}
-                      </p>
-                      <p
-                        className={`text-sm ${
-                          isDarkMode ? "text-gray-300" : "text-gray-700"
-                        }`}
-                      >
-                        {message.reply_content.length > 100
-                          ? `${message.reply_content.substring(0, 100)}...`
-                          : message.reply_content}
-                      </p>
-                    </div>
-                  )}
+                  {/* Reply Context - Removed for Supabase compatibility */}
 
                   {/* Message Content */}
                   <div
                     className={`p-3 rounded-lg ${
-                      message.author_id === currentUserId
+                      message.user_id === currentUserId
                         ? "bg-blue-600 text-white ml-auto max-w-sm"
                         : isDarkMode
                         ? "bg-gray-700 text-gray-100"
@@ -298,26 +265,11 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap break-words">
-                      {message.content}
+                      {message.message}
                     </p>
-                    {message.edited && (
-                      <p className={`text-xs mt-1 opacity-70`}>(edited)</p>
-                    )}
                   </div>
 
-                  {/* Message Actions */}
-                  <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setReplyTo(message)}
-                      className={`text-xs px-2 py-1 rounded hover:bg-opacity-20 hover:bg-gray-500 ${
-                        isDarkMode
-                          ? "text-gray-400 hover:text-gray-300"
-                          : "text-gray-600 hover:text-gray-700"
-                      }`}
-                    >
-                      Reply
-                    </button>
-                  </div>
+                  {/* Message Actions - Removed for Supabase compatibility */}
                 </div>
               </div>
             </div>
@@ -349,45 +301,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Reply Preview */}
-      {replyTo && (
-        <div
-          className={`px-4 py-2 border-t ${
-            isDarkMode
-              ? "bg-gray-800 border-gray-700"
-              : "bg-gray-100 border-gray-200"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p
-                className={`text-xs mb-1 ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Replying to {replyTo.author_name}
-              </p>
-              <p
-                className={`text-sm truncate ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                {replyTo.content}
-              </p>
-            </div>
-            <button
-              onClick={() => setReplyTo(null)}
-              className={`ml-2 text-xs px-2 py-1 rounded hover:bg-opacity-20 hover:bg-gray-500 ${
-                isDarkMode
-                  ? "text-gray-400 hover:text-gray-300"
-                  : "text-gray-600 hover:text-gray-700"
-              }`}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Reply Preview - Removed for Supabase compatibility */}
 
       {/* Message Input */}
       <div

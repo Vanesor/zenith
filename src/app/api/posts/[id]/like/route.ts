@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Database } from "@/lib/database";
+import { NotificationService } from "@/lib/NotificationService";
 
 // POST /api/posts/[id]/like - Toggle like on a post
 export async function POST(
@@ -48,6 +49,32 @@ export async function POST(
     );
 
     const likeCount = parseInt(likeCountResult.rows[0].count);
+
+    // Create notification for like (not for unlike)
+    if (liked) {
+      // Get post author info
+      const postQuery = `
+        SELECT author_id FROM posts WHERE id = $1
+      `;
+      const postResult = await Database.query(postQuery, [postId]);
+
+      if (
+        postResult.rows.length > 0 &&
+        postResult.rows[0].author_id !== userId
+      ) {
+        // Get user name for notification
+        const userQuery = `SELECT name FROM users WHERE id = $1`;
+        const userResult = await Database.query(userQuery, [userId]);
+
+        if (userResult.rows.length > 0) {
+          await NotificationService.notifyLikeOnPost(
+            postId,
+            postResult.rows[0].author_id,
+            userResult.rows[0].name
+          );
+        }
+      }
+    }
 
     return NextResponse.json({ liked, likeCount });
   } catch (error) {

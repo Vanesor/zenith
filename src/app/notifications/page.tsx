@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   Bell,
   Check,
-  X,
   Calendar,
   Users,
   FileText,
@@ -107,27 +105,6 @@ export default function NotificationsPage() {
     }
   };
 
-  const deleteNotification = async (notificationId: string) => {
-    try {
-      const token = localStorage.getItem("zenith-token");
-      const response = await fetch(`/api/notifications?id=${notificationId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        setNotifications((prev) =>
-          prev.filter((notification) => notification.id !== notificationId)
-        );
-      }
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-    }
-  };
-
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "announcement":
@@ -146,17 +123,22 @@ export default function NotificationsPage() {
   };
 
   const formatTimestamp = (timestamp: string) => {
+    if (!timestamp) return "";
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInHours =
-      Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-    if (diffInHours < 1) {
-      return "Just now";
+    if (diffInMinutes < 1) {
+      return "just now";
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
     } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)} hours ago`;
-    } else if (diffInHours < 48) {
-      return "Yesterday";
+      return `${diffInHours}h ago`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays}d ago`;
     } else {
       return date.toLocaleDateString();
     }
@@ -188,6 +170,17 @@ export default function NotificationsPage() {
       );
     } catch (error) {
       console.error("Error marking all as read:", error);
+    }
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id);
+    if (notification.related_id) {
+      // Navigate to the related content, e.g., a post
+      if (notification.type === "comment" || notification.type === "like") {
+        router.push(`/posts/${notification.related_id}`);
+      }
+      // Add other navigation logic for different notification types
     }
   };
 
@@ -304,83 +297,39 @@ export default function NotificationsPage() {
               </p>
             </div>
           ) : (
-            filteredNotifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border-l-4 overflow-hidden transition-all hover:shadow-xl border-l-blue-500 ${
-                  !notification.read
-                    ? "ring-2 ring-blue-200 dark:ring-blue-800"
-                    : ""
-                }`}
+            <div className="flow-root">
+              <ul
+                role="list"
+                className="divide-y divide-gray-200 dark:divide-gray-700"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 flex-1">
-                      <div className="flex-shrink-0 mt-1">
+                {filteredNotifications.map((notification) => (
+                  <li
+                    key={notification.id}
+                    className="py-3 sm:py-4 px-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <div
+                      className="flex items-center space-x-4 cursor-pointer"
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      <div className="flex-shrink-0">
                         {getNotificationIcon(notification.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3
-                            className={`text-lg font-semibold ${
-                              !notification.read
-                                ? "text-gray-900 dark:text-white"
-                                : "text-gray-700 dark:text-gray-300"
-                            }`}
-                          >
-                            {notification.title}
-                          </h3>
-                          {!notification.read && (
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                          )}
-                          {notification.club && (
-                            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs rounded-full">
-                              {notification.club}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-400 mb-3">
+                        <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
+                          {notification.title}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate dark:text-gray-400">
                           {notification.message}
                         </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-500 dark:text-gray-500">
-                            {formatTimestamp(notification.created_at)}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            {notification.related_id && (
-                              <Link
-                                href={`/${notification.type}s/${notification.related_id}`}
-                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
-                              >
-                                View Details →
-                              </Link>
-                            )}
-                          </div>
-                        </div>
+                      </div>
+                      <div className="inline-flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400">
+                        {formatTimestamp(notification.created_at)}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      {!notification.read && (
-                        <button
-                          onClick={() => markAsRead(notification.id)}
-                          className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                          title="Mark as read"
-                        >
-                          <Check size={16} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => deleteNotification(notification.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                        title="Delete notification"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
 

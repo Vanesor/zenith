@@ -1,13 +1,67 @@
 // Database connection and schema
 import { Pool } from "pg";
 
-// Database connection pool
+// Database connection pool with high-scale production settings
 const pool = new Pool({
   user: process.env.DB_USER || "postgres",
   host: process.env.DB_HOST || "localhost",
   database: process.env.DB_NAME || "zenith",
   password: process.env.DB_PASSWORD || "1234",
   port: parseInt(process.env.DB_PORT || "5432"),
+  max: parseInt(process.env.DB_POOL_MAX || "50"), // Increased for high scale
+  min: parseInt(process.env.DB_POOL_MIN || "10"), // Minimum connections
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000, // Increased timeout
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // Additional performance settings
+  allowExitOnIdle: false, // Keep pool alive
+});
+
+// Connection health monitoring
+let isConnected = false;
+
+// Health check function
+export async function checkDatabaseHealth(): Promise<boolean> {
+  try {
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    isConnected = true;
+    return true;
+  } catch (error) {
+    console.error('Database health check failed:', error);
+    isConnected = false;
+    return false;
+  }
+}
+
+// Get connection status
+export function getDatabaseStatus(): boolean {
+  return isConnected;
+}
+
+// Initialize database connection
+export async function initializeDatabase(): Promise<void> {
+  try {
+    await checkDatabaseHealth();
+    console.log('Database connection established successfully');
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    throw error;
+  }
+}
+
+// Graceful shutdown handlers
+process.on('SIGINT', async () => {
+  console.log('Closing database pool...');
+  await pool.end();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Closing database pool...');
+  await pool.end();
+  process.exit(0);
 });
 
 // Database interfaces
@@ -56,13 +110,12 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  date: Date;
-  time: string;
+  event_date: Date;
+  event_time: string;
   location: string;
   club_id: string;
   created_by: string;
   max_attendees?: number;
-  attendees: string[];
   status: "upcoming" | "ongoing" | "completed" | "cancelled";
   created_at: Date;
   updated_at: Date;
@@ -74,20 +127,23 @@ export interface Post {
   content: string;
   author_id: string;
   club_id: string;
-  likes: string[];
-  comments: Comment[];
-  attachments: string[];
+  category?: string;
+  image_url?: string;
+  view_count: number;
+  like_count: number;
+  is_announcement: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
 export interface Comment {
   id: string;
-  content: string;
-  author_id: string;
   post_id: string;
-  parent_id?: string;
-  likes: string[];
+  author_id: string;
+  content: string;
+  is_edited: boolean;
+  edit_deadline: Date;
+  delete_deadline: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -111,12 +167,12 @@ export interface Assignment {
   title: string;
   description: string;
   club_id: string;
-  created_by: string;
+  assigned_by: string;
   due_date: Date;
-  attachments: string[];
-  submissions: Submission[];
   max_points: number;
-  status: "draft" | "published" | "closed";
+  instructions?: string;
+  status: "active" | "completed" | "archived";
+  view_count: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -139,10 +195,48 @@ export interface Notification {
   user_id: string;
   title: string;
   message: string;
-  type: "announcement" | "event" | "assignment" | "comment" | "like" | "system";
+  type: "system" | "assignment" | "event" | "announcement" | "chat";
+  is_read: boolean;
+  data: Record<string, any>;
   related_id?: string;
-  read: boolean;
+  related_type?: string;
   created_at: Date;
+}
+
+export interface ChatRoom {
+  id: string;
+  name: string;
+  description?: string;
+  club_id?: string;
+  type: "public" | "club" | "private";
+  created_by: string;
+  members: string[];
+  is_group: boolean;
+  group_admin?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ChatMessage {
+  id: string;
+  room_id: string;
+  user_id: string;
+  message: string;
+  message_type: "text" | "image" | "file";
+  file_url?: string;
+  created_at: Date;
+}
+
+export interface ZenithCommittee {
+  id: string;
+  president_id?: string;
+  vice_president_id?: string;
+  innovation_head_id?: string;
+  treasurer_id?: string;
+  secretary_id?: string;
+  outreach_id?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // Database utility functions
@@ -276,7 +370,7 @@ export class Database {
   // Event operations
   static async getEventsByClub(clubId: string): Promise<Event[]> {
     const result = await this.query(
-      "SELECT * FROM events WHERE club_id = $1 ORDER BY date ASC",
+      "SELECT * FROM events WHERE club_id = $1 ORDER BY event_date ASC",
       [clubId]
     );
     return result.rows;
@@ -284,8 +378,8 @@ export class Database {
 
   static async getUpcomingEvents(limit?: number): Promise<Event[]> {
     const query = limit
-      ? "SELECT * FROM events WHERE date >= CURRENT_DATE ORDER BY date ASC LIMIT $1"
-      : "SELECT * FROM events WHERE date >= CURRENT_DATE ORDER BY date ASC";
+      ? "SELECT * FROM events WHERE event_date >= CURRENT_DATE ORDER BY event_date ASC LIMIT $1"
+      : "SELECT * FROM events WHERE event_date >= CURRENT_DATE ORDER BY event_date ASC";
     const params = limit ? [limit] : [];
     const result = await this.query(query, params);
     return result.rows;
@@ -293,8 +387,8 @@ export class Database {
 
   static async getAllEvents(limit?: number): Promise<Event[]> {
     const query = limit
-      ? "SELECT * FROM events ORDER BY date ASC LIMIT $1"
-      : "SELECT * FROM events ORDER BY date ASC";
+      ? "SELECT * FROM events ORDER BY event_date ASC LIMIT $1"
+      : "SELECT * FROM events ORDER BY event_date ASC";
     const params = limit ? [limit] : [];
     const result = await this.query(query, params);
     return result.rows;
@@ -304,19 +398,18 @@ export class Database {
     event: Omit<Event, "id" | "created_at" | "updated_at">
   ): Promise<Event> {
     const result = await this.query(
-      `INSERT INTO events (title, description, date, time, location, club_id, created_by, max_attendees, attendees, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+      `INSERT INTO events (title, description, event_date, event_time, location, club_id, created_by, max_attendees, status) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
       [
         event.title,
         event.description,
-        event.date,
-        event.time,
+        event.event_date,
+        event.event_time,
         event.location,
         event.club_id,
         event.created_by,
         event.max_attendees,
-        event.attendees,
         event.status,
       ]
     );
@@ -346,17 +439,19 @@ export class Database {
     post: Omit<Post, "id" | "created_at" | "updated_at">
   ): Promise<Post> {
     const result = await this.query(
-      `INSERT INTO posts (title, content, author_id, club_id, likes, comments, attachments) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      `INSERT INTO posts (title, content, author_id, club_id, category, image_url, view_count, like_count, is_announcement) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
       [
         post.title,
         post.content,
         post.author_id,
         post.club_id,
-        post.likes,
-        post.comments,
-        post.attachments,
+        post.category || null,
+        post.image_url || null,
+        post.view_count || 0,
+        post.like_count || 0,
+        post.is_announcement || false,
       ]
     );
     return result.rows[0];
@@ -375,15 +470,16 @@ export class Database {
     comment: Omit<Comment, "id" | "created_at" | "updated_at">
   ): Promise<Comment> {
     const result = await this.query(
-      `INSERT INTO comments (content, author_id, post_id, parent_id, likes) 
-       VALUES ($1, $2, $3, $4, $5) 
+      `INSERT INTO comments (post_id, author_id, content, is_edited, edit_deadline, delete_deadline) 
+       VALUES ($1, $2, $3, $4, $5, $6) 
        RETURNING *`,
       [
-        comment.content,
-        comment.author_id,
         comment.post_id,
-        comment.parent_id,
-        comment.likes,
+        comment.author_id,
+        comment.content,
+        comment.is_edited || false,
+        comment.edit_deadline || new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+        comment.delete_deadline || new Date(Date.now() + 3 * 60 * 60 * 1000), // 3 hours from now
       ]
     );
     return result.rows[0];
@@ -433,19 +529,19 @@ export class Database {
     assignment: Omit<Assignment, "id" | "created_at" | "updated_at">
   ): Promise<Assignment> {
     const result = await this.query(
-      `INSERT INTO assignments (title, description, club_id, created_by, due_date, attachments, submissions, max_points, status) 
+      `INSERT INTO assignments (title, description, club_id, assigned_by, due_date, max_points, instructions, status, view_count) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
       [
         assignment.title,
         assignment.description,
         assignment.club_id,
-        assignment.created_by,
+        assignment.assigned_by,
         assignment.due_date,
-        assignment.attachments,
-        assignment.submissions,
-        assignment.max_points,
-        assignment.status,
+        assignment.max_points || 100,
+        assignment.instructions || null,
+        assignment.status || 'active',
+        assignment.view_count || 0,
       ]
     );
     return result.rows[0];
@@ -468,23 +564,25 @@ export class Database {
     notification: Omit<Notification, "id" | "created_at">
   ): Promise<Notification> {
     const result = await this.query(
-      `INSERT INTO notifications (user_id, title, message, type, related_id, read) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
+      `INSERT INTO notifications (user_id, title, message, type, is_read, data, related_id, related_type) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
       [
         notification.user_id,
         notification.title,
         notification.message,
         notification.type,
-        notification.related_id,
-        notification.read,
+        notification.is_read || false,
+        notification.data || {},
+        notification.related_id || null,
+        notification.related_type || null,
       ]
     );
     return result.rows[0];
   }
 
   static async markNotificationAsRead(id: string): Promise<void> {
-    await this.query("UPDATE notifications SET read = true WHERE id = $1", [
+    await this.query("UPDATE notifications SET is_read = true WHERE id = $1", [
       id,
     ]);
   }

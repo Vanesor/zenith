@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { MessageSquare, Eye, Pin, Lock, Clock, User, Edit, Trash2 } from "lucide-react";
+import {
+  MessageSquare,
+  Eye,
+  Pin,
+  Lock,
+  Clock,
+  User,
+  Edit,
+  Trash2,
+} from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,9 +75,13 @@ export default function DiscussionList({
     fetchDiscussions();
   }, [fetchDiscussions]);
 
-  const handleDeleteDiscussion = async (discussionId: string, authorId: string, createdAt: string) => {
+  const handleDeleteDiscussion = async (
+    discussionId: string,
+    authorId: string,
+    createdAt: string
+  ) => {
     if (!user) return;
-    
+
     // Check if user can delete (author within 3 hours or manager)
     const isAuthor = user.id === authorId;
     const isManager = [
@@ -117,7 +130,7 @@ export default function DiscussionList({
 
   const canEditOrDelete = (authorId: string, createdAt: string): boolean => {
     if (!user) return false;
-    
+
     const isAuthor = user.id === authorId;
     const isManager = [
       "coordinator",
@@ -132,14 +145,15 @@ export default function DiscussionList({
     ].includes(user.role);
 
     if (isManager) return true;
-    
+
     if (isAuthor) {
       const created = new Date(createdAt);
       const now = new Date();
-      const diffInHours = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+      const diffInHours =
+        (now.getTime() - created.getTime()) / (1000 * 60 * 60);
       return diffInHours <= 3;
     }
-    
+
     return false;
   };
 
@@ -386,9 +400,12 @@ export default function DiscussionList({
                     {formatDate(discussion.last_activity)}
                   </span>
                 </div>
-                
+
                 {/* Edit/Delete buttons for authors within 3 hours or managers */}
-                {canEditOrDelete(discussion.author_id, discussion.created_at) && (
+                {canEditOrDelete(
+                  discussion.author_id,
+                  discussion.created_at
+                ) && (
                   <div className="flex items-center gap-2 ml-4">
                     <button
                       onClick={(e) => {
@@ -397,7 +414,9 @@ export default function DiscussionList({
                         alert("Edit functionality not implemented yet");
                       }}
                       className={`p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-                        isDarkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-800"
+                        isDarkMode
+                          ? "text-gray-400 hover:text-gray-200"
+                          : "text-gray-600 hover:text-gray-800"
                       }`}
                       title="Edit discussion"
                     >
@@ -406,10 +425,16 @@ export default function DiscussionList({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteDiscussion(discussion.id, discussion.author_id, discussion.created_at);
+                        handleDeleteDiscussion(
+                          discussion.id,
+                          discussion.author_id,
+                          discussion.created_at
+                        );
                       }}
                       className={`p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors ${
-                        isDarkMode ? "text-red-400 hover:text-red-200" : "text-red-600 hover:text-red-800"
+                        isDarkMode
+                          ? "text-red-400 hover:text-red-200"
+                          : "text-red-600 hover:text-red-800"
                       }`}
                       title="Delete discussion"
                     >

@@ -36,15 +36,11 @@ export async function GET(request: NextRequest) {
 
         return {
           ...post,
-          author: author
-            ? {
-                name: author.name,
-                avatar: author.avatar,
-                role: author.role,
-              }
-            : null,
-          commentCount: comments.length,
-          likeCount: post.likes.length,
+          author_name: author?.name || "Unknown",
+          author_avatar: author?.avatar,
+          author_role: author?.role,
+          comment_count: comments.length,
+          like_count: post.likes.length,
         };
       })
     );

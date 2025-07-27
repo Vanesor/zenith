@@ -9,10 +9,10 @@ interface JwtPayload {
 }
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-// POST /api/comments/[id]/like - Like a comment
+// POST /api/comments/[id]/like - Toggle like on comment
 export async function POST(request: NextRequest, { params }: Props) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -33,10 +33,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     );
 
     if (commentCheck.rows.length === 0) {
-      return NextResponse.json(
-        { error: "Comment not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
     }
 
     // Check if user already liked this comment
@@ -45,85 +42,42 @@ export async function POST(request: NextRequest, { params }: Props) {
       [commentId, userId]
     );
 
+    let isLiked = false;
+    let likeCount = 0;
+
     if (existingLike.rows.length > 0) {
-      return NextResponse.json(
-        { error: "Comment already liked" },
-        { status: 400 }
+      // Unlike - remove like
+      await Database.query(
+        "DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2",
+        [commentId, userId]
       );
+    } else {
+      // Like - add like
+      await Database.query(
+        "INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES ($1, $2, NOW())",
+        [commentId, userId]
+      );
+      isLiked = true;
     }
 
-    // Add like
-    await Database.query(
-      "INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2)",
-      [commentId, userId]
-    );
-
     // Get updated like count
-    const likeCount = await Database.query(
+    const likeCountResult = await Database.query(
       "SELECT COUNT(*) as count FROM comment_likes WHERE comment_id = $1",
       [commentId]
     );
+    likeCount = parseInt(likeCountResult.rows[0].count);
 
-    return NextResponse.json({ 
-      message: "Comment liked successfully",
-      likeCount: parseInt(likeCount.rows[0].count)
+    return NextResponse.json({
+      success: true,
+      isLiked,
+      likeCount,
+      message: isLiked ? "Comment liked" : "Comment unliked"
     });
+
   } catch (error) {
-    console.error("Error liking comment:", error);
+    console.error("Error toggling comment like:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/comments/[id]/like - Unlike a comment
-export async function DELETE(request: NextRequest, { params }: Props) {
-  try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
-
-    const { id: commentId } = await params;
-
-    // Check if user has liked this comment
-    const existingLike = await Database.query(
-      "SELECT id FROM comment_likes WHERE comment_id = $1 AND user_id = $2",
-      [commentId, userId]
-    );
-
-    if (existingLike.rows.length === 0) {
-      return NextResponse.json(
-        { error: "Comment not liked by user" },
-        { status: 400 }
-      );
-    }
-
-    // Remove like
-    await Database.query(
-      "DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2",
-      [commentId, userId]
-    );
-
-    // Get updated like count
-    const likeCount = await Database.query(
-      "SELECT COUNT(*) as count FROM comment_likes WHERE comment_id = $1",
-      [commentId]
-    );
-
-    return NextResponse.json({ 
-      message: "Comment unliked successfully",
-      likeCount: parseInt(likeCount.rows[0].count)
-    });
-  } catch (error) {
-    console.error("Error unliking comment:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to toggle like" },
       { status: 500 }
     );
   }

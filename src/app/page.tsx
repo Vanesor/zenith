@@ -367,7 +367,7 @@ export default function HomePage() {
                       {event.club_name}
                     </span>
                     <span className="text-xs bg-white/20 px-2 py-1 rounded">
-                      {new Date(event.date).toLocaleDateString()}
+                      {new Date(event.event_date).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -381,7 +381,7 @@ export default function HomePage() {
                   <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center">
                       <Clock className="w-4 h-4 mr-2" />
-                      {event.time}
+                      {event.event_time}
                     </div>
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-2" />

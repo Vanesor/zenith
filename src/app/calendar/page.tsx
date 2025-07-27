@@ -99,7 +99,7 @@ export default function CalendarPage() {
   });
 
   const upcomingEvents = filteredEvents
-    .filter((event) => new Date(event.date) >= new Date())
+    .filter((event) => new Date(event.event_date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const attendingEvents = events.filter((event) => event.isAttending);
@@ -223,7 +223,7 @@ export default function CalendarPage() {
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {
                     events.filter((event) => {
-                      const eventDate = new Date(event.date);
+                      const eventDate = new Date(event.event_date);
                       const today = new Date();
                       const weekFromNow = new Date(
                         today.getTime() + 7 * 24 * 60 * 60 * 1000
@@ -336,7 +336,7 @@ export default function CalendarPage() {
               <div
                 key={event.id}
                 className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-xl ${
-                  isToday(event.date) ? "border-l-4 border-blue-500" : ""
+                  isToday(event.event_date) ? "border-l-4 border-blue-500" : ""
                 }`}
               >
                 <div className="p-6">
@@ -370,7 +370,7 @@ export default function CalendarPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500 dark:text-gray-500">
                           <div className="flex items-center">
                             <Calendar size={16} className="mr-2" />
-                            {getDateLabel(event.date)}
+                            {getDateLabel(event.event_date)}
                           </div>
                           <div className="flex items-center">
                             <Clock size={16} className="mr-2" />

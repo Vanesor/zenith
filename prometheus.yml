@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "first_rules.yml"
+
+scrape_configs:
+  # Application instances
+  - job_name: 'zenith-apps'
+    static_configs:
+      - targets: ['app1:3000', 'app2:3000', 'app3:3000']
+    metrics_path: '/api/health/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL monitoring
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-master:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Redis monitoring
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-cluster:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Nginx monitoring
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:8080']
+    metrics_path: '/nginx_status'
+    scrape_interval: 30s
+
+  # Node.js process monitoring
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['app1:9100', 'app2:9100', 'app3:9100']
+    scrape_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093

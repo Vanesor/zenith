@@ -28,16 +28,18 @@ export async function GET(
 
         return {
           ...post,
-          author: author ? { name: author.name, avatar: author.avatar } : null,
-          commentCount: comments.length,
-          likeCount: post.likes.length,
+          author_name: author?.name || "Unknown",
+          author_avatar: author?.avatar,
+          author_role: author?.role,
+          comment_count: comments.length,
+          like_count: post.like_count,
         };
       })
     );
 
     // Get upcoming events only
     const upcomingEvents = events.filter(
-      (event) => new Date(event.date) >= new Date()
+      (event) => new Date(event.event_date) >= new Date()
     );
 
     return NextResponse.json({
