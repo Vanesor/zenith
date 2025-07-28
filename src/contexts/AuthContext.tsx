@@ -35,10 +35,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for stored token on mount and validate it
     const validateStoredAuth = async () => {
       if (typeof window !== "undefined") {
+        // First try to get user data from localStorage for an instant UI response
         const storedToken = localStorage.getItem("zenith-token");
         const storedUser = localStorage.getItem("zenith-user");
         const refreshToken = localStorage.getItem("zenith-refresh-token");
+        const sessionCookie = document.cookie.includes('zenith-session=');
+        
+        // If we have local storage data, set it immediately to prevent UI flashing
+        if (storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            setToken(storedToken || 'session-based');
+            setUser(userData);
+            // Keep isLoading true while we verify with server
+          } catch (e) {
+            console.error("Error parsing stored user:", e);
+          }
+        }
 
+        // Then check server-side session (most reliable)
+        if (sessionCookie || storedToken) {
+          try {
+            // Fetch current user from API
+            const response = await fetch("/api/auth/check");
+            if (response.ok) {
+              const data = await response.json();
+              if (data.authenticated && data.user) {
+                setToken(storedToken || 'session-based'); // Use existing token or placeholder
+                setUser(data.user);
+                
+                // Update localStorage to match server state
+                localStorage.setItem("zenith-user", JSON.stringify(data.user));
+                if (!storedToken) {
+                  // If we have a session but no token, store a placeholder
+                  localStorage.setItem("zenith-token", 'session-based');
+                }
+                setIsLoading(false);
+                return; // Exit early since we have valid session
+              }
+            }
+          } catch (e) {
+            console.error("Error checking session:", e);
+          }
+        }
+
+        // Fall back to local storage token if session check fails
         if (storedToken && storedUser) {
           // First, set from localStorage to prevent flash of unauthenticated state
           try {

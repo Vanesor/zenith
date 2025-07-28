@@ -444,26 +444,105 @@ async function executeSQL(sql, description) {
  */
 async function checkCondition(sql) {
   try {
-    const { data, error } = await supabase.from('_sql').select().sql(sql);
+    // Try to run the query via the exec_sql function
+    const { data, error } = await supabase.rpc('exec_sql_with_results', {
+      sql_query: sql
+    });
     
     if (error) {
-      console.error(`Check condition failed: ${error.message}`);
-      return false;
+      // If that fails, try using the REST API
+      try {
+        // Try querying via REST API
+        const queryParams = new URLSearchParams();
+        queryParams.append('q', sql);
+        
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'params=single-object'
+          }
+        });
+        
+        const responseData = await response.json();
+        
+        // Handle different query return types
+        if (sql.includes('EXISTS')) {
+          return responseData && responseData.length > 0 && responseData[0].exists;
+        }
+        
+        if (sql.includes('COUNT')) {
+          return responseData && responseData.length > 0 && responseData[0].count > 0;
+        }
+        
+        return false;
+      } catch (restError) {
+        console.error(`REST API check failed: ${restError.message}`);
+        
+        // Try querying information_schema directly
+        if (sql.includes('table_name = ')) {
+          const tableName = sql.match(/table_name\s*=\s*'([^']+)'/)[1];
+          if (tableName) {
+            const { data: tableData, error: tableError } = await supabase
+              .from('information_schema.tables')
+              .select('table_name')
+              .eq('table_schema', 'public')
+              .eq('table_name', tableName);
+              
+            return !tableError && tableData && tableData.length > 0;
+          }
+        }
+        
+        if (sql.includes('proname = ')) {
+          const functionName = sql.match(/proname\s*=\s*'([^']+)'/)[1];
+          if (functionName) {
+            const { data: functionData, error: functionError } = await supabase
+              .from('pg_proc')
+              .select('proname')
+              .eq('proname', functionName);
+              
+            return !functionError && functionData && functionData.length > 0;
+          }
+        }
+        
+        console.error(`Check condition failed: ${error.message}`);
+        return false;
+      }
     }
     
-    // For EXISTS queries
-    if (data && data.length > 0 && data[0].exists) {
-      return data[0].exists;
+    // Handle standard query results
+    if (sql.includes('EXISTS')) {
+      return data && data.length > 0 && data[0].exists;
     }
     
-    // For COUNT queries
-    if (data && data.length > 0 && data[0].count !== undefined) {
-      return data[0].count > 0;
+    if (sql.includes('COUNT')) {
+      return data && data.length > 0 && data[0].count > 0;
     }
     
     return false;
   } catch (error) {
     console.error(`Error checking condition: ${error.message}`);
+    
+    // Fallback to direct table check for common queries
+    if (sql.includes('table_name = ')) {
+      try {
+        const tableName = sql.match(/table_name\s*=\s*'([^']+)'/)[1];
+        if (tableName) {
+          const { data: tableData, error: tableError } = await supabase
+            .from('information_schema.tables')
+            .select('table_name')
+            .eq('table_schema', 'public')
+            .eq('table_name', tableName);
+            
+          return !tableError && tableData && tableData.length > 0;
+        }
+      } catch (fallbackError) {
+        console.error(`Fallback check failed: ${fallbackError.message}`);
+      }
+    }
+    
     return false;
   }
 }
@@ -476,16 +555,12 @@ async function applyMigrations() {
   console.log('====================================');
 
   try {
-    // Check if exec_sql function exists, if not create it
-    const { data, error } = await supabase.from('pg_proc')
-      .select()
-      .filter('proname', 'eq', 'exec_sql');
+    // First check if we can execute the SQL directly
+    console.log('Checking if we can execute SQL directly...');
     
-    if (error || !data || data.length === 0) {
-      console.log('Creating exec_sql function...');
-      
-      // Create the exec_sql function that allows executing raw SQL
-      await supabase.rpc('exec_sql', {
+    try {
+      // Try creating the exec_sql function using direct SQL
+      const { data: directData, error: directError } = await supabase.rpc('exec_sql', {
         sql_query: `
           CREATE OR REPLACE FUNCTION exec_sql(sql_query TEXT)
           RETURNS VOID AS $$
@@ -494,13 +569,63 @@ async function applyMigrations() {
           END;
           $$ LANGUAGE plpgsql SECURITY DEFINER;
         `
-      }).catch(error => {
-        // If the function doesn't exist, we need to create it differently
-        // This is a catch-22 situation, so we'll need to use the REST API directly
-        console.log('Function does not exist, using alternative method');
-        // This would normally require a direct SQL connection or use of Supabase UI
       });
+      
+      if (!directError) {
+        console.log('✅ exec_sql function created directly');
+      } else {
+        throw new Error('Direct execution failed');
+      }
+    } catch (directError) {
+      // If direct execution fails, use REST API
+      console.log('Direct SQL execution not available. Using REST API to create function...');
+      
+      // Use the REST API to create the function
+      const url = `${SUPABASE_URL}/rest/v1/rpc/exec_sql`;
+      
+      try {
+        console.log('Attempting to access PostgreSQL functions via REST...');
+        
+        // Try to get the function info from pg_proc
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/pg_proc?select=*&proname=eq.exec_sql`, {
+          headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+          }
+        });
+        
+        const pgProcData = await response.json();
+        
+        if (Array.isArray(pgProcData) && pgProcData.length > 0) {
+          console.log('✅ exec_sql function already exists');
+        } else {
+          console.log('🔧 exec_sql function not found. Please create it manually in the Supabase dashboard');
+          console.log('SQL statement to create the function:');
+          console.log(`
+          CREATE OR REPLACE FUNCTION exec_sql(sql_query TEXT)
+          RETURNS VOID AS $$
+          BEGIN
+            EXECUTE sql_query;
+          END;
+          $$ LANGUAGE plpgsql SECURITY DEFINER;`);
+          
+          console.log('\n📋 Instructions:');
+          console.log('1. Go to the Supabase Dashboard for your project');
+          console.log('2. Click on "SQL Editor" or "Database"');
+          console.log('3. Create a new query and paste the SQL above');
+          console.log('4. Execute the query to create the function');
+          console.log('5. Then run this script again');
+          
+          process.exit(1);
+        }
+      } catch (restError) {
+        console.error('❌ Failed to check for exec_sql function:', restError.message);
+        console.log('Please create the exec_sql function manually in the Supabase dashboard and run this script again.');
+        process.exit(1);
+      }
     }
+    
+    // If we got here, the function exists or was created successfully
 
     // Apply each migration step
     for (const step of migrationSteps) {

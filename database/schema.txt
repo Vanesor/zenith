@@ -40,8 +40,8 @@ CREATE TABLE public.assignments (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT assignments_pkey PRIMARY KEY (id),
-  CONSTRAINT assignments_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id),
-  CONSTRAINT assignments_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
+  CONSTRAINT assignments_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
+  CONSTRAINT assignments_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id)
 );
 CREATE TABLE public.chat_messages (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -55,8 +55,17 @@ CREATE TABLE public.chat_messages (
   is_edited boolean DEFAULT false,
   CONSTRAINT chat_messages_pkey PRIMARY KEY (id),
   CONSTRAINT chat_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT chat_messages_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.chat_rooms(id),
-  CONSTRAINT chat_messages_reply_to_message_id_fkey FOREIGN KEY (reply_to_message_id) REFERENCES public.chat_messages(id)
+  CONSTRAINT chat_messages_reply_to_message_id_fkey FOREIGN KEY (reply_to_message_id) REFERENCES public.chat_messages(id),
+  CONSTRAINT chat_messages_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.chat_rooms(id)
+);
+CREATE TABLE public.chat_room_members (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  chat_room_id uuid,
+  user_id uuid,
+  joined_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT chat_room_members_pkey PRIMARY KEY (id),
+  CONSTRAINT chat_room_members_chat_room_id_fkey FOREIGN KEY (chat_room_id) REFERENCES public.chat_rooms(id),
+  CONSTRAINT chat_room_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.chat_rooms (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -69,8 +78,8 @@ CREATE TABLE public.chat_rooms (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT chat_rooms_pkey PRIMARY KEY (id),
-  CONSTRAINT chat_rooms_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
-  CONSTRAINT chat_rooms_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id)
+  CONSTRAINT chat_rooms_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id),
+  CONSTRAINT chat_rooms_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
 );
 CREATE TABLE public.club_members (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -145,8 +154,8 @@ CREATE TABLE public.discussions (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT discussions_pkey PRIMARY KEY (id),
-  CONSTRAINT discussions_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id),
-  CONSTRAINT discussions_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id)
+  CONSTRAINT discussions_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id),
+  CONSTRAINT discussions_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.event_attendees (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -180,6 +189,9 @@ CREATE TABLE public.events (
   max_attendees integer,
   status character varying DEFAULT 'upcoming'::character varying,
   image_url text,
+  type character varying DEFAULT 'meeting'::character varying,
+  is_public boolean DEFAULT false,
+  end_time time without time zone,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT events_pkey PRIMARY KEY (id),
@@ -192,8 +204,8 @@ CREATE TABLE public.likes (
   user_id uuid,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT likes_pkey PRIMARY KEY (id),
-  CONSTRAINT likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT likes_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id)
+  CONSTRAINT likes_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id),
+  CONSTRAINT likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.messages (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -236,9 +248,21 @@ CREATE TABLE public.posts (
   likes_count integer DEFAULT 0,
   comments_count integer DEFAULT 0,
   CONSTRAINT posts_pkey PRIMARY KEY (id),
-  CONSTRAINT posts_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id),
   CONSTRAINT posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id),
-  CONSTRAINT posts_edited_by_fkey FOREIGN KEY (edited_by) REFERENCES public.users(id)
+  CONSTRAINT posts_edited_by_fkey FOREIGN KEY (edited_by) REFERENCES public.users(id),
+  CONSTRAINT posts_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id)
+);
+CREATE TABLE public.sessions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  token character varying NOT NULL UNIQUE,
+  expires_at timestamp with time zone NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  last_active_at timestamp with time zone DEFAULT now(),
+  user_agent text,
+  ip_address character varying,
+  CONSTRAINT sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.user_badges (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),

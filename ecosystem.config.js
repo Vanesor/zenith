@@ -1,6 +1,7 @@
 // PM2 Configuration for production deployment
 module.exports = {
   apps: [
+    // Main application
     {
       name: 'zenith-forum',
       script: 'npm',
@@ -42,6 +43,18 @@ module.exports = {
       // Health check
       health_check_url: 'http://localhost:3000/api/health',
       health_check_grace_period: 3000
+    },
+    // Notification cleanup cron job
+    {
+      name: 'zenith-notification-cleanup',
+      script: 'node',
+      args: './scripts/cleanup-notifications.js',
+      cron_restart: '0 0 * * *', // Run at midnight every day
+      autorestart: false,
+      watch: false,
+      env: {
+        NODE_ENV: 'production'
+      }
     }
   ]
 };

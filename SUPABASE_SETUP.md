@@ -35,9 +35,19 @@ You can find these credentials in your Supabase project dashboard under Project 
 npm install
 ```
 
-### 4. Set up the database schema
+### 4. Set up required SQL functions
 
-Run the Supabase schema setup script:
+First, set up the necessary SQL functions for the schema migration:
+
+```bash
+npm run db:setup:supabase:functions
+```
+
+This script will create the SQL functions needed by the migration script. If it fails, follow the on-screen instructions to create the functions manually using the Supabase SQL Editor.
+
+### 5. Set up the database schema
+
+Once the required functions are in place, run the schema setup script:
 
 ```bash
 npm run db:setup:supabase
@@ -45,7 +55,7 @@ npm run db:setup:supabase
 
 This will create all the necessary tables and functions in your Supabase database.
 
-### 5. Verify the database schema
+### 6. Verify the database schema
 
 To verify that the schema was set up correctly:
 

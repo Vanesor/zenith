@@ -57,35 +57,72 @@ export default function CalendarPage() {
     }
   }, [user, isLoading, router]);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      if (!user) return;
+  const fetchEvents = async () => {
+    if (!user) return;
 
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("zenith-token");
-        const response = await fetch("/api/events", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("zenith-token");
+      const response = await fetch("/api/events", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          setEvents(data);
-        } else {
-          console.error("Failed to fetch events");
-          setEvents([]);
-        }
-      } catch (error) {
-        console.error("Error fetching events:", error);
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data);
+      } else {
+        console.error("Failed to fetch events");
         setEvents([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Join or leave an event
+  const toggleEventAttendance = async (eventId: string, isAttending: boolean) => {
+    try {
+      const token = localStorage.getItem("zenith-token");
+      const url = `/api/events/${eventId}/join`;
+      const method = isAttending ? "DELETE" : "POST";
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (response.ok) {
+        // Update local state to reflect the change
+        setEvents(events.map(event => 
+          event.id === eventId 
+            ? { 
+                ...event, 
+                isAttending: !isAttending,
+                // If joining, increment attendees, if leaving, decrement
+                attendees: isAttending ? event.attendees - 1 : event.attendees + 1
+              } 
+            : event
+        ));
+      } else {
+        const error = await response.json();
+        console.error("Failed to update event attendance:", error);
+        alert(error.error || "Failed to update event attendance");
+      }
+    } catch (error) {
+      console.error("Error updating event attendance:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchEvents();
   }, [user]);
 
@@ -220,10 +257,16 @@ export default function CalendarPage() {
               )}
             </p>
           </div>
-          <button className="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Plus size={16} className="mr-2" />
-            Create Event
-          </button>
+          {/* Only show create button for managers */}
+          {user && ["coordinator", "co_coordinator", "secretary", "president", "vice_president"].includes(user.role) && (
+            <button 
+              onClick={() => router.push('/calendar/create')}
+              className="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={16} className="mr-2" />
+              Create Event
+            </button>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -465,15 +508,15 @@ export default function CalendarPage() {
                       </button>
                       {event.isAttending ? (
                         <button 
-                          onClick={() => handleLeaveEvent(event.id)}
+                          onClick={() => toggleEventAttendance(event.id, true)}
                           className="px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
                         >
                           Leave Event
                         </button>
                       ) : (
                         <button 
-                          onClick={() => handleJoinEvent(event.id)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          onClick={() => toggleEventAttendance(event.id, false)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
                           disabled={event.maxAttendees ? (event.attendees >= event.maxAttendees) : false}
                         >
                           {event.maxAttendees && event.attendees >= event.maxAttendees 

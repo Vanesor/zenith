@@ -12,9 +12,17 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 
 // Create type-safe client
 export const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+) as TypedSupabaseClient;
+
+// Create admin client for direct use
+export const supabaseAdmin = process.env.SUPABASE_SERVICE_KEY ? 
+  createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_KEY || ''
+  ) as TypedSupabaseClient : 
+  null;
 
 /**
  * Create an admin client using the service key
@@ -26,16 +34,16 @@ export function createAdminClient(): TypedSupabaseClient {
   }
   
   return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  );
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_KEY || ''
+  ) as TypedSupabaseClient;
 }
 
 /**
  * Get user profile data from Supabase
  * @param {string} userId - The user ID to fetch profile for
  */
-export async function getUserProfile(userId) {
+export async function getUserProfile(userId: string) {
   const { data, error } = await supabase
     .from('users')
     .select('*')
@@ -51,7 +59,7 @@ export async function getUserProfile(userId) {
  * @param {string} userId - User ID to update
  * @param {object} updates - Object containing profile fields to update
  */
-export async function updateUserProfile(userId, updates) {
+export async function updateUserProfile(userId: string, updates: Partial<Database['public']['Tables']['users']['Update']>) {
   const { data, error } = await supabase
     .from('users')
     .update(updates)
@@ -67,7 +75,7 @@ export async function updateUserProfile(userId, updates) {
  * @param {string} path - Path within the bucket
  * @param {File} file - File object to upload
  */
-export async function uploadFile(bucket, path, file) {
+export async function uploadFile(bucket: string, path: string, file: File) {
   const { data, error } = await supabase.storage
     .from(bucket)
     .upload(path, file, {
@@ -84,7 +92,7 @@ export async function uploadFile(bucket, path, file) {
  * @param {string} bucket - Storage bucket name
  * @param {string} path - Path to the file within the bucket
  */
-export function getPublicUrl(bucket, path) {
+export function getPublicUrl(bucket: string, path: string): string {
   const { data } = supabase.storage
     .from(bucket)
     .getPublicUrl(path);

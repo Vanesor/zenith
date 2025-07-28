@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { createAdminClient } from './supabase';
 
 export interface UserSession {
   userId: string;
@@ -29,7 +30,7 @@ export class SessionManager {
       isActive: true
     };
     
-    // Store session
+    // Store session in memory cache
     this.activeSessions.set(sessionId, session);
     
     // Track user sessions
@@ -37,6 +38,25 @@ export class SessionManager {
       this.userSessions.set(userId, new Set());
     }
     this.userSessions.get(userId)!.add(sessionId);
+    
+    // Store session in database for persistence
+    try {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+      
+      const supabase = createAdminClient();
+      await supabase.from('sessions').insert({
+        id: sessionId,
+        user_id: userId,
+        token: sessionId,
+        expires_at: expiresAt.toISOString(),
+        user_agent: deviceInfo,
+        ip_address: ipAddress,
+        last_active_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to persist session to database:', error);
+    }
     
     // Clean up old sessions for this user (keep max 5 active sessions)
     await this.cleanupUserSessions(userId, 5);
@@ -46,7 +66,54 @@ export class SessionManager {
   
   // Validate and refresh session
   static async validateSession(sessionId: string): Promise<UserSession | null> {
-    const session = this.activeSessions.get(sessionId);
+    let session = this.activeSessions.get(sessionId);
+    
+    // If not in memory cache, try to get from database
+    if (!session) {
+      try {
+        const supabase = createAdminClient();
+        const { data, error } = await supabase
+          .from('sessions')
+          .select('*')
+          .eq('token', sessionId)
+          .single();
+          
+        if (error || !data) {
+          return null;
+        }
+        
+        // Check if session has expired
+        if (new Date(data.expires_at) < new Date()) {
+          // Delete expired session from database
+          await supabase.from('sessions').delete().eq('token', sessionId);
+          return null;
+        }
+        
+        // Create session object from database record
+        session = {
+          userId: data.user_id,
+          sessionId: data.id,
+          lastActivity: new Date(data.last_active_at),
+          deviceInfo: data.user_agent || 'Unknown',
+          ipAddress: data.ip_address || 'Unknown',
+          isActive: true
+        };
+        
+        // Add to memory cache
+        this.activeSessions.set(sessionId, session);
+        
+        // Track user sessions
+        if (!this.userSessions.has(data.user_id)) {
+          this.userSessions.set(data.user_id, new Set());
+        }
+        this.userSessions.get(data.user_id)!.add(sessionId);
+      } catch (error) {
+        console.error('Failed to fetch session from database:', error);
+        return null;
+      }
+    }
+    
+    // At this point, session should exist in memory if it's valid
     if (!session || !session.isActive) {
       return null;
     }
@@ -58,8 +125,20 @@ export class SessionManager {
       return null;
     }
     
-    // Update last activity
+    // Update last activity in memory
     session.lastActivity = new Date();
+    
+    // Update last activity in database
+    try {
+      const supabase = createAdminClient();
+      await supabase
+        .from('sessions')
+        .update({ last_active_at: new Date().toISOString() })
+        .eq('token', sessionId);
+    } catch (error) {
+      console.error('Failed to update session activity in database:', error);
+    }
+    
     return session;
   }
   
@@ -67,7 +146,7 @@ export class SessionManager {
   static async destroySession(sessionId: string): Promise<void> {
     const session = this.activeSessions.get(sessionId);
     if (session) {
-      // Remove from user sessions tracking
+      // Remove from user sessions tracking in memory
       const userSessions = this.userSessions.get(session.userId);
       if (userSessions) {
         userSessions.delete(sessionId);
@@ -77,7 +156,16 @@ export class SessionManager {
       }
     }
     
+    // Remove from memory cache
     this.activeSessions.delete(sessionId);
+    
+    // Remove from database
+    try {
+      const supabase = createAdminClient();
+      await supabase.from('sessions').delete().eq('token', sessionId);
+    } catch (error) {
+      console.error('Failed to delete session from database:', error);
+    }
   }
   
   // Get all active sessions for a user

@@ -156,4 +156,77 @@ export class NotificationService {
 
     await this.createBulkNotifications(notifications);
   }
+
+  static async notifyChatRoomCreated(
+    roomId: string,
+    roomName: string,
+    creatorId: string,
+    roomType: 'public' | 'private' | 'club',
+    memberIds: string[],
+    clubId?: string
+  ): Promise<void> {
+    const filteredMembers = memberIds.filter(id => id !== creatorId);
+    let title: string;
+    let message: string;
+
+    switch(roomType) {
+      case 'public':
+        title = 'New Public Chat Room';
+        message = `A new public chat room "${roomName}" is now available`;
+        break;
+      case 'private':
+        title = 'Added to Private Chat';
+        message = `You were added to a private chat room "${roomName}"`;
+        break;
+      case 'club':
+        title = 'New Club Chat Room';
+        message = `A new chat room "${roomName}" was created for your club`;
+        break;
+    }
+
+    // Notify members
+    if (filteredMembers.length > 0) {
+      const notifications = filteredMembers.map((memberId) => ({
+        user_id: memberId,
+        title: title,
+        message: message,
+        type: "system" as const,
+        related_id: roomId,
+      }));
+      
+      await this.createBulkNotifications(notifications);
+    }
+    
+    // Notify creator
+    await this.createNotification({
+      user_id: creatorId,
+      title: 'Chat Room Created',
+      message: `You successfully created the chat room "${roomName}"`,
+      type: 'system',
+      related_id: roomId,
+    });
+  }
+  
+  /**
+   * Delete old notifications (older than 1 month)
+   */
+  static async deleteOldNotifications(): Promise<number> {
+    try {
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      
+      const result = await Database.query(
+        `DELETE FROM notifications 
+         WHERE created_at < $1
+         RETURNING id`,
+        [oneMonthAgo.toISOString()]
+      );
+      
+      console.log(`Deleted ${result.rowCount} old notifications`);
+      return result.rowCount || 0;
+    } catch (error) {
+      console.error('Error deleting old notifications:', error);
+      return 0;
+    }
+  }
 }

@@ -677,7 +677,7 @@ export class SupabaseHelpers {
     
     // Get member counts for each club
     const clubsWithStats = await Promise.all(
-      clubs.map(async (club) => {
+      clubs.map(async (club: Club) => {
         const { count: memberCount } = await client
           .from('users')
           .select('*', { count: 'exact', head: true })

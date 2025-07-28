@@ -26,15 +26,44 @@ interface Notification {
 }
 
 export function NavigationHeader() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [heartbeatCount, setHeartbeatCount] = useState(0);
 
-  // Fetch notifications when component loads
+  // Periodic heartbeat to keep session alive and verify auth status
+  useEffect(() => {
+    const heartbeat = setInterval(() => {
+      setHeartbeatCount(prev => prev + 1);
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(heartbeat);
+  }, []);
+  
+  // Re-check auth status periodically
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/check");
+        if (!response.ok) {
+          console.log("Auth check failed, session may be expired");
+          // Don't logout automatically - let the AuthContext handle it
+        }
+      } catch (error) {
+        console.error("Auth heartbeat error:", error);
+      }
+    };
+    
+    if (isAuthenticated && !isLoading) {
+      checkAuth();
+    }
+  }, [heartbeatCount, isAuthenticated, isLoading]);
+
+  // Fetch notifications when component loads or auth status changes
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!user) return;
@@ -66,6 +95,36 @@ export function NavigationHeader() {
     router.push("/");
   };
 
+  // Show loading placeholder if we're still checking auth
+  if (isLoading) {
+    return (
+      <header className="fixed top-0 inset-x-0 z-50">
+        <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex">
+                <ZenithLogo size="md" />
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div className="animate-pulse h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </header>
+    );
+  }
+  
+  // Don't show navigation for unauthenticated users
+  if (!user && !isAuthenticated) {
+    return null;
+  }
+  
+  // Ensure user is defined for TypeScript - this shouldn't happen based on our checks above
+  // but this keeps TypeScript happy
   if (!user) {
     return null;
   }
@@ -95,9 +154,10 @@ export function NavigationHeader() {
   ];
 
   return (
-    <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="fixed top-0 inset-x-0 z-50">
+      <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/dashboard">
             <ZenithLogo size="md" />
@@ -282,5 +342,6 @@ export function NavigationHeader() {
         </div>
       </div>
     </nav>
+    </header>
   );
 }
