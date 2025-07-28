@@ -19,6 +19,7 @@ interface Event {
   title: string;
   description: string;
   date: string;
+  event_date: string; // Server returns this format
   startTime: string;
   endTime?: string;
   location: string;
@@ -103,6 +104,58 @@ export default function CalendarPage() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const attendingEvents = events.filter((event) => event.isAttending);
+
+  const handleJoinEvent = async (eventId: string) => {
+    try {
+      const token = localStorage.getItem("zenith-token");
+      const response = await fetch(`/api/events/${eventId}/join`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        // Update the local event state to show the user is attending
+        setEvents(events.map(event => 
+          event.id === eventId 
+            ? { ...event, isAttending: true, attendees: event.attendees + 1 } 
+            : event
+        ));
+      } else {
+        console.error("Failed to join event");
+      }
+    } catch (error) {
+      console.error("Error joining event:", error);
+    }
+  };
+
+  const handleLeaveEvent = async (eventId: string) => {
+    try {
+      const token = localStorage.getItem("zenith-token");
+      const response = await fetch(`/api/events/${eventId}/join`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        // Update the local event state to show the user is no longer attending
+        setEvents(events.map(event => 
+          event.id === eventId 
+            ? { ...event, isAttending: false, attendees: Math.max(0, event.attendees - 1) } 
+            : event
+        ));
+      } else {
+        console.error("Failed to leave event");
+      }
+    } catch (error) {
+      console.error("Error leaving event:", error);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -411,12 +464,22 @@ export default function CalendarPage() {
                         View Details
                       </button>
                       {event.isAttending ? (
-                        <button className="px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors">
+                        <button 
+                          onClick={() => handleLeaveEvent(event.id)}
+                          className="px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
+                        >
                           Leave Event
                         </button>
                       ) : (
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                          Join Event
+                        <button 
+                          onClick={() => handleJoinEvent(event.id)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          disabled={event.maxAttendees ? (event.attendees >= event.maxAttendees) : false}
+                        >
+                          {event.maxAttendees && event.attendees >= event.maxAttendees 
+                            ? 'Event Full' 
+                            : 'Join Event'
+                          }
                         </button>
                       )}
                     </div>

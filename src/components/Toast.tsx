@@ -52,18 +52,19 @@ export function ToastItem({ toast, onClose }: ToastProps) {
 
   return (
     <div
-      className={`max-w-sm w-full border rounded-lg shadow-lg p-4 ${getStyles()} animate-in slide-in-from-right-full`}
+      className={`w-full border rounded-lg shadow-xl p-4 ${getStyles()} animate-in slide-in-from-right-full duration-300 backdrop-blur-sm pointer-events-auto`}
+      style={{ maxWidth: '400px' }}
     >
-      <div className="flex items-start">
-        <div className="flex-shrink-0">{getIcon()}</div>
-        <div className="ml-3 w-0 flex-1">
-          <p className="text-sm font-medium">{title}</p>
-          {message && <p className="mt-1 text-sm opacity-90">{message}</p>}
+      <div className="flex items-start space-x-3">
+        <div className="flex-shrink-0 mt-0.5">{getIcon()}</div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold leading-5 mb-1">{title}</p>
+          {message && <p className="text-sm opacity-90 leading-5">{message}</p>}
         </div>
-        <div className="ml-4 flex-shrink-0 flex">
+        <div className="flex-shrink-0">
           <button
             onClick={() => onClose(id)}
-            className="inline-flex text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -80,7 +81,7 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed top-10 right-6 z-[9999] space-y-4 max-w-md pointer-events-none">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onClose={onClose} />
       ))}

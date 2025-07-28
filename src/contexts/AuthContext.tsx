@@ -37,8 +37,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (typeof window !== "undefined") {
         const storedToken = localStorage.getItem("zenith-token");
         const storedUser = localStorage.getItem("zenith-user");
+        const refreshToken = localStorage.getItem("zenith-refresh-token");
 
         if (storedToken && storedUser) {
+          // First, set from localStorage to prevent flash of unauthenticated state
+          try {
+            const userData = JSON.parse(storedUser);
+            setToken(storedToken);
+            setUser(userData);
+          } catch (e) {
+            console.error("Error parsing stored user:", e);
+          }
+          
+          // Then validate with server
           try {
             // Validate token with server
             const response = await fetch("/api/auth/validate", {
@@ -52,30 +63,125 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (response.ok) {
               const validationData = await response.json();
               if (validationData.valid) {
-                const userData = JSON.parse(storedUser);
-                setToken(storedToken);
-                setUser(userData);
+                // Token is valid, keep the current state
+                console.log("Token validated successfully");
+              } else if (refreshToken) {
+                // Try to refresh the token
+                try {
+                  const refreshResponse = await fetch("/api/auth/refresh", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ refreshToken }),
+                  });
+                  
+                  if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    setToken(refreshData.accessToken);
+                    
+                    // Update localStorage
+                    localStorage.setItem("zenith-token", refreshData.accessToken);
+                    if (refreshData.refreshToken) {
+                      localStorage.setItem("zenith-refresh-token", refreshData.refreshToken);
+                    }
+                    
+                    console.log("Token refreshed successfully");
+                  } else {
+                    // Refresh failed, clear auth state
+                    console.error("Token refresh failed");
+                    setToken(null);
+                    setUser(null);
+                    localStorage.removeItem("zenith-token");
+                    localStorage.removeItem("zenith-refresh-token");
+                    localStorage.removeItem("zenith-user");
+                  }
+                } catch (refreshError) {
+                  console.error("Error refreshing token:", refreshError);
+                  setToken(null);
+                  setUser(null);
+                  localStorage.removeItem("zenith-token");
+                  localStorage.removeItem("zenith-refresh-token");
+                  localStorage.removeItem("zenith-user");
+                }
               } else {
-                // Token invalid, clear storage
+                // Token invalid and no refresh token, clear storage
+                console.error("Token invalid and no refresh token");
+                setToken(null);
+                setUser(null);
                 localStorage.removeItem("zenith-token");
                 localStorage.removeItem("zenith-user");
               }
             } else {
-              // Server validation failed, clear storage
-              localStorage.removeItem("zenith-token");
-              localStorage.removeItem("zenith-user");
+              // Server validation failed, try refresh if available
+              if (refreshToken) {
+                try {
+                  const refreshResponse = await fetch("/api/auth/refresh", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ refreshToken }),
+                  });
+                  
+                  if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    setToken(refreshData.accessToken);
+                    
+                    // Update localStorage
+                    localStorage.setItem("zenith-token", refreshData.accessToken);
+                    if (refreshData.refreshToken) {
+                      localStorage.setItem("zenith-refresh-token", refreshData.refreshToken);
+                    }
+                    
+                    console.log("Token refreshed successfully after validation failure");
+                  } else {
+                    // Refresh failed, clear auth state
+                    console.error("Token refresh failed after validation failure");
+                    setToken(null);
+                    setUser(null);
+                    localStorage.removeItem("zenith-token");
+                    localStorage.removeItem("zenith-refresh-token");
+                    localStorage.removeItem("zenith-user");
+                  }
+                } catch (refreshError) {
+                  console.error("Error refreshing token after validation failure:", refreshError);
+                  setToken(null);
+                  setUser(null);
+                  localStorage.removeItem("zenith-token");
+                  localStorage.removeItem("zenith-refresh-token");
+                  localStorage.removeItem("zenith-user");
+                }
+              } else {
+                // No refresh token available, clear storage
+                console.error("Validation failed and no refresh token");
+                setToken(null);
+                setUser(null);
+                localStorage.removeItem("zenith-token");
+                localStorage.removeItem("zenith-user");
+              }
             }
           } catch (error) {
             console.error("Error validating stored auth:", error);
-            localStorage.removeItem("zenith-token");
-            localStorage.removeItem("zenith-user");
+            // On network errors, keep the current state to allow offline usage
           }
+        } else {
+          console.log("No stored token or user found");
         }
       }
       setIsLoading(false);
     };
 
     validateStoredAuth();
+    
+    // Set up periodic validation
+    const interval = setInterval(() => {
+      if (token) {
+        validateStoredAuth();
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
+    return () => clearInterval(interval);
   }, []);
 
   const login = (newToken: string, userData: User) => {

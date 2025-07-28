@@ -28,20 +28,41 @@ export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const tokenManager = TokenManager.getInstance();
 
-  // Load user from localStorage on mount
+  // Load user from localStorage on mount and validate token
   useEffect(() => {
-    const loadUser = () => {
+    const loadUser = async () => {
       try {
         const storedUser = localStorage.getItem('zenith-user');
         const accessToken = tokenManager.getAccessToken();
         
         if (storedUser && accessToken) {
+          // Always parse the user first so we have it available
           const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
+          
+          // Check if token is expired
+          if (tokenManager.isTokenExpired(accessToken)) {
+            console.log('Token expired, attempting refresh');
+            // Try to refresh the token
+            try {
+              await tokenManager.refreshAccessToken();
+              setUser(parsedUser);
+              console.log('Token refresh successful');
+            } catch (error) {
+              console.error('Token refresh failed on mount:', error);
+              tokenManager.clearTokens();
+              setUser(null);
+            }
+          } else {
+            console.log('Token valid, setting user');
+            setUser(parsedUser);
+          }
+        } else {
+          console.log('No stored user or token found');
         }
       } catch (error) {
         console.error('Error loading user from localStorage:', error);
         tokenManager.clearTokens();
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -49,6 +70,35 @@ export const useAuth = (): UseAuthReturn => {
 
     loadUser();
   }, []);
+
+  // Set up periodic token validation
+  useEffect(() => {
+    if (!user) return;
+
+    const validateToken = async () => {
+      try {
+        const accessToken = tokenManager.getAccessToken();
+        if (!accessToken) {
+          setUser(null);
+          return;
+        }
+
+        // If token is expired, try to refresh it
+        if (tokenManager.isTokenExpired(accessToken)) {
+          await tokenManager.refreshAccessToken();
+        }
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        tokenManager.clearTokens();
+        setUser(null);
+      }
+    };
+
+    // Check token every 5 minutes
+    const interval = setInterval(validateToken, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [user, tokenManager]);
 
   const login = useCallback(async (credentials: { email: string; password: string }): Promise<boolean> => {
     setIsLoading(true);

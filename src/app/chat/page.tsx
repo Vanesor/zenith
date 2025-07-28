@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare, Users, Hash, Plus, X } from "lucide-react";
+import { MessageSquare, Users, Hash, Plus, X, MoreVertical, Edit3, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import WhatsAppChat from "@/components/WhatsAppChat";
@@ -35,6 +35,21 @@ export default function ChatPage() {
     description: "",
     type: "club" as "public" | "private" | "club",
   });
+
+  // Room management state
+  const [showRoomMenu, setShowRoomMenu] = useState<string | null>(null);
+  const [showRenameModal, setShowRenameModal] = useState<ChatRoom | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<ChatRoom | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  
+  // Debug state changes
+  useEffect(() => {
+    console.log('showRenameModal changed:', showRenameModal);
+  }, [showRenameModal]);
+  
+  useEffect(() => {
+    console.log('showDeleteModal changed:', showDeleteModal);
+  }, [showDeleteModal]);
 
   const isManager =
     user &&
@@ -95,12 +110,53 @@ export default function ChatPage() {
     fetchChatRooms();
   }, [user, showToast]);
 
+  // Close room menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Only close if clicking outside the menu
+      if (showRoomMenu) {
+        // Check if the click target is a descendant of any menu element
+        const menuElements = document.querySelectorAll('.room-menu-container');
+        let clickedInsideMenu = false;
+        
+        menuElements.forEach(menu => {
+          if (menu.contains(event.target as Node)) {
+            clickedInsideMenu = true;
+          }
+        });
+        
+        if (!clickedInsideMenu) {
+          setShowRoomMenu(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRoomMenu]);
+
   const handleCreateRoom = async () => {
     if (!newRoom.name.trim()) {
       showToast({
         type: "error",
         title: "Invalid Input",
         message: "Room name is required",
+      });
+      return;
+    }
+
+    // Check for duplicate room names
+    const duplicateRoom = rooms.find(
+      (room) => room.name.toLowerCase() === newRoom.name.trim().toLowerCase()
+    );
+    
+    if (duplicateRoom) {
+      showToast({
+        type: "error",
+        title: "Duplicate Name",
+        message: "A room with this name already exists",
       });
       return;
     }
@@ -135,6 +191,135 @@ export default function ChatPage() {
       showToast({
         type: "error",
         title: "Create Failed",
+        message: "An unexpected error occurred",
+      });
+    }
+  };
+
+  const handleRenameRoom = async () => {
+    console.log('handleRenameRoom called, showRenameModal:', showRenameModal);
+    
+    if (!showRenameModal || !renameValue.trim()) {
+      console.log('Validation failed: showRenameModal or renameValue is empty');
+      showToast({
+        type: "error",
+        title: "Invalid Input",
+        message: "Room name is required",
+      });
+      return;
+    }
+    
+    // Prevent the rename value from being the same as the current name
+    if (showRenameModal.name === renameValue.trim()) {
+      console.log('Name unchanged, closing modal');
+      setShowRenameModal(null);
+      setRenameValue("");
+      return;
+    }
+
+    // Check for duplicate names
+    const duplicateRoom = rooms.find(
+      (room) => room.id !== showRenameModal.id && 
+      room.name.toLowerCase() === renameValue.trim().toLowerCase()
+    );
+    
+    if (duplicateRoom) {
+      showToast({
+        type: "error",
+        title: "Duplicate Name",
+        message: "A room with this name already exists",
+      });
+      return;
+    }
+
+    try {
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch(`/api/chat/rooms/${showRenameModal.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name: renameValue.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRooms((prev) => 
+          prev.map((room) => 
+            room.id === showRenameModal.id 
+              ? { ...room, name: renameValue.trim() }
+              : room
+          )
+        );
+        
+        // Update selected room if it's the one being renamed
+        if (selectedRoom?.id === showRenameModal.id) {
+          setSelectedRoom({ ...selectedRoom, name: renameValue.trim() });
+        }
+        
+        setShowRenameModal(null);
+        setRenameValue("");
+        showToast({
+          type: "success",
+          title: "Room Renamed",
+          message: "Room name updated successfully",
+        });
+      } else {
+        const errorData = await response.json();
+        showToast({
+          type: "error",
+          title: "Rename Failed",
+          message: errorData.error || "Failed to rename room",
+        });
+      }
+    } catch (error) {
+      console.error("Error renaming room:", error);
+      showToast({
+        type: "error",
+        title: "Rename Failed",  
+        message: "An unexpected error occurred",
+      });
+    }
+  };
+
+  const handleDeleteRoom = async () => {
+    console.log('handleDeleteRoom called, showDeleteModal:', showDeleteModal);
+    
+    if (!showDeleteModal) {
+      console.log('No room to delete, showDeleteModal is null');
+      return;
+    }
+
+    try {
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch(`/api/chat/rooms/${showDeleteModal.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setRooms((prev) => prev.filter((room) => room.id !== showDeleteModal.id));
+        
+        // Clear selected room if it's the one being deleted
+        if (selectedRoom?.id === showDeleteModal.id) {
+          setSelectedRoom(null);
+        }
+        
+        setShowDeleteModal(null);
+        showToast({
+          type: "success",
+          title: "Room Deleted",
+          message: "Room deleted successfully",
+        });
+      } else {
+        const errorData = await response.json();
+        showToast({
+          type: "error",
+          title: "Delete Failed",
+          message: errorData.error || "Failed to delete room",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting room:", error);
+      showToast({
+        type: "error",
+        title: "Delete Failed",
         message: "An unexpected error occurred",
       });
     }
@@ -196,12 +381,12 @@ export default function ChatPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-[calc(100vh-8rem)] overflow-hidden">
           {/* Sidebar - Room List */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 max-h-full overflow-hidden">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-full flex flex-col">
               {/* Search and Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                     Rooms
@@ -226,24 +411,33 @@ export default function ChatPage() {
               </div>
 
               {/* Room List */}
-              <div className="flex-1 overflow-y-auto">
+              <div 
+                className="flex-1 overflow-y-auto max-h-[calc(100vh-15rem)]" 
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(156, 163, 175, 0.5) transparent'
+                }}
+              >
                 {filteredRooms.length === 0 ? (
                   <div className="p-6 text-center text-gray-500 dark:text-gray-400">
                     <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No chat rooms available</p>
                   </div>
                 ) : (
-                  filteredRooms.map((room) => (
-                    <button
+                  <div className="pb-2">
+                    {filteredRooms.map((room) => (
+                    <div
                       key={room.id}
-                      onClick={() => setSelectedRoom(room)}
-                      className={`w-full p-4 text-left border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
+                      className={`relative border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
                         selectedRoom?.id === room.id
                           ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600"
                           : ""
                       }`}
                     >
-                      <div className="flex items-start space-x-3">
+                      <button
+                        onClick={() => setSelectedRoom(room)}
+                        className="w-full p-4 text-left flex items-start space-x-3"
+                      >
                         <div className={`mt-1 ${getRoomTypeColor(room.type)}`}>
                           {getRoomIcon(room.type)}
                         </div>
@@ -265,9 +459,58 @@ export default function ChatPage() {
                             </span>
                           </div>
                         </div>
-                      </div>
-                    </button>
-                  ))
+                      </button>
+                      
+                      {/* Three dots menu for managers */}
+                      {isManager && room.created_by === user?.id && (
+                        <div className="absolute top-2 right-2 room-menu-container">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('Menu button clicked for room:', room.id);
+                              setShowRoomMenu(showRoomMenu === room.id ? null : room.id);
+                            }}
+                            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors room-menu-button"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          
+                          {/* Dropdown menu */}
+                          {showRoomMenu === room.id && (
+                            <div className="absolute right-0 top-10 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10 min-w-[120px] room-menu-dropdown">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log('Rename clicked for room:', room);
+                                  setShowRenameModal(room);
+                                  setRenameValue(room.name);
+                                  setShowRoomMenu(null);
+                                }}
+                                className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                                <span>Rename</span>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log('Delete clicked for room:', room);
+                                  setShowDeleteModal(room);
+                                  setShowRoomMenu(null);
+                                }}
+                                className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Delete</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  </div>
                 )}
               </div>
             </div>
@@ -358,6 +601,129 @@ export default function ChatPage() {
                 </button>
                 <button
                   onClick={() => setShowCreateRoom(false)}
+                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Room Modal */}
+      {showRenameModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={(e) => {
+            // Only close if clicking the backdrop
+            if (e.target === e.currentTarget) {
+              console.log('Closing rename modal by backdrop click');
+              setShowRenameModal(null);
+              setRenameValue("");
+            }
+          }}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Rename Room
+              </h3>
+              <button
+                onClick={() => {
+                  setShowRenameModal(null);
+                  setRenameValue("");
+                }}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="New room name"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                autoFocus
+              />
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    console.log('Rename button clicked');
+                    handleRenameRoom();
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Rename
+                </button>
+                <button
+                  onClick={() => {
+                    setShowRenameModal(null);
+                    setRenameValue("");
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Room Modal */}
+      {showDeleteModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={(e) => {
+            // Only close if clicking the backdrop
+            if (e.target === e.currentTarget) {
+              console.log('Closing delete modal by backdrop click');
+              setShowDeleteModal(null);
+            }
+          }}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Delete Room
+              </h3>
+              <button
+                onClick={() => setShowDeleteModal(null)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-gray-600 dark:text-gray-300">
+                Are you sure you want to delete the room "{showDeleteModal.name}"? 
+                This action cannot be undone and all messages will be lost.
+              </p>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    console.log('Delete button clicked');
+                    handleDeleteRoom();
+                  }}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(null)}
                   className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
                 >
                   Cancel

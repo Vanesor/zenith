@@ -87,6 +87,23 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userResult.rows[0];
+    
+    // Check for duplicate room names within the same club
+    const duplicateQuery = `
+      SELECT id FROM chat_rooms 
+      WHERE LOWER(name) = LOWER($1) AND club_id = $2
+    `;
+    const duplicateResult = await Database.query(duplicateQuery, [
+      name.trim(),
+      user.club_id,
+    ]);
+
+    if (duplicateResult.rows.length > 0) {
+      return NextResponse.json(
+        { error: "A room with this name already exists in your club" },
+        { status: 409 }
+      );
+    }
     const isManager = [
       "coordinator",
       "co_coordinator", 

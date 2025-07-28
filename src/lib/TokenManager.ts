@@ -4,12 +4,38 @@
 class TokenManager {
   private static instance: TokenManager;
   private refreshPromise: Promise<string> | null = null;
+  private tokenRefreshInterval: NodeJS.Timeout | null = null;
 
   public static getInstance(): TokenManager {
     if (!TokenManager.instance) {
       TokenManager.instance = new TokenManager();
     }
     return TokenManager.instance;
+  }
+  
+  constructor() {
+    // Start periodic token refresh when TokenManager is instantiated
+    if (typeof window !== 'undefined') {
+      this.setupTokenRefresh();
+    }
+  }
+  
+  private setupTokenRefresh() {
+    // Clear any existing interval
+    if (this.tokenRefreshInterval) {
+      clearInterval(this.tokenRefreshInterval);
+    }
+    
+    // Check and refresh token every 10 minutes
+    this.tokenRefreshInterval = setInterval(() => {
+      const token = this.getAccessToken();
+      if (token && this.isTokenExpired(token)) {
+        console.log('Token expired during interval check, refreshing...');
+        this.refreshAccessToken().catch(error => {
+          console.error('Scheduled token refresh failed:', error);
+        });
+      }
+    }, 10 * 60 * 1000); // 10 minutes
   }
 
   /**
@@ -50,14 +76,17 @@ class TokenManager {
   }
 
   /**
-   * Check if token is expired (decode JWT and check exp)
+   * Check if token is expired or will expire soon (decode JWT and check exp)
+   * Returns true if token is within 5 minutes of expiring to allow for refresh ahead of time
    */
   isTokenExpired(token: string): boolean {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp < currentTime;
-    } catch {
+      // Return true if token will expire within 5 minutes
+      return payload.exp < (currentTime + 300); // 300 seconds = 5 minutes
+    } catch (error) {
+      console.error('Error checking token expiration:', error);
       return true;
     }
   }
@@ -85,26 +114,44 @@ class TokenManager {
     const refreshToken = this.getRefreshToken();
     
     if (!refreshToken) {
+      console.error('No refresh token available');
       throw new Error('No refresh token available');
     }
 
-    const response = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refreshToken }),
-    });
+    console.log('Attempting to refresh token...');
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        console.error('Token refresh failed with status:', response.status);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        this.clearTokens();
+        throw new Error(`Failed to refresh token: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Token refresh successful');
+      
+      // Store both the new access token and refresh token if provided
+      if (data.refreshToken) {
+        this.setTokens(data.accessToken, data.refreshToken);
+      } else {
+        this.setTokens(data.accessToken);
+      }
+      
+      return data.accessToken;
+    } catch (error) {
+      console.error('Token refresh error:', error);
       this.clearTokens();
-      throw new Error('Failed to refresh token');
+      throw error;
     }
-
-    const data = await response.json();
-    this.setTokens(data.accessToken);
-    
-    return data.accessToken;
   }
 
   /**
@@ -139,15 +186,53 @@ class TokenManager {
         ...options.headers,
       };
 
-      return fetch(url, {
+      // Make the API request
+      const response = await fetch(url, {
         ...options,
         headers,
       });
+      
+      // Handle 401 Unauthorized errors specifically
+      if (response.status === 401) {
+        console.log('Received 401 response, attempting token refresh...');
+        
+        // Try to refresh the token
+        try {
+          const newToken = await this.refreshAccessToken();
+          
+          // If refresh successful, retry the request with the new token
+          const newHeaders = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${newToken}`,
+            ...options.headers,
+          };
+          
+          return fetch(url, {
+            ...options,
+            headers: newHeaders,
+          });
+        } catch (refreshError) {
+          console.error('Token refresh after 401 failed:', refreshError);
+          this.clearTokens();
+          
+          // Only redirect to login if we're in the browser and this isn't a login-related request
+          if (typeof window !== 'undefined' && !url.includes('/api/auth/')) {
+            window.location.href = '/login';
+          }
+          throw refreshError;
+        }
+      }
+      
+      return response;
     } catch (error) {
       // If token refresh fails, redirect to login
       console.error('Authentication failed:', error);
       this.clearTokens();
-      window.location.href = '/login';
+      
+      // Only redirect to login if we're in the browser and this isn't a login-related request
+      if (typeof window !== 'undefined' && !url.includes('/api/auth/')) {
+        window.location.href = '/login';
+      }
       throw error;
     }
   }
