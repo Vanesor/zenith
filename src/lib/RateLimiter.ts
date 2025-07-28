@@ -166,7 +166,7 @@ export class RateLimiter {
   static createAuthLimiter(): RateLimiter {
     return new RateLimiter({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      maxRequests: 5, // Only 5 login attempts per 15 minutes
+      maxRequests: 500, // Only 5 login attempts per 15 minutes
       message: 'Too many authentication attempts, please try again later.'
     });
   }

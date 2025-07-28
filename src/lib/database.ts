@@ -1,20 +1,17 @@
 // Database connection and schema
 import { Pool } from "pg";
+import { supabase, supabaseAdmin } from './supabase';
 
-// Database connection pool with high-scale production settings
+// Load environment variables
+require('dotenv').config({ path: '.env.local' });
+
+// Supabase connection pool - using the connection pooler URL for direct PostgreSQL access
 const pool = new Pool({
-  user: process.env.DB_USER || "postgres",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "zenith",
-  password: process.env.DB_PASSWORD || "1234",
-  port: parseInt(process.env.DB_PORT || "5432"),
-  max: parseInt(process.env.DB_POOL_MAX || "50"), // Increased for high scale
-  min: parseInt(process.env.DB_POOL_MIN || "10"), // Minimum connections
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // Required for Supabase
+  max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000, // Increased timeout
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  // Additional performance settings
-  allowExitOnIdle: false, // Keep pool alive
+  connectionTimeoutMillis: 10000,
 });
 
 // Connection health monitoring
@@ -585,6 +582,122 @@ export class Database {
     await this.query("UPDATE notifications SET is_read = true WHERE id = $1", [
       id,
     ]);
+  }
+}
+
+// Supabase helper methods using the JavaScript client
+export class SupabaseHelpers {
+  // Get stats using Supabase client
+  static async getHomeStats() {
+    try {
+      // Use the supabase client with anon key for basic operations
+      const client = supabaseAdmin || supabase;
+      
+      const [usersCount, postsCount, eventsCount, clubsCount] = await Promise.all([
+        client.from('users').select('*', { count: 'exact', head: true }),
+        client.from('posts').select('*', { count: 'exact', head: true }),
+        client.from('events').select('*', { count: 'exact', head: true }),
+        client.from('clubs').select('*', { count: 'exact', head: true })
+      ]);
+
+      return {
+        totalUsers: usersCount.count || 0,
+        totalPosts: postsCount.count || 0,
+        totalEvents: eventsCount.count || 0,
+        totalClubs: clubsCount.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching stats with Supabase:', error);
+      throw error;
+    }
+  }
+
+  // Get all users
+  static async getAllUsers() {
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+
+  // Get all posts with club and author information
+  static async getAllPosts(limit?: number) {
+    const client = supabaseAdmin || supabase;
+    let query = client
+      .from('posts')
+      .select(`
+        *,
+        clubs:clubs(name, color),
+        users:users(name)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  // Get upcoming events with club information
+  static async getUpcomingEvents(limit: number = 6) {
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client
+      .from('events')
+      .select(`
+        *,
+        clubs:clubs(name, color),
+        users:users(name)
+      `)
+      .gte('event_date', new Date().toISOString().split('T')[0])
+      .order('event_date', { ascending: true })
+      .limit(limit);
+    
+    if (error) throw error;
+    return data;
+  }
+
+  // Get all clubs with member counts
+  static async getClubsWithStats() {
+    const client = supabaseAdmin || supabase;
+    
+    // Get clubs
+    const { data: clubs, error: clubsError } = await client
+      .from('clubs')
+      .select('*')
+      .order('name', { ascending: true });
+    
+    if (clubsError) throw clubsError;
+    
+    // Get member counts for each club
+    const clubsWithStats = await Promise.all(
+      clubs.map(async (club) => {
+        const { count: memberCount } = await client
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('club_id', club.id);
+          
+        const { count: eventCount } = await client
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('club_id', club.id)
+          .gte('event_date', new Date().toISOString().split('T')[0]);
+        
+        return {
+          ...club,
+          member_count: memberCount || 0,
+          upcoming_events: eventCount || 0
+        };
+      })
+    );
+    
+    return clubsWithStats;
   }
 }
 
