@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         e.location,
         e.max_attendees as "maxAttendees",
         e.status,
-        e.registration_required as "registrationRequired",
+        COALESCE(e.is_public, FALSE) as "isPublic",
         c.name as club,
         c.color as "clubColor",
         u.name as organizer,

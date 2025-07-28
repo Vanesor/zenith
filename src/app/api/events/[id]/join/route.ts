@@ -11,9 +11,12 @@ interface JwtPayload {
 // POST /api/events/[id]/join - Join an event
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
+    // In Next.js 13+, params needs to be accessed from context
+    const { id } = context.params;
+    
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,7 +26,7 @@ export async function POST(
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     const userId = decoded.userId;
 
-    const eventId = params.id;
+    const eventId = id;
 
     // Check if the event exists
     const eventQuery = `
@@ -105,9 +108,12 @@ export async function POST(
 // DELETE /api/events/[id]/join - Leave an event
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
+    // In Next.js 13+, params needs to be accessed from context
+    const { id } = context.params;
+    
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -117,7 +123,7 @@ export async function DELETE(
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     const userId = decoded.userId;
 
-    const eventId = params.id;
+    const eventId = id;
 
     // Check if the event exists
     const eventQuery = "SELECT * FROM events WHERE id = $1";

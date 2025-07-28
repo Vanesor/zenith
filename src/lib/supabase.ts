@@ -1,21 +1,93 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
+import { TypedSupabaseClient, Database } from './supabase-types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Check environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing environment variable NEXT_PUBLIC_SUPABASE_URL');
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  throw new Error('Missing environment variable NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
 
-// For server-side operations, you might want to use the service role key
-// Make sure to add SUPABASE_SERVICE_ROLE_KEY to your .env.local file
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+// Create type-safe client
+export const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
-export const supabaseAdmin = supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : null
+/**
+ * Create an admin client using the service key
+ * Only use server-side in API routes or server components
+ */
+export function createAdminClient(): TypedSupabaseClient {
+  if (!process.env.SUPABASE_SERVICE_KEY) {
+    throw new Error('Missing environment variable SUPABASE_SERVICE_KEY');
+  }
+  
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_KEY
+  );
+}
 
-export default supabase
+/**
+ * Get user profile data from Supabase
+ * @param {string} userId - The user ID to fetch profile for
+ */
+export async function getUserProfile(userId) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update user profile in Supabase
+ * @param {string} userId - User ID to update
+ * @param {object} updates - Object containing profile fields to update
+ */
+export async function updateUserProfile(userId, updates) {
+  const { data, error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('id', userId);
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Upload a file to Supabase storage
+ * @param {string} bucket - Storage bucket name
+ * @param {string} path - Path within the bucket
+ * @param {File} file - File object to upload
+ */
+export async function uploadFile(bucket, path, file) {
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(path, file, {
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Get a public URL for a file in Supabase storage
+ * @param {string} bucket - Storage bucket name
+ * @param {string} path - Path to the file within the bucket
+ */
+export function getPublicUrl(bucket, path) {
+  const { data } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(path);
+  
+  return data.publicUrl;
+}

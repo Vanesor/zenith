@@ -29,16 +29,25 @@ export async function verifyAuth(request: NextRequest): Promise<{
     const token = authHeader?.replace("Bearer ", "");
 
     if (!token) {
+      console.log("Auth failed: No token provided");
       return { success: false, error: "No token provided" };
     }
 
-    // Verify JWT token
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      userId: string;
-      email: string;
-      role: string;
-      sessionId: string;
-    };
+    console.log(`Verifying auth token: ${token.substring(0, 10)}...`);
+    // Production verification logic
+    let decoded;
+    try {
+      // Verify JWT token
+      decoded = jwt.verify(token, JWT_SECRET) as {
+        userId: string;
+        email: string;
+        role: string;
+        sessionId: string;
+      };
+    } catch (tokenError) {
+      console.error("Token verification failed:", tokenError);
+      return { success: false, error: "Invalid token" };
+    }
 
     // Validate session
     const session = await SessionManager.validateSession(decoded.sessionId);

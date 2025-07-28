@@ -10,6 +10,7 @@ A modern, cross-platform forum application built for college communities. This p
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first CSS framework
 - **ESLint** - Code linting and formatting
+- **Supabase** - Backend-as-a-Service database and authentication
 
 ### Mobile Application
 
@@ -30,17 +31,22 @@ zenith/
 ├── src/                    # Next.js web application
 │   ├── app/               # App Router pages
 │   ├── components/        # React components
+│   ├── lib/               # Helper libraries
+│   │   ├── supabase.js    # Supabase client and helpers
 │   └── ...
+├── scripts/               # Utility scripts
+│   ├── setup-supabase-schema.js  # Supabase setup script
+│   ├── verify-supabase-schema.js # Schema verification
 ├── mobile/                # React Native setup and project
-│   ├── setup-ubuntu.sh   # Ubuntu setup script
-│   ├── setup-windows.md  # Windows setup guide
+│   ├── setup-ubuntu.sh    # Ubuntu setup script
+│   ├── setup-windows.md   # Windows setup guide
 │   └── ForumClubMobile/   # React Native project (created after setup)
 ├── shared/                # Shared code between web and mobile
-│   ├── types.ts          # TypeScript type definitions
-│   ├── utils.ts          # Utility functions
-│   └── api.ts            # API client
-└── .github/
-    └── copilot-instructions.md
+│   ├── types.ts           # TypeScript type definitions
+│   ├── utils.ts           # Utility functions
+│   └── api.ts             # API client
+├── env.local.example      # Example environment variables
+└── SUPABASE_SETUP.md      # Detailed Supabase setup instructions
 ```
 
 ## 🛠️ Setup Instructions
@@ -48,7 +54,43 @@ zenith/
 ### Prerequisites
 
 - Node.js 18+ and npm
+- Supabase account (free tier available)
 - For mobile development: Android Studio (Windows/Ubuntu) or Xcode (macOS)
+
+### Database Setup with Supabase
+
+1. **Create a Supabase Project:**
+   - Sign up for a free Supabase account at [https://supabase.com](https://supabase.com)
+   - Create a new project from the dashboard
+   - Note your project URL and API keys
+
+2. **Configure Environment Variables:**
+   - Copy the example env file:
+     ```bash
+     cp env.local.example .env.local
+     ```
+   - Update the `.env.local` file with your Supabase credentials:
+     ```
+     NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+     SUPABASE_SERVICE_KEY=your-service-key
+     ```
+
+3. **Set Up the Database Schema:**
+   - Run the schema setup script:
+     ```bash
+     npm run db:setup:supabase
+     ```
+   - This will create all required tables and functions in your Supabase project
+
+4. **Verify the Setup:**
+   - Run the verification script:
+     ```bash
+     npm run db:verify:supabase
+     ```
+   - Check that all required tables and columns are present
+
+For more detailed Supabase setup instructions, refer to [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
 
 ### Web Application Setup
 

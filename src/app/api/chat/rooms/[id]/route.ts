@@ -11,9 +11,11 @@ interface JwtPayload {
 // PUT /api/chat/rooms/[id] - Update room name (managers only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  console.log('PUT /api/chat/rooms/[id] called with ID:', params.id);
+  // In Next.js 13+, params needs to be accessed from context
+  const { id } = context.params;
+  console.log('PUT /api/chat/rooms/[id] called with ID:', id);
   try {
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -40,7 +42,7 @@ export async function PUT(
       JOIN users u ON u.id = $1
       WHERE cr.id = $2
     `;
-    const roomResult = await Database.query(roomQuery, [userId, params.id]);
+    const roomResult = await Database.query(roomQuery, [userId, id]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
@@ -77,7 +79,7 @@ export async function PUT(
     const duplicateResult = await Database.query(duplicateQuery, [
       name.trim(),
       user.club_id,
-      params.id,
+      id,
     ]);
 
     if (duplicateResult.rows.length > 0) {
@@ -95,7 +97,7 @@ export async function PUT(
       RETURNING *
     `;
 
-    const result = await Database.query(updateQuery, [name.trim(), params.id]);
+    const result = await Database.query(updateQuery, [name.trim(), id]);
 
     return NextResponse.json({
       message: "Room renamed successfully",
@@ -113,9 +115,11 @@ export async function PUT(
 // DELETE /api/chat/rooms/[id] - Delete room (managers only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  console.log('DELETE /api/chat/rooms/[id] called with ID:', params.id);
+  // In Next.js 13+, params needs to be accessed from context
+  const { id } = context.params;
+  console.log('DELETE /api/chat/rooms/[id] called with ID:', id);
   try {
     const authHeader = request.headers.get("authorization"); 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -133,7 +137,7 @@ export async function DELETE(
       JOIN users u ON u.id = $1
       WHERE cr.id = $2
     `;
-    const roomResult = await Database.query(roomQuery, [userId, params.id]);
+    const roomResult = await Database.query(roomQuery, [userId, id]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
@@ -164,14 +168,14 @@ export async function DELETE(
 
     // Delete associated messages first (if chat_messages table exists)
     try {
-      await Database.query("DELETE FROM chat_messages WHERE room_id = $1", [params.id]);
+      await Database.query("DELETE FROM chat_messages WHERE room_id = $1", [id]);
     } catch (error) {
       console.log("No chat_messages table or no messages to delete");
     }
 
     // Delete the room
     const deleteQuery = "DELETE FROM chat_rooms WHERE id = $1";
-    await Database.query(deleteQuery, [params.id]);
+    await Database.query(deleteQuery, [id]);
 
     return NextResponse.json({
       message: "Room deleted successfully",
