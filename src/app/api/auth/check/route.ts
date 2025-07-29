@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 // Import the JS version of getCurrentUser which should be compatible
-import { getCurrentUser as getUser } from '@/lib/auth.js';
+import { getCurrentUser as getUser } from '@/lib/auth';
 
 // Re-export with TypeScript types
 async function getCurrentUser() {

@@ -23,6 +23,8 @@ export async function verifyAuth(request: NextRequest): Promise<{
     sessionId: string;
   };
   error?: string;
+  expired?: boolean;
+  expiredAt?: Date;
 }> {
   try {
     const authHeader = request.headers.get("authorization");
@@ -46,6 +48,17 @@ export async function verifyAuth(request: NextRequest): Promise<{
       };
     } catch (tokenError) {
       console.error("Token verification failed:", tokenError);
+      
+      // Specific handling for expired tokens
+      if (tokenError instanceof jwt.TokenExpiredError) {
+        return { 
+          success: false, 
+          error: "Token expired", 
+          expired: true,
+          expiredAt: tokenError.expiredAt 
+        };
+      }
+      
       return { success: false, error: "Invalid token" };
     }
 

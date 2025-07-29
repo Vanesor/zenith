@@ -103,12 +103,42 @@ export async function POST(request: NextRequest) {
     const userId = decoded.userId;
 
     const body = await request.json();
-    const { title, description, clubId, dueDate, maxPoints, instructions } =
-      body;
+    const { 
+      title, 
+      description, 
+      clubId, 
+      dueDate, 
+      maxPoints, 
+      instructions,
+      assignmentType,
+      targetAudience,
+      targetClubs,
+      timeLimit,
+      allowNavigation,
+      passingScore,
+      isProctored,
+      shuffleQuestions
+    } = body;
 
-    if (!title || !description || !clubId || !dueDate) {
+    if (!title || !description || !dueDate) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+    
+    // If target audience is club, require clubId
+    if (targetAudience === 'club' && !clubId) {
+      return NextResponse.json(
+        { error: "Club ID is required for club-specific assignments" },
+        { status: 400 }
+      );
+    }
+    
+    // If target audience is specific clubs, require targetClubs
+    if (targetAudience === 'specific_clubs' && (!targetClubs || !targetClubs.length)) {
+      return NextResponse.json(
+        { error: "Target clubs are required for specific clubs assignments" },
         { status: 400 }
       );
     }
@@ -157,17 +187,30 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await Database.query(
-      `INSERT INTO assignments (title, description, club_id, created_by, due_date, max_points, instructions)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO assignments (
+        title, description, club_id, created_by, due_date, max_points, instructions,
+        assignment_type, target_audience, target_clubs, time_limit,
+        allow_navigation, passing_score, is_proctored, shuffle_questions
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING *`,
       [
         title,
         description,
-        actualClubId,
+        // Use clubId from request if targetAudience is specified, otherwise use user's club
+        targetAudience ? (targetAudience === 'club' ? clubId : null) : actualClubId,
         userId,
         dueDate,
         maxPoints || 100,
         instructions || "",
+        assignmentType || "regular",
+        targetAudience || "club",
+        targetClubs || [],
+        timeLimit || null,
+        allowNavigation !== undefined ? allowNavigation : true,
+        passingScore || 60,
+        isProctored !== undefined ? isProctored : false,
+        shuffleQuestions !== undefined ? shuffleQuestions : false
       ]
     );
 

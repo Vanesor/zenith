@@ -1,6 +1,9 @@
 // Database connection and schema
 import { Pool } from "pg";
-import { supabase, supabaseAdmin } from './supabase';
+import { supabase, createAdminClient } from './supabase';
+
+// Create admin client
+const supabaseAdmin = createAdminClient();
 
 // Load environment variables
 require('dotenv').config({ path: '.env.local' });

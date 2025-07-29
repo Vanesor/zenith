@@ -16,29 +16,70 @@ interface Props {
 export async function GET(request: NextRequest, { params }: Props) {
   try {
     const { id } = await params;
+    const authHeader = request.headers.get("authorization");
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const userId = decoded.userId;
 
     const query = `
       SELECT 
-        e.*,
-        u.name as organizer_name,
-        c.name as club_name,
-        c.color as club_color,
-        COUNT(er.user_id) as attendee_count
+        e.id,
+        e.title,
+        e.description,
+        e.event_date,
+        e.event_time as "startTime",
+        e.location,
+        e.club_id as "clubId",
+        e.created_by as "createdBy",
+        e.max_attendees as "maxAttendees",
+        e.status,
+        e.image_url as "imageUrl",
+        c.name as "clubName",
+        c.color as "clubColor",
+        u.name as "organizer",
+        COALESCE(attendee_count.count, 0) as "attendeeCount",
+        CASE WHEN user_attending.user_id IS NOT NULL THEN true ELSE false END as "isAttending"
       FROM events e
-      LEFT JOIN users u ON e.organizer_id = u.id
-      LEFT JOIN clubs c ON e.club_id = c.id
-      LEFT JOIN event_registrations er ON e.id = er.event_id
-      WHERE e.id = $1
-      GROUP BY e.id, u.name, c.name, c.color
+      JOIN clubs c ON e.club_id = c.id
+      JOIN users u ON e.created_by = u.id
+      LEFT JOIN (
+        SELECT event_id, COUNT(*) as count
+        FROM event_attendees
+        GROUP BY event_id
+      ) attendee_count ON e.id = attendee_count.event_id
+      LEFT JOIN event_attendees user_attending ON e.id = user_attending.event_id AND user_attending.user_id = $1
+      WHERE e.id = $2
     `;
 
-    const result = await Database.query(query, [id]);
+    const result = await Database.query(query, [userId, id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
-
-    return NextResponse.json(result.rows[0]);
+    
+    // Get the attendees for the event
+    const attendeesResult = await Database.query(
+      `SELECT 
+        u.id, 
+        u.name, 
+        u.profile_image as "profileImage",
+        u.role
+      FROM event_attendees ea
+      JOIN users u ON ea.user_id = u.id
+      WHERE ea.event_id = $1
+      ORDER BY u.name`,
+      [id]
+    );
+    
+    const event = result.rows[0];
+    event.attendees = attendeesResult.rows;
+    
+    return NextResponse.json(event);
   } catch (error) {
     console.error("Error fetching event:", error);
     return NextResponse.json(
@@ -61,63 +102,126 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const userId = decoded.userId;
 
     const { id } = await params;
-    const { title, description, date, time, location, max_attendees } =
-      await request.json();
-
-    // Get current event
-    const currentEvent = await Database.query(
-      "SELECT organizer_id, created_at FROM events WHERE id = $1",
+    
+    // Check if user has permission to update events
+    const userResult = await Database.query(
+      `SELECT role, club_id FROM users WHERE id = $1`,
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    
+    const userRole = userResult.rows[0].role;
+    const userClubId = userResult.rows[0].club_id;
+    
+    const allowedRoles = ["coordinator", "co_coordinator", "secretary", "president", "vice_president", "admin"];
+    
+    if (!allowedRoles.includes(userRole)) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+    }
+    
+    // Check if the event exists and belongs to the user's club
+    const eventCheck = await Database.query(
+      `SELECT * FROM events WHERE id = $1`,
       [id]
     );
-
-    if (currentEvent.rows.length === 0) {
+    
+    if (eventCheck.rows.length === 0) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
-
-    const event = currentEvent.rows[0];
-
-    // Check if user is organizer or manager
-    const user = await Database.getUserById(userId);
-    const isOrganizer = event.organizer_id === userId;
-    const isManager =
-      user &&
-      [
-        "coordinator",
-        "co_coordinator",
-        "secretary",
-        "media",
-        "president",
-        "vice_president",
-        "innovation_head",
-        "treasurer",
-        "outreach",
-      ].includes(user.role);
-
-    if (!isOrganizer && !isManager) {
+    
+    const event = eventCheck.rows[0];
+    
+    // For admin role, they can update any club's events
+    if (userRole !== "admin" && event.club_id !== userClubId) {
       return NextResponse.json(
-        { error: "You don't have permission to edit this event" },
+        { error: "You can only update events for your club" },
         { status: 403 }
       );
     }
-
-    const query = `
-      UPDATE events 
-      SET title = $1, description = $2, date = $3, time = $4, location = $5, max_attendees = $6, updated_at = NOW()
-      WHERE id = $7
-      RETURNING *
-    `;
-
-    const result = await Database.query(query, [
+    
+    const body = await request.json();
+    const {
       title,
       description,
       date,
-      time,
+      startTime,
       location,
-      max_attendees,
-      id,
-    ]);
+      maxAttendees,
+      status,
+      imageUrl
+    } = body;
+    
+    // Validate required fields
+    if (!title || !date || !startTime || !location) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(result.rows[0]);
+    // Update the event
+    const result = await Database.query(
+      `UPDATE events SET
+        title = $1,
+        description = $2,
+        event_date = $3,
+        event_time = $4,
+        location = $5,
+        max_attendees = $6,
+        status = $7,
+        image_url = $8,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $9 RETURNING id`,
+      [
+        title,
+        description,
+        date,
+        startTime,
+        location,
+        maxAttendees || null,
+        status || event.status,
+        imageUrl || event.image_url,
+        id
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Failed to update event" },
+        { status: 500 }
+      );
+    }
+    
+    // Create a notification for event attendees about the update
+    await Database.query(
+      `INSERT INTO notifications (
+        user_id,
+        title,
+        message,
+        type,
+        data
+      )
+      SELECT 
+        ea.user_id, 
+        $1 as title, 
+        $2 as message, 
+        'event_update' as type,
+        jsonb_build_object('eventId', $3, 'clubId', $4) as data
+      FROM event_attendees ea
+      WHERE ea.event_id = $3 AND ea.user_id != $5`,
+      [
+        `Event updated`,
+        `The event "${title}" has been updated`,
+        id,
+        event.club_id,
+        userId
+      ]
+    );
+    
+    return NextResponse.json({ id, success: true }, { status: 200 });
   } catch (error) {
     console.error("Error updating event:", error);
     return NextResponse.json(
@@ -127,7 +231,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
   }
 }
 
-// DELETE /api/events/[id] - Delete event (only by organizer within 3 hours or managers)
+// DELETE /api/events/[id] - Delete event
 export async function DELETE(request: NextRequest, { params }: Props) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -140,68 +244,85 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const userId = decoded.userId;
 
     const { id } = await params;
-
-    // Get current event
-    const currentEvent = await Database.query(
-      "SELECT organizer_id, created_at FROM events WHERE id = $1",
+    
+    // Check if user has permission to delete events
+    const userResult = await Database.query(
+      `SELECT role, club_id FROM users WHERE id = $1`,
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    
+    const userRole = userResult.rows[0].role;
+    const userClubId = userResult.rows[0].club_id;
+    
+    const allowedRoles = ["coordinator", "co_coordinator", "secretary", "president", "vice_president", "admin"];
+    
+    if (!allowedRoles.includes(userRole)) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+    }
+    
+    // Check if the event exists and belongs to the user's club
+    const eventCheck = await Database.query(
+      `SELECT * FROM events WHERE id = $1`,
       [id]
     );
-
-    if (currentEvent.rows.length === 0) {
+    
+    if (eventCheck.rows.length === 0) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
-
-    const event = currentEvent.rows[0];
-
-    // Check if user is organizer or manager
-    const user = await Database.getUserById(userId);
-    const isOrganizer = event.organizer_id === userId;
-    const isManager =
-      user &&
-      [
-        "coordinator",
-        "co_coordinator",
-        "secretary",
-        "media",
-        "president",
-        "vice_president",
-        "innovation_head",
-        "treasurer",
-        "outreach",
-      ].includes(user.role);
-
-    if (!isOrganizer && !isManager) {
+    
+    const event = eventCheck.rows[0];
+    
+    // For admin role, they can delete any club's events
+    if (userRole !== "admin" && event.club_id !== userClubId) {
       return NextResponse.json(
-        { error: "You don't have permission to delete this event" },
+        { error: "You can only delete events for your club" },
         { status: 403 }
       );
     }
-
-    // Check if within 3 hours for regular users (managers can delete anytime)
-    if (!isManager) {
-      const createdAt = new Date(event.created_at);
-      const now = new Date();
-      const diffInHours =
-        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-
-      if (diffInHours > 3) {
-        return NextResponse.json(
-          { error: "You can only delete events within 3 hours of creation" },
-          { status: 403 }
-        );
-      }
-    }
-
-    // Delete related data first (foreign key constraints)
+    
+    // Create a notification for event attendees about the cancellation
     await Database.query(
-      "DELETE FROM event_registrations WHERE event_id = $1",
+      `INSERT INTO notifications (
+        user_id,
+        title,
+        message,
+        type,
+        data
+      )
+      SELECT 
+        ea.user_id, 
+        $1 as title, 
+        $2 as message, 
+        'event_cancelled' as type,
+        jsonb_build_object('eventId', $3, 'clubId', $4) as data
+      FROM event_attendees ea
+      WHERE ea.event_id = $3 AND ea.user_id != $5`,
+      [
+        `Event cancelled`,
+        `The event "${event.title}" has been cancelled`,
+        id,
+        event.club_id,
+        userId
+      ]
+    );
+    
+    // First, delete all attendees
+    await Database.query(
+      `DELETE FROM event_attendees WHERE event_id = $1`,
       [id]
     );
-
-    // Delete the event
-    await Database.query("DELETE FROM events WHERE id = $1", [id]);
-
-    return NextResponse.json({ message: "Event deleted successfully" });
+    
+    // Then, delete the event
+    await Database.query(
+      `DELETE FROM events WHERE id = $1`,
+      [id]
+    );
+    
+    return NextResponse.json({ success: true, message: "Event deleted successfully" });
   } catch (error) {
     console.error("Error deleting event:", error);
     return NextResponse.json(

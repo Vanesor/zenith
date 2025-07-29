@@ -283,6 +283,17 @@ export default function AssignmentsPage() {
                   {filterOption.label}
                 </button>
               ))}
+              
+              {/* Add Create Assignment button for users with permissions */}
+              {user && ['admin', 'coordinator', 'co_coordinator', 'secretary', 'president', 
+                'vice_president', 'instructor', 'teacher', 'staff', 'management'].includes(user.role) && (
+                <button
+                  onClick={() => router.push('/assignments/create')}
+                  className="px-4 py-2 rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 transition-colors ml-2"
+                >
+                  Create Assignment
+                </button>
+              )}
             </div>
           </div>
         </div>

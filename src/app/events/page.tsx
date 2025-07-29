@@ -38,6 +38,9 @@ interface EventItem {
   bgColor: string;
   borderColor: string;
   status: string;
+  // Adding missing properties from the database
+  event_date?: string;
+  event_time?: string;
   price: string;
 }
 
@@ -86,7 +89,9 @@ export default function EventsPage() {
           clubColor: getClubColor(event.club),
           bgColor: getBgColor(event.club),
           borderColor: getBorderColor(event.club),
-          time: event.startTime || event.event_time,
+          time: event.startTime || (event as any).event_time, // Type assertion to handle potential mismatch
+          event_date: (event as any).event_date, // Add event_date from database
+          event_time: (event as any).event_time, // Add event_time from database
           tags: event.tags || [],
           image: event.image || "/images/default-event.jpg",
           price: event.price || "Free",
@@ -183,7 +188,8 @@ export default function EventsPage() {
     return matchesSearch && matchesClub && matchesCategory;
   });
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Date not specified";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       weekday: "long",
@@ -367,7 +373,7 @@ export default function EventsPage() {
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Clock className="w-4 h-4 mr-2" />
-                      {event.event_time}
+                      {event.event_time || event.time || "Time not specified"}
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <MapPin className="w-4 h-4 mr-2" />

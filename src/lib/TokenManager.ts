@@ -216,8 +216,8 @@ class TokenManager {
           this.clearTokens();
           
           // Only redirect to login if we're in the browser and this isn't a login-related request
-          if (typeof window !== 'undefined' && !url.includes('/api/auth/')) {
-            window.location.href = '/login';
+          if (typeof window !== 'undefined' && !url.includes('/api/auth/') && !window.location.pathname.includes('/login')) {
+            window.location.href = '/login?expired=true';
           }
           throw refreshError;
         }
@@ -230,8 +230,8 @@ class TokenManager {
       this.clearTokens();
       
       // Only redirect to login if we're in the browser and this isn't a login-related request
-      if (typeof window !== 'undefined' && !url.includes('/api/auth/')) {
-        window.location.href = '/login';
+      if (typeof window !== 'undefined' && !url.includes('/api/auth/') && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login?expired=true';
       }
       throw error;
     }

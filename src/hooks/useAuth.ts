@@ -1,6 +1,7 @@
 // React hook for authentication and token management
 import { useState, useEffect, useCallback } from 'react';
 import TokenManager from '../lib/TokenManager';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -27,6 +28,7 @@ export const useAuth = (): UseAuthReturn => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const tokenManager = TokenManager.getInstance();
+  const router = useRouter();
 
   // Load user from localStorage on mount and validate token
   useEffect(() => {
@@ -51,6 +53,10 @@ export const useAuth = (): UseAuthReturn => {
               console.error('Token refresh failed on mount:', error);
               tokenManager.clearTokens();
               setUser(null);
+              // Redirect to login if token refresh fails during initialization
+              if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+                router.push('/login');
+              }
             }
           } else {
             console.log('Token valid, setting user');
@@ -63,13 +69,17 @@ export const useAuth = (): UseAuthReturn => {
         console.error('Error loading user from localStorage:', error);
         tokenManager.clearTokens();
         setUser(null);
+        // Redirect to login if there's an error during user loading
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+          router.push('/login');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUser();
-  }, []);
+  }, [router]);
 
   // Set up periodic token validation
   useEffect(() => {
@@ -80,17 +90,32 @@ export const useAuth = (): UseAuthReturn => {
         const accessToken = tokenManager.getAccessToken();
         if (!accessToken) {
           setUser(null);
+          if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+            router.push('/login');
+          }
           return;
         }
 
         // If token is expired, try to refresh it
         if (tokenManager.isTokenExpired(accessToken)) {
-          await tokenManager.refreshAccessToken();
+          try {
+            await tokenManager.refreshAccessToken();
+          } catch (error) {
+            console.error('Token refresh failed during validation:', error);
+            tokenManager.clearTokens();
+            setUser(null);
+            if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+              router.push('/login');
+            }
+          }
         }
       } catch (error) {
         console.error('Token validation failed:', error);
         tokenManager.clearTokens();
         setUser(null);
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+          router.push('/login');
+        }
       }
     };
 
@@ -98,7 +123,7 @@ export const useAuth = (): UseAuthReturn => {
     const interval = setInterval(validateToken, 5 * 60 * 1000);
     
     return () => clearInterval(interval);
-  }, [user, tokenManager]);
+  }, [user, tokenManager, router]);
 
   const login = useCallback(async (credentials: { email: string; password: string }): Promise<boolean> => {
     setIsLoading(true);
@@ -135,8 +160,8 @@ export const useAuth = (): UseAuthReturn => {
   const logout = useCallback(() => {
     tokenManager.clearTokens();
     setUser(null);
-    window.location.href = '/login';
-  }, []);
+    router.push('/login');
+  }, [router]);
 
   const refreshToken = useCallback(async (): Promise<boolean> => {
     try {
@@ -144,6 +169,7 @@ export const useAuth = (): UseAuthReturn => {
       return true;
     } catch (error) {
       console.error('Token refresh failed:', error);
+      // Call logout to clear tokens and redirect
       logout();
       return false;
     }

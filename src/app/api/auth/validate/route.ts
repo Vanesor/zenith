@@ -6,6 +6,19 @@ export async function GET(request: NextRequest) {
     const authResult = await verifyAuth(request);
     
     if (!authResult.success) {
+      // Special handling for expired tokens
+      if (authResult.expired) {
+        return NextResponse.json(
+          { 
+            error: "Token expired", 
+            expired: true,
+            expiredAt: authResult.expiredAt,
+            requiresLogin: true 
+          },
+          { status: 401 }
+        );
+      }
+      
       return NextResponse.json(
         { error: authResult.error || "Authentication failed" },
         { status: 401 }

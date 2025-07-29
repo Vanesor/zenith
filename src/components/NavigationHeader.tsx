@@ -66,11 +66,11 @@ export function NavigationHeader() {
   // Fetch notifications when component loads or auth status changes
   useEffect(() => {
     const fetchNotifications = async () => {
-      if (!user) return;
+      if (!user || !user.id) return;
 
       try {
         const token = localStorage.getItem("zenith-token");
-        const response = await fetch("/api/notifications", {
+        const response = await fetch(`/api/notifications?userId=${user.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
