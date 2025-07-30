@@ -162,6 +162,23 @@ export interface Notification {
   related_id?: string;
   related_type?: string;
   created_at: Date;
+  delivery_method: 'in-app' | 'email' | 'both';
+  sent_by?: string; // ID of the coordinator who sent the notification
+  club_id?: string; // Club associated with the notification
+  email_sent?: boolean; // Track if email was successfully sent
+  email_sent_at?: Date; // When email was sent
+}
+
+export interface CreateNotificationRequest {
+  title: string;
+  message: string;
+  type: "system" | "assignment" | "event" | "announcement" | "chat";
+  delivery_method: 'in-app' | 'email' | 'both';
+  recipient_ids?: string[]; // Specific users to notify
+  club_id?: string; // If provided, notify all club members
+  related_id?: string;
+  related_type?: string;
+  data?: Record<string, any>;
 }
 
 export interface ZenithCommittee {

@@ -10,9 +10,14 @@ import {
   FileText,
   Settings,
   Search,
+  Send,
+  Mail,
+  X,
+  User as UserIcon,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
+import { CreateNotificationRequest } from "@/shared/types";
 
 interface Notification {
   id: string;
@@ -23,6 +28,17 @@ interface Notification {
   created_at: string;
   read: boolean;
   related_id?: string;
+  delivery_method?: 'in-app' | 'email' | 'both';
+  email_sent?: boolean;
+  sent_by?: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  club_id?: string;
 }
 
 export default function NotificationsPage() {
@@ -34,6 +50,18 @@ export default function NotificationsPage() {
     "all" | "unread" | "announcements" | "events" | "assignments"
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // New state for coordinator notification sending
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [clubMembers, setClubMembers] = useState<User[]>([]);
+  const [sendToAll, setSendToAll] = useState(true);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [newNotification, setNewNotification] = useState<CreateNotificationRequest>({
+    title: '',
+    message: '',
+    type: 'announcement',
+    delivery_method: 'in-app'
+  });
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -74,7 +102,109 @@ export default function NotificationsPage() {
     };
 
     fetchNotifications();
+    
+    // Fetch club members if user is coordinator
+    if (user?.role === 'coordinator' && user?.club_id) {
+      fetchClubMembers();
+    }
   }, [user]);
+
+  const fetchClubMembers = async () => {
+    if (!user?.club_id) return;
+
+    try {
+      const token = localStorage.getItem("zenith-token");
+      const response = await fetch(`/api/clubs/${user.club_id}/members`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClubMembers(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch club members:', error);
+    }
+  };
+
+  const createNotification = async () => {
+    // Debug logging
+    console.log('Form state:', newNotification);
+    console.log('Title:', newNotification.title);
+    console.log('Message:', newNotification.message);
+    
+    // Trim whitespace and check if fields are actually filled
+    const trimmedTitle = newNotification.title?.trim();
+    const trimmedMessage = newNotification.message?.trim();
+    
+    if (!trimmedTitle || !trimmedMessage) {
+      alert(`Please fill in all required fields. Missing: ${!trimmedTitle ? 'Title' : ''} ${!trimmedMessage ? 'Message' : ''}`);
+      return;
+    }
+
+    if (!sendToAll && selectedUsers.length === 0) {
+      alert('Please select at least one recipient');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("zenith-token");
+      
+      const notificationData = {
+        ...newNotification,
+        title: trimmedTitle,
+        message: trimmedMessage,
+        ...(sendToAll 
+          ? { club_id: user?.club_id }
+          : { recipient_ids: selectedUsers }
+        )
+      };
+
+      console.log('Sending notification data:', notificationData);
+
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(notificationData)
+      });
+
+      const result = await response.json();
+      console.log('API Response:', result);
+      
+      if (result.success) {
+        alert(result.message || 'Notification sent successfully!');
+        setShowCreateForm(false);
+        resetForm();
+        // Refresh notifications
+        window.location.reload();
+      } else {
+        alert(result.error || 'Failed to send notification');
+      }
+    } catch (error) {
+      console.error('Failed to create notification:', error);
+      alert('Failed to send notification: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setNewNotification({
+      title: '',
+      message: '',
+      type: 'announcement',
+      delivery_method: 'in-app'
+    });
+    setSendToAll(true);
+    setSelectedUsers([]);
+  };
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -120,6 +250,13 @@ export default function NotificationsPage() {
       default:
         return <Bell className="w-5 h-5 text-gray-600" />;
     }
+  };
+
+  const getDeliveryIcon = (notification: Notification) => {
+    if (notification.delivery_method === 'email' || notification.delivery_method === 'both') {
+      return <Mail className="w-4 h-4 text-blue-500" />;
+    }
+    return null;
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -229,15 +366,26 @@ export default function NotificationsPage() {
               )}
             </p>
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="mt-4 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-            >
-              <Check size={16} className="mr-2" />
-              Mark all as read
-            </button>
-          )}
+          <div className="flex space-x-2">
+            {user?.role === 'coordinator' && (
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="mt-4 sm:mt-0 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+              >
+                <Send size={16} className="mr-2" />
+                Send Notification
+              </button>
+            )}
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="mt-4 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <Check size={16} className="mr-2" />
+                Mark all as read
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Filters and Search */}
@@ -282,6 +430,158 @@ export default function NotificationsPage() {
           </div>
         </div>
 
+        {/* Create Notification Modal */}
+        {user?.role === 'coordinator' && showCreateForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Send Notification</h3>
+                <button 
+                  onClick={() => setShowCreateForm(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={newNotification.title}
+                    onChange={(e) => {
+                      console.log('Title input changed:', e.target.value);
+                      setNewNotification(prev => ({ ...prev, title: e.target.value }));
+                    }}
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Notification title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Message *
+                  </label>
+                  <textarea
+                    value={newNotification.message}
+                    onChange={(e) => {
+                      console.log('Message input changed:', e.target.value);
+                      setNewNotification(prev => ({ ...prev, message: e.target.value }));
+                    }}
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    rows={4}
+                    placeholder="Notification message"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Type
+                    </label>
+                    <select
+                      value={newNotification.type}
+                      onChange={(e) => setNewNotification(prev => ({ ...prev, type: e.target.value as any }))}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="announcement">Announcement</option>
+                      <option value="event">Event</option>
+                      <option value="assignment">Assignment</option>
+                      <option value="system">System</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Delivery Method
+                    </label>
+                    <select
+                      value={newNotification.delivery_method}
+                      onChange={(e) => setNewNotification(prev => ({ ...prev, delivery_method: e.target.value as any }))}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="in-app">In-App Only</option>
+                      <option value="email">Email Only</option>
+                      <option value="both">Both In-App & Email</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Recipients Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Send To
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        checked={sendToAll}
+                        onChange={() => setSendToAll(true)}
+                        className="mr-2"
+                      />
+                      <Users className="w-4 h-4 mr-1" />
+                      All Club Members
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        checked={!sendToAll}
+                        onChange={() => setSendToAll(false)}
+                        className="mr-2"
+                      />
+                      <UserIcon className="w-4 h-4 mr-1" />
+                      Specific Members
+                    </label>
+                  </div>
+
+                  {!sendToAll && (
+                    <div className="mt-3 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-2">
+                      {clubMembers.map(member => (
+                        <label key={member.id} className="flex items-center py-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.includes(member.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedUsers(prev => [...prev, member.id]);
+                              } else {
+                                setSelectedUsers(prev => prev.filter(id => id !== member.id));
+                              }
+                            }}
+                            className="mr-2"
+                          />
+                          <span className="text-sm text-gray-900 dark:text-white">{member.name} ({member.email})</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <button
+                    onClick={() => setShowCreateForm(false)}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={createNotification}
+                    disabled={loading || (!sendToAll && selectedUsers.length === 0)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{loading ? 'Sending...' : 'Send'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Notifications List */}
         <div className="space-y-4">
           {filteredNotifications.length === 0 ? (
@@ -315,12 +615,34 @@ export default function NotificationsPage() {
                         {getNotificationIcon(notification.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
-                          {notification.title}
-                        </p>
+                        <div className="flex items-center space-x-2 mb-1">
+                          <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
+                            {notification.title}
+                          </p>
+                          {getDeliveryIcon(notification)}
+                          {notification.email_sent && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
+                              ✓ Email Sent
+                            </span>
+                          )}
+                          {!notification.read && (
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-500 truncate dark:text-gray-400">
                           {notification.message}
                         </p>
+                        {notification.delivery_method && notification.delivery_method !== 'in-app' && (
+                          <div className="mt-1">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              notification.delivery_method === 'email' 
+                                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300'
+                                : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300'
+                            }`}>
+                              {notification.delivery_method === 'email' ? 'Email Only' : 'In-App + Email'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="inline-flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400">
                         {formatTimestamp(notification.created_at)}
