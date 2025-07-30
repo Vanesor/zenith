@@ -130,12 +130,27 @@ export async function POST(
 
     const newAttempt = newAttemptResult.rows[0];
 
+    // Safe JSON parsing with fallback
+    const parseJsonSafely = (value: any, fallback: any) => {
+      if (!value) return fallback;
+      if (typeof value === 'object') return value;
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          console.warn('Failed to parse JSON:', value);
+          return fallback;
+        }
+      }
+      return fallback;
+    };
+
     return NextResponse.json({
       id: newAttempt.id,
       startTime: newAttempt.start_time.toISOString(),
       status: newAttempt.status,
-      answers: typeof newAttempt.answers === 'string' ? JSON.parse(newAttempt.answers) : newAttempt.answers,
-      violations: typeof newAttempt.violations === 'string' ? JSON.parse(newAttempt.violations) : newAttempt.violations
+      answers: parseJsonSafely(newAttempt.answers, {}),
+      violations: parseJsonSafely(newAttempt.violations, [])
     });
 
   } catch (error) {

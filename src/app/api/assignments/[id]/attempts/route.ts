@@ -64,17 +64,34 @@ export async function GET(
     
     const attemptsResult = await pool.query(attemptsQuery, [assignmentId, user.id]);
     
-    const attempts = attemptsResult.rows.map(attempt => ({
-      id: attempt.id,
-      attemptNumber: attempt.attempt_number,
-      startTime: attempt.start_time.toISOString(),
-      endTime: attempt.end_time ? attempt.end_time.toISOString() : null,
-      score: attempt.score,
-      status: attempt.status,
-      answers: JSON.parse(attempt.answers || '{}'),
-      violations: JSON.parse(attempt.violations || '[]'),
-      submittedAt: attempt.submitted_at ? attempt.submitted_at.toISOString() : null
-    }));
+    const attempts = attemptsResult.rows.map(attempt => {
+      // Safe JSON parsing with fallback
+      const parseJsonSafely = (value: any, fallback: any) => {
+        if (!value) return fallback;
+        if (typeof value === 'object') return value;
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value);
+          } catch (e) {
+            console.warn('Failed to parse JSON:', value);
+            return fallback;
+          }
+        }
+        return fallback;
+      };
+
+      return {
+        id: attempt.id,
+        attemptNumber: attempt.attempt_number,
+        startTime: attempt.start_time.toISOString(),
+        endTime: attempt.end_time ? attempt.end_time.toISOString() : null,
+        score: attempt.score,
+        status: attempt.status,
+        answers: parseJsonSafely(attempt.answers, {}),
+        violations: parseJsonSafely(attempt.violations, []),
+        submittedAt: attempt.submitted_at ? attempt.submitted_at.toISOString() : null
+      };
+    });
 
     return NextResponse.json({ attempts });
 
@@ -119,7 +136,22 @@ export async function POST(
         return NextResponse.json({ error: 'Attempt not found' }, { status: 404 });
       }
 
-      const currentViolations = JSON.parse(attemptResult.rows[0].violations || '[]');
+      // Safe JSON parsing with fallback
+      const parseJsonSafely = (value: any, fallback: any) => {
+        if (!value) return fallback;
+        if (typeof value === 'object') return value;
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value);
+          } catch (e) {
+            console.warn('Failed to parse JSON:', value);
+            return fallback;
+          }
+        }
+        return fallback;
+      };
+
+      const currentViolations = parseJsonSafely(attemptResult.rows[0].violations, []);
       const updatedViolations = [...currentViolations, {
         type: violation.type,
         message: violation.message,

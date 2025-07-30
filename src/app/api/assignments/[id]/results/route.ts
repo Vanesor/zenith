@@ -79,9 +79,24 @@ export async function GET(
     const questionsResult = await pool.query(questionsQuery, [assignmentId]);
     const questions = questionsResult.rows;
 
+    // Safe JSON parsing with fallback
+    const parseJsonSafely = (value: any, fallback: any) => {
+      if (!value) return fallback;
+      if (typeof value === 'object') return value;
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          console.warn('Failed to parse JSON:', value);
+          return fallback;
+        }
+      }
+      return fallback;
+    };
+
     // Get user answers
-    const userAnswers = JSON.parse(attempt.answers || '{}');
-    const violations = JSON.parse(attempt.violations || '[]');
+    const userAnswers = parseJsonSafely(attempt.answers, {});
+    const violations = parseJsonSafely(attempt.violations, []);
 
     // Calculate results for each question
     const questionResults = questions.map(question => {
