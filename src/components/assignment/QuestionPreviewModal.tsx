@@ -4,18 +4,25 @@ import { X, Eye } from 'lucide-react';
 
 interface Question {
   id: string;
-  type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding';
+  type: 'multiple-choice' | 'multi-select' | 'true-false' | 'short-answer' | 'essay' | 'coding' | 'integer';
   title: string;
   description: string;
   options?: string[];
-  correctAnswer?: string | number | boolean;
+  correctAnswer?: string | number | boolean | number[];
   points: number;
   timeLimit?: number;
+  timeAllocation?: number;
   tags?: string[];
   difficulty?: 'easy' | 'medium' | 'hard';
   language?: string;
+  allowedLanguages?: string[];
+  allowAnyLanguage?: boolean;
   starterCode?: string;
-  testCases?: Array<{ input: string; output: string }>;
+  testCases?: Array<{ input: string; output: string; isHidden?: boolean }>;
+  explanation?: string;
+  minValue?: number;
+  maxValue?: number;
+  stepValue?: number;
 }
 
 interface QuestionPreviewModalProps {
@@ -36,6 +43,8 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
     switch (type) {
       case 'multiple-choice':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'multi-select':
+        return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400';
       case 'true-false':
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
       case 'short-answer':
@@ -44,6 +53,8 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
       case 'coding':
         return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'integer':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
     }
@@ -95,42 +106,48 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
               />
             </div>
 
-            {/* Multiple Choice / True-False Options */}
-            {(question.type === 'multiple-choice' || question.type === 'true-false') && question.options && (
+            {/* Multiple Choice / Multi-Select / True-False Options */}
+            {(question.type === 'multiple-choice' || question.type === 'multi-select' || question.type === 'true-false') && question.options && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Answer Options:
                 </h4>
                 <div className="space-y-2">
-                  {question.options.map((option, index) => (
-                    <div
-                      key={index}
-                      className={`p-3 rounded-lg border transition-colors ${
-                        question.correctAnswer === index
-                          ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                          : 'bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
-                      }`}
-                    >
-                      <div className={`flex items-start space-x-3 ${
-                        question.correctAnswer === index
-                          ? 'text-green-800 dark:text-green-300'
-                          : 'text-gray-800 dark:text-gray-300'
-                      }`}>
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold">
-                          {String.fromCharCode(65 + index)}
-                        </span>
-                        <div 
-                          className="flex-1"
-                          dangerouslySetInnerHTML={{ __html: renderMarkdown(option) }}
-                        />
-                        {question.correctAnswer === index && (
-                          <span className="flex-shrink-0 text-xs font-medium bg-green-100 dark:bg-green-800 px-2 py-1 rounded">
-                            Correct
+                  {question.options.map((option, index) => {
+                    const isCorrect = question.type === 'multi-select' 
+                      ? Array.isArray(question.correctAnswer) && question.correctAnswer.includes(index)
+                      : question.correctAnswer === index;
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`p-3 rounded-lg border transition-colors ${
+                          isCorrect
+                            ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
+                            : 'bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
+                        }`}
+                      >
+                        <div className={`flex items-start space-x-3 ${
+                          isCorrect
+                            ? 'text-green-800 dark:text-green-300'
+                            : 'text-gray-800 dark:text-gray-300'
+                        }`}>
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold">
+                            {String.fromCharCode(65 + index)}
                           </span>
-                        )}
+                          <div 
+                            className="flex-1"
+                            dangerouslySetInnerHTML={{ __html: renderMarkdown(option) }}
+                          />
+                          {isCorrect && (
+                            <span className="flex-shrink-0 text-xs font-medium bg-green-100 dark:bg-green-800 px-2 py-1 rounded">
+                              Correct
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -217,6 +234,51 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
                   Students will provide a brief written response to this question.
                   {question.timeLimit && ` They will have ${question.timeLimit} minutes to complete their answer.`}
                 </p>
+              </div>
+            )}
+            
+            {/* Integer Question Guidelines */}
+            {question.type === 'integer' && (
+              <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                <h4 className="text-sm font-medium text-orange-800 dark:text-orange-300 mb-2">
+                  Integer Question Guidelines:
+                </h4>
+                <p className="text-sm text-orange-700 dark:text-orange-400">
+                  Students will provide an integer number as their answer.
+                  {question.minValue !== undefined && question.maxValue !== undefined && 
+                    ` Answer must be between ${question.minValue} and ${question.maxValue}.`}
+                  {question.minValue !== undefined && question.maxValue === undefined && 
+                    ` Answer must be at least ${question.minValue}.`}
+                  {question.minValue === undefined && question.maxValue !== undefined && 
+                    ` Answer must be at most ${question.maxValue}.`}
+                  {question.stepValue && question.stepValue > 1 && 
+                    ` Values must be in steps of ${question.stepValue}.`}
+                </p>
+              </div>
+            )}
+            
+            {/* Display correct answer section for all question types */}
+            {(question.type === 'multiple-choice' || question.type === 'multi-select' || question.type === 'true-false' || question.type === 'integer') && (
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <h4 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
+                  Correct Answer{question.type === 'multi-select' ? 's' : ''}:
+                </h4>
+                <div className="font-medium text-green-700 dark:text-green-400">
+                  {question.type === 'multiple-choice' && question.options && 
+                    typeof question.correctAnswer === 'number' && 
+                    question.options[question.correctAnswer]}
+                  
+                  {question.type === 'multi-select' && question.options && 
+                    Array.isArray(question.correctAnswer) && 
+                    question.correctAnswer.map(index => question.options![index]).join(', ')}
+                  
+                  {question.type === 'true-false' && 
+                    (question.correctAnswer === true ? 'True' : 'False')}
+                  
+                  {question.type === 'integer' && typeof question.correctAnswer === 'number' && (
+                    <>{question.correctAnswer}</>
+                  )}
+                </div>
               </div>
             )}
 

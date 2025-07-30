@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Clock, Calculator as CalcIcon, Flag, ChevronLeft, ChevronRight, AlertTriangle, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { CodeEditor } from './CodeEditor';
+import { EnhancedCodeEditor } from '../assignment/EnhancedCodeEditor';
 import { Calculator } from './Calculator';
 
 interface Question {

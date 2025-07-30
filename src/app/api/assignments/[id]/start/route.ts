@@ -1,28 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+interface JwtPayload {
+  userId: string;
+}
 
 // Initialize PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://zenith_user:zenith_password@localhost:5432/zenith_db'
 });
 
+// Helper function to verify JWT token
+async function verifyAuth(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { authenticated: false, userId: null };
+  }
+
+  try {
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return { authenticated: true, userId: decoded.userId };
+  } catch (error) {
+    return { authenticated: false, userId: null };
+  }
+}
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const assignmentId = params.id;
-    const authHeader = request.headers.get('authorization');
+    const { id: assignmentId } = await params;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Get JWT claims
+    const { userId, authenticated } = await verifyAuth(request);
+    if (!authenticated || !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Get user from token (simplified - in production, verify JWT properly)
+    // Get user details
     const userQuery = 'SELECT id, email, name FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, [1]); // Replace with actual token verification
+    const userResult = await pool.query(userQuery, [userId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -112,8 +134,8 @@ export async function POST(
       id: newAttempt.id,
       startTime: newAttempt.start_time.toISOString(),
       status: newAttempt.status,
-      answers: JSON.parse(newAttempt.answers),
-      violations: JSON.parse(newAttempt.violations)
+      answers: typeof newAttempt.answers === 'string' ? JSON.parse(newAttempt.answers) : newAttempt.answers,
+      violations: typeof newAttempt.violations === 'string' ? JSON.parse(newAttempt.violations) : newAttempt.violations
     });
 
   } catch (error) {

@@ -1,246 +1,218 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { NextRequest, NextResponse } from "next/server";
+import Database from "@/lib/database";
+import jwt from "jsonwebtoken";
 
-// Initialize PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://zenith_user:zenith_password@localhost:5432/zenith_db'
-});
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
+interface JwtPayload {
+  userId: string;
+}
+
+// Helper function to verify JWT token
+async function verifyAuth(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { authenticated: false, userId: null };
+  }
+
+  try {
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return { authenticated: true, userId: decoded.userId };
+  } catch (error) {
+    return { authenticated: false, userId: null };
+  }
+}
+
+// POST /api/assignments/[id]/submit - Submit an assignment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const assignmentId = params.id;
-    const authHeader = request.headers.get('authorization');
+    const { id: assignmentId } = await params;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Get JWT claims
+    const { userId, authenticated } = await verifyAuth(request);
+    if (!authenticated || !userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    // Get request body
     const body = await request.json();
-    
-    // Get user from token (simplified - in production, verify JWT properly)
-    const userQuery = 'SELECT id, email, name FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, [1]); // Replace with actual token verification
-    
-    if (userResult.rows.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    const { 
+      answers,
+      startedAt, 
+      completedAt, 
+      timeSpent,
+      violationCount, 
+      autoSubmitted
+    } = body;
+
+    if (!answers || !Array.isArray(answers)) {
+      return NextResponse.json(
+        { error: "Invalid submission data" },
+        { status: 400 }
+      );
     }
 
-    const user = userResult.rows[0];
-    const { attemptId, answers, endTime } = body;
+    // Check if assignment exists and is still open
+    const assignmentCheck = await Database.query(
+      `SELECT * FROM assignments WHERE id = $1`,
+      [assignmentId]
+    );
 
-    // Validate attempt exists and belongs to user
-    const attemptQuery = `
-      SELECT 
-        aa.id, aa.assignment_id, aa.user_id, aa.start_time, aa.status,
-        a.max_points, a.passing_score, a.time_limit
-      FROM assignment_attempts aa
-      JOIN assignments a ON aa.assignment_id = a.id
-      WHERE aa.id = $1 AND aa.user_id = $2 AND aa.status = 'in_progress'
-    `;
-    
-    const attemptResult = await pool.query(attemptQuery, [attemptId, user.id]);
-    
-    if (attemptResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Attempt not found or already submitted' }, { status: 404 });
+    if (assignmentCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Assignment not found" },
+        { status: 404 }
+      );
     }
 
-    const attempt = attemptResult.rows[0];
-    const startTime = new Date(attempt.start_time);
-    const endDateTime = new Date(endTime);
-    const timeSpentMinutes = Math.round((endDateTime.getTime() - startTime.getTime()) / (1000 * 60));
+    const assignment = assignmentCheck.rows[0];
+    const now = new Date();
+    const dueDate = new Date(assignment.due_date);
 
-    // Get assignment questions for scoring
-    const questionsQuery = `
-      SELECT 
-        id, type, title, description, options, correct_answer, points,
-        language, starter_code, test_cases
-      FROM assignment_questions 
-      WHERE assignment_id = $1
-      ORDER BY question_order
-    `;
-    
-    const questionsResult = await pool.query(questionsQuery, [assignmentId]);
-    const questions = questionsResult.rows;
-
-    // Calculate score for each question
-    let totalScore = 0;
-    const gradedAnswers: Record<string, any> = {};
-
-    for (const question of questions) {
-      const userAnswer = answers[question.id];
-      let pointsAwarded = 0;
-      let isCorrect = false;
-
-      if (!userAnswer) {
-        // No answer provided
-        gradedAnswers[question.id] = {
-          answer: null,
-          pointsAwarded: 0,
-          isCorrect: false
-        };
-        continue;
-      }
-
-      switch (question.type) {
-        case 'multiple-choice':
-        case 'true-false':
-          if (userAnswer === question.correct_answer) {
-            isCorrect = true;
-            pointsAwarded = question.points;
-          }
-          break;
-
-        case 'short-answer':
-          // For short answers, we need fuzzy matching or exact matching
-          const correctAnswers = Array.isArray(question.correct_answer) 
-            ? question.correct_answer 
-            : [question.correct_answer];
-          
-          isCorrect = correctAnswers.some((correctAnswer: string) => 
-            userAnswer?.toLowerCase()?.trim() === correctAnswer?.toLowerCase()?.trim()
-          );
-          
-          if (isCorrect) {
-            pointsAwarded = question.points;
-          }
-          break;
-
-        case 'coding':
-          // For coding questions, we need to run test cases
-          // For now, we'll simulate test case execution
-          const testCases = JSON.parse(question.test_cases || '[]');
-          let passedTestCases = 0;
-
-          // In a real implementation, you would execute the code here
-          // For demonstration, we'll simulate results
-          for (const testCase of testCases) {
-            // Simulate test execution - replace with actual code execution
-            const passed = Math.random() > 0.3; // 70% chance of passing each test
-            if (passed) passedTestCases++;
-          }
-
-          if (testCases.length > 0) {
-            const passRate = passedTestCases / testCases.length;
-            pointsAwarded = Math.round(question.points * passRate);
-            isCorrect = passRate === 1; // All test cases must pass for fully correct
-          }
-          break;
-
-        case 'essay':
-          // Essays require manual grading
-          // For now, assign partial credit and mark for manual review
-          pointsAwarded = 0; // Will be graded manually
-          isCorrect = false; // Unknown until manual grading
-          break;
-
-        default:
-          // Unknown question type
-          pointsAwarded = 0;
-          isCorrect = false;
-      }
-
-      totalScore += pointsAwarded;
-      gradedAnswers[question.id] = {
-        answer: userAnswer,
-        pointsAwarded,
-        isCorrect,
-        maxPoints: question.points
-      };
+    // Check if assignment is past due (unless it's being auto-submitted)
+    if (dueDate < now && !autoSubmitted) {
+      return NextResponse.json(
+        { error: "Assignment is past due" },
+        { status: 400 }
+      );
     }
 
-    const maxPossibleScore = questions.reduce((sum, q) => sum + q.points, 0);
-    const percentage = maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
-    const isPassing = percentage >= attempt.passing_score;
+    // Check if already submitted
+    const existingSubmission = await Database.query(
+      `SELECT id FROM assignment_submissions WHERE assignment_id = $1 AND user_id = $2`,
+      [assignmentId, userId]
+    );
 
-    // Update attempt with final submission data
-    const updateAttemptQuery = `
-      UPDATE assignment_attempts 
-      SET 
-        end_time = $1,
-        time_spent = $2,
-        score = $3,
-        max_score = $4,
-        percentage = $5,
-        is_passing = $6,
-        answers = $7,
-        graded_answers = $8,
-        status = $9,
-        submitted_at = $10,
-        updated_at = $11
-      WHERE id = $12
-      RETURNING *
-    `;
-    
-    const updateResult = await pool.query(updateAttemptQuery, [
-      endDateTime,
-      timeSpentMinutes,
-      totalScore,
-      maxPossibleScore,
-      Math.round(percentage * 100) / 100, // Round to 2 decimal places
-      isPassing,
-      JSON.stringify(answers),
-      JSON.stringify(gradedAnswers),
-      'completed',
-      endDateTime,
-      new Date(),
-      attemptId
-    ]);
-
-    if (updateResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Failed to update attempt' }, { status: 500 });
+    if (existingSubmission.rows.length > 0) {
+      return NextResponse.json(
+        { error: "You have already submitted this assignment" },
+        { status: 400 }
+      );
     }
 
-    const updatedAttempt = updateResult.rows[0];
-
-    // Log the submission for auditing
-    const auditQuery = `
-      INSERT INTO assignment_audit_log (
-        assignment_id, user_id, attempt_id, action, details, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6)
-    `;
-    
-    try {
-      await pool.query(auditQuery, [
+    // Create submission record
+    const submissionResult = await Database.query(
+      `INSERT INTO assignment_submissions (
+        assignment_id, user_id, started_at, completed_at,
+        time_spent, violation_count, auto_submitted, status
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'submitted')
+      RETURNING id`,
+      [
         assignmentId,
-        user.id,
-        attemptId,
-        'submit',
-        JSON.stringify({
-          score: totalScore,
-          maxScore: maxPossibleScore,
-          percentage: Math.round(percentage * 100) / 100,
-          timeSpent: timeSpentMinutes,
-          isPassing
-        }),
-        new Date()
-      ]);
-    } catch (auditError) {
-      // Log audit error but don't fail the submission
-      console.error('Failed to create audit log:', auditError);
+        userId,
+        startedAt ? new Date(startedAt) : now,
+        completedAt ? new Date(completedAt) : now,
+        timeSpent || 0,
+        violationCount || 0,
+        autoSubmitted || false
+      ]
+    );
+
+    const submissionId = submissionResult.rows[0].id;
+
+    // Get all questions for this assignment
+    const questionsResult = await Database.query(
+      `SELECT id, question_type, marks FROM assignment_questions WHERE assignment_id = $1`,
+      [assignmentId]
+    );
+
+    const questions = questionsResult.rows;
+    let totalScore = 0;
+
+    // Process each answer
+    for (const answer of answers) {
+      const { questionId, selectedOptions, codeAnswer, essayAnswer, timeSpent: questionTimeSpent } = answer;
+      
+      // Find the question in our fetched questions
+      const question = questions.find(q => q.id === questionId);
+      if (!question) continue;
+      
+      let isCorrect: boolean | null = false;
+      let score = 0;
+
+      // For objective questions, check if the answer is correct
+      if (question.question_type === 'single_choice' || question.question_type === 'multiple_choice') {
+        // Get correct options
+        const optionsResult = await Database.query(
+          `SELECT id FROM question_options WHERE question_id = $1 AND is_correct = true`,
+          [questionId]
+        );
+        
+        const correctOptions = optionsResult.rows.map(row => row.id);
+        
+        // For single choice, there should be exactly one correct answer
+        if (question.question_type === 'single_choice') {
+          isCorrect = selectedOptions.length === 1 && 
+                      correctOptions.includes(selectedOptions[0]);
+        } 
+        // For multiple choice, selected options should match correct options exactly
+        else {
+          // Sort both arrays for comparison
+          const sortedSelected = [...selectedOptions].sort();
+          const sortedCorrect = [...correctOptions].sort();
+          
+          isCorrect = sortedSelected.length === sortedCorrect.length &&
+                      sortedSelected.every((value, index) => value === sortedCorrect[index]);
+        }
+        
+        // Award full marks if correct
+        score = isCorrect ? question.marks : 0;
+      }
+      // For coding and essay questions, store the answers but don't auto-grade
+      else {
+        // These will be graded manually, set isCorrect to null
+        isCorrect = null;
+        score = 0; // Initialize with 0, will be updated by instructor later
+      }
+
+      // Record this response
+      const responseResult = await Database.query(
+        `INSERT INTO question_responses (
+          submission_id, question_id, selected_options,
+          code_answer, essay_answer, is_correct, score, time_spent
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id`,
+        [
+          submissionId,
+          questionId,
+          selectedOptions || [],
+          codeAnswer || null,
+          essayAnswer || null,
+          isCorrect,
+          score,
+          questionTimeSpent || 0
+        ]
+      );
+
+      // Add to total score if graded automatically
+      if (score !== null) {
+        totalScore += score;
+      }
     }
 
-    // Return submission result
-    return NextResponse.json({
-      success: true,
-      attemptId: updatedAttempt.id,
-      score: totalScore,
-      maxScore: maxPossibleScore,
-      percentage: Math.round(percentage * 100) / 100,
-      isPassing,
-      timeSpent: timeSpentMinutes,
-      submittedAt: endDateTime.toISOString(),
-      gradedAnswers: gradedAnswers,
-      message: isPassing 
-        ? `Congratulations! You passed with ${Math.round(percentage * 100) / 100}%`
-        : `Assignment completed. Score: ${Math.round(percentage * 100) / 100}% (Passing: ${attempt.passing_score}%)`
-    });
+    // Update submission with total score for auto-graded questions
+    await Database.query(
+      `UPDATE assignment_submissions SET total_score = $1 WHERE id = $2`,
+      [totalScore, submissionId]
+    );
 
-  } catch (error) {
-    console.error('Error submitting assignment:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({
+      id: submissionId,
+      message: "Assignment submitted successfully",
+      totalScore,
+      autoGraded: true
+    });
+  } catch (error: any) {
+    console.error("Error submitting assignment:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }

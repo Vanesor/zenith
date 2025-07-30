@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { TestTakingInterface } from '@/components/test/TestTakingInterface';
+import { EnhancedCodeEditor } from '@/components/assignment/EnhancedCodeEditor';
 import { LoadingSpinner, FullscreenLoading } from '@/components/assignment/LoadingSpinner';
 import { Clock, FileText, AlertTriangle, CheckCircle, User, Calendar, Target } from 'lucide-react';
+import TokenManager from '@/lib/TokenManager';
 
 interface Assignment {
   id: string;
@@ -65,6 +67,7 @@ export default function TakeAssignment() {
   const [previousAttempts, setPreviousAttempts] = useState<AttemptData[]>([]);
   const [canTakeAssignment, setCanTakeAssignment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -75,18 +78,34 @@ export default function TakeAssignment() {
     fetchAssignmentData();
   }, [user, assignmentId, router]);
 
+  // Timer countdown effect
+  useEffect(() => {
+    if (!hasStarted || timeRemaining <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          // Auto-submit when time runs out
+          if (assignment?.questions?.[0]?.type === 'coding') {
+            handleCodeSubmit('', '');
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [hasStarted, timeRemaining]);
+
   const fetchAssignmentData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('zenith-token');
+      const tokenManager = TokenManager.getInstance();
       
       // Fetch assignment details
-      const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const assignmentResponse = await tokenManager.authenticatedFetch(`/api/assignments/${assignmentId}`);
 
       if (!assignmentResponse.ok) {
         if (assignmentResponse.status === 404) {
@@ -108,12 +127,7 @@ export default function TakeAssignment() {
       }
 
       // Fetch user's attempts
-      const attemptsResponse = await fetch(`/api/assignments/${assignmentId}/attempts`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const attemptsResponse = await tokenManager.authenticatedFetch(`/api/assignments/${assignmentId}/attempts`);
 
       if (attemptsResponse.ok) {
         const attemptsData = await attemptsResponse.json();
@@ -138,6 +152,11 @@ export default function TakeAssignment() {
       }
 
       setAssignment(assignmentData);
+      
+      // Initialize timer if assignment has started
+      if (assignmentData.timeLimit) {
+        setTimeRemaining(assignmentData.timeLimit * 60); // Convert minutes to seconds
+      }
     } catch (error) {
       console.error('Error fetching assignment:', error);
       setErrorMessage('Failed to load assignment. Please try again.');
@@ -156,14 +175,10 @@ export default function TakeAssignment() {
 
     try {
       setSubmitting(true);
-      const token = localStorage.getItem('zenith-token');
+      const tokenManager = TokenManager.getInstance();
       
-      const response = await fetch(`/api/assignments/${assignmentId}/start`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await tokenManager.authenticatedFetch(`/api/assignments/${assignmentId}/start`, {
+        method: 'POST'
       });
 
       if (!response.ok) {
@@ -173,6 +188,11 @@ export default function TakeAssignment() {
       const attemptData = await response.json();
       setCurrentAttempt(attemptData);
       setHasStarted(true);
+      
+      // Start the timer
+      if (assignment.timeLimit) {
+        setTimeRemaining(assignment.timeLimit * 60); // Convert minutes to seconds
+      }
       
       showToast({
         title: 'Assignment Started',
@@ -196,14 +216,10 @@ export default function TakeAssignment() {
 
     try {
       setSubmitting(true);
-      const token = localStorage.getItem('zenith-token');
+      const tokenManager = TokenManager.getInstance();
       
-      const response = await fetch(`/api/assignments/${assignmentId}/submit`, {
+      const response = await tokenManager.authenticatedFetch(`/api/assignments/${assignmentId}/submit`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({
           attemptId: currentAttempt.id,
           answers: answers,
@@ -241,7 +257,28 @@ export default function TakeAssignment() {
     }
   };
 
-  const formatTimeRemaining = (minutes: number) => {
+  const handleCodeSave = (code: string, language: string) => {
+    console.log('Saving code:', { code, language, questionId: assignment?.questions?.[0]?.id });
+    // Implement auto-save logic here
+  };
+
+  const handleCodeRun = (code: string, language: string) => {
+    console.log('Running code:', { code, language });
+    // Implement code execution logic here
+  };
+
+  const handleCodeSubmit = (code: string, language: string) => {
+    console.log('Submitting code:', { code, language });
+    // Implement code submission logic here
+    const answers = {
+      [assignment?.questions?.[0]?.id || '']: { code, language }
+    };
+    handleSubmitAssignment(answers);
+  };
+
+  const formatTimeRemaining = (timeValue: number) => {
+    // If timeValue is likely in seconds (greater than 1000), convert to minutes
+    const minutes = timeValue > 1000 ? Math.floor(timeValue / 60) : timeValue;
     const hours = Math.floor(minutes / 60);
     const mins = Math.floor(minutes % 60);
     if (hours > 0) {
@@ -301,8 +338,29 @@ export default function TakeAssignment() {
     );
   }
 
-  // If assignment has started, show the test interface
+  // If assignment has started, show the appropriate interface
   if (hasStarted && currentAttempt) {
+    // For coding assignments, use the enhanced editor with fullscreen
+    if (assignment.questions && assignment.questions.length === 1 && assignment.questions[0].type === 'coding') {
+      return (
+        <EnhancedCodeEditor
+          question={{
+            ...assignment.questions[0],
+            testCases: assignment.questions[0].testCases?.map(tc => ({
+              input: tc.input,
+              output: tc.expectedOutput,
+              isHidden: tc.isHidden
+            }))
+          }}
+          onSave={handleCodeSave}
+          onRun={handleCodeRun}
+          onSubmit={handleCodeSubmit}
+          timeRemaining={timeRemaining}
+        />
+      );
+    }
+    
+    // For other assignment types, use the standard test interface
     return (
       <TestTakingInterface
         assignment={assignment}

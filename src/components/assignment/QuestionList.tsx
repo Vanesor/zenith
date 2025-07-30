@@ -7,18 +7,25 @@ import { ConfirmationModal } from './ConfirmationModal';
 
 interface Question {
   id: string;
-  type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding';
+  type: 'multiple-choice' | 'multi-select' | 'true-false' | 'short-answer' | 'essay' | 'coding' | 'integer';
   title: string;
   description: string;
   options?: string[];
-  correctAnswer?: string | number | boolean;
+  correctAnswer?: string | number | boolean | number[];
   points: number;
   timeLimit?: number;
+  timeAllocation?: number;
   tags?: string[];
   difficulty?: 'easy' | 'medium' | 'hard';
   language?: string;
+  allowedLanguages?: string[];
+  allowAnyLanguage?: boolean;
   starterCode?: string;
-  testCases?: Array<{ input: string; output: string }>;
+  testCases?: Array<{ input: string; output: string; isHidden?: boolean }>;
+  explanation?: string;
+  minValue?: number;
+  maxValue?: number;
+  stepValue?: number;
 }
 
 interface QuestionListProps {
@@ -72,6 +79,8 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
     switch (type) {
       case 'multiple-choice':
         return '●';
+      case 'multi-select':
+        return '☑';
       case 'true-false':
         return '✓';
       case 'short-answer':
@@ -80,6 +89,8 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
         return '📝';
       case 'coding':
         return '💻';
+      case 'integer':
+        return '#';
       default:
         return '?';
     }
@@ -89,6 +100,8 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
     switch (type) {
       case 'multiple-choice':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'multi-select':
+        return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400';
       case 'true-false':
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
       case 'short-answer':
@@ -97,6 +110,8 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
       case 'coding':
         return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'integer':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
     }
@@ -275,35 +290,73 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                   />
                 </div>
 
-                {/* Show options for multiple choice and true/false */}
-                {(question.type === 'multiple-choice' || question.type === 'true-false') && question.options && (
+                {/* Show options for multiple choice, multi-select, and true/false */}
+                {(question.type === 'multiple-choice' || question.type === 'multi-select' || question.type === 'true-false') && question.options && (
                   <div className="mt-4">
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Options:
                     </h4>
                     <div className="space-y-2">
-                      {question.options.map((option, optionIndex) => (
-                        <div
-                          key={optionIndex}
-                          className={`p-2 rounded-lg text-sm ${
-                            question.correctAnswer === optionIndex
-                              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800'
-                              : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          <span className="font-medium mr-2">
-                            {String.fromCharCode(65 + optionIndex)}.
-                          </span>
-                          {option}
-                          {question.correctAnswer === optionIndex && (
-                            <span className="ml-2 text-xs font-medium">(Correct)</span>
-                          )}
-                        </div>
-                      ))}
+                      {question.options.map((option, optionIndex) => {
+                        const isCorrect = question.type === 'multi-select' 
+                          ? Array.isArray(question.correctAnswer) && question.correctAnswer.includes(optionIndex)
+                          : question.correctAnswer === optionIndex;
+                        
+                        return (
+                          <div
+                            key={optionIndex}
+                            className={`p-2 rounded-lg text-sm ${
+                              isCorrect
+                                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800'
+                                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            <span className="font-medium mr-2">
+                              {String.fromCharCode(65 + optionIndex)}.
+                            </span>
+                            {option}
+                            {isCorrect && (
+                              <span className="ml-2 text-xs font-medium">(Correct)</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
+                {/* Show integer question details */}
+                {question.type === 'integer' && (
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Correct Answer: 
+                        <span className="ml-2 font-normal text-green-600 dark:text-green-400">
+                          {typeof question.correctAnswer === 'number' ? question.correctAnswer : 'N/A'}
+                        </span>
+                      </h4>
+                      {(question.minValue !== undefined || question.maxValue !== undefined || question.stepValue) && (
+                        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                          <ul className="list-disc list-inside">
+                            {question.minValue !== undefined && question.maxValue !== undefined && (
+                              <li>Range: {question.minValue} to {question.maxValue}</li>
+                            )}
+                            {question.minValue !== undefined && question.maxValue === undefined && (
+                              <li>Minimum value: {question.minValue}</li>
+                            )}
+                            {question.minValue === undefined && question.maxValue !== undefined && (
+                              <li>Maximum value: {question.maxValue}</li>
+                            )}
+                            {question.stepValue && question.stepValue > 1 && (
+                              <li>Step size: {question.stepValue}</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 {/* Show coding details */}
                 {question.type === 'coding' && (
                   <div className="mt-4 space-y-4">
