@@ -8,7 +8,7 @@ ADD COLUMN IF NOT EXISTS club_id VARCHAR(255), -- Club associated with the notif
 ADD COLUMN IF NOT EXISTS email_sent BOOLEAN DEFAULT FALSE, -- Track if email was successfully sent
 ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMP, -- When email was sent
 ADD COLUMN IF NOT EXISTS delivery_method VARCHAR(20) DEFAULT 'in-app' NOT NULL; -- Delivery method
-
+ 
 -- Update existing records to have delivery_method
 UPDATE notifications 
 SET delivery_method = 'in-app' 
