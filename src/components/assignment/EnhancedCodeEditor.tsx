@@ -167,22 +167,6 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     }
   }, [timeRemaining]);
 
-  // Auto-submit helper
-  const handleAutoSubmit = () => {
-    setToast({
-      type: 'warning',
-      title: 'Time Up!',
-      message: 'Assignment auto-submitted due to time limit. Redirecting...',
-      onClose: () => setToast(null)
-    });
-    
-    // Auto-submit and redirect after 2 seconds
-    setTimeout(() => {
-      onSubmit(code, selectedLanguage);
-      router.push('/assignments');
-    }, 2000);
-  };
-
   // Fullscreen toggle
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -214,7 +198,18 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
 
   const handleSubmit = () => {
     if (timeRemaining <= 0) {
-      handleAutoSubmit();
+      setToast({
+        type: 'warning',
+        title: 'Time Up!',
+        message: 'Assignment auto-submitted due to time limit. Redirecting to assignments page...',
+        onClose: () => setToast(null)
+      });
+      
+      // Auto-submit and redirect after 2 seconds
+      setTimeout(() => {
+        onSubmit(code, selectedLanguage);
+        router.push('/assignments');
+      }, 2000);
     } else {
       onSubmit(code, selectedLanguage);
     }
@@ -247,26 +242,50 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
         throw new Error(result.error || 'Execution failed');
       }
 
-      if (result.success && result.results) {
-        setTestResults(result.results);
+      if (result.success) {
+        // Enhanced response handling for detailed test results
+        if (result.testResults && result.testResults.length > 0) {
+          setTestResults(result.testResults);
+          const passedCount = result.passedTests || result.testResults.filter((tr: any) => tr.passed).length;
+          const totalCount = result.totalTests || result.testResults.length;
+          
+          setToast({
+            type: passedCount === totalCount ? 'success' : passedCount === 0 ? 'error' : 'warning',
+            title: 'Code Executed',
+            message: `${passedCount}/${totalCount} test cases passed. Execution time: ${(result.executionTime || 0).toFixed(2)}ms`,
+            onClose: () => setToast(null)
+          });
+        } else if (result.results) {
+          // Fallback for older response format
+          setTestResults(result.results);
+          const passedCount = result.passedTests || result.results.filter((tr: any) => tr.passed).length;
+          const totalCount = result.totalTests || result.results.length;
+          
+          setToast({
+            type: passedCount === totalCount ? 'success' : passedCount === 0 ? 'error' : 'warning',
+            title: 'Code Executed',
+            message: `${passedCount}/${totalCount} test cases passed`,
+            onClose: () => setToast(null)
+          });
+        } else {
+          // No test cases, just output
+          setTestResults([]);
+          setToast({
+            type: 'success',
+            title: 'Code Executed',
+            message: `Completed in ${(result.executionTime || 0).toFixed(2)}ms`,
+            onClose: () => setToast(null)
+          });
+        }
+        
         onRun(code, selectedLanguage);
-        
-        const passedCount = result.passedTests;
-        const totalCount = result.totalTests;
-        
-        setToast({
-          type: passedCount === totalCount ? 'success' : passedCount === 0 ? 'error' : 'warning',
-          title: 'Code Executed',
-          message: `${passedCount}/${totalCount} test cases passed`,
-          onClose: () => setToast(null)
-        });
       } else {
         // Compilation or runtime error
         setTestResults([]);
         setToast({
           type: 'error',
           title: result.error || 'Execution Failed',
-          message: result.details || 'An error occurred while running your code',
+          message: result.details || result.output || 'An error occurred while running your code',
           onClose: () => setToast(null)
         });
       }
@@ -307,15 +326,20 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
       }
 
       if (result.success) {
-        setCustomOutput(result.output || 'No output');
+        const output = result.output || 'No output';
+        const executionTime = result.executionTime || result.execution_time || 0;
+        const memoryUsed = result.memoryUsed || result.memory_used || 0;
+        
+        setCustomOutput(output);
         setToast({
           type: 'info',
           title: 'Custom Test Run',
-          message: `Executed in ${result.executionTime}ms`,
+          message: `Executed in ${executionTime.toFixed(2)}ms${memoryUsed ? `, Memory: ${memoryUsed}KB` : ''}`,
           onClose: () => setToast(null)
         });
       } else {
-        setCustomOutput(`Error: ${result.error}\n${result.details || ''}`);
+        const errorOutput = `Error: ${result.error}\n${result.details || result.output || ''}`;
+        setCustomOutput(errorOutput);
         setToast({
           type: 'error',
           title: result.error || 'Execution Failed',
@@ -595,8 +619,18 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                                 {result.passed ? 'PASSED' : 'FAILED'}
                               </span>
                               <span className="text-xs text-gray-500">
-                                {result.executionTime?.toFixed(2)}ms
+                                {(result.executionTime || 0).toFixed(2)}ms
                               </span>
+                              {result.memoryUsed && (
+                                <span className="text-xs text-gray-500">
+                                  {result.memoryUsed}KB
+                                </span>
+                              )}
+                              {result.cpuUsage && (
+                                <span className="text-xs text-gray-500">
+                                  {result.cpuUsage.toFixed(1)}% CPU
+                                </span>
+                              )}
                             </div>
                           </div>
                           
@@ -643,36 +677,66 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
               {activeBottomTab === 'custom' && (
                 <div className="p-4 h-full flex flex-col">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Custom Input</h3>
-                    <button
-                      onClick={handleCustomRun}
-                      disabled={isRunning}
-                      className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-blue-400 flex items-center"
-                    >
-                      {isRunning ? <Square className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
-                      Run
-                    </button>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Custom Input & Output</h3>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setCustomInput('');
+                          setCustomOutput('');
+                        }}
+                        className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
+                      >
+                        Clear All
+                      </button>
+                      <button
+                        onClick={handleCustomRun}
+                        disabled={isRunning}
+                        className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-blue-400 flex items-center"
+                      >
+                        {isRunning ? <Square className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
+                        Run
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col">
-                      <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Input:</label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Input:</label>
+                        <button
+                          onClick={() => setCustomInput('')}
+                          className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        >
+                          Clear
+                        </button>
+                      </div>
                       <textarea
                         value={customInput}
                         onChange={(e) => setCustomInput(e.target.value)}
-                        placeholder="Enter your custom input here..."
-                        className="flex-1 w-full p-3 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none font-mono"
+                        placeholder="Enter your custom input here...\nEach line will be treated as a separate input line."
+                        className="flex-1 w-full p-3 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                     
                     <div className="flex flex-col">
-                      <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Output:</label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Output:</label>
+                        <button
+                          onClick={() => setCustomOutput('')}
+                          className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        >
+                          Clear
+                        </button>
+                      </div>
                       <div className="flex-1 w-full p-3 border border-gray-300 dark:border-gray-600 rounded text-sm bg-gray-50 dark:bg-gray-800 font-mono overflow-auto">
                         {customOutput ? (
                           <pre className="text-gray-900 dark:text-white whitespace-pre-wrap">{customOutput}</pre>
                         ) : (
-                          <div className="text-gray-500 dark:text-gray-400">
-                            Output will appear here after running your code
+                          <div className="text-gray-500 dark:text-gray-400 text-center py-8">
+                            <div className="mb-2">Output will appear here after running your code</div>
+                            <div className="text-xs">
+                              💡 Tip: Use the input area to test your code with custom data
+                            </div>
                           </div>
                         )}
                       </div>
@@ -698,7 +762,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                   ) : (
                     <div className="space-y-4">
                       <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                           <div>
                             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                               {testResults.filter(r => r.passed).length}
@@ -719,6 +783,13 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                           </div>
                           <div>
                             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                              {testResults.length > 0 && testResults[0].memoryUsed ? 
+                                `${Math.max(...testResults.map(r => r.memoryUsed || 0))}KB` : 'N/A'}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">Max Memory</div>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                               {availableLanguages.find(l => l.value === selectedLanguage)?.label}
                             </div>
                             <div className="text-xs text-gray-600 dark:text-gray-400">Language</div>
@@ -730,6 +801,13 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                         <div>• Total test cases executed: {testResults.length}</div>
                         <div>• Success rate: {((testResults.filter(r => r.passed).length / testResults.length) * 100).toFixed(1)}%</div>
                         <div>• Language: {availableLanguages.find(l => l.value === selectedLanguage)?.label}</div>
+                        <div>• Total execution time: {testResults.reduce((acc, r) => acc + (r.executionTime || 0), 0).toFixed(2)}ms</div>
+                        {testResults.some(r => r.memoryUsed) && (
+                          <div>• Memory usage: {Math.min(...testResults.map(r => r.memoryUsed || 0))}KB - {Math.max(...testResults.map(r => r.memoryUsed || 0))}KB</div>
+                        )}
+                        {testResults.some(r => r.cpuUsage) && (
+                          <div>• CPU usage range: {Math.min(...testResults.map(r => r.cpuUsage || 0)).toFixed(1)}% - {Math.max(...testResults.map(r => r.cpuUsage || 0)).toFixed(1)}%</div>
+                        )}
                         <div>• Status: {testResults.every(r => r.passed) ? '✅ All tests passed' : '❌ Some tests failed'}</div>
                       </div>
                     </div>
