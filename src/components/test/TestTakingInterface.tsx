@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, Calculator as CalcIcon, Flag, ChevronLeft, ChevronRight, AlertTriangle, Eye, EyeOff, BookOpen } from 'lucide-react';
-import { CodeEditor } from './CodeEditor';
+import { Clock, Flag, ChevronLeft, ChevronRight, AlertTriangle, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { EnhancedCodeEditor } from '../assignment/EnhancedCodeEditor';
-import { Calculator } from './Calculator';
 
 interface Question {
   id: string;
@@ -39,7 +37,6 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [timeLeft, setTimeLeft] = useState(assignment.timeLimit * 60); // Convert to seconds
-  const [showCalculator, setShowCalculator] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [showQuestionNav, setShowQuestionNav] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -333,14 +330,25 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
               className="prose dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: question.description.replace(/\n/g, '<br>') }}
             />
-            <CodeEditor
-              language={question.language || 'python'}
-              starterCode={question.starterCode || ''}
-              testCases={question.testCases || []}
-              onSubmit={(code, results) => {
-                handleAnswerChange(question.id, { code, results });
+            <EnhancedCodeEditor
+              question={{
+                ...question,
+                testCases: question.testCases?.map(tc => ({
+                  input: tc.input,
+                  output: tc.expectedOutput,
+                  isHidden: tc.isHidden
+                }))
               }}
-              timeLimit={question.timeLimit}
+              onSave={(code: string, language: string) => {
+                console.log('Saving code:', { code, language });
+              }}
+              onRun={(code: string, language: string) => {
+                console.log('Running code:', { code, language });
+              }}
+              onSubmit={(code: string, language: string) => {
+                handleAnswerChange(question.id, { code, language });
+              }}
+              timeRemaining={timeLeft}
             />
           </div>
         );
@@ -376,17 +384,6 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
                 <Clock className="w-4 h-4 mr-2" />
                 {formatTime(timeLeft)}
               </div>
-
-              {/* Calculator */}
-              {allowCalculator && (
-                <button
-                  onClick={() => setShowCalculator(true)}
-                  className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-                  title="Open Calculator"
-                >
-                  <CalcIcon className="w-5 h-5" />
-                </button>
-              )}
 
               {/* Question Navigator */}
               <button
@@ -532,9 +529,6 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
           </div>
         </div>
       </div>
-
-      {/* Calculator Modal */}
-      <Calculator isOpen={showCalculator} onClose={() => setShowCalculator(false)} />
     </div>
   );
 }
