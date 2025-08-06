@@ -17,22 +17,13 @@ import {
 } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface Notification {
-  id: string;
-  message: string;
-  read: boolean;
-  created_at: string;
-}
+import NotificationBell from "@/components/NotificationBell";
 
 export function NavigationHeader() {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [heartbeatCount, setHeartbeatCount] = useState(0);
 
   // Periodic heartbeat to keep session alive and verify auth status
@@ -63,32 +54,32 @@ export function NavigationHeader() {
     }
   }, [heartbeatCount, isAuthenticated, isLoading]);
 
-  // Fetch notifications when component loads or auth status changes
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!user || !user.id) return;
+  // // Fetch notifications when component loads or auth status changes
+  // useEffect(() => {
+  //   const fetchNotifications = async () => {
+  //     if (!user || !user.id) return;
 
-      try {
-        const token = localStorage.getItem("zenith-token");
-        const response = await fetch(`/api/notifications?userId=${user.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  //     try {
+  //       const token = localStorage.getItem("zenith-token");
+  //       const response = await fetch(`/api/notifications?userId=${user.id}`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
 
-        if (response.ok) {
-          const data = await response.json();
-          setNotifications(data);
-          const unread = data.filter((n: { read: boolean }) => !n.read).length;
-          setUnreadCount(unread);
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setNotifications(data);
+  //         const unread = data.filter((n: { read: boolean }) => !n.read).length;
+  //         setUnreadCount(unread);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching notifications:", error);
+  //     }
+  //   };
 
-    fetchNotifications();
-  }, [user]);
+  //   fetchNotifications();
+  // }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -190,73 +181,7 @@ export function NavigationHeader() {
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 relative"
-              >
-                <Bell size={20} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
-                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Notifications
-                    </h3>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <div className="px-4 py-8 text-center">
-                        <Bell className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          No notifications found
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">
-                          You&apos;re all caught up!
-                        </p>
-                      </div>
-                    ) : (
-                      notifications
-                        .slice(0, 5)
-                        .map((notification: Notification) => (
-                          <div
-                            key={notification.id}
-                            className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                              !notification.read
-                                ? "bg-blue-50 dark:bg-blue-900/20"
-                                : ""
-                            }`}
-                          >
-                            <p className="text-sm text-gray-900 dark:text-white">
-                              {notification.message}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {new Date(
-                                notification.created_at
-                              ).toLocaleDateString()}
-                            </p>
-                          </div>
-                        ))
-                    )}
-                  </div>
-                  <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
-                    <Link
-                      href="/notifications"
-                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                      onClick={() => setShowNotifications(false)}
-                    >
-                      View all notifications
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
+            <NotificationBell />
 
             {/* User Menu */}
             <div className="relative">

@@ -1,30 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-// Initialize PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://zenith_user:zenith_password@localhost:5432/zenith_db'
-});
+import Database from '@/lib/database';
+import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
+    // Get token from Authorization header or cookies
+    const token = getTokenFromRequest(request);
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized - No token provided' }, { status: 401 });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Get user from token verification
-    const sessionQuery = 'SELECT user_id FROM sessions WHERE token = $1 AND expires_at > NOW()';
-    const sessionResult = await pool.query(sessionQuery, [token]);
-    
-    if (sessionResult.rows.length === 0) {
+    // Verify token
+    const decoded = verifyToken(token);
+    if (!decoded) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
     }
 
-    const userId = sessionResult.rows[0].user_id;
+    const userId = decoded.userId;
 
     // Get user's assignment history with detailed information
     const historyQuery = `
@@ -52,9 +45,9 @@ export async function GET(request: NextRequest) {
       ORDER BY aa.submitted_at DESC
     `;
     
-    const historyResult = await pool.query(historyQuery, [userId]);
+    const historyResult = await Database.query(historyQuery, [userId]);
     
-    const assignments = historyResult.rows.map(row => ({
+    const assignments = historyResult.rows.map((row: any) => ({
       id: row.id,
       title: row.title,
       club: row.club_name || 'General',

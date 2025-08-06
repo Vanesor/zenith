@@ -6,15 +6,14 @@ export interface NotificationData {
   message: string;
   type: "announcement" | "event" | "assignment" | "comment" | "like" | "system";
   related_id?: string;
-  is_read?: boolean;
-  read?: boolean; // Legacy support - will be mapped to is_read
+  read?: boolean;
 }
 
 export class NotificationService {
   static async createNotification(data: NotificationData): Promise<void> {
     try {
       await Database.query(
-        `INSERT INTO notifications (user_id, title, message, type, related_id, is_read, created_at)
+        `INSERT INTO notifications (user_id, title, message, type, related_id, read, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
         [
           data.user_id,
@@ -22,7 +21,7 @@ export class NotificationService {
           data.message,
           data.type,
           data.related_id || null,
-          data.is_read !== undefined ? data.is_read : data.read || false,
+          data.read !== undefined ? data.read : data.read || false,
         ]
       );
     } catch (error) {
@@ -49,11 +48,11 @@ export class NotificationService {
         notif.message,
         notif.type,
         notif.related_id || null,
-        notif.is_read !== undefined ? notif.is_read : notif.read || false,
+        notif.read !== undefined ? notif.read : notif.read || false,
       ]);
 
       await Database.query(
-        `INSERT INTO notifications (user_id, title, message, type, related_id, is_read) 
+        `INSERT INTO notifications (user_id, title, message, type, related_id, read) 
          VALUES ${values}`,
         params
       );

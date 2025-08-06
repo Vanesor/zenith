@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  code-execution:
+    build:
+      context: .
+      dockerfile: Dockerfile.execution
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./scripts:/app
+      - ./scripts/temp:/app/temp
+    environment:
+      - CODE_EXECUTION_PORT=4000
+    restart: unless-stopped
+    networks:
+      - zenith-network
+    security_opt:
+      - seccomp=./execution-seccomp.json
+
+networks:
+  zenith-network:
+    driver: bridge

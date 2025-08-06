@@ -196,7 +196,7 @@ export interface Notification {
   title: string;
   message: string;
   type: "system" | "assignment" | "event" | "announcement" | "chat";
-  is_read: boolean;
+  read: boolean;
   data: Record<string, any>;
   related_id?: string;
   related_type?: string;
@@ -564,7 +564,7 @@ export class Database {
     notification: Omit<Notification, "id" | "created_at">
   ): Promise<Notification> {
     const result = await this.query(
-      `INSERT INTO notifications (user_id, title, message, type, is_read, data, related_id, related_type) 
+      `INSERT INTO notifications (user_id, title, message, type, read, data, related_id, related_type) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
       [
@@ -572,7 +572,7 @@ export class Database {
         notification.title,
         notification.message,
         notification.type,
-        notification.is_read || false,
+        notification.read || false,
         notification.data || {},
         notification.related_id || null,
         notification.related_type || null,
@@ -582,7 +582,7 @@ export class Database {
   }
 
   static async markNotificationAsRead(id: string): Promise<void> {
-    await this.query("UPDATE notifications SET is_read = true WHERE id = $1", [
+    await this.query("UPDATE notifications SET read = true WHERE id = $1", [
       id,
     ]);
   }

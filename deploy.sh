@@ -93,6 +93,12 @@ docker-compose -f docker-compose.production.yml up -d prometheus grafana
 sleep 5
 log "✅ Monitoring services started"
 
+# Start code execution service
+log "Starting code execution service..."
+docker-compose -f docker-compose.execution.yml up -d
+sleep 5
+log "✅ Code execution service started"
+
 # Start application instances
 log "Starting application instances..."
 docker-compose -f docker-compose.production.yml up -d app1 app2 app3

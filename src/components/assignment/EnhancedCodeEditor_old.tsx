@@ -17,7 +17,6 @@ import {
   X,
   Info
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface TestCase {
   input: string;
@@ -110,7 +109,7 @@ const Toast: React.FC<ToastProps> = ({ type, title, message, onClose }) => {
         </div>
         <div className="ml-3 flex-1">
           <h3 className="text-sm font-medium">{title}</h3>
-          <p className="text-sm mt-1">{message}</p>
+          <p className="mt-1 text-sm opacity-90">{message}</p>
         </div>
         <button
           onClick={onClose}
@@ -130,7 +129,6 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
   onSubmit,
   timeRemaining
 }) => {
-  const router = useRouter();
   const [code, setCode] = useState(question.starterCode || '');
   const [selectedLanguage, setSelectedLanguage] = useState(
     question.language || (question.allowedLanguages && question.allowedLanguages[0]) || 'javascript'
@@ -167,22 +165,6 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     }
   }, [timeRemaining]);
 
-  // Auto-submit helper
-  const handleAutoSubmit = () => {
-    setToast({
-      type: 'warning',
-      title: 'Time Up!',
-      message: 'Assignment auto-submitted due to time limit. Redirecting...',
-      onClose: () => setToast(null)
-    });
-    
-    // Auto-submit and redirect after 2 seconds
-    setTimeout(() => {
-      onSubmit(code, selectedLanguage);
-      router.push('/assignments');
-    }, 2000);
-  };
-
   // Fullscreen toggle
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -214,10 +196,32 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
 
   const handleSubmit = () => {
     if (timeRemaining <= 0) {
-      handleAutoSubmit();
-    } else {
-      onSubmit(code, selectedLanguage);
+      setToast({
+        type: 'warning',
+        title: 'Time Up!',
+        message: 'Assignment auto-submitted due to time limit',
+        onClose: () => setToast(null)
+      });
     }
+    onSubmit(code, selectedLanguage);
+  };
+
+  // Get available languages based on question constraints
+  const availableLanguages = question.allowAnyLanguage 
+    ? LANGUAGE_OPTIONS 
+    : question.allowedLanguages && question.allowedLanguages.length > 0
+      ? LANGUAGE_OPTIONS.filter(lang => question.allowedLanguages?.includes(lang.value))
+      : LANGUAGE_OPTIONS;
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleRun = async () => {
@@ -337,12 +341,33 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     }
   };
 
-  // Get available languages based on question constraints
+  const handleSubmit = () => {
+    if (!code.trim()) {
+      setToast({
+        type: 'warning',
+        title: 'Empty Code',
+        message: 'Please write some code before submitting',
+        onClose: () => setToast(null)
+      });
+      return;
+    }
+
+    onSubmit(code, selectedLanguage);
+  };
+
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      await containerRef.current?.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  };
+
   const availableLanguages = question.allowAnyLanguage 
     ? LANGUAGE_OPTIONS 
-    : question.allowedLanguages && question.allowedLanguages.length > 0
-      ? LANGUAGE_OPTIONS.filter(lang => question.allowedLanguages?.includes(lang.value))
-      : LANGUAGE_OPTIONS;
+    : LANGUAGE_OPTIONS.filter(lang => 
+        question.allowedLanguages?.includes(lang.value) || lang.value === question.language
+      );
 
   return (
     <div ref={containerRef} className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -362,7 +387,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2 text-sm">
             <Clock className="w-4 h-4 text-gray-500" />
-            <span className={`font-mono ${timeRemaining < 300 ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-gray-600 dark:text-gray-400'}`}>
+            <span className={`font-mono ${timeRemaining < 300 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
               {formatTime(timeRemaining)}
             </span>
           </div>
@@ -404,13 +429,13 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                         <div>
                           <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Input:</div>
                           <pre className="text-sm bg-white dark:bg-gray-800 p-3 rounded border font-mono overflow-x-auto">
-{testCase.input}
+                            {testCase.input}
                           </pre>
                         </div>
                         <div>
                           <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Output:</div>
                           <pre className="text-sm bg-white dark:bg-gray-800 p-3 rounded border font-mono overflow-x-auto">
-{testCase.output}
+                            {testCase.output}
                           </pre>
                         </div>
                       </div>
@@ -424,8 +449,8 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Constraints</h4>
               <div className="text-sm text-blue-800 dark:text-blue-400 space-y-1">
-                <div>• Time Limit: 5 seconds per test case</div>
-                <div>• Memory Limit: 128 MB</div>
+                <div>• Time Limit: 2 seconds</div>
+                <div>• Memory Limit: 256 MB</div>
                 <div>• Input/Output: Standard I/O</div>
               </div>
             </div>
@@ -603,35 +628,27 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                             <div>
                               <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">Input:</div>
-                              <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono overflow-x-auto max-h-32">
-{result.input}
+                              <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono overflow-x-auto">
+                                {result.input}
                               </pre>
                             </div>
                             <div>
                               <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">Expected:</div>
-                              <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono overflow-x-auto max-h-32">
-{result.expectedOutput}
+                              <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono overflow-x-auto">
+                                {result.expectedOutput}
                               </pre>
                             </div>
                             <div>
                               <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">Your Output:</div>
-                              <pre className={`p-2 rounded font-mono overflow-x-auto max-h-32 ${
+                              <pre className={`p-2 rounded font-mono overflow-x-auto ${
                                 result.passed 
                                   ? 'bg-green-100 dark:bg-green-900/30' 
                                   : 'bg-red-100 dark:bg-red-900/30'
                               }`}>
-{result.actualOutput}
+                                {result.actualOutput}
                               </pre>
                             </div>
                           </div>
-                          {result.error && (
-                            <div className="mt-2">
-                              <div className="font-medium text-gray-700 dark:text-gray-300 mb-1 text-xs">Error:</div>
-                              <pre className="bg-red-100 dark:bg-red-900/30 p-2 rounded font-mono text-xs overflow-x-auto">
-{result.error}
-                              </pre>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -719,9 +736,9 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                           </div>
                           <div>
                             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                              {availableLanguages.find(l => l.value === selectedLanguage)?.label}
+                              {(testResults.reduce((acc, r) => acc + (r.memoryUsed || 0), 0) / testResults.length).toFixed(0)}KB
                             </div>
-                            <div className="text-xs text-gray-600 dark:text-gray-400">Language</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">Avg Memory</div>
                           </div>
                         </div>
                       </div>
@@ -730,7 +747,6 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                         <div>• Total test cases executed: {testResults.length}</div>
                         <div>• Success rate: {((testResults.filter(r => r.passed).length / testResults.length) * 100).toFixed(1)}%</div>
                         <div>• Language: {availableLanguages.find(l => l.value === selectedLanguage)?.label}</div>
-                        <div>• Status: {testResults.every(r => r.passed) ? '✅ All tests passed' : '❌ Some tests failed'}</div>
                       </div>
                     </div>
                   )}

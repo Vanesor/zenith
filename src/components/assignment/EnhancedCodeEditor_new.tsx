@@ -167,22 +167,6 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     }
   }, [timeRemaining]);
 
-  // Auto-submit helper
-  const handleAutoSubmit = () => {
-    setToast({
-      type: 'warning',
-      title: 'Time Up!',
-      message: 'Assignment auto-submitted due to time limit. Redirecting...',
-      onClose: () => setToast(null)
-    });
-    
-    // Auto-submit and redirect after 2 seconds
-    setTimeout(() => {
-      onSubmit(code, selectedLanguage);
-      router.push('/assignments');
-    }, 2000);
-  };
-
   // Fullscreen toggle
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -214,7 +198,18 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
 
   const handleSubmit = () => {
     if (timeRemaining <= 0) {
-      handleAutoSubmit();
+      setToast({
+        type: 'warning',
+        title: 'Time Up!',
+        message: 'Assignment auto-submitted due to time limit. Redirecting to assignments page...',
+        onClose: () => setToast(null)
+      });
+      
+      // Auto-submit and redirect after 2 seconds
+      setTimeout(() => {
+        onSubmit(code, selectedLanguage);
+        router.push('/assignments');
+      }, 2000);
     } else {
       onSubmit(code, selectedLanguage);
     }

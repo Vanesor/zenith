@@ -11,6 +11,8 @@ A modern, cross-platform forum application built for college communities. This p
 - **Tailwind CSS** - Utility-first CSS framework
 - **ESLint** - Code linting and formatting
 - **Supabase** - Backend-as-a-Service database and authentication
+- **Monaco Editor** - Code editor for assignments
+- **Docker** - Isolated code execution environment
 
 ### Mobile Application
 
@@ -30,13 +32,16 @@ A modern, cross-platform forum application built for college communities. This p
 zenith/
 ├── src/                    # Next.js web application
 │   ├── app/               # App Router pages
+│   │   ├── api/           # API routes including code execution
 │   ├── components/        # React components
+│   │   ├── assignment/    # Assignment and code editor components
 │   ├── lib/               # Helper libraries
 │   │   ├── supabase.js    # Supabase client and helpers
 │   └── ...
 ├── scripts/               # Utility scripts
-│   ├── setup-supabase-schema.js  # Supabase setup script
-│   ├── verify-supabase-schema.js # Schema verification
+│   ├── code-execution-service.js  # Code execution microservice
+│   ├── setup-supabase-schema.js   # Supabase setup script
+│   ├── verify-supabase-schema.js  # Schema verification
 ├── mobile/                # React Native setup and project
 │   ├── setup-ubuntu.sh    # Ubuntu setup script
 │   ├── setup-windows.md   # Windows setup guide
@@ -91,6 +96,27 @@ zenith/
    - Check that all required tables and columns are present
 
 For more detailed Supabase setup instructions, refer to [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
+
+### Code Execution Service Setup
+
+The code execution service is required for running code assignments in the platform.
+
+1. **Start the Code Execution Service:**
+   ```bash
+   # Using the provided script
+   ./start-code-execution.sh
+   
+   # Or using npm script
+   npm run exec:service:start
+   ```
+
+2. **Verify the Service:**
+   ```bash
+   # Check if the service is running
+   curl http://localhost:4000/health
+   ```
+
+The service supports multiple programming languages and runs in an isolated Docker container for security. For more details, see [CODE_EXECUTION_SERVICE.md](docs/CODE_EXECUTION_SERVICE.md).
 
 ### Web Application Setup
 
