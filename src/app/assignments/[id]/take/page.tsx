@@ -218,17 +218,30 @@ export default function TakeAssignment() {
       setSubmitting(true);
       const tokenManager = TokenManager.getInstance();
       
+      // Convert answers object to array format expected by API
+      const answersArray = Object.entries(answers).map(([questionId, answer]) => ({
+        questionId,
+        selectedOptions: Array.isArray(answer) ? answer : (typeof answer === 'object' && answer.selectedOptions) ? answer.selectedOptions : [],
+        codeAnswer: (typeof answer === 'object' && answer.code) ? answer.code : (typeof answer === 'string' && assignment?.questions.find(q => q.id === questionId)?.type === 'coding') ? answer : null,
+        essayAnswer: (typeof answer === 'object' && answer.text) ? answer.text : (typeof answer === 'string' && assignment?.questions.find(q => q.id === questionId)?.type === 'essay') ? answer : null,
+        timeSpent: (typeof answer === 'object' && answer.timeSpent) ? answer.timeSpent : 0
+      }));
+      
       const response = await tokenManager.authenticatedFetch(`/api/assignments/${assignmentId}/submit`, {
         method: 'POST',
         body: JSON.stringify({
-          attemptId: currentAttempt.id,
-          answers: answers,
-          endTime: new Date().toISOString()
+          answers: answersArray,
+          startedAt: currentAttempt.startTime,
+          completedAt: new Date().toISOString(),
+          timeSpent: Math.floor((Date.now() - new Date(currentAttempt.startTime).getTime()) / 1000),
+          violationCount: 0,
+          autoSubmitted: false
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit assignment');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit assignment');
       }
 
       const result = await response.json();
@@ -348,7 +361,7 @@ export default function TakeAssignment() {
             ...assignment.questions[0],
             testCases: assignment.questions[0].testCases?.map(tc => ({
               input: tc.input,
-              output: tc.expectedOutput,
+              expectedOutput: tc.expectedOutput,
               isHidden: tc.isHidden
             }))
           }}

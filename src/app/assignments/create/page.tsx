@@ -58,6 +58,12 @@ interface AssignmentFormData {
   instructions: string;
   passingScore: number;
   isProctored: boolean;
+  requireCamera: boolean;
+  requireMicrophone: boolean;
+  requireFaceVerification: boolean;
+  requireFullscreen: boolean;
+  autoSubmitOnViolation: boolean;
+  maxViolations: number;
   shuffleQuestions: boolean;
   shuffleOptions: boolean;
   allowCalculator: boolean;
@@ -106,7 +112,13 @@ export default function CreateAssignment() {
     allowNavigation: true,
     instructions: '',
     passingScore: 60,
-    isProctored: true,
+    isProctored: false,
+    requireCamera: false,
+    requireMicrophone: false,
+    requireFaceVerification: false,
+    requireFullscreen: false,
+    autoSubmitOnViolation: false,
+    maxViolations: 3,
     shuffleQuestions: false,
     shuffleOptions: false,
     allowCalculator: true,
@@ -1284,9 +1296,87 @@ export default function CreateAssignment() {
                           className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <span className="ml-3 text-gray-700 dark:text-gray-300">
-                          Enable proctoring (tab switch detection)
+                          Enable proctoring features
                         </span>
                       </label>
+
+                      {formData.isProctored && (
+                        <div className="ml-7 space-y-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={formData.requireCamera}
+                              onChange={(e) => setFormData(prev => ({ ...prev, requireCamera: e.target.checked }))}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                              Require camera access for identity verification
+                            </span>
+                          </label>
+
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={formData.requireMicrophone}
+                              onChange={(e) => setFormData(prev => ({ ...prev, requireMicrophone: e.target.checked }))}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                              Require microphone access for audio monitoring
+                            </span>
+                          </label>
+
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={formData.requireFaceVerification}
+                              onChange={(e) => setFormData(prev => ({ ...prev, requireFaceVerification: e.target.checked }))}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                              Require face verification before starting
+                            </span>
+                          </label>
+
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={formData.requireFullscreen}
+                              onChange={(e) => setFormData(prev => ({ ...prev, requireFullscreen: e.target.checked }))}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                              Force fullscreen mode during test
+                            </span>
+                          </label>
+
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={formData.autoSubmitOnViolation}
+                              onChange={(e) => setFormData(prev => ({ ...prev, autoSubmitOnViolation: e.target.checked }))}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                              Auto-submit test after maximum violations
+                            </span>
+                          </label>
+
+                          <div className="flex items-center space-x-3">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Maximum violations allowed:
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={formData.maxViolations}
+                              onChange={(e) => setFormData(prev => ({ ...prev, maxViolations: parseInt(e.target.value) }))}
+                              className="w-20 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      )}
 
                       <label className="flex items-center">
                         <input

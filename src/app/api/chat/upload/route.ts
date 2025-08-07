@@ -4,13 +4,23 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { ZenithFileEncryption } from '@/lib/encryption';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Check if environment variables are available
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let supabase: any = null;
+
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Supabase is configured
+    if (!supabase) {
+      console.warn('Supabase not configured, falling back to local file storage');
+    }
+
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
     const roomId = formData.get('roomId') as string;

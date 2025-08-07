@@ -1,0 +1,11 @@
+<!-- WhatsApp-like pattern SVG -->
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <pattern id="whatsapp-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="100" height="100" fill="#e5ded8"/>
+      <path d="M0 50 L100 50 L100 51 L0 51 Z" fill="#d1c7bf"/>
+      <path d="M50 0 L51 0 L51 100 L50 100 Z" fill="#d1c7bf"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="600" height="600" fill="url(#whatsapp-pattern)"/>
+</svg>

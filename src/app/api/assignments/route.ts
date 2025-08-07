@@ -162,6 +162,12 @@ export async function POST(request: NextRequest) {
       allowNavigation,
       passingScore,
       isProctored,
+      requireCamera,
+      requireMicrophone,
+      requireFaceVerification,
+      requireFullscreen,
+      autoSubmitOnViolation,
+      maxViolations,
       shuffleQuestions,
       shuffleOptions,
       allowCalculator,
@@ -253,10 +259,12 @@ export async function POST(request: NextRequest) {
         `INSERT INTO assignments (
           title, description, club_id, created_by, due_date, max_points, instructions,
           assignment_type, target_audience, target_clubs, time_limit,
-          allow_navigation, passing_score, is_proctored, shuffle_questions, shuffle_options,
-          allow_calculator, max_attempts, show_results, allow_review, is_published
+          allow_navigation, passing_score, is_proctored, require_camera, require_microphone,
+          require_face_verification, require_fullscreen, auto_submit_on_violation, max_violations,
+          shuffle_questions, shuffle_options, allow_calculator, max_attempts, show_results, 
+          allow_review, is_published
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
          RETURNING *`,
         [
           title,
@@ -273,6 +281,12 @@ export async function POST(request: NextRequest) {
           allowNavigation !== undefined ? allowNavigation : true,
           passingScore || 60,
           isProctored !== undefined ? isProctored : false,
+          requireCamera !== undefined ? requireCamera : false,
+          requireMicrophone !== undefined ? requireMicrophone : false,
+          requireFaceVerification !== undefined ? requireFaceVerification : false,
+          requireFullscreen !== undefined ? requireFullscreen : false,
+          autoSubmitOnViolation !== undefined ? autoSubmitOnViolation : false,
+          maxViolations || 3,
           shuffleQuestions !== undefined ? shuffleQuestions : false,
           shuffleOptions !== undefined ? shuffleOptions : false,
           allowCalculator !== undefined ? allowCalculator : true,

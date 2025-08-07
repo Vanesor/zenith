@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Clock, Flag, ChevronLeft, ChevronRight, AlertTriangle, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { EnhancedCodeEditor } from '../assignment/EnhancedCodeEditor';
+import { ProctoringSetup } from '../assignment/ProctoringSetup';
 
 interface Question {
   id: string;
@@ -26,6 +27,10 @@ interface TestTakingInterfaceProps {
     timeLimit: number;
     allowNavigation: boolean;
     isProctored: boolean;
+    requireCamera?: boolean;
+    requireMicrophone?: boolean;
+    requireFaceVerification?: boolean;
+    requireFullscreen?: boolean;
     shuffleQuestions: boolean;
     questions: Question[];
   };
@@ -41,13 +46,28 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
   const [showQuestionNav, setShowQuestionNav] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [showProctoringSetup, setShowProctoringSetup] = useState(false);
+  const [proctoringCompleted, setProctoringCompleted] = useState(false);
+  const [testStarted, setTestStarted] = useState(false);
 
   const currentQuestion = assignment.questions[currentQuestionIndex];
 
+  // Check if proctoring setup is required
+  useEffect(() => {
+    if (assignment.isProctored && (assignment.requireCamera || assignment.requireMicrophone || assignment.requireFaceVerification)) {
+      setShowProctoringSetup(true);
+    } else {
+      setProctoringCompleted(true);
+      setTestStarted(true);
+    }
+  }, [assignment]);
+
   // Timer effect
   useEffect(() => {
-    if (timeLeft <= 0) {
-      handleAutoSubmit();
+    if (!testStarted || timeLeft <= 0) {
+      if (timeLeft <= 0) {
+        handleAutoSubmit();
+      }
       return;
     }
 
@@ -56,7 +76,7 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, testStarted]);
 
   // Proctoring effects
   useEffect(() => {
@@ -107,6 +127,41 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
 
   const addWarning = (warning: string) => {
     setWarnings(prev => [...prev, `${new Date().toLocaleTimeString()}: ${warning}`]);
+  };
+
+  const handleProctoringSetupComplete = (setupData: {
+    cameraPermitted: boolean;
+    microphonePermitted: boolean;
+    faceVerified: boolean;
+    systemCheck: boolean;
+  }) => {
+    console.log('Proctoring setup completed:', setupData);
+    
+    // Check if all required verifications passed
+    const allRequiredPassed = 
+      (!assignment.requireCamera || setupData.cameraPermitted) &&
+      (!assignment.requireMicrophone || setupData.microphonePermitted) &&
+      (!assignment.requireFaceVerification || setupData.faceVerified) &&
+      setupData.systemCheck;
+
+    if (allRequiredPassed) {
+      setShowProctoringSetup(false);
+      setProctoringCompleted(true);
+      setTestStarted(true);
+      
+      // Force fullscreen if required
+      if (assignment.requireFullscreen) {
+        toggleFullscreen();
+      }
+    } else {
+      addWarning('Proctoring setup failed - missing required verifications');
+    }
+  };
+
+  const handleProctoringSetupCancel = () => {
+    setShowProctoringSetup(false);
+    // Navigate back or show error
+    window.history.back();
   };
 
   const formatTime = (seconds: number) => {
@@ -335,7 +390,7 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
                 ...question,
                 testCases: question.testCases?.map(tc => ({
                   input: tc.input,
-                  output: tc.expectedOutput,
+                  expectedOutput: tc.expectedOutput,
                   isHidden: tc.isHidden
                 }))
               }}
@@ -359,7 +414,21 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <>
+      {/* Proctoring Setup Modal */}
+      {showProctoringSetup && (
+        <ProctoringSetup
+          requireCamera={assignment.requireCamera || false}
+          requireMicrophone={assignment.requireMicrophone || false}
+          requireFaceVerification={assignment.requireFaceVerification || false}
+          onSetupComplete={handleProctoringSetupComplete}
+          onCancel={handleProctoringSetupCancel}
+        />
+      )}
+
+      {/* Main Test Interface - only show when test has started */}
+      {testStarted && (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4 py-4">
@@ -529,6 +598,8 @@ export function TestTakingInterface({ assignment, onSubmit, allowCalculator = tr
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

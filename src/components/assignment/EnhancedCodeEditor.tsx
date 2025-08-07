@@ -21,7 +21,8 @@ import { useRouter } from 'next/navigation';
 
 interface TestCase {
   input: string;
-  output: string;
+  output?: string;          // For compatibility
+  expectedOutput: string;   // This is the actual field from database
   isHidden?: boolean;
 }
 
@@ -158,9 +159,14 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
   const [isProctored, setIsProctored] = useState(false);
   const [focusLost, setFocusLost] = useState(false);
   const [testStarted, setTestStarted] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [screenFrozen, setScreenFrozen] = useState(false);
+  const [autoReturningToFullscreen, setAutoReturningToFullscreen] = useState(false);
 
   const editorRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Auto-save functionality
   useEffect(() => {
@@ -185,15 +191,16 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
       
-      // If user exits fullscreen during test, give warning
-      if (testStarted && !document.fullscreenElement && isProctored) {
+      // If user exits fullscreen during test, auto-return and give warning
+      if (testStarted && !document.fullscreenElement && isProctored && !autoReturningToFullscreen) {
         handleProctorViolation('Exited fullscreen mode');
+        autoReturnToFullscreen();
       }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [testStarted, isProctored]);
+  }, [testStarted, isProctored, autoReturningToFullscreen]);
 
   // Proctoring - detect tab switches and focus loss
   useEffect(() => {
@@ -260,6 +267,13 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     }
   }, [testStarted, isProctored]);
 
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -283,26 +297,29 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     const newWarningCount = proctorWarnings + 1;
     setProctorWarnings(newWarningCount);
 
+    console.log(`Proctoring violation: ${violation}. Warning count: ${newWarningCount}`);
+
     if (newWarningCount === 1) {
       setToast({
         type: 'warning',
-        title: 'Proctoring Warning',
-        message: `${violation}. This is your first warning. Another violation will result in auto-submission.`,
+        title: 'Proctoring Warning #1',
+        message: `${violation}. This is your FIRST warning. One more violation will result in auto-submission.`,
         onClose: () => setToast(null)
       });
     } else if (newWarningCount >= 2) {
       setToast({
         type: 'error',
         title: 'Test Auto-Submitted',
-        message: `Multiple proctoring violations detected. Your test has been auto-submitted and reported to authorities.`,
+        message: `Multiple proctoring violations detected (${violation}). Your test has been auto-submitted and reported to authorities.`,
         onClose: () => setToast(null)
       });
       
-      // Auto-submit after 3 seconds
+      // Force auto-submit immediately
+      console.log('Auto-submitting due to proctoring violations');
       setTimeout(() => {
         onSubmit(code, selectedLanguage);
-        router.push('/assignments');
-      }, 3000);
+        router.push('/assignments?reason=proctoring_violation');
+      }, 2000);
     }
   };
 
@@ -310,12 +327,127 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     setTestStarted(true);
     setIsProctored(true);
     
+    // Initialize camera monitoring
+    initializeCamera();
+    
     setToast({
       type: 'info',
       title: 'Proctored Test Started',
-      message: 'Test is now being monitored. Do not switch tabs, exit fullscreen, or minimize the window.',
+      message: 'Test is now being monitored. Camera and screen recording active. Do not switch tabs, exit fullscreen, or minimize the window.',
       onClose: () => setToast(null)
     });
+  };
+
+  const initializeCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: 320, 
+          height: 240,
+          facingMode: 'user'
+        }, 
+        audio: false 
+      });
+      setCameraStream(stream);
+      setIsRecording(true);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        // Start monitoring for multiple faces or no faces
+        startFaceDetection();
+      }
+      
+      setToast({
+        type: 'success',
+        title: 'Camera Monitoring Active',
+        message: 'Camera is now monitoring for suspicious activity.',
+        onClose: () => setToast(null)
+      });
+    } catch (error) {
+      console.error('Camera access denied:', error);
+      setToast({
+        type: 'error',
+        title: 'Camera Required',
+        message: 'Camera access is required for proctored tests. Please enable camera and refresh.',
+        onClose: () => setToast(null)
+      });
+    }
+  };
+
+  const startFaceDetection = () => {
+    // Basic face detection using video analysis
+    const video = videoRef.current;
+    if (!video) return;
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    const detectFaces = () => {
+      if (!video || !context) return;
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0);
+      
+      // Simple detection: if video is very dark (covered) or very bright (multiple people)
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      let brightness = 0;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        brightness += (data[i] + data[i + 1] + data[i + 2]) / 3;
+      }
+      
+      brightness /= (data.length / 4);
+      
+      // If too dark (camera covered) or unusual patterns
+      if (brightness < 10) {
+        handleProctorViolation('Camera appears to be covered or blocked');
+      } else if (brightness > 240) {
+        handleProctorViolation('Unusual lighting detected (possible multiple people)');
+      }
+    };
+
+    // Check every 5 seconds
+    const faceDetectionInterval = setInterval(detectFaces, 5000);
+    
+    // Store interval for cleanup
+    (video as any).faceDetectionInterval = faceDetectionInterval;
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+      setIsRecording(false);
+    }
+    
+    // Clean up face detection interval
+    if (videoRef.current && (videoRef.current as any).faceDetectionInterval) {
+      clearInterval((videoRef.current as any).faceDetectionInterval);
+    }
+  };
+
+  // Auto-return to fullscreen with screen freeze
+  const autoReturnToFullscreen = async () => {
+    setAutoReturningToFullscreen(true);
+    setScreenFrozen(true);
+    
+    // Wait for 3 seconds showing warning
+    setTimeout(async () => {
+      try {
+        await containerRef.current?.requestFullscreen();
+        setScreenFrozen(false);
+        setAutoReturningToFullscreen(false);
+        setFocusLost(false);
+      } catch (error) {
+        console.error('Failed to return to fullscreen:', error);
+        // If can't return to fullscreen, trigger violation
+        handleProctorViolation('Failed to return to fullscreen mode');
+        setScreenFrozen(false);
+        setAutoReturningToFullscreen(false);
+      }
+    }, 3000);
   };
 
   const handleSubmit = () => {
@@ -343,7 +475,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     try {
       const testCases = question.testCases?.filter(tc => !tc.isHidden).map(tc => ({
         input: tc.input,
-        expectedOutput: tc.output
+        expectedOutput: tc.expectedOutput || tc.output || ''
       })) || [];
 
       const response = await fetch('/api/code/execute', {
@@ -512,8 +644,47 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
     <div ref={containerRef} className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {toast && <Toast {...toast} />}
       
+      {/* Camera Monitoring Overlay */}
+      {isRecording && cameraStream && (
+        <div className="fixed top-4 left-4 z-50">
+          <div className="bg-black rounded-lg p-2 border-2 border-red-500">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              className="w-32 h-24 rounded"
+              style={{ transform: 'scaleX(-1)' }} // Mirror the video
+            />
+            <div className="text-center text-red-500 text-xs font-bold mt-1">
+              🔴 RECORDING
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Screen Freeze Overlay */}
+      {screenFrozen && (
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-60">
+          <div className="bg-red-600 text-white p-8 rounded-lg text-center max-w-md mx-4 border-4 border-red-400">
+            <AlertTriangle className="w-20 h-20 mx-auto mb-4 animate-pulse" />
+            <h2 className="text-2xl font-bold mb-4">
+              VIOLATION DETECTED
+            </h2>
+            <p className="text-lg mb-4">
+              You exited fullscreen mode during the test
+            </p>
+            <div className="text-yellow-300 mb-4">
+              Automatically returning to fullscreen...
+            </div>
+            <div className="text-sm">
+              Screen will unfreeze when fullscreen is restored
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Proctoring Warning Banner */}
-      {focusLost && testStarted && (
+      {focusLost && testStarted && !screenFrozen && (
         <div className="fixed inset-0 bg-red-600 bg-opacity-90 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-8 rounded-lg text-center max-w-md mx-4">
             <AlertTriangle className="w-16 h-16 text-red-600 mx-auto mb-4" />
@@ -543,11 +714,13 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
             <div className="text-gray-600 dark:text-gray-400 mb-6 space-y-2">
               <p>This is a proctored coding test. Please note:</p>
               <ul className="text-left space-y-1 mt-3">
-                <li>• The test will automatically enter fullscreen mode</li>
-                <li>• Do not switch tabs or minimize the window</li>
-                <li>• Do not exit fullscreen mode</li>
-                <li>• Your activity is being monitored</li>
-                <li>• 2 violations will result in auto-submission</li>
+                <li>• 📹 Camera access required for monitoring</li>
+                <li>• 🖥️ The test will automatically enter fullscreen mode</li>
+                <li>• ⚠️ Do not switch tabs or minimize the window</li>
+                <li>• 🚫 Do not exit fullscreen mode</li>
+                <li>• 👁️ Your activity and face are being monitored</li>
+                <li>• ⚡ 2 violations will result in auto-submission</li>
+                <li>• 📊 Test will be reported to authorities if violations occur</li>
               </ul>
             </div>
             <button
@@ -624,7 +797,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                         <div>
                           <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Output</div>
                           <div className="bg-gray-900 text-blue-400 p-3 rounded font-mono text-sm overflow-x-auto">
-                            <pre className="whitespace-pre-wrap">{testCase.output || 'No output specified'}</pre>
+                            <pre className="whitespace-pre-wrap">{testCase.expectedOutput || testCase.output || 'No expected output provided'}</pre>
                           </div>
                         </div>
                       </div>
