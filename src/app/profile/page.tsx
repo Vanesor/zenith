@@ -68,6 +68,10 @@ export default function ProfilePage() {
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [assignmentHistory, setAssignmentHistory] = useState<AssignmentActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile>({
     firstName: "",
     lastName: "",
@@ -98,14 +102,71 @@ export default function ProfilePage() {
     confirm: false,
   });
 
+  const fetchProfileData = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingProfile(true);
+      setProfileError(null);
+      
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile data');
+      }
+
+      const data = await response.json();
+      const profileData = data.profile || data; // Handle both wrapped and unwrapped responses
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        ...profileData,
+        firstName: profileData.firstName || "",
+        lastName: profileData.lastName || "",
+        username: profileData.username || "",
+        bio: profileData.bio || "",
+        phone: profileData.phone || "",
+        location: profileData.location || "",
+        website: profileData.website || "",
+        github: profileData.github || "",
+        linkedin: profileData.linkedin || "",
+        twitter: profileData.twitter || "",
+      }));
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Invalid or expired token')) {
+        setProfileError('Your session has expired. Please log in again.');
+        // Optionally redirect to login after a delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        setProfileError('Failed to load profile data. Please refresh the page.');
+      }
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
     } else if (user) {
+      // Parse name field if it exists, otherwise use empty strings
+      const nameParts = user.name ? user.name.split(' ') : ['', ''];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
       setProfile({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        username: user.username || "",
+        firstName: firstName,
+        lastName: lastName,
+        username: user.email?.split('@')[0] || "",
         email: user.email,
         bio: "",
         avatar: user.avatar || "",
@@ -116,9 +177,11 @@ export default function ProfilePage() {
         linkedin: "",
         twitter: "",
         joinedDate: "2025-01-15",
-        clubs: user.clubs || [],
+        clubs: [],
         role: user.role,
       });
+      // Fetch complete profile data from API
+      fetchProfileData();
       // Fetch assignment history when profile loads
       fetchAssignmentHistory();
     }
@@ -152,13 +215,46 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      // In a real app, this would make an API call to update the profile
-      console.log("Saving profile:", profile);
+      setSavingProfile(true);
+      setProfileError(null);
+      setProfileSuccess(null);
+      
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(profile)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      const updatedData = await response.json();
+      const updatedProfile = updatedData.profile || updatedData; // Handle wrapped response
+      setProfile(prevProfile => ({ ...prevProfile, ...updatedProfile }));
       setIsEditing(false);
-      // Show success message
+      setProfileSuccess('Profile updated successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setProfileSuccess(null), 3000);
     } catch (error) {
       console.error("Error saving profile:", error);
-      // Show error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
+      if (errorMessage.includes('Invalid or expired token')) {
+        setProfileError('Your session has expired. Please log in again.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        setProfileError(errorMessage);
+      }
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -184,10 +280,13 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading || !user) {
+  if (isLoading || !user || loadingProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -197,6 +296,20 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8">
+          {/* Success/Error Messages */}
+          {(profileSuccess || profileError) && (
+            <div className={`px-6 py-3 ${profileSuccess ? 'bg-green-100 dark:bg-green-900/20 border-green-400 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/20 border-red-400 text-red-700 dark:text-red-300'} border-l-4`}>
+              <div className="flex items-center">
+                {profileSuccess ? (
+                  <CheckCircle size={20} className="mr-2" />
+                ) : (
+                  <X size={20} className="mr-2" />
+                )}
+                <p>{profileSuccess || profileError}</p>
+              </div>
+            </div>
+          )}
+          
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
               <div className="relative">
@@ -221,9 +334,13 @@ export default function ProfilePage() {
               </div>
               <div className="text-center md:text-left flex-1">
                 <h1 className="text-3xl font-bold mb-2">
-                  {profile.firstName} {profile.lastName}
+                  {profile.firstName && profile.lastName 
+                    ? `${profile.firstName} ${profile.lastName}`
+                    : user?.name || "User"}
                 </h1>
-                <p className="text-xl opacity-90 mb-2">@{profile.username}</p>
+                <p className="text-xl opacity-90 mb-2">
+                  @{profile.username || user?.username || user?.email?.split('@')[0] || "user"}
+                </p>
                 <p className="text-lg opacity-80 mb-4">
                   {profile.bio || "No bio available"}
                 </p>
@@ -255,10 +372,20 @@ export default function ProfilePage() {
                   <div className="flex gap-2">
                     <button
                       onClick={handleSave}
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all flex items-center"
+                      disabled={savingProfile}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
                     >
-                      <Save size={20} className="mr-2" />
-                      Save
+                      {savingProfile ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={20} className="mr-2" />
+                          Save
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
