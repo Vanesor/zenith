@@ -27,9 +27,6 @@ export default function CreateEvent() {
     time: "",
     location: "",
     maxAttendees: "",
-    registrationRequired: false,
-    registrationDeadline: "",
-    clubId: user?.club_id || "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,29 +35,31 @@ export default function CreateEvent() {
 
     setIsSubmitting(true);
     try {
+      const token = localStorage.getItem("zenith-token");
       const response = await fetch("/api/events", {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
           date: formData.date,
-          time: formData.time,
+          startTime: formData.time,
           location: formData.location,
-          club_id: formData.clubId,
-          created_by: user.id,
-          max_attendees: formData.maxAttendees
+          maxAttendees: formData.maxAttendees
             ? parseInt(formData.maxAttendees)
             : null,
+          imageUrl: null, // We can add image upload later
         }),
       });
 
       if (response.ok) {
-        router.push("/management");
+        router.push("/calendar");
       } else {
-        alert("Failed to create event");
+        const errorData = await response.json();
+        alert(errorData.error || "Failed to create event");
       }
     } catch (error) {
       console.error("Error creating event:", error);
@@ -121,7 +120,7 @@ export default function CreateEvent() {
 
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label
                   htmlFor="title"
@@ -139,32 +138,6 @@ export default function CreateEvent() {
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Enter event title"
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="clubId"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Club *
-                </label>
-                <select
-                  id="clubId"
-                  name="clubId"
-                  required
-                  value={formData.clubId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  {user?.club_id ? (
-                    <option key={user.club_id} value={user.club_id}>
-                      {user.club_id.charAt(0).toUpperCase() +
-                        user.club_id.slice(1)}
-                    </option>
-                  ) : (
-                    <option value="">No club assigned</option>
-                  )}
-                </select>
               </div>
             </div>
 
@@ -267,49 +240,6 @@ export default function CreateEvent() {
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Event location"
               />
-            </div>
-
-            {/* Registration Settings */}
-            <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Registration Settings
-              </h3>
-
-              <div className="flex items-center mb-4">
-                <input
-                  type="checkbox"
-                  id="registrationRequired"
-                  name="registrationRequired"
-                  checked={formData.registrationRequired}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-blue-600 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
-                />
-                <label
-                  htmlFor="registrationRequired"
-                  className="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                >
-                  Require registration for this event
-                </label>
-              </div>
-
-              {formData.registrationRequired && (
-                <div>
-                  <label
-                    htmlFor="registrationDeadline"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Registration Deadline
-                  </label>
-                  <input
-                    type="date"
-                    id="registrationDeadline"
-                    name="registrationDeadline"
-                    value={formData.registrationDeadline}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-              )}
             </div>
 
             {/* Action Buttons */}

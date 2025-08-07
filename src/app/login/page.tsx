@@ -15,8 +15,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const router = useRouter();
   const { login, user, isLoading: authLoading } = useAuth();
+
+  // Check for session expired URL parameter
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('expired') === 'true') {
+        setShowSessionExpired(true);
+      }
+    }
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -86,6 +97,13 @@ export default function LoginPage() {
               Sign in to your Zenith account
             </p>
           </div>
+
+          {/* Session Expired Message */}
+          {showSessionExpired && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 px-4 py-3 rounded-lg mb-6">
+              Your session has expired. Please log in again to continue.
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

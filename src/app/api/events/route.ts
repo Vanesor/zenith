@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         e.location,
         e.max_attendees as "maxAttendees",
         e.status,
-        COALESCE(e.is_public, FALSE) as "isPublic",
+        TRUE as "isPublic", -- Default all events to public since there's no is_public column
         c.name as club,
         c.color as "clubColor",
         u.name as organizer,
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     const userId = decoded.userId;
     
-    // Check if user has permission to create events (coordinator, co_coordinator, secretary, president, vice_president)
+    // Check if user has permission to create events
     const userResult = await Database.query(
       `SELECT role, club_id FROM users WHERE id = $1`, 
       [userId]
@@ -118,11 +118,9 @@ export async function POST(request: NextRequest) {
       description,
       date,
       startTime,
-      endTime,
       location,
       maxAttendees,
-      type = "meeting",
-      isPublic = false,
+      imageUrl
     } = body;
 
     // Validate required fields
@@ -140,28 +138,24 @@ export async function POST(request: NextRequest) {
         description,
         event_date,
         event_time,
-        end_time,
         location,
         club_id,
         created_by,
         max_attendees,
-        type,
-        is_public,
-        status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+        status,
+        image_url
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
       [
         title,
         description,
         date,
         startTime,
-        endTime || null,
         location,
         userClubId,
         userId,
         maxAttendees || null,
-        type,
-        isPublic,
-        "upcoming"
+        "upcoming",
+        body.imageUrl || null
       ]
     );
     
@@ -192,8 +186,8 @@ export async function POST(request: NextRequest) {
       FROM users u
       WHERE u.club_id = $4 AND u.id != $5`,
       [
-        `New ${type} event created`,
-        `A new ${type} event "${title}" has been scheduled for ${date}`,
+        `New event created`,
+        `A new event "${title}" has been scheduled for ${date}`,
         eventId,
         userClubId,
         userId

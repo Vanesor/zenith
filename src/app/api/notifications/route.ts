@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         title,
         message,
         type,
-        is_read: false,
+        read: false,
         data: {
           delivery_method: delivery_method || 'in-app',
           club_id,
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
           title,
           message,
           type,
-          is_read: false,
+          read: false,
           data: {
             delivery_method: delivery_method || 'in-app',
             // sent_by: currentUser.id, // TODO: Get from auth token

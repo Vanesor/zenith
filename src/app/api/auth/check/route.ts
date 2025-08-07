@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 // Import the JS version of getCurrentUser which should be compatible
-import { getCurrentUser as getUser } from '@/lib/auth.js';
+import { getCurrentUser as getUser } from '@/lib/auth';
 
 // Re-export with TypeScript types
 async function getCurrentUser() {
@@ -24,14 +24,24 @@ export async function GET(request: NextRequest) {
     }
     
     if (user) {
+      // Split name into firstName and lastName for frontend compatibility
+      const nameParts = (user.name || "").trim().split(/\s+/);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
       return NextResponse.json({ 
         authenticated: true, 
         user: {
           id: user.id,
           name: user.name,
+          firstName,
+          lastName,
           email: user.email,
           role: user.role,
-          avatar: user.avatar
+          username: user.username,
+          club_id: user.club_id,
+          avatar: user.avatar,
+          bio: user.bio
         }
       });
     } else {

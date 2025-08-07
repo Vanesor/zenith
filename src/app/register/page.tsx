@@ -66,14 +66,48 @@ export default function RegisterPage() {
     setError('');
 
     // Validation
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError('First name and last name are required');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Email is required');
+      setIsLoading(false);
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      setIsLoading(false);
+      return;
+    }
+
+    // Password strength validation
+    const hasLower = /[a-z]/.test(formData.password);
+    const hasUpper = /[A-Z]/.test(formData.password);
+    const hasDigit = /\d/.test(formData.password);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password);
+    
+    const strengthScore = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
+    
+    if (strengthScore < 3) {
+      setError('Password must contain at least 3 of: lowercase, uppercase, numbers, special characters');
       setIsLoading(false);
       return;
     }
@@ -85,12 +119,23 @@ export default function RegisterPage() {
     }
 
     try {
+      // Prepare data in the format expected by the API
+      const registrationPayload = {
+        email: formData.email,
+        password: formData.password,
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        club_id: formData.interests.length > 0 ? formData.interests[0] : null,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        interests: formData.interests
+      };
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(registrationPayload),
       });
 
       const data = await response.json();
@@ -102,7 +147,8 @@ export default function RegisterPage() {
       } else {
         setError(data.error || 'Registration failed');
       }
-    } catch {
+    } catch (error) {
+      console.error('Registration error:', error);
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);

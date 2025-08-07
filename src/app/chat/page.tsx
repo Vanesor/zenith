@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { MessageSquare, Users, Hash, Plus, X, MoreVertical, Edit3, Trash2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { MessageSquare, Users, Hash, Plus, X, MoreVertical, Edit3, Trash2, Lock, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import WhatsAppChat from "@/components/WhatsAppChat";
-import ZenChatbot from "@/components/ZenChatbot";
+import { EnhancedChatRoom } from "@/components/chat/EnhancedChatRoom";
 import TokenManager from "@/lib/TokenManager";
 
 interface ChatRoom {
@@ -25,6 +24,7 @@ export default function ChatPage() {
   const { user, isLoading } = useAuth();
   const { showToast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,11 @@ export default function ChatPage() {
   const [showRenameModal, setShowRenameModal] = useState<ChatRoom | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<ChatRoom | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  
+  // Enhanced chat features
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
   
   // Debug state changes
   useEffect(() => {
@@ -520,9 +525,15 @@ export default function ChatPage() {
           <div className="lg:col-span-2">
             {selectedRoom ? (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-full">
-                <WhatsAppChat
+                <EnhancedChatRoom
                   roomId={selectedRoom.id}
-                  roomName={selectedRoom.name}
+                  currentUser={{
+                    id: user?.id || '1',
+                    name: user?.name || 'Unknown User',
+                    email: user?.email || 'unknown@example.com'
+                  }}
+                  isPrivate={selectedRoom.type === 'private'}
+                  onInviteUser={selectedRoom.type === 'private' ? () => setShowInviteModal(true) : undefined}
                 />
               </div>
             ) : (
@@ -734,7 +745,100 @@ export default function ChatPage() {
         </div>
       )}
 
-      <ZenChatbot />
+      {/* Invite User Modal */}
+      {showInviteModal && selectedRoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 max-w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Invite User to {selectedRoom.name}</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Email Address</label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  placeholder="user@example.com"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Personal Message (Optional)</label>
+                <textarea
+                  value={inviteMessage}
+                  onChange={(e) => setInviteMessage(e.target.value)}
+                  className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  placeholder="Add a personal message..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowInviteModal(false);
+                  setInviteEmail('');
+                  setInviteMessage('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!inviteEmail.trim()) return;
+                  
+                  try {
+                    const tokenManager = TokenManager.getInstance();
+                    const response = await tokenManager.authenticatedFetch('/api/chat/invite', {
+                      method: 'POST',
+                      body: JSON.stringify({
+                        roomId: selectedRoom.id,
+                        inviteeEmail: inviteEmail,
+                        inviterName: user?.name || 'Unknown User',
+                        message: inviteMessage
+                      })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                      showToast({
+                        type: 'success',
+                        title: 'Invitation Sent',
+                        message: 'User has been invited to the chat room'
+                      });
+                      setShowInviteModal(false);
+                      setInviteEmail('');
+                      setInviteMessage('');
+                    } else {
+                      showToast({
+                        type: 'error',
+                        title: 'Invitation Failed',
+                        message: data.error || 'Failed to send invitation'
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Error sending invitation:', error);
+                    showToast({
+                      type: 'error',
+                      title: 'Invitation Failed',
+                      message: 'An unexpected error occurred'
+                    });
+                  }
+                }}
+                disabled={!inviteEmail.trim()}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
+              >
+                <Mail size={16} />
+                <span>Send Invite</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   Search,
   Upload,
   Eye,
+  Loader2,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +39,7 @@ export default function AssignmentsPage() {
   const router = useRouter();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [startingAssignment, setStartingAssignment] = useState<string | null>(null);
   const [filter, setFilter] = useState<
     "all" | "pending" | "submitted" | "graded" | "overdue"
   >("all");
@@ -106,6 +108,41 @@ export default function AssignmentsPage() {
 
   const isOverdue = (dueDate: string) => {
     return new Date(dueDate) < new Date();
+  };
+
+  const handleStartAssignment = async (assignmentId: string) => {
+    try {
+      setStartingAssignment(assignmentId);
+      
+      // Simulate API call to start assignment (replace with actual API call)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Navigate to assignment taking page
+      router.push(`/assignments/${assignmentId}/take`);
+    } catch (error) {
+      console.error('Error starting assignment:', error);
+      // Handle error - could show toast notification
+      alert('Failed to start assignment. Please try again.');
+    } finally {
+      setStartingAssignment(null);
+    }
+  };
+
+  const handleViewResults = async (assignmentId: string) => {
+    try {
+      setStartingAssignment(assignmentId);
+      
+      // Simulate API call to get results (replace with actual API call)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Navigate to results page
+      router.push(`/assignments/${assignmentId}/results`);
+    } catch (error) {
+      console.error('Error viewing results:', error);
+      alert('Failed to load results. Please try again.');
+    } finally {
+      setStartingAssignment(null);
+    }
   };
 
   const formatDueDate = (dueDate: string) => {
@@ -283,6 +320,17 @@ export default function AssignmentsPage() {
                   {filterOption.label}
                 </button>
               ))}
+              
+              {/* Add Create Assignment button for users with permissions */}
+              {user && ['admin', 'coordinator', 'co_coordinator', 'secretary', 'president', 
+                'vice_president', 'instructor', 'teacher', 'staff', 'management'].includes(user.role) && (
+                <button
+                  onClick={() => router.push('/assignments/create')}
+                  className="px-4 py-2 rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 transition-colors ml-2"
+                >
+                  Create Assignment
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -406,14 +454,32 @@ export default function AssignmentsPage() {
                         )}
                     </div>
                     <div className="flex items-center space-x-3">
-                      <button className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-                        <Eye size={16} className="mr-2" />
-                        View Details
-                      </button>
                       {assignment.status === "pending" && (
-                        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                          <Upload size={16} className="mr-2" />
-                          Submit
+                        <button 
+                          onClick={() => handleStartAssignment(assignment.id)}
+                          disabled={startingAssignment === assignment.id}
+                          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {startingAssignment === assignment.id ? (
+                            <Loader2 size={16} className="mr-2 animate-spin" />
+                          ) : (
+                            <Upload size={16} className="mr-2" />
+                          )}
+                          {startingAssignment === assignment.id ? 'Starting...' : 'Start Assignment'}
+                        </button>
+                      )}
+                      {(assignment.status === "submitted" || assignment.status === "graded") && (
+                        <button 
+                          onClick={() => handleViewResults(assignment.id)}
+                          disabled={startingAssignment === assignment.id}
+                          className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {startingAssignment === assignment.id ? (
+                            <Loader2 size={16} className="mr-2 animate-spin" />
+                          ) : (
+                            <Eye size={16} className="mr-2" />
+                          )}
+                          {startingAssignment === assignment.id ? 'Loading...' : 'View Results'}
                         </button>
                       )}
                     </div>

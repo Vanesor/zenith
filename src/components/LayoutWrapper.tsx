@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { NavigationHeader } from "@/components/NavigationHeader";
 import { useAuth } from "@/contexts/AuthContext";
+import { SessionExpirationHandler } from "@/components/SessionExpirationHandler";
 
 const noHeaderPaths = ["/", "/login", "/register"];
 
@@ -27,7 +28,12 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
         </div>
       )}
       <div className={shouldShowHeader ? "mt-16" : ""}>
-        {children}
+        {/* Only wrap with SessionExpirationHandler if authenticated */}
+        {user && !isExcludedPath ? (
+          <SessionExpirationHandler>{children}</SessionExpirationHandler>
+        ) : (
+          children
+        )}
       </div>
     </>
   );

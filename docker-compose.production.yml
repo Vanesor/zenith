@@ -1,6 +1,31 @@
 version: '3.8'
 
 services:
+  # Code Execution Service
+  code-execution:
+    build:
+      context: .
+      dockerfile: Dockerfile.execution
+    container_name: zenith-code-execution
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./scripts:/app
+      - ./scripts/temp:/app/temp
+    environment:
+      - CODE_EXECUTION_PORT=4000
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - zenith-network
+    security_opt:
+      - seccomp=./execution-seccomp.json
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+
   # Nginx Load Balancer
   nginx:
     image: nginx:alpine
@@ -15,6 +40,7 @@ services:
       - app1
       - app2
       - app3
+      - code-execution
     networks:
       - zenith-network
     restart: unless-stopped
@@ -30,6 +56,8 @@ services:
       - DB_HOST=postgres-master
       - DB_READ_REPLICAS=postgres-replica1,postgres-replica2
       - REDIS_HOST=redis-cluster
+      - CODE_EXECUTION_SERVICE_URL=http://code-execution:4000
+      - CODE_EXECUTION_TIMEOUT=10000
     depends_on:
       - postgres-master
       - redis-cluster

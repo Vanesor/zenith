@@ -17,12 +17,7 @@ export const supabase = createClient<Database>(
 ) as TypedSupabaseClient;
 
 // Create admin client for direct use
-export const supabaseAdmin = process.env.SUPABASE_SERVICE_KEY ? 
-  createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_KEY || ''
-  ) as TypedSupabaseClient : 
-  null;
+export const supabaseAdmin = createAdminClient();
 
 /**
  * Create an admin client using the service key

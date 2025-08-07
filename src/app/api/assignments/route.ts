@@ -9,6 +9,45 @@ interface JwtPayload {
   userId: string;
 }
 
+interface Question {
+  id: string;
+  type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding' | 'integer';
+  title: string;
+  description: string;
+  options?: string[];
+  correctAnswer?: string | number | boolean;
+  points: number;
+  timeLimit?: number;
+  timeAllocation?: number; // Added timeAllocation field
+  language?: string;
+  starterCode?: string;
+  testCases?: Array<{ id: string; input: string; output: string; isHidden?: boolean }>;
+  tags?: string[];
+  difficulty?: string;
+}
+
+// Helper function to map front-end question types to database question types
+function mapQuestionType(type: string): string {
+  switch (type) {
+    case 'multiple-choice':
+      return 'multiple_choice';
+    case 'true-false':
+      return 'single_choice'; // Map true-false to single_choice
+    case 'integer':
+      return 'single_choice'; // Map integer to single_choice
+    case 'coding':
+      return 'coding';
+    case 'essay':
+      return 'essay';
+    case 'short-answer':
+      return 'essay'; // Map short-answer to essay type
+    case 'integer':
+      return 'single_choice'; // Map integer to single_choice
+    default:
+      return 'multiple_choice';
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -35,7 +74,8 @@ export async function GET(request: NextRequest) {
         a.max_points as "maxPoints",
         a.instructions,
         a.created_at as "createdAt",
-        c.name as club,
+        a.is_published as "isPublished",
+        COALESCE(c.name, 'All Clubs') as club,
         u.name as "assignedBy",
         CASE 
           WHEN s.id IS NOT NULL THEN 'submitted'
@@ -44,40 +84,45 @@ export async function GET(request: NextRequest) {
         END as status,
         s.submitted_at as "submittedAt",
         s.grade,
-        s.feedback
+        s.feedback,
+        COUNT(aq.id) as "questionCount"
       FROM assignments a
-      JOIN clubs c ON a.club_id = c.id
+      LEFT JOIN clubs c ON a.club_id = c.id
       JOIN users u ON a.created_by = u.id
       LEFT JOIN assignment_submissions s ON a.id = s.assignment_id AND s.user_id = $1
-      WHERE c.id = (
-        SELECT u2.club_id FROM users u2 WHERE u2.id = $1
+      LEFT JOIN assignment_questions aq ON a.id = aq.assignment_id
+      LEFT JOIN users u2 ON u2.id = $1
+      WHERE (
+        a.target_audience = 'all_clubs' OR
+        (a.club_id = u2.club_id AND a.target_audience = 'club') OR
+        (a.target_audience = 'specific_clubs' AND u2.club_id = ANY(a.target_clubs))
       )
     `;
 
-    const queryParams: (string | number)[] = [userId];
-    let paramCount = 1;
+    const queryParams = [userId];
+    let paramIndex = 2;
 
     if (status) {
-      paramCount++;
-      if (status === "submitted") {
-        query += ` AND s.id IS NOT NULL`;
-      } else if (status === "overdue") {
-        query += ` AND a.due_date < NOW() AND s.id IS NULL`;
-      } else if (status === "pending") {
-        query += ` AND a.due_date >= NOW() AND s.id IS NULL`;
-      }
+      query += ` AND CASE 
+        WHEN s.id IS NOT NULL THEN 'submitted'
+        WHEN a.due_date < NOW() THEN 'overdue'
+        ELSE 'pending'
+      END = $${paramIndex}`;
+      queryParams.push(status);
+      paramIndex++;
     }
 
     if (clubId) {
-      paramCount++;
-      query += ` AND c.id = $${paramCount}`;
+      query += ` AND a.club_id = $${paramIndex}`;
       queryParams.push(clubId);
+      paramIndex++;
     }
 
-    query += ` ORDER BY a.due_date ASC LIMIT $${paramCount + 1} OFFSET $${
-      paramCount + 2
-    }`;
-    queryParams.push(limit, offset);
+    query += ` GROUP BY a.id, c.name, u.name, s.id, s.submitted_at, s.grade, s.feedback
+               ORDER BY a.created_at DESC 
+               LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    
+    queryParams.push(limit.toString(), offset.toString());
 
     const result = await Database.query(query, queryParams);
 
@@ -103,12 +148,55 @@ export async function POST(request: NextRequest) {
     const userId = decoded.userId;
 
     const body = await request.json();
-    const { title, description, clubId, dueDate, maxPoints, instructions } =
-      body;
+    const { 
+      title, 
+      description, 
+      clubId, 
+      dueDate, 
+      maxPoints, 
+      instructions,
+      assignmentType,
+      targetAudience,
+      targetClubs,
+      timeLimit,
+      allowNavigation,
+      passingScore,
+      isProctored,
+      shuffleQuestions,
+      shuffleOptions,
+      allowCalculator,
+      maxAttempts,
+      showResults,
+      allowReview,
+      questions
+    } = body;
 
-    if (!title || !description || !clubId || !dueDate) {
+    if (!title || !description || !dueDate) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      return NextResponse.json(
+        { error: "At least one question is required" },
+        { status: 400 }
+      );
+    }
+    
+    // If target audience is club, require clubId
+    if (targetAudience === 'club' && !clubId) {
+      return NextResponse.json(
+        { error: "Club ID is required for club-specific assignments" },
+        { status: 400 }
+      );
+    }
+    
+    // If target audience is specific clubs, require targetClubs
+    if (targetAudience === 'specific_clubs' && (!targetClubs || !targetClubs.length)) {
+      return NextResponse.json(
+        { error: "Target clubs are required for specific clubs assignments" },
         { status: 400 }
       );
     }
@@ -156,44 +244,125 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await Database.query(
-      `INSERT INTO assignments (title, description, club_id, created_by, due_date, max_points, instructions)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [
-        title,
-        description,
+    // Begin transaction
+    try {
+      await Database.query('BEGIN');
+
+      // Create assignment
+      const assignmentResult = await Database.query(
+        `INSERT INTO assignments (
+          title, description, club_id, created_by, due_date, max_points, instructions,
+          assignment_type, target_audience, target_clubs, time_limit,
+          allow_navigation, passing_score, is_proctored, shuffle_questions, shuffle_options,
+          allow_calculator, max_attempts, show_results, allow_review, is_published
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+         RETURNING *`,
+        [
+          title,
+          description,
+          targetAudience ? (targetAudience === 'club' ? clubId : null) : actualClubId,
+          userId,
+          dueDate,
+          maxPoints || 100,
+          instructions || "",
+          (assignmentType === 'mixed' ? 'regular' : assignmentType) || "regular",
+          targetAudience || "club",
+          targetClubs || [],
+          timeLimit || 60,
+          allowNavigation !== undefined ? allowNavigation : true,
+          passingScore || 60,
+          isProctored !== undefined ? isProctored : false,
+          shuffleQuestions !== undefined ? shuffleQuestions : false,
+          shuffleOptions !== undefined ? shuffleOptions : false,
+          allowCalculator !== undefined ? allowCalculator : true,
+          maxAttempts || 1,
+          showResults !== undefined ? showResults : true,
+          allowReview !== undefined ? allowReview : true,
+          true // is_published
+        ]
+      );
+
+      const createdAssignment = assignmentResult.rows[0];
+
+      // Create questions
+      for (let i = 0; i < questions.length; i++) {
+        const question: Question = questions[i];
+        
+        // Convert correctAnswer to appropriate format
+        let correctAnswerValue = question.correctAnswer;
+        if (question.type === 'true-false') {
+          correctAnswerValue = question.correctAnswer === true ? 'true' : 'false';
+        } else if (question.type === 'multiple-choice' && typeof question.correctAnswer === 'number') {
+          correctAnswerValue = question.correctAnswer.toString();
+        }
+
+        await Database.query(
+          `INSERT INTO assignment_questions (
+            assignment_id, type, title, description, options, correct_answer, 
+            points, time_limit, code_language, starter_code, test_cases, question_order,
+            question_text, question_type
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+          [
+            createdAssignment.id,
+            question.type,
+            question.title,
+            question.description,
+            question.options ? JSON.stringify(question.options) : null,
+            correctAnswerValue,
+            question.points,
+            question.timeAllocation || question.timeLimit, // Use timeAllocation if available, fallback to timeLimit
+            question.language || 'python',
+            question.starterCode,
+            question.testCases ? JSON.stringify(question.testCases) : null,
+            i + 1, // question_order
+            question.description || question.title, // Use description as question_text (required field)
+            mapQuestionType(question.type) // Map to standardized question type
+          ]
+        );
+      }
+
+      await Database.query('COMMIT');
+
+      // Create notifications for all club members
+      const clubMembersQuery = `
+        SELECT id FROM users WHERE club_id = $1 AND id != $2
+      `;
+      const clubMembers = await Database.query(clubMembersQuery, [
         actualClubId,
         userId,
-        dueDate,
-        maxPoints || 100,
-        instructions || "",
-      ]
-    );
+      ]);
 
-    // Create notifications for all club members
-    const clubMembersQuery = `
-      SELECT id FROM users WHERE club_id = $1 AND id != $2
-    `;
-    const clubMembers = await Database.query(clubMembersQuery, [
-      actualClubId,
-      userId,
-    ]);
+      if (clubMembers.rows.length > 0) {
+        const clubQuery = `SELECT name FROM clubs WHERE id = $1`;
+        const clubResult = await Database.query(clubQuery, [actualClubId]);
+        const clubName = clubResult.rows[0]?.name || "Club";
 
-    if (clubMembers.rows.length > 0) {
-      const clubQuery = `SELECT name FROM clubs WHERE id = $1`;
-      const clubResult = await Database.query(clubQuery, [actualClubId]);
-      const clubName = clubResult.rows[0]?.name || "Club";
+        const memberIds = clubMembers.rows.map((member: { id: string }) => member.id);
+        
+        try {
+          await NotificationService.notifyAssignmentCreated(
+            createdAssignment.id,
+            memberIds,
+            clubName
+          );
+        } catch (notificationError) {
+          console.error("Error creating notifications:", notificationError);
+          // Don't fail the assignment creation if notifications fail
+        }
+      }
 
-      const memberIds = clubMembers.rows.map((member: { id: string }) => member.id);
-      await NotificationService.notifyAssignmentCreated(
-        result.rows[0].id,
-        memberIds,
-        clubName
-      );
+      return NextResponse.json({
+        ...createdAssignment,
+        questionCount: questions.length,
+        message: "Assignment created successfully with questions"
+      });
+
+    } catch (error) {
+      await Database.query('ROLLBACK');
+      throw error;
     }
 
-    return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error("Error creating assignment:", error);
     return NextResponse.json(

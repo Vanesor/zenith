@@ -20,7 +20,7 @@ export async function POST(
 
     // Check if user already liked the post
     const existingLike = await Database.query(
-      "SELECT id FROM post_likes WHERE post_id = $1 AND user_id = $2",
+      "SELECT id FROM likes WHERE post_id = $1 AND user_id = $2",
       [postId, userId]
     );
 
@@ -29,14 +29,14 @@ export async function POST(
     if (existingLike.rows.length > 0) {
       // Remove like
       await Database.query(
-        "DELETE FROM post_likes WHERE post_id = $1 AND user_id = $2",
+        "DELETE FROM likes WHERE post_id = $1 AND user_id = $2",
         [postId, userId]
       );
       liked = false;
     } else {
       // Add like
       await Database.query(
-        "INSERT INTO post_likes (post_id, user_id) VALUES ($1, $2)",
+        "INSERT INTO likes (post_id, user_id) VALUES ($1, $2)",
         [postId, userId]
       );
       liked = true;
@@ -44,7 +44,7 @@ export async function POST(
 
     // Get updated like count
     const likeCountResult = await Database.query(
-      "SELECT COUNT(*) as count FROM post_likes WHERE post_id = $1",
+      "SELECT COUNT(*) as count FROM likes WHERE post_id = $1",
       [postId]
     );
 

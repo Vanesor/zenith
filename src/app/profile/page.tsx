@@ -20,6 +20,11 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Activity,
+  FileText,
+  CheckCircle,
+  Clock,
+  Trophy,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,12 +47,31 @@ interface UserProfile {
   role: string;
 }
 
+interface AssignmentActivity {
+  id: string;
+  title: string;
+  club: string;
+  score: number;
+  maxScore: number;
+  percentage: number;
+  status: 'completed' | 'pending' | 'graded';
+  submittedAt: string;
+  attempts: number;
+  timeSpent: number;
+}
+
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [assignmentHistory, setAssignmentHistory] = useState<AssignmentActivity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile>({
     firstName: "",
     lastName: "",
@@ -78,14 +102,71 @@ export default function ProfilePage() {
     confirm: false,
   });
 
+  const fetchProfileData = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingProfile(true);
+      setProfileError(null);
+      
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile data');
+      }
+
+      const data = await response.json();
+      const profileData = data.profile || data; // Handle both wrapped and unwrapped responses
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        ...profileData,
+        firstName: profileData.firstName || "",
+        lastName: profileData.lastName || "",
+        username: profileData.username || "",
+        bio: profileData.bio || "",
+        phone: profileData.phone || "",
+        location: profileData.location || "",
+        website: profileData.website || "",
+        github: profileData.github || "",
+        linkedin: profileData.linkedin || "",
+        twitter: profileData.twitter || "",
+      }));
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Invalid or expired token')) {
+        setProfileError('Your session has expired. Please log in again.');
+        // Optionally redirect to login after a delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        setProfileError('Failed to load profile data. Please refresh the page.');
+      }
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
     } else if (user) {
+      // Parse name field if it exists, otherwise use empty strings
+      const nameParts = user.name ? user.name.split(' ') : ['', ''];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
       setProfile({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
+        firstName: firstName,
+        lastName: lastName,
+        username: user.email?.split('@')[0] || "",
         email: user.email,
         bio: "",
         avatar: user.avatar || "",
@@ -96,21 +177,84 @@ export default function ProfilePage() {
         linkedin: "",
         twitter: "",
         joinedDate: "2025-01-15",
-        clubs: user.clubs,
+        clubs: [],
         role: user.role,
       });
+      // Fetch complete profile data from API
+      fetchProfileData();
+      // Fetch assignment history when profile loads
+      fetchAssignmentHistory();
     }
   }, [user, isLoading, router]);
 
+  const fetchAssignmentHistory = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingActivities(true);
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/user/assignment-history', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAssignmentHistory(data.assignments || []);
+      } else {
+        console.error('Failed to fetch assignment history');
+      }
+    } catch (error) {
+      console.error('Error fetching assignment history:', error);
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
+
   const handleSave = async () => {
     try {
-      // In a real app, this would make an API call to update the profile
-      console.log("Saving profile:", profile);
+      setSavingProfile(true);
+      setProfileError(null);
+      setProfileSuccess(null);
+      
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(profile)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      const updatedData = await response.json();
+      const updatedProfile = updatedData.profile || updatedData; // Handle wrapped response
+      setProfile(prevProfile => ({ ...prevProfile, ...updatedProfile }));
       setIsEditing(false);
-      // Show success message
+      setProfileSuccess('Profile updated successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setProfileSuccess(null), 3000);
     } catch (error) {
       console.error("Error saving profile:", error);
-      // Show error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
+      if (errorMessage.includes('Invalid or expired token')) {
+        setProfileError('Your session has expired. Please log in again.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        setProfileError(errorMessage);
+      }
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -136,10 +280,13 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading || !user) {
+  if (isLoading || !user || loadingProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -149,6 +296,20 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8">
+          {/* Success/Error Messages */}
+          {(profileSuccess || profileError) && (
+            <div className={`px-6 py-3 ${profileSuccess ? 'bg-green-100 dark:bg-green-900/20 border-green-400 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/20 border-red-400 text-red-700 dark:text-red-300'} border-l-4`}>
+              <div className="flex items-center">
+                {profileSuccess ? (
+                  <CheckCircle size={20} className="mr-2" />
+                ) : (
+                  <X size={20} className="mr-2" />
+                )}
+                <p>{profileSuccess || profileError}</p>
+              </div>
+            </div>
+          )}
+          
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
               <div className="relative">
@@ -173,9 +334,13 @@ export default function ProfilePage() {
               </div>
               <div className="text-center md:text-left flex-1">
                 <h1 className="text-3xl font-bold mb-2">
-                  {profile.firstName} {profile.lastName}
+                  {profile.firstName && profile.lastName 
+                    ? `${profile.firstName} ${profile.lastName}`
+                    : user?.name || "User"}
                 </h1>
-                <p className="text-xl opacity-90 mb-2">@{profile.username}</p>
+                <p className="text-xl opacity-90 mb-2">
+                  @{profile.username || user?.username || user?.email?.split('@')[0] || "user"}
+                </p>
                 <p className="text-lg opacity-80 mb-4">
                   {profile.bio || "No bio available"}
                 </p>
@@ -207,10 +372,20 @@ export default function ProfilePage() {
                   <div className="flex gap-2">
                     <button
                       onClick={handleSave}
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all flex items-center"
+                      disabled={savingProfile}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
                     >
-                      <Save size={20} className="mr-2" />
-                      Save
+                      {savingProfile ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={20} className="mr-2" />
+                          Save
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
@@ -232,6 +407,7 @@ export default function ProfilePage() {
             <nav className="flex space-x-8 px-6">
               {[
                 { id: "profile", label: "Profile Info", icon: User },
+                { id: "activities", label: "Activities", icon: Activity },
                 { id: "settings", label: "Settings", icon: Settings },
                 { id: "security", label: "Security", icon: Lock },
                 { id: "notifications", label: "Notifications", icon: Bell },
@@ -415,6 +591,170 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === "activities" && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Assignment History
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Track your assignment submissions and scores
+                    </p>
+                  </div>
+                  <button
+                    onClick={fetchAssignmentHistory}
+                    disabled={loadingActivities}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+                  >
+                    {loadingActivities ? 'Refreshing...' : 'Refresh'}
+                  </button>
+                </div>
+
+                {loadingActivities ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-gray-600 dark:text-gray-400">Loading activities...</span>
+                  </div>
+                ) : assignmentHistory.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      No Assignments Yet
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Your assignment submissions will appear here once you start taking assignments.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Assignment Statistics */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" />
+                          <div>
+                            <p className="text-sm text-blue-600 dark:text-blue-400">Total Assignments</p>
+                            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                              {assignmentHistory.length}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400 mr-3" />
+                          <div>
+                            <p className="text-sm text-green-600 dark:text-green-400">Completed</p>
+                            <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                              {assignmentHistory.filter(a => a.status === 'completed' || a.status === 'graded').length}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <Trophy className="w-8 h-8 text-yellow-600 dark:text-yellow-400 mr-3" />
+                          <div>
+                            <p className="text-sm text-yellow-600 dark:text-yellow-400">Average Score</p>
+                            <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                              {assignmentHistory.length > 0 
+                                ? Math.round(assignmentHistory.reduce((acc, a) => acc + a.percentage, 0) / assignmentHistory.length)
+                                : 0}%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <Clock className="w-8 h-8 text-purple-600 dark:text-purple-400 mr-3" />
+                          <div>
+                            <p className="text-sm text-purple-600 dark:text-purple-400">Total Time</p>
+                            <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                              {Math.round(assignmentHistory.reduce((acc, a) => acc + a.timeSpent, 0) / 60)}h
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assignment List */}
+                    {assignmentHistory.map((assignment) => (
+                      <div key={assignment.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                {assignment.title}
+                              </h4>
+                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs rounded-full">
+                                {assignment.club}
+                              </span>
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                assignment.status === 'completed' 
+                                  ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
+                                  : assignment.status === 'graded'
+                                  ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300'
+                                  : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
+                              }`}>
+                                {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                              <div>
+                                <span className="font-medium">Score:</span> {assignment.score}/{assignment.maxScore}
+                              </div>
+                              <div>
+                                <span className="font-medium">Percentage:</span> {assignment.percentage.toFixed(1)}%
+                              </div>
+                              <div>
+                                <span className="font-medium">Attempts:</span> {assignment.attempts}
+                              </div>
+                              <div>
+                                <span className="font-medium">Time:</span> {Math.round(assignment.timeSpent / 60)}min
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right ml-4">
+                            <div className={`text-2xl font-bold ${
+                              assignment.percentage >= 80 
+                                ? 'text-green-600 dark:text-green-400'
+                                : assignment.percentage >= 60 
+                                ? 'text-yellow-600 dark:text-yellow-400'
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              {assignment.percentage.toFixed(0)}%
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-500">
+                              {new Date(assignment.submittedAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              assignment.percentage >= 80 
+                                ? 'bg-green-500'
+                                : assignment.percentage >= 60 
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                            }`}
+                            style={{ width: `${assignment.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

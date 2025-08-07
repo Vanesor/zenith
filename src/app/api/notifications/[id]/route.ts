@@ -25,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const userId = decoded.userId;
 
     const { id } = await params;
-    const { is_read } = await request.json();
+    const { read } = await request.json();
 
     // Check if notification belongs to user
     const checkQuery = `
@@ -44,14 +44,14 @@ export async function PUT(request: NextRequest, { params }: Props) {
     // Update notification
     const updateQuery = `
       UPDATE notifications 
-      SET is_read = $1, read_at = $2
+      SET read = $1, read_at = $2
       WHERE id = $3 AND user_id = $4
       RETURNING *
     `;
 
     const result = await Database.query(updateQuery, [
-      is_read,
-      is_read ? new Date().toISOString() : null,
+      read,
+      read ? new Date().toISOString() : null,
       id,
       userId,
     ]);

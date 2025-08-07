@@ -54,6 +54,33 @@ export function NavigationHeader() {
     }
   }, [heartbeatCount, isAuthenticated, isLoading]);
 
+  // // Fetch notifications when component loads or auth status changes
+  // useEffect(() => {
+  //   const fetchNotifications = async () => {
+  //     if (!user || !user.id) return;
+
+  //     try {
+  //       const token = localStorage.getItem("zenith-token");
+  //       const response = await fetch(`/api/notifications?userId=${user.id}`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setNotifications(data);
+  //         const unread = data.filter((n: { read: boolean }) => !n.read).length;
+  //         setUnreadCount(unread);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching notifications:", error);
+  //     }
+  //   };
+
+  //   fetchNotifications();
+  // }, [user]);
+
   const handleLogout = () => {
     logout();
     router.push("/");

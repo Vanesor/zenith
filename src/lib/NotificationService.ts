@@ -21,7 +21,7 @@ export class NotificationService {
           data.message,
           data.type,
           data.related_id || null,
-          data.read || false,
+          data.read !== undefined ? data.read : data.read || false,
         ]
       );
     } catch (error) {
@@ -48,7 +48,7 @@ export class NotificationService {
         notif.message,
         notif.type,
         notif.related_id || null,
-        notif.read || false,
+        notif.read !== undefined ? notif.read : notif.read || false,
       ]);
 
       await Database.query(

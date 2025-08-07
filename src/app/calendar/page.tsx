@@ -27,7 +27,9 @@ interface Event {
   organizer: string;
   attendees: number;
   maxAttendees?: number;
-  type: "meeting" | "workshop" | "social" | "competition" | "presentation";
+  type?: string; // Make type optional as it's no longer in the database
+  clubName?: string;
+  clubColor?: string;
   isAttending: boolean;
 }
 
@@ -48,7 +50,7 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"calendar" | "list">("list");
-  const [filterType, setFilterType] = useState<"all" | Event["type"]>("all");
+  const [filterType, setFilterType] = useState<"all" | string>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function CalendarPage() {
   const toggleEventAttendance = async (eventId: string, isAttending: boolean) => {
     try {
       const token = localStorage.getItem("zenith-token");
-      const url = `/api/events/${eventId}/join`;
+      const url = `/api/events/${eventId}/attend`;
       const method = isAttending ? "DELETE" : "POST";
       
       const response = await fetch(url, {
@@ -119,6 +121,7 @@ export default function CalendarPage() {
       }
     } catch (error) {
       console.error("Error updating event attendance:", error);
+      alert("An error occurred while trying to update event attendance");
     }
   };
 
@@ -127,7 +130,8 @@ export default function CalendarPage() {
   }, [user]);
 
   const filteredEvents = events.filter((event) => {
-    const matchesFilter = filterType === "all" || event.type === filterType;
+    // Just show all events for now as we no longer have a type field
+    const matchesFilter = filterType === "all"; // Remove filtering by type
     const matchesSearch =
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -141,58 +145,6 @@ export default function CalendarPage() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const attendingEvents = events.filter((event) => event.isAttending);
-
-  const handleJoinEvent = async (eventId: string) => {
-    try {
-      const token = localStorage.getItem("zenith-token");
-      const response = await fetch(`/api/events/${eventId}/join`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        // Update the local event state to show the user is attending
-        setEvents(events.map(event => 
-          event.id === eventId 
-            ? { ...event, isAttending: true, attendees: event.attendees + 1 } 
-            : event
-        ));
-      } else {
-        console.error("Failed to join event");
-      }
-    } catch (error) {
-      console.error("Error joining event:", error);
-    }
-  };
-
-  const handleLeaveEvent = async (eventId: string) => {
-    try {
-      const token = localStorage.getItem("zenith-token");
-      const response = await fetch(`/api/events/${eventId}/join`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        // Update the local event state to show the user is no longer attending
-        setEvents(events.map(event => 
-          event.id === eventId 
-            ? { ...event, isAttending: false, attendees: Math.max(0, event.attendees - 1) } 
-            : event
-        ));
-      } else {
-        console.error("Failed to leave event");
-      }
-    } catch (error) {
-      console.error("Error leaving event:", error);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -375,15 +327,10 @@ export default function CalendarPage() {
               </button>
             </div>
 
-            {/* Filter Buttons */}
+            {/* Filter Buttons - Only showing All Events for now */}
             <div className="flex flex-wrap gap-2">
               {[
-                { key: "all", label: "All" },
-                { key: "meeting", label: "Meetings" },
-                { key: "workshop", label: "Workshops" },
-                { key: "social", label: "Social" },
-                { key: "competition", label: "Competitions" },
-                { key: "presentation", label: "Presentations" },
+                { key: "all", label: "All Events" },
               ].map((filterOption) => (
                 <button
                   key={filterOption.key}
@@ -443,14 +390,7 @@ export default function CalendarPage() {
                           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             {event.title}
                           </h3>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              eventTypeColors[event.type]
-                            }`}
-                          >
-                            {event.type.charAt(0).toUpperCase() +
-                              event.type.slice(1)}
-                          </span>
+                          {/* Display club information instead of event type */}
                           <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs rounded-full">
                             {event.club}
                           </span>

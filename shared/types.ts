@@ -157,7 +157,7 @@ export interface Notification {
   title: string;
   message: string;
   type: "system" | "assignment" | "event" | "announcement" | "chat";
-  is_read: boolean;
+  read: boolean;
   data: Record<string, any>;
   related_id?: string;
   related_type?: string;

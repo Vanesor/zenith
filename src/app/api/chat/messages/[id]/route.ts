@@ -1,51 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Database } from "@/lib/database";
+import { createClient } from '@supabase/supabase-js';
 
-// PATCH /api/chat/messages/[id] - Update a message
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// PATCH /api/chat/messages/[id] - Update a message (for backward compatibility)
+// PUT /api/chat/messages/[id] - Update a message (enhanced version)
 export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return PUT(request, { params });
+}
+
+export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const messageId = params.id;
-    const { content } = await request.json();
+    const { content, is_encrypted } = await request.json();
+    const userId = request.headers.get('x-user-id') || '1'; // Mock user ID
 
-    if (!content) {
+    if (!content?.trim()) {
       return NextResponse.json(
         { error: "Content is required" },
         { status: 400 }
       );
     }
 
-    // Update the message content and mark as edited
-    const updateQuery = `
-      UPDATE chat_messages
-      SET content = $1, edited = true, updated_at = NOW()
-      WHERE id = $2
-      RETURNING *
-    `;
+    // Verify the message belongs to the user
+    const { data: existingMessage, error: fetchError } = await supabase
+      .from('chat_messages')
+      .select('user_id')
+      .eq('id', messageId)
+      .single();
 
-    const result = await Database.query(updateQuery, [content, messageId]);
-
-    if (result.rowCount === 0) {
+    if (fetchError || !existingMessage) {
       return NextResponse.json({ error: "Message not found" }, { status: 404 });
     }
 
-    // Get full message data with user info
-    const fullMessageQuery = `
-      SELECT 
-        cm.*,
-        u.name as author_name,
-        u.role as author_role,
-        u.avatar as author_avatar
-      FROM chat_messages cm
-      JOIN users u ON cm.user_id = u.id
-      WHERE cm.id = $1
-    `;
+    if (existingMessage.user_id !== userId) {
+      return NextResponse.json({ 
+        error: "Unauthorized to edit this message" 
+      }, { status: 403 });
+    }
 
-    const fullMessage = await Database.query(fullMessageQuery, [messageId]);
+    // Update the message content and mark as edited
+    const { error: updateError } = await supabase
+      .from('chat_messages')
+      .update({
+        message: content, // Use 'message' field from existing schema
+        is_encrypted: is_encrypted || false,
+        is_edited: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', messageId);
 
-    return NextResponse.json({ message: fullMessage.rows[0] });
+    if (updateError) {
+      console.error('Message update error:', updateError);
+      return NextResponse.json({ 
+        error: "Failed to update message" 
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Message updated successfully'
+    });
+
   } catch (error) {
     console.error("Error updating chat message:", error);
     return NextResponse.json(
@@ -54,7 +80,6 @@ export async function PATCH(
     );
   }
 }
-
 // DELETE /api/chat/messages/[id] - Delete a message
 export async function DELETE(
   request: NextRequest,
@@ -62,20 +87,43 @@ export async function DELETE(
 ) {
   try {
     const messageId = params.id;
+    const userId = request.headers.get('x-user-id') || '1'; // Mock user ID
 
-    const deleteQuery = `
-      DELETE FROM chat_messages
-      WHERE id = $1
-      RETURNING id
-    `;
+    // Verify the message belongs to the user
+    const { data: existingMessage, error: fetchError } = await supabase
+      .from('chat_messages')
+      .select('user_id')
+      .eq('id', messageId)
+      .single();
 
-    const result = await Database.query(deleteQuery, [messageId]);
-
-    if (result.rowCount === 0) {
+    if (fetchError || !existingMessage) {
       return NextResponse.json({ error: "Message not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ id: messageId, deleted: true });
+    if (existingMessage.user_id !== userId) {
+      return NextResponse.json({ 
+        error: "Unauthorized to delete this message" 
+      }, { status: 403 });
+    }
+
+    // Delete message (this will cascade delete attachments if properly configured)
+    const { error: deleteError } = await supabase
+      .from('chat_messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (deleteError) {
+      console.error('Message delete error:', deleteError);
+      return NextResponse.json({ 
+        error: "Failed to delete message" 
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Message deleted successfully'
+    });
+
   } catch (error) {
     console.error("Error deleting chat message:", error);
     return NextResponse.json(

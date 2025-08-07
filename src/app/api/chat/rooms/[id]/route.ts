@@ -118,7 +118,7 @@ export async function DELETE(
   context: { params: { id: string } }
 ) {
   // In Next.js 13+, params needs to be accessed from context
-  const { id } = context.params;
+  const { id } = await context.params;
   console.log('DELETE /api/chat/rooms/[id] called with ID:', id);
   try {
     const authHeader = request.headers.get("authorization"); 
