@@ -2,6 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import { verifyAuth } from '@/lib/AuthMiddleware';
 
+// Safe JSON parsing utility
+function safeJsonParse(jsonString: string, defaultValue: any) {
+  try {
+    // Check if it's already a valid object/array
+    if (typeof jsonString !== 'string') {
+      return jsonString;
+    }
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.error('Error parsing JSON:', e);
+    return defaultValue;
+  }
+}
+
+// Helper function to check if user is in a management role
+function isManagerRole(role: string): boolean {
+  return [
+    "coordinator",
+    "co_coordinator", 
+    "secretary",
+    "media",
+    "president",
+    "vice_president",
+    "innovation_head",
+    "treasurer",
+    "outreach",
+  ].includes(role);
+}
+
 // Initialize PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://zenith_user:zenith_password@localhost:5432/zenith_db'
@@ -74,13 +103,13 @@ export async function GET(
       type: question.type || 'multiple-choice',
       title: question.title || 'Untitled Question',
       description: question.description || question.question_text || '',
-      options: question.options ? (typeof question.options === 'string' ? JSON.parse(question.options) : question.options) : undefined,
+      options: question.options ? (typeof question.options === 'string' ? safeJsonParse(question.options, []) : question.options) : undefined,
       correctAnswer: question.correct_answer,
       points: question.points || question.marks || 1,
       timeLimit: question.time_limit,
       language: question.language,
       starterCode: question.starter_code,
-      testCases: question.test_cases ? (typeof question.test_cases === 'string' ? JSON.parse(question.test_cases) : question.test_cases) : undefined
+      testCases: question.test_cases ? (typeof question.test_cases === 'string' ? safeJsonParse(question.test_cases, []) : question.test_cases) : undefined
     }));
 
     // Shuffle questions if required
@@ -201,34 +230,95 @@ export async function DELETE(
 ) {
   try {
     const { id: assignmentId } = await params;
-    const authHeader = request.headers.get('authorization');
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    const userId = authResult.user!.id;
     
-    // Get user from token (simplified - in production, verify JWT properly)
-    const userQuery = 'SELECT id, email, name, role FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, ['550e8400-e29b-41d4-a716-446655440020']); // Replace with actual token verification
-    
-    if (userResult.rows.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    // Check if user has permission to delete the assignment (must be a club manager)
+    const userCheck = await pool.query(
+      "SELECT role, club_id FROM users WHERE id = $1",
+      [userId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
     }
 
-    const user = userResult.rows[0];
-
-    // Check if user has permission to delete assignments
-    if (user.role !== 'instructor' && user.role !== 'admin') {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    const user = userCheck.rows[0];
+    
+    // Check if user is in a management role
+    if (!isManagerRole(user.role)) {
+      return NextResponse.json(
+        { error: "Only management positions can delete assignments" },
+        { status: 403 }
+      );
+    }
+    
+    // Check if the assignment exists and belongs to the user's club
+    const assignmentCheck = await pool.query(
+      `SELECT a.*, a.start_date as "startDate" FROM assignments a 
+       WHERE a.id = $1 AND (a.created_by = $2 OR a.club_id = $3)`,
+      [assignmentId, userId, user.club_id]
+    );
+    
+    if (assignmentCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Assignment not found or you don't have permission to delete it" },
+        { status: 404 }
+      );
     }
 
-    // Delete assignment (this will cascade to questions and attempts if foreign keys are set up)
-    const deleteQuery = 'DELETE FROM assignments WHERE id = $1 RETURNING id';
-    const deleteResult = await pool.query(deleteQuery, [assignmentId]);
+    const assignment = assignmentCheck.rows[0];
+    
+    // Check if the assignment has already started (has submissions)
+    const submissionsCheck = await pool.query(
+      "SELECT COUNT(*) as submission_count FROM assignment_attempts WHERE assignment_id = $1",
+      [assignmentId]
+    );
+    
+    const submissionCount = parseInt(submissionsCheck.rows[0].submission_count);
+    
+    if (submissionCount > 0) {
+      return NextResponse.json(
+        { 
+          error: "Cannot delete assignment with existing submissions", 
+          message: "This assignment already has submissions and cannot be deleted."
+        },
+        { status: 400 }
+      );
+    }
 
+    // Begin transaction
+    await pool.query('BEGIN');
+    
+    // First delete all questions related to the assignment
+    await pool.query(
+      "DELETE FROM assignment_questions WHERE assignment_id = $1",
+      [assignmentId]
+    );
+    
+    // Then delete the assignment
+    const deleteResult = await pool.query(
+      "DELETE FROM assignments WHERE id = $1 RETURNING id",
+      [assignmentId]
+    );
+    
+    // Commit transaction
+    await pool.query('COMMIT');
+    
     if (deleteResult.rows.length === 0) {
+      // Should not happen due to our previous check, but just in case
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
 
@@ -238,7 +328,17 @@ export async function DELETE(
     });
 
   } catch (error) {
+    // Rollback transaction if there was an error
+    try {
+      await pool.query('ROLLBACK');
+    } catch (rollbackError) {
+      console.error("Error during rollback:", rollbackError);
+    }
+    
     console.error('Error deleting assignment:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Error deleting assignment", 
+      details: (error as Error).message 
+    }, { status: 500 });
   }
 }

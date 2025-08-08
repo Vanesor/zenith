@@ -46,9 +46,11 @@ interface ClubAssignment {
   title: string;
   description: string;
   due_date: string;
+  startDate?: string; // Optional start date
+  start_date?: string; // Database field name
   submissions_count: number;
   max_points: number;
-  status: "active" | "draft" | "closed";
+  status: "pending" | "upcoming" | "overdue" | "submitted" | "active" | "draft" | "closed";
 }
 
 interface ClubStats {
@@ -89,7 +91,22 @@ export default function ClubManagementPage() {
   }>({ show: false, type: "", id: "", name: "" });
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
-
+  const [showAssignmentActionModal, setShowAssignmentActionModal] = useState<{
+    show: boolean;
+    type: 'edit' | 'delete' | 'error';
+    id: string;
+    title: string;
+    message: string;
+    canProceed: boolean;
+  }>({ 
+    show: false,
+    type: 'delete',
+    id: '',
+    title: '',
+    message: '',
+    canProceed: true
+  });
+  
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -98,6 +115,123 @@ export default function ClubManagementPage() {
     event_time: "",
     location: "",
   });
+
+  const handleEditAssignment = (assignment: ClubAssignment) => {
+    // Check if the assignment is past its start date
+    if (new Date() > new Date(assignment.startDate || '2000-01-01')) {
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'error',
+        id: assignment.id,
+        title: 'Cannot Edit Assignment',
+        message: 'This assignment cannot be edited because it has already started or has submissions.',
+        canProceed: false
+      });
+    } else {
+      // Show confirmation modal
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'edit',
+        id: assignment.id,
+        title: 'Edit Assignment',
+        message: 'Are you sure you want to edit this assignment? Any changes will be applied immediately.',
+        canProceed: true
+      });
+    }
+  };
+
+  const handleConfirmEditAssignment = (assignmentId: string) => {
+    // Close modal
+    setShowAssignmentActionModal({
+      show: false,
+      type: 'edit',
+      id: '',
+      title: '',
+      message: '',
+      canProceed: true
+    });
+    
+    // Navigate to edit page
+    router.push(`/assignments/${assignmentId}/edit`);
+  };
+  
+  const handleDeleteAssignmentModal = (assignment: ClubAssignment) => {
+    // Check if the assignment is past its start date
+    if (new Date() > new Date(assignment.startDate || '2000-01-01')) {
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'error',
+        id: assignment.id,
+        title: 'Cannot Delete Assignment',
+        message: 'This assignment cannot be deleted because it has already started or has submissions.',
+        canProceed: false
+      });
+    } else {
+      // Show confirmation modal
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'delete',
+        id: assignment.id,
+        title: 'Delete Assignment',
+        message: 'Are you sure you want to delete this assignment? This action cannot be undone.',
+        canProceed: true
+      });
+    }
+  };
+
+  const handleDeleteAssignment = (assignmentId: string) => {
+    // Set up confirmation modal for deleting an assignment
+    setShowDeleteModal({
+      show: true,
+      type: "assignment",
+      id: assignmentId,
+      name: "this assignment"
+    });
+  };
+
+  const handleConfirmDeleteAssignment = async (assignmentId: string) => {
+    try {
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch(
+        `/api/assignments/${assignmentId}`, 
+        { method: "DELETE" }
+      );
+
+      if (response.ok) {
+        // Filter out the deleted assignment from the UI
+        setClubData(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            assignments: prev.assignments.filter(a => a.id !== assignmentId)
+          };
+        });
+        
+        showToast({
+          type: "success", 
+          title: "Success", 
+          message: "Assignment deleted successfully"
+        });
+      } else {
+        const errorData = await response.json();
+        showToast({
+          type: "error",
+          title: "Error",
+          message: errorData.error || "Failed to delete assignment"
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
+      showToast({
+        type: "error",
+        title: "Error",
+        message: "An unexpected error occurred"
+      });
+    } finally {
+      // Close the modal
+      setShowDeleteModal({ show: false, type: "", id: "", name: "" });
+    }
+  };
 
   const isManager =
     user &&
@@ -534,6 +668,109 @@ export default function ClubManagementPage() {
               </div>
             )}
 
+            {activeTab === "assignments" && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Club Assignments
+                  </h3>
+                  <button
+                    onClick={() => router.push("/assignments/create")}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create Assignment</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {clubData.assignments.length === 0 ? (
+                    <div className="text-center p-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-gray-600 dark:text-gray-400">
+                        No assignments found. Create your first assignment!
+                      </p>
+                    </div>
+                  ) : (
+                    clubData.assignments.map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                              {assignment.title}
+                            </h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              {assignment.description}
+                            </p>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                              <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
+                              {assignment.startDate && (
+                                <span>Starts: {new Date(assignment.startDate).toLocaleDateString()}</span>
+                              )}
+                              <span>{assignment.submissions_count || 0} submissions</span>
+                              <span>Max Points: {assignment.max_points}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                assignment.status === "pending"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : assignment.status === "upcoming"
+                                  ? "bg-green-100 text-green-800" 
+                                  : assignment.status === "overdue"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {assignment.status.toUpperCase()}
+                            </span>
+                            <div className="flex space-x-1">
+                              <button
+                                onClick={() => handleEditAssignment(assignment)}
+                                className={`p-1 ${new Date() > new Date(assignment.startDate || '2000-01-01') 
+                                  ? 'text-gray-400 cursor-not-allowed' 
+                                  : 'text-blue-600 hover:text-blue-800 transition-colors'}`}
+                                title="Edit Assignment"
+                                disabled={new Date() > new Date(assignment.startDate || '2000-01-01')}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => router.push(`/assignments/${assignment.id}/results`)}
+                                className="p-1 text-green-600 hover:text-green-800 transition-colors"
+                                title="View Results"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAssignmentModal(assignment)}
+                                className={`p-1 ${new Date() > new Date(assignment.startDate || '2000-01-01') 
+                                  ? 'text-gray-400 cursor-not-allowed' 
+                                  : 'text-red-600 hover:text-red-800 transition-colors'}`}
+                                title="Delete Assignment"
+                                disabled={new Date() > new Date(assignment.startDate || '2000-01-01')}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
             {activeTab === "events" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
@@ -720,10 +957,19 @@ export default function ClubManagementPage() {
         onClose={() =>
           setShowDeleteModal({ show: false, type: "", id: "", name: "" })
         }
-        onConfirm={() => handleRemoveMember(showDeleteModal.id)}
-        title={`Remove ${showDeleteModal.name}`}
-        message={`Are you sure you want to remove ${showDeleteModal.name} from the club? This action cannot be undone.`}
-        confirmText="Remove"
+        onConfirm={() => {
+          if (showDeleteModal.type === "assignment") {
+            handleConfirmDeleteAssignment(showDeleteModal.id);
+          } else {
+            handleRemoveMember(showDeleteModal.id);
+          }
+        }}
+        title={showDeleteModal.type === "assignment" ? "Delete Assignment" : `Remove ${showDeleteModal.name}`}
+        message={showDeleteModal.type === "assignment" 
+          ? "Are you sure you want to delete this assignment? This action cannot be undone."
+          : `Are you sure you want to remove ${showDeleteModal.name} from the club? This action cannot be undone.`
+        }
+        confirmText={showDeleteModal.type === "assignment" ? "Delete" : "Remove"}
         type="danger"
       />
 
@@ -734,6 +980,68 @@ export default function ClubManagementPage() {
         open={showProfileModal} 
         onClose={handleCloseProfileModal} 
       />
+
+      {/* Assignment Action Modal */}
+      {showAssignmentActionModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`text-lg font-semibold ${showAssignmentActionModal.type === 'error' ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                {showAssignmentActionModal.title}
+              </h3>
+              <button
+                onClick={() => setShowAssignmentActionModal({ 
+                  show: false, 
+                  type: 'edit', 
+                  id: '', 
+                  title: '', 
+                  message: '',
+                  canProceed: true 
+                })}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              {showAssignmentActionModal.message}
+            </p>
+            <div className="flex space-x-3">
+              {showAssignmentActionModal.canProceed && (
+                <button
+                  onClick={() => {
+                    if (showAssignmentActionModal.type === 'edit') {
+                      handleConfirmEditAssignment(showAssignmentActionModal.id);
+                    } else if (showAssignmentActionModal.type === 'delete') {
+                      handleDeleteAssignment(showAssignmentActionModal.id);
+                    }
+                  }}
+                  className={`flex-1 px-4 py-2 ${
+                    showAssignmentActionModal.type === 'delete' 
+                      ? 'bg-red-600 hover:bg-red-700' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  } text-white rounded-lg transition-colors`}
+                >
+                  {showAssignmentActionModal.type === 'edit' ? 'Edit' : 'Delete'}
+                </button>
+              )}
+              <button
+                onClick={() => setShowAssignmentActionModal({ 
+                  show: false, 
+                  type: 'edit', 
+                  id: '', 
+                  title: '', 
+                  message: '',
+                  canProceed: true 
+                })}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+              >
+                {showAssignmentActionModal.canProceed ? 'Cancel' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -72,6 +72,8 @@ export async function GET(request: NextRequest) {
         a.title,
         a.description,
         a.due_date as "dueDate",
+        a.start_date as "startDate",
+        a.time_limit as "timeLimit",
         a.max_points as "maxPoints",
         a.instructions,
         a.created_at as "createdAt",
@@ -81,6 +83,7 @@ export async function GET(request: NextRequest) {
         CASE 
           WHEN s.id IS NOT NULL THEN 'submitted'
           WHEN a.due_date < NOW() THEN 'overdue'
+          WHEN a.start_date > NOW() THEN 'upcoming'
           ELSE 'pending'
         END as status,
         s.submitted_at as "submittedAt",
@@ -159,6 +162,7 @@ export async function POST(request: NextRequest) {
       title, 
       description, 
       clubId, 
+      startDate,
       dueDate, 
       maxPoints, 
       instructions,
@@ -304,20 +308,21 @@ export async function POST(request: NextRequest) {
       // Create assignment
       const assignmentResult = await Database.query(
         `INSERT INTO assignments (
-          title, description, club_id, created_by, due_date, max_points, instructions,
+          title, description, club_id, created_by, start_date, due_date, max_points, instructions,
           assignment_type, target_audience, target_clubs, time_limit,
           allow_navigation, passing_score, is_proctored, require_camera, require_microphone,
           require_face_verification, require_fullscreen, auto_submit_on_violation, max_violations,
           shuffle_questions, shuffle_options, allow_calculator, max_attempts, show_results, 
           allow_review, is_published
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
          RETURNING *`,
         [
           title,
           description,
           targetAudience ? (targetAudience === 'club' ? clubId : null) : actualClubId,
           userId,
+          startDate || null, // Add start_date field
           dueDate,
           maxPoints || 100,
           instructions || "",

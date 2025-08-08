@@ -3,8 +3,29 @@ import Database from '@/lib/database';
 import { verifyAuth } from '@/lib/AuthMiddleware';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize the Google Generative AI with the API key
+// Initialize the Google Generative AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
+
+// Helper function to safely parse JSON
+function safeJsonParse(jsonString: string, defaultValue: any = null) {
+  try {
+    // Handle already parsed objects
+    if (typeof jsonString === 'object' && jsonString !== null) {
+      return jsonString;
+    }
+    
+    // Make sure it's a string before parsing
+    if (typeof jsonString === 'string') {
+      return JSON.parse(jsonString);
+    }
+    
+    // If it's neither an object nor a string, return default
+    return defaultValue;
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+    return defaultValue;
+  }
+}
 
 
 
@@ -153,7 +174,7 @@ export async function GET(
       `SELECT 
         qr.question_id, qr.selected_options, qr.code_answer,
         qr.essay_answer, qr.is_correct, qr.score, qr.time_spent,
-        qr.test_results
+        qr.feedback
       FROM question_responses qr
       WHERE qr.submission_id = $1`,
       [submission.id]
@@ -171,7 +192,7 @@ export async function GET(
         is_correct: false,
         score: 0,
         time_spent: 0,
-        test_results: null
+        feedback: null
       };
 
       let userAnswer: any;
@@ -182,11 +203,19 @@ export async function GET(
       // Format answers based on question type
       if (question.question_type === 'multiple-choice' || question.question_type === 'single_choice') {
         userAnswer = response.selected_options;
-        correctAnswer = question.correct_answer ? JSON.parse(question.correct_answer) : [];
+        correctAnswer = question.correct_answer ? 
+          (typeof question.correct_answer === 'string' ? 
+            safeJsonParse(question.correct_answer, []) : 
+            question.correct_answer) : 
+          [];
       } 
       else if (question.question_type === 'multi-select' || question.question_type === 'multi_select') {
         userAnswer = response.selected_options;
-        correctAnswer = question.correct_answer ? JSON.parse(question.correct_answer) : [];
+        correctAnswer = question.correct_answer ? 
+          (typeof question.correct_answer === 'string' ? 
+            safeJsonParse(question.correct_answer, []) : 
+            question.correct_answer) : 
+          [];
       }
       else if (question.question_type === 'true-false') {
         userAnswer = response.essay_answer === 'true';
@@ -198,31 +227,57 @@ export async function GET(
       }
       else if (question.question_type === 'coding') {
         try {
-          const codeData = response.code_answer ? JSON.parse(response.code_answer) : { code: '', language: '' };
+          const codeData = response.code_answer ? safeJsonParse(response.code_answer, { code: '', language: '' }) : { code: '', language: '' };
           userAnswer = codeData;
           correctAnswer = null; // No single correct answer for coding questions
           
-          // Parse test results if available
-          if (response.test_results) {
+          // Initialize test case results array
+          let testCaseResults: any[] = [];
+          
+          // Get test results from code_results table if response has an ID
+          if (response.id) {
             try {
-              testCaseResults = JSON.parse(response.test_results);
+              // Fetch test results from the code_results table
+              const codeResultsQuery = await Database.query(
+                `SELECT 
+                  test_case_index, passed, stdout, stderr, execution_time, memory_used 
+                FROM code_results 
+                WHERE response_id = $1 
+                ORDER BY test_case_index`,
+                [response.id]
+              );
+              
+              if (codeResultsQuery.rows.length > 0) {
+                testCaseResults = codeResultsQuery.rows;
+              }
             } catch (e) {
-              console.error('Error parsing test results', e);
-              testCaseResults = [];
+              console.error('Error fetching test results', e);
             }
-          } else if (question.test_cases) {
-            // If no test results are available, but we have test cases, create placeholder results
+          }
+          
+          // If no test results are available from database, but we have test cases, create placeholder results
+          if (testCaseResults.length === 0 && question.test_cases) {
             try {
-              const testCases = JSON.parse(question.test_cases);
-              testCaseResults = testCases.map((testCase: any) => ({
-                id: testCase.id,
-                input: testCase.input,
-                expectedOutput: testCase.expectedOutput,
-                actualOutput: "No result available",
-                passed: false
-              }));
+              // Use safe parsing for test cases
+              const testCases = typeof question.test_cases === 'string' 
+                ? safeJsonParse(question.test_cases, []) 
+                : question.test_cases;
+                
+              if (Array.isArray(testCases)) {
+                testCaseResults = testCases.map((testCase: any) => ({
+                  id: testCase.id || Math.random().toString(36).substring(7),
+                  input: testCase.input || "Unknown input",
+                  expectedOutput: testCase.expectedOutput || "Unknown expected output",
+                  actualOutput: "No result available",
+                  passed: false
+                }));
+              } else {
+                testCaseResults = [];
+                console.error('Test cases are not in array format:', testCases);
+              }
             } catch (e) {
-              console.error('Error parsing test cases', e);
+              console.error('Error handling test cases', e);
+              testCaseResults = [];
             }
           }
           
@@ -236,6 +291,7 @@ export async function GET(
           userAnswer = { code: '', language: '' };
           correctAnswer = null;
           analysisContent = "Error analyzing code submission.";
+          console.error('Error processing coding question:', error);
         }
       }
       else if (question.question_type === 'integer') {
@@ -254,7 +310,7 @@ export async function GET(
         pointsAwarded: response.score || 0,
         maxPoints: question.marks || 0,
         timeSpent: response.time_spent || 0,
-        options: question.options ? JSON.parse(question.options) : [],
+        options: question.options ? (typeof question.options === 'string' ? safeJsonParse(question.options, []) : question.options) : [],
         analysisContent,
         testCaseResults
       };

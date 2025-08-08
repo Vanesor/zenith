@@ -38,7 +38,7 @@ export async function POST(
     // Check if assignment exists and is available
     const assignmentQuery = `
       SELECT 
-        id, title, description, time_limit, max_attempts, due_date,
+        id, title, description, time_limit, max_attempts, due_date, start_date,
         allow_navigation, is_proctored, shuffle_questions, allow_calculator,
         show_results, allow_review, instructions, max_points, passing_score
       FROM assignments 
@@ -56,7 +56,18 @@ export async function POST(
     // Check if assignment is still available
     const now = new Date();
     const dueDate = new Date(assignment.due_date);
+    const startDate = assignment.start_date ? new Date(assignment.start_date) : null;
     
+    // Check if before start date
+    if (startDate && now < startDate) {
+      return NextResponse.json({ 
+        error: 'Assignment is not yet available', 
+        startDate: startDate,
+        currentDate: now
+      }, { status: 400 });
+    }
+    
+    // Check if after due date
     if (now > dueDate) {
       return NextResponse.json({ error: 'Assignment has expired' }, { status: 400 });
     }
