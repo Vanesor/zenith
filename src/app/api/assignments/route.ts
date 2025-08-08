@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/lib/AuthMiddleware";
+
 import { NotificationService } from "@/lib/NotificationService";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-interface JwtPayload {
-  userId: string;
-}
 
 interface Question {
   id: string;
-  type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding' | 'integer';
+  type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding' | 'integer' | 'multi_select' | 'multi-select';
   title: string;
   description: string;
   options?: string[];
-  correctAnswer?: string | number | boolean;
+  correctAnswer?: string | number | boolean | Array<string | number>;
   points: number;
   timeLimit?: number;
   timeAllocation?: number; // Added timeAllocation field
@@ -31,6 +28,9 @@ function mapQuestionType(type: string): string {
   switch (type) {
     case 'multiple-choice':
       return 'multiple_choice';
+    case 'multi-select':
+    case 'multi_select':
+      return 'multi_select'; // Map both versions to multi_select
     case 'true-false':
       return 'single_choice'; // Map true-false to single_choice
     case 'integer':
@@ -41,8 +41,6 @@ function mapQuestionType(type: string): string {
       return 'essay';
     case 'short-answer':
       return 'essay'; // Map short-answer to essay type
-    case 'integer':
-      return 'single_choice'; // Map integer to single_choice
     default:
       return 'multiple_choice';
   }
@@ -50,14 +48,17 @@ function mapQuestionType(type: string): string {
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Use centralized authentication system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    
+    const userId = authResult.user!.id;
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "20");
@@ -138,16 +139,22 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Use centralized authentication system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
+    
+    const userId = authResult.user!.id;
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
-
+    // Parse and validate request body
     const body = await request.json();
+    
+    // Extract fields with validation
     const { 
       title, 
       description, 
@@ -173,9 +180,49 @@ export async function POST(request: NextRequest) {
       allowCalculator,
       maxAttempts,
       showResults,
-      allowReview,
-      questions
+      allowReview
     } = body;
+    
+    // Validate questions array specifically
+    let questions: Question[] = [];
+    if (Array.isArray(body.questions)) {
+      questions = body.questions.map((q: any) => {
+        // Clean up each question object to ensure valid types
+        const validatedQ: Partial<Question> = { ...q };
+        
+        // Ensure options is an array or null
+        if (validatedQ.options && !Array.isArray(validatedQ.options)) {
+          console.warn("Invalid options format, converting to array:", validatedQ.options);
+          // If options is an object, try to convert it to an array
+          if (typeof validatedQ.options === 'object') {
+            try {
+              validatedQ.options = Object.values(validatedQ.options);
+            } catch (e) {
+              validatedQ.options = [];
+            }
+          } else {
+            validatedQ.options = [];
+          }
+        }
+        
+        // Ensure testCases is an array or null
+        if (validatedQ.testCases && !Array.isArray(validatedQ.testCases)) {
+          console.warn("Invalid testCases format, converting to array:", validatedQ.testCases);
+          // If testCases is an object, try to convert it to an array
+          if (typeof validatedQ.testCases === 'object') {
+            try {
+              validatedQ.testCases = Object.values(validatedQ.testCases);
+            } catch (e) {
+              validatedQ.testCases = [];
+            }
+          } else {
+            validatedQ.testCases = [];
+          }
+        }
+        
+        return validatedQ;
+      });
+    }
 
     if (!title || !description || !dueDate) {
       return NextResponse.json(
@@ -303,14 +350,77 @@ export async function POST(request: NextRequest) {
       for (let i = 0; i < questions.length; i++) {
         const question: Question = questions[i];
         
-        // Convert correctAnswer to appropriate format
-        let correctAnswerValue = question.correctAnswer;
-        if (question.type === 'true-false') {
-          correctAnswerValue = question.correctAnswer === true ? 'true' : 'false';
-        } else if (question.type === 'multiple-choice' && typeof question.correctAnswer === 'number') {
-          correctAnswerValue = question.correctAnswer.toString();
+        // Convert correctAnswer to appropriate format with proper JSON handling
+        let correctAnswerValue = null;
+        
+        try {
+          // Handle different question types with proper JSON formatting
+          if (question.type === 'true-false') {
+            // For true-false, store as string 'true' or 'false'
+            correctAnswerValue = question.correctAnswer === true ? 'true' : 'false';
+          } else if (question.type === 'multiple-choice') {
+            // For multiple choice, always convert to string and ensure valid JSON
+            if (typeof question.correctAnswer === 'number') {
+              correctAnswerValue = question.correctAnswer.toString();
+            } else if (typeof question.correctAnswer === 'string') {
+              correctAnswerValue = question.correctAnswer;
+            } else if (question.correctAnswer !== null && question.correctAnswer !== undefined) {
+              correctAnswerValue = JSON.stringify(question.correctAnswer);
+            }
+          } else if (question.type === 'multi_select' || question.type === 'multi-select') {
+            // For multi-select, ensure it's a proper JSON array
+            if (Array.isArray(question.correctAnswer)) {
+              correctAnswerValue = JSON.stringify(question.correctAnswer);
+            } else if (typeof question.correctAnswer === 'object' && question.correctAnswer !== null) {
+              // If it's an object but not an array, convert to array
+              correctAnswerValue = JSON.stringify(Object.values(question.correctAnswer));
+            } else {
+              correctAnswerValue = '[]'; // Default empty array if invalid
+            }
+          } else if (question.type === 'coding') {
+            // For coding questions, ensure test cases are valid
+            correctAnswerValue = question.correctAnswer ? 
+              (typeof question.correctAnswer === 'string' ? 
+                question.correctAnswer : JSON.stringify(question.correctAnswer)) : 
+              null;
+          } else {
+            // For all other types, safely convert to JSON if it's an object
+            if (question.correctAnswer !== null && question.correctAnswer !== undefined) {
+              correctAnswerValue = typeof question.correctAnswer === 'object' ? 
+                JSON.stringify(question.correctAnswer) : 
+                String(question.correctAnswer);
+            }
+          }
+        } catch (e) {
+          console.error(`Error formatting correctAnswer for question ${i+1}:`, e);
+          correctAnswerValue = null; // Fallback to null on error
         }
 
+        // Safely prepare JSON fields
+        let optionsJson = null;
+        if (question.options) {
+          try {
+            // Make sure options is an array before stringifying
+            const optionsArray = Array.isArray(question.options) ? question.options : [];
+            optionsJson = JSON.stringify(optionsArray);
+          } catch (e) {
+            console.error('Error converting options to JSON:', e);
+            optionsJson = JSON.stringify([]);
+          }
+        }
+        
+        let testCasesJson = null;
+        if (question.testCases) {
+          try {
+            // Make sure testCases is an array before stringifying
+            const testCasesArray = Array.isArray(question.testCases) ? question.testCases : [];
+            testCasesJson = JSON.stringify(testCasesArray);
+          } catch (e) {
+            console.error('Error converting testCases to JSON:', e);
+            testCasesJson = JSON.stringify([]);
+          }
+        }
+        
         await Database.query(
           `INSERT INTO assignment_questions (
             assignment_id, type, title, description, options, correct_answer, 
@@ -322,13 +432,13 @@ export async function POST(request: NextRequest) {
             question.type,
             question.title,
             question.description,
-            question.options ? JSON.stringify(question.options) : null,
+            optionsJson, // Use safely prepared options JSON
             correctAnswerValue,
             question.points,
             question.timeAllocation || question.timeLimit, // Use timeAllocation if available, fallback to timeLimit
             question.language || 'python',
             question.starterCode,
-            question.testCases ? JSON.stringify(question.testCases) : null,
+            testCasesJson, // Use safely prepared testCases JSON
             i + 1, // question_order
             question.description || question.title, // Use description as question_text (required field)
             mapQuestionType(question.type) // Map to standardized question type
@@ -379,8 +489,29 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Error creating assignment:", error);
+    
+    // Provide more detailed error information
+    let errorMessage = "Internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Handle PostgreSQL errors specifically
+      if (error.hasOwnProperty('detail')) {
+        const pgError = error as any;
+        errorMessage = `Database error: ${pgError.detail || pgError.message}`;
+        
+        // For JSON errors, provide more helpful message
+        if (pgError.code === '22P02') {
+          errorMessage = "Invalid JSON format in question options or test cases. Please check your input.";
+        }
+      }
+    }
+    
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: errorMessage,
+        errorDetails: error
+      },
       { status: 500 }
     );
   }

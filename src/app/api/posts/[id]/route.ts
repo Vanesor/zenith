@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-interface JwtPayload {
-  userId: string;
-}
 
 interface Props {
   params: { id: string };
@@ -74,14 +70,19 @@ export async function GET(request: NextRequest, { params }: Props) {
 // PUT /api/posts/[id] - Update post (only by author or managers)
 export async function PUT(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
 
     const { id } = await params;
     const { title, content, tags } = await request.json();
@@ -159,14 +160,19 @@ export async function PUT(request: NextRequest, { params }: Props) {
 // DELETE /api/posts/[id] - Delete post (only by author within 3 hours or managers)
 export async function DELETE(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
 
     const { id } = await params;
 

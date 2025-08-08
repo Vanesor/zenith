@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
 interface Props {
   params: { id: string };
@@ -50,14 +44,17 @@ export async function GET(request: NextRequest, { params }: Props) {
 // PUT /api/announcements/[id] - Update announcement (only by author or managers)
 export async function PUT(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Use centralized authentication system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    
+    const userId = authResult.user!.id;
 
     const { id } = await params;
     const { title, content, type, priority } = await request.json();
@@ -146,14 +143,17 @@ export async function PUT(request: NextRequest, { params }: Props) {
 // DELETE /api/announcements/[id] - Delete announcement (only by author within 3 hours or managers)
 export async function DELETE(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Use centralized authentication system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    
+    const userId = authResult.user!.id;
 
     const { id } = await params;
 

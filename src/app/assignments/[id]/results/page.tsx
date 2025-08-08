@@ -35,8 +35,9 @@ interface QuestionResult {
   feedback?: string;
   timeSpent?: number;
   codeOutput?: string;
+  analysisContent?: string;
   testCaseResults?: Array<{
-    id: string;
+    id?: string;
     input: string;
     expectedOutput: string;
     actualOutput: string;
@@ -469,8 +470,8 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                         </span>
                         <div className="mt-1 p-2 bg-gray-50 dark:bg-gray-700 rounded">
                           {question.type === 'coding' ? (
-                            <pre className="text-xs overflow-x-auto">
-                              {question.userAnswer || 'No answer provided'}
+                            <pre className="text-xs overflow-x-auto p-4 bg-gray-100 dark:bg-gray-800 rounded">
+                              {question.userAnswer?.code ? question.userAnswer.code : 'No code submitted'}
                             </pre>
                           ) : (
                             <span className="text-gray-900 dark:text-white">
@@ -499,21 +500,21 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                         </div>
                       )}
                       
-                      {question.testCaseResults && (
+                      {question.testCaseResults && question.testCaseResults.length > 0 && (
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300">
                             Test Case Results:
                           </span>
                           <div className="mt-2 space-y-2">
                             {question.testCaseResults.map((testCase, tcIndex) => (
-                              <div key={testCase.id} className={`p-2 rounded text-xs ${
+                              <div key={testCase.id || tcIndex} className={`p-2 rounded text-xs ${
                                 testCase.passed 
                                   ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
                                   : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
                               }`}>
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="font-medium">Test Case {tcIndex + 1}</span>
-                                  <span className={testCase.passed ? 'text-green-600' : 'text-red-600'}>
+                                  <span className={testCase.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                                     {testCase.passed ? 'PASSED' : 'FAILED'}
                                   </span>
                                 </div>
@@ -534,12 +535,23 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                         </div>
                       )}
                       
+                      {question.type === 'coding' && question.analysisContent && (
+                        <div className="mt-4">
+                          <span className="font-medium text-purple-700 dark:text-purple-300">
+                            AI Code Analysis:
+                          </span>
+                          <div className="mt-2 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded text-sm text-gray-800 dark:text-gray-300 whitespace-pre-line">
+                            {question.analysisContent}
+                          </div>
+                        </div>
+                      )}
+                      
                       {question.feedback && (
                         <div>
                           <span className="font-medium text-blue-700 dark:text-blue-300">
                             Feedback:
                           </span>
-                          <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                          <div className="mt-1 p-4 bg-blue-50 dark:bg-blue-900/20 rounded">
                             <span className="text-blue-900 dark:text-blue-300">
                               {question.feedback}
                             </span>

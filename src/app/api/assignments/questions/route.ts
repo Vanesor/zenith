@@ -1,37 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
-
-// Helper function to verify JWT token
-async function verifyAuth(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { authenticated: false, userId: null };
-  }
-
-  try {
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    return { authenticated: true, userId: decoded.userId };
-  } catch (error) {
-    return { authenticated: false, userId: null };
-  }
-}
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // POST /api/assignments/questions
 export async function POST(request: NextRequest) {
   try {
-    // Get JWT claims
-    const { userId, authenticated } = await verifyAuth(request);
-    if (!authenticated) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
+
+    const userId = authResult.user!.id;
 
     // Parse request body
     const body = await request.json();

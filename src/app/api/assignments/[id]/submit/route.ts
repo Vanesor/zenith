@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
-
-// Helper function to verify JWT token
-async function verifyAuth(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { authenticated: false, userId: null };
+// Helper function to handle errors consistently
+function handleApiError(error: any) {
+  console.error("Error submitting assignment:", error);
+  
+  // More detailed error logging
+  if (error.code) {
+    console.error(`Database error code: ${error.code}`);
   }
-
-  try {
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    return { authenticated: true, userId: decoded.userId };
-  } catch (error) {
-    return { authenticated: false, userId: null };
+  if (error.stack) {
+    console.error(`Error stack: ${error.stack}`);
   }
+  
+  return NextResponse.json(
+    { 
+      error: error.message || "Internal server error", 
+      details: error.code || "Unknown error",
+      timestamp: new Date().toISOString()
+    },
+    { status: 500 }
+  );
 }
 
 // POST /api/assignments/[id]/submit - Submit an assignment
@@ -30,13 +30,19 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: assignmentId } = await params;
+    const resolvedParams = await params;
+    const { id: assignmentId } = resolvedParams;
     
-    // Get JWT claims
-    const { userId, authenticated } = await verifyAuth(request);
-    if (!authenticated || !userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
+
+    const userId = authResult.user!.id;
 
     // Get request body
     const body = await request.json();
@@ -46,7 +52,10 @@ export async function POST(
       completedAt, 
       timeSpent,
       violationCount, 
-      autoSubmitted
+      autoSubmitted,
+      violations = [],
+      proctoringData = {},
+      browserInfo = {}
     } = body;
 
     if (!answers || !Array.isArray(answers)) {
@@ -94,13 +103,20 @@ export async function POST(
       );
     }
 
+    // Get client IP and user agent
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+
     // Create submission record
     const submissionResult = await Database.query(
       `INSERT INTO assignment_submissions (
         assignment_id, user_id, started_at, completed_at,
-        time_spent, violation_count, auto_submitted, status
+        time_spent, violation_count, auto_submitted, status,
+        ip_address, user_agent
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'submitted')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'submitted', $8, $9)
       RETURNING id`,
       [
         assignmentId,
@@ -109,11 +125,55 @@ export async function POST(
         completedAt ? new Date(completedAt) : now,
         timeSpent || 0,
         violationCount || 0,
-        autoSubmitted || false
+        autoSubmitted || false,
+        clientIP,
+        userAgent
       ]
     );
 
     const submissionId = submissionResult.rows[0].id;
+
+    // Record proctoring session if proctoring data is provided
+    if (assignment.is_proctored && Object.keys(proctoringData).length > 0) {
+      await Database.query(
+        `INSERT INTO proctoring_sessions (
+          assignment_id, user_id, session_start, session_end,
+          camera_enabled, microphone_enabled, face_verified,
+          violations, system_info, session_data
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          assignmentId,
+          userId,
+          startedAt ? new Date(startedAt) : now,
+          completedAt ? new Date(completedAt) : now,
+          proctoringData.cameraEnabled || false,
+          proctoringData.microphoneEnabled || false,
+          proctoringData.faceVerified || false,
+          JSON.stringify(violations),
+          JSON.stringify(browserInfo),
+          JSON.stringify(proctoringData)
+        ]
+      );
+    }
+
+    // Record individual violations
+    if (violations && violations.length > 0) {
+      for (const violation of violations) {
+        await Database.query(
+          `INSERT INTO assignment_violations (
+            submission_id, violation_type, occurred_at, details
+          )
+          VALUES ($1, $2, $3, $4)`,
+          [
+            submissionId,
+            violation.type || 'unknown',
+            violation.timestamp ? new Date(violation.timestamp) : now,
+            JSON.stringify(violation.details || {})
+          ]
+        );
+      }
+    }
 
     // Get all questions for this assignment
     const questionsResult = await Database.query(
@@ -126,11 +186,20 @@ export async function POST(
 
     // Process each answer
     for (const answer of answers) {
-      const { questionId, selectedOptions, codeAnswer, essayAnswer, timeSpent: questionTimeSpent } = answer;
+      let { questionId, selectedOptions, codeAnswer, essayAnswer, timeSpent: questionTimeSpent } = answer;
+      
+      // Validate questionId is a valid UUID
+      if (!questionId || typeof questionId !== 'string') {
+        console.warn('Invalid questionId:', questionId);
+        continue;
+      }
       
       // Find the question in our fetched questions
       const question = questions.find(q => q.id === questionId);
-      if (!question) continue;
+      if (!question) {
+        console.warn('Question not found:', questionId);
+        continue;
+      }
       
       let isCorrect: boolean | null = false;
       let score = 0;
@@ -145,15 +214,23 @@ export async function POST(
         
         const correctOptions = optionsResult.rows.map(row => row.id);
         
+        // Validate and filter selectedOptions to ensure they are valid UUIDs
+        const validSelectedOptions = (selectedOptions || []).filter((option: any) => {
+          if (!option || typeof option !== 'string') return false;
+          // Basic UUID format check
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          return uuidRegex.test(option);
+        });
+        
         // For single choice, there should be exactly one correct answer
         if (question.question_type === 'single_choice') {
-          isCorrect = selectedOptions.length === 1 && 
-                      correctOptions.includes(selectedOptions[0]);
+          isCorrect = validSelectedOptions.length === 1 && 
+                      correctOptions.includes(validSelectedOptions[0]);
         } 
         // For multiple choice, selected options should match correct options exactly
         else {
           // Sort both arrays for comparison
-          const sortedSelected = [...selectedOptions].sort();
+          const sortedSelected = [...validSelectedOptions].sort();
           const sortedCorrect = [...correctOptions].sort();
           
           isCorrect = sortedSelected.length === sortedCorrect.length &&
@@ -162,6 +239,9 @@ export async function POST(
         
         // Award full marks if correct
         score = isCorrect ? question.marks : 0;
+        
+        // Use validated selectedOptions for database insertion
+        selectedOptions = validSelectedOptions;
       }
       // For coding and essay questions, store the answers but don't auto-grade
       else {
@@ -202,17 +282,24 @@ export async function POST(
       [totalScore, submissionId]
     );
 
+    // Get the assignment's max points for reference
+    const maxPointsResult = await Database.query(
+      `SELECT COALESCE(SUM(marks), 0) as max_points FROM assignment_questions WHERE assignment_id = $1`,
+      [assignmentId]
+    );
+    
+    const maxPoints = maxPointsResult.rows[0]?.max_points || 0;
+
     return NextResponse.json({
-      id: submissionId,
+      submissionId,
       message: "Assignment submitted successfully",
       totalScore,
-      autoGraded: true
+      maxPoints,
+      percentage: maxPoints > 0 ? ((totalScore / maxPoints) * 100) : 0,
+      autoGraded: true,
+      success: true
     });
   } catch (error: any) {
-    console.error("Error submitting assignment:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

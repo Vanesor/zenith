@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { TestTakingInterface } from '@/components/test/TestTakingInterface';
 import { EnhancedCodeEditor } from '@/components/assignment/EnhancedCodeEditor';
+import { ProctoringProvider } from '@/components/proctoring/UnifiedProctoringProvider';
 import { LoadingSpinner, FullscreenLoading } from '@/components/assignment/LoadingSpinner';
 import { Clock, FileText, AlertTriangle, CheckCircle, User, Calendar, Target } from 'lucide-react';
 import TokenManager from '@/lib/TokenManager';
@@ -28,11 +29,11 @@ interface Assignment {
   passingScore: number;
   questions: Array<{
     id: string;
-    type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding';
+    type: 'multiple-choice' | 'true-false' | 'short-answer' | 'essay' | 'coding' | 'multi-select' | 'multi_select' | 'integer';
     title: string;
     description: string;
     options?: string[];
-    correctAnswer?: string | number;
+    correctAnswer?: string | number | boolean | Array<number>;
     points: number;
     timeLimit?: number;
     language?: string;
@@ -68,15 +69,61 @@ export default function TakeAssignment() {
   const [canTakeAssignment, setCanTakeAssignment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<any>(null);
 
   useEffect(() => {
+    // Enhanced authentication check
     if (!user) {
+      showToast({
+        title: 'Authentication Required',
+        message: 'Please log in to access assignments',
+        type: 'error'
+      });
+      router.push('/login');
+      return;
+    }
+
+    // Verify user token is still valid
+    const token = localStorage.getItem('zenith-token');
+    if (!token) {
+      showToast({
+        title: 'Session Expired',
+        message: 'Please log in again to continue',
+        type: 'error'
+      });
       router.push('/login');
       return;
     }
 
     fetchAssignmentData();
-  }, [user, assignmentId, router]);
+  }, [user, assignmentId, router, showToast]);
+
+  // Hide/Show navbar based on assignment status
+  useEffect(() => {
+    const navbar = document.querySelector('nav');
+    const header = document.querySelector('header');
+    
+    if (hasStarted) {
+      // Hide navbar when assignment starts
+      if (navbar) navbar.style.display = 'none';
+      if (header) header.style.display = 'none';
+      document.body.style.paddingTop = '0';
+    } else {
+      // Show navbar when not in assignment
+      if (navbar) navbar.style.display = '';
+      if (header) header.style.display = '';
+      document.body.style.paddingTop = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (navbar) navbar.style.display = '';
+      if (header) header.style.display = '';
+      document.body.style.paddingTop = '';
+    };
+  }, [hasStarted]);
 
   // Timer countdown effect
   useEffect(() => {
@@ -173,8 +220,16 @@ export default function TakeAssignment() {
   const startAssignment = async () => {
     if (!assignment || !canTakeAssignment) return;
 
+    // Show warning modal before starting assignment
+    setShowWarningModal(true);
+  };
+
+  const confirmStartAssignment = async () => {
+    if (!assignment || !canTakeAssignment) return;
+
     try {
       setSubmitting(true);
+      setShowWarningModal(false);
       const tokenManager = TokenManager.getInstance();
       
       const response = await tokenManager.authenticatedFetch(`/api/assignments/${assignmentId}/start`, {
@@ -211,53 +266,136 @@ export default function TakeAssignment() {
     }
   };
 
-  const handleSubmitAssignment = async (answers: Record<string, any>) => {
+  const handleSubmitAssignment = async (data: Record<string, any> | {
+    answers: Record<string, any>;
+    violations?: any[];
+    violationCount?: number;
+    proctoringData?: any;
+    browserInfo?: any;
+    timeSpent?: number;
+    autoSubmitted?: boolean;
+  }) => {
     if (!assignment || !currentAttempt) return;
 
     try {
       setSubmitting(true);
       const tokenManager = TokenManager.getInstance();
       
+      // Handle both legacy format (just answers) and new enhanced format
+      let answers: Record<string, any>;
+      let violations: any[] = [];
+      let violationCount = 0;
+      let proctoringData = {};
+      let browserInfo = {};
+      let timeSpent = 0;
+      let autoSubmitted = false;
+
+      if ('answers' in data) {
+        // New enhanced format
+        answers = data.answers;
+        violations = data.violations || [];
+        violationCount = data.violationCount || 0;
+        proctoringData = data.proctoringData || {};
+        browserInfo = data.browserInfo || {};
+        timeSpent = data.timeSpent || 0;
+        autoSubmitted = data.autoSubmitted || false;
+      } else {
+        // Legacy format - just answers
+        answers = data;
+        timeSpent = Math.floor((Date.now() - new Date(currentAttempt.startTime).getTime()) / 1000);
+      }
+
       // Convert answers object to array format expected by API
-      const answersArray = Object.entries(answers).map(([questionId, answer]) => ({
-        questionId,
-        selectedOptions: Array.isArray(answer) ? answer : (typeof answer === 'object' && answer.selectedOptions) ? answer.selectedOptions : [],
-        codeAnswer: (typeof answer === 'object' && answer.code) ? answer.code : (typeof answer === 'string' && assignment?.questions.find(q => q.id === questionId)?.type === 'coding') ? answer : null,
-        essayAnswer: (typeof answer === 'object' && answer.text) ? answer.text : (typeof answer === 'string' && assignment?.questions.find(q => q.id === questionId)?.type === 'essay') ? answer : null,
-        timeSpent: (typeof answer === 'object' && answer.timeSpent) ? answer.timeSpent : 0
-      }));
+      const answersArray = Object.entries(answers).map(([questionId, answer]) => {
+        const question = assignment?.questions.find(q => q.id === questionId);
+        const questionType = question?.type;
+        
+        // Handle different question types appropriately
+        let selectedOptions: any[] = [];
+        let codeAnswer = null;
+        let essayAnswer = null;
+        
+        if (questionType === 'multiple-choice') {
+          // Single selection as number index
+          selectedOptions = typeof answer === 'number' ? [answer] : [];
+        } 
+        else if (questionType === 'multi-select' || questionType === 'multi_select') {
+          // Multiple selections as array of indices
+          selectedOptions = Array.isArray(answer) ? answer : [];
+        }
+        else if (questionType === 'true-false') {
+          // Boolean value converted to text
+          essayAnswer = answer === true ? 'true' : answer === false ? 'false' : null;
+        }
+        else if (questionType === 'coding') {
+          // Code submissions with language
+          if (typeof answer === 'object' && answer.code) {
+            codeAnswer = JSON.stringify({
+              code: answer.code,
+              language: answer.language || 'javascript'
+            });
+          }
+        }
+        else if (questionType === 'essay' || questionType === 'short-answer') {
+          // Text responses
+          essayAnswer = typeof answer === 'string' ? answer : null;
+        }
+        else if (questionType === 'integer') {
+          // Integer answers
+          essayAnswer = answer !== undefined ? answer.toString() : null;
+        }
+        
+        return {
+          questionId,
+          selectedOptions,
+          codeAnswer,
+          essayAnswer,
+          timeSpent: (typeof answer === 'object' && answer.timeSpent) ? answer.timeSpent : 0
+        };
+      });
       
       const response = await tokenManager.authenticatedFetch(`/api/assignments/${assignmentId}/submit`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           answers: answersArray,
           startedAt: currentAttempt.startTime,
           completedAt: new Date().toISOString(),
-          timeSpent: Math.floor((Date.now() - new Date(currentAttempt.startTime).getTime()) / 1000),
-          violationCount: 0,
-          autoSubmitted: false
+          timeSpent,
+          violationCount,
+          autoSubmitted,
+          violations,
+          proctoringData,
+          browserInfo
         })
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit assignment');
+        try {
+          const errorData = await response.json();
+          console.error("Submission error details:", errorData);
+          throw new Error(errorData.error || 'Failed to submit assignment');
+        } catch (jsonError) {
+          console.error("Failed to parse error response:", response.statusText);
+          throw new Error(`Submission failed: ${response.status} ${response.statusText}`);
+        }
       }
 
       const result = await response.json();
+      console.log("Submission successful:", result);
       
-      showToast({
-        title: 'Assignment Submitted',
-        message: `Your assignment has been submitted successfully. Score: ${result.score}/${assignment.maxPoints}`,
-        type: 'success'
+      // Set submission result and show success modal
+      setSubmissionResult({
+        score: result.totalScore,
+        maxPoints: assignment.maxPoints || 100,
+        percentage: result.percentage || ((result.totalScore / (assignment.maxPoints || 100)) * 100),
+        submissionId: result.submissionId,
+        showResults: assignment.showResults
       });
-
-      // Redirect to results page or assignments list
-      if (assignment.showResults) {
-        router.push(`/assignments/${assignmentId}/results`);
-      } else {
-        router.push('/assignments');
-      }
+      setShowSuccessModal(true);
+      
     } catch (error) {
       console.error('Error submitting assignment:', error);
       showToast({
@@ -356,30 +494,40 @@ export default function TakeAssignment() {
     // For coding assignments, use the enhanced editor with fullscreen
     if (assignment.questions && assignment.questions.length === 1 && assignment.questions[0].type === 'coding') {
       return (
-        <EnhancedCodeEditor
-          question={{
-            ...assignment.questions[0],
-            testCases: assignment.questions[0].testCases?.map(tc => ({
-              input: tc.input,
-              expectedOutput: tc.expectedOutput,
-              isHidden: tc.isHidden
-            }))
-          }}
-          onSave={handleCodeSave}
-          onRun={handleCodeRun}
-          onSubmit={handleCodeSubmit}
-          timeRemaining={timeRemaining}
-        />
+        <ProctoringProvider 
+          onAutoSubmit={() => handleSubmitAssignment({})}
+          onViolation={(violation, count) => console.log('Violation:', violation, 'Count:', count)}
+        >
+          <EnhancedCodeEditor
+            question={{
+              ...assignment.questions[0],
+              testCases: assignment.questions[0].testCases?.map(tc => ({
+                input: tc.input,
+                expectedOutput: tc.expectedOutput,
+                isHidden: tc.isHidden
+              }))
+            }}
+            onSave={handleCodeSave}
+            onRun={handleCodeRun}
+            onSubmit={handleCodeSubmit}
+            timeRemaining={timeRemaining}
+          />
+        </ProctoringProvider>
       );
     }
     
     // For other assignment types, use the standard test interface
     return (
-      <TestTakingInterface
-        assignment={assignment}
-        onSubmit={handleSubmitAssignment}
-        allowCalculator={assignment.allowCalculator}
-      />
+      <ProctoringProvider 
+        onAutoSubmit={() => handleSubmitAssignment({})}
+        onViolation={(violation, count) => console.log('Violation:', violation, 'Count:', count)}
+      >
+        <TestTakingInterface
+          assignment={assignment}
+          onSubmit={handleSubmitAssignment}
+          allowCalculator={assignment.allowCalculator}
+        />
+      </ProctoringProvider>
     );
   }
 
@@ -628,6 +776,135 @@ export default function TakeAssignment() {
           </p>
         </div>
       </div>
+
+      {/* Warning Modal */}
+      {showWarningModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex items-center mb-6">
+                <AlertTriangle className="w-8 h-8 text-yellow-500 mr-3" />
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Assignment Guidelines & Rules
+                </h2>
+              </div>
+              
+              <div className="space-y-4 text-gray-700 dark:text-gray-300">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                  <h3 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+                    Important Guidelines:
+                  </h3>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Once started, the timer cannot be paused</li>
+                    <li>Ensure you have a stable internet connection</li>
+                    <li>Do not refresh the page or navigate away during the test</li>
+                    <li>Your progress is automatically saved</li>
+                    {assignment?.timeLimit && (
+                      <li>Time limit: {assignment.timeLimit} minutes</li>
+                    )}
+                    {assignment?.maxAttempts && (
+                      <li>Maximum attempts: {assignment.maxAttempts}</li>
+                    )}
+                  </ul>
+                </div>
+
+                {assignment?.isProctored && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                    <h3 className="font-semibold text-red-800 dark:text-red-300 mb-2">
+                      Proctoring Rules:
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1 text-sm">
+                      <li>This assignment is proctored</li>
+                      <li>Camera and microphone access may be required</li>
+                      <li>Do not look away from the screen for extended periods</li>
+                      <li>No external help or resources allowed unless specified</li>
+                    </ul>
+                  </div>
+                )}
+
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">
+                    Academic Integrity:
+                  </h3>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>This is your individual work</li>
+                    <li>No collaboration or external assistance allowed</li>
+                    <li>Use of unauthorized resources is prohibited</li>
+                    <li>Violations will result in assignment failure</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                <button
+                  onClick={() => setShowWarningModal(false)}
+                  className="flex-1 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmStartAssignment}
+                  disabled={submitting}
+                  className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
+                >
+                  {submitting ? 'Starting...' : 'I Understand, Start Assignment'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && submissionResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Assignment Submitted Successfully!
+              </h2>
+              
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Your Score
+                </div>
+                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {submissionResult.score}/{submissionResult.maxPoints}
+                </div>
+                <div className="text-lg text-gray-600 dark:text-gray-400">
+                  ({submissionResult.percentage.toFixed(1)}%)
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-3">
+                {submissionResult.showResults ? (
+                  <button
+                    onClick={() => router.push(`/assignments/${assignmentId}/results`)}
+                    className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                  >
+                    View Detailed Results
+                  </button>
+                ) : (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Detailed results will be available after instructor review.
+                  </p>
+                )}
+                
+                <button
+                  onClick={() => router.push('/assignments')}
+                  className="w-full px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Back to Assignments
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

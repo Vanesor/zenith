@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Database } from "@/lib/database";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/lib/AuthMiddleware";
 import { NotificationService } from "@/lib/NotificationService";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-interface JwtPayload {
-  userId: string;
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -68,14 +62,17 @@ export async function GET(request: NextRequest) {
 // POST /api/announcements - Create a new announcement
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Use centralized authentication system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
-    const token = authHeader.substring(7);
-    if (!JWT_SECRET) throw new Error("JWT_SECRET not defined");
-    const decoded = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload;
-    const userId = decoded.userId;
+    
+    const userId = authResult.user!.id;
 
     const userResult = await Database.query("SELECT role, club_id FROM users WHERE id = $1", [userId]);
     const user = userResult.rows[0];

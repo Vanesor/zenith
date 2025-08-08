@@ -79,9 +79,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(getLocalFallbackResponse(code, language, input, testCases));
     }
 
-    // Get API key for authentication
-    const apiKey = process.env.CODE_EXECUTION_SERVICE_API_KEY || 'zenith-compiler-secret-key';
-
+    // Get API key for authentication from environment variable
+    const apiKey = process.env.CODE_EXECUTION_SERVICE_API_KEY;
+    console.log("Using compiler API key:", apiKey ? "Key loaded from environment" : "Key not found");
+    
     // Call the Render compiler service
     const compilerResponse = await fetch(`${COMPILER_SERVICE_URL}/execute`, {
       method: 'POST',
@@ -97,6 +98,7 @@ export async function POST(request: NextRequest) {
       
       // If the compiler service is down, try the /compile endpoint as fallback
       try {
+        console.log("Attempting fallback to /compile endpoint...");
         const fallbackResponse = await fetch(`${COMPILER_SERVICE_URL}/compile`, {
           method: 'POST',
           headers: {

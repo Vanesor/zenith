@@ -60,6 +60,19 @@ interface AssignmentActivity {
   timeSpent: number;
 }
 
+interface AssignmentSubmission {
+  id: string;
+  assignmentId: string;
+  title: string;
+  score: number;
+  maxScore: number;
+  percentage: number;
+  status: 'submitted' | 'graded' | 'completed';
+  submittedAt: string;
+  timeSpent: number;
+  isPassing: boolean;
+}
+
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -67,7 +80,9 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [assignmentHistory, setAssignmentHistory] = useState<AssignmentActivity[]>([]);
+  const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     firstName: "",
     lastName: "",
@@ -116,13 +131,40 @@ export default function ProfilePage() {
         linkedin: "",
         twitter: "",
         joinedDate: "2025-01-15",
-        clubs: user.clubs || [],
-        role: user.role,
+        clubs: [],
+        role: user.role || "MEMBER",
       });
-      // Fetch assignment history when profile loads
+      // Fetch data when profile loads
       fetchAssignmentHistory();
+      fetchSubmissions();
     }
   }, [user, isLoading, router]);
+
+  const fetchSubmissions = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingSubmissions(true);
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/user/submissions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSubmissions(data.submissions || []);
+      } else {
+        console.error('Failed to fetch submissions');
+      }
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
 
   const fetchAssignmentHistory = async () => {
     if (!user) return;
@@ -281,6 +323,7 @@ export default function ProfilePage() {
               {[
                 { id: "profile", label: "Profile Info", icon: User },
                 { id: "activities", label: "Activities", icon: Activity },
+                { id: "submissions", label: "Submissions", icon: FileText },
                 { id: "settings", label: "Settings", icon: Settings },
                 { id: "security", label: "Security", icon: Lock },
                 { id: "notifications", label: "Notifications", icon: Bell },
@@ -623,6 +666,130 @@ export default function ProfilePage() {
                             }`}
                             style={{ width: `${assignment.percentage}%` }}
                           ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "submissions" && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      My Assignment Submissions
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      View your assignment submission history and scores
+                    </p>
+                  </div>
+                  <button
+                    onClick={fetchSubmissions}
+                    disabled={loadingSubmissions}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    {loadingSubmissions ? "Loading..." : "Refresh"}
+                  </button>
+                </div>
+
+                {loadingSubmissions ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : submissions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                      No submissions yet
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      You haven't submitted any assignments yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {submissions.map((submission) => (
+                      <div 
+                        key={submission.id} 
+                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                            {submission.title}
+                          </h4>
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              submission.status === 'graded' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                                : submission.status === 'submitted'
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                            }`}>
+                              {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                            </span>
+                            {submission.isPassing && (
+                              <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                                Passed
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                          <div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Score</div>
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              {submission.score}/{submission.maxScore}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Percentage</div>
+                            <div className={`font-semibold ${
+                              (submission.percentage || 0) >= 80 
+                                ? 'text-green-600 dark:text-green-400'
+                                : (submission.percentage || 0) >= 60 
+                                ? 'text-yellow-600 dark:text-yellow-400'
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              {(submission.percentage || 0).toFixed(1)}%
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Time Spent</div>
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              {Math.floor(submission.timeSpent / 60)}m {submission.timeSpent % 60}s
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Submitted</div>
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              {new Date(submission.submittedAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-3">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              submission.percentage >= 80 
+                                ? 'bg-green-500'
+                                : submission.percentage >= 60 
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                            }`}
+                            style={{ width: `${Math.min(submission.percentage, 100)}%` }}
+                          ></div>
+                        </div>
+                        
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => router.push(`/assignments/${submission.assignmentId}/results`)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            View Results
+                          </button>
                         </div>
                       </div>
                     ))}

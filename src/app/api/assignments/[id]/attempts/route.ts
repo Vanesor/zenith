@@ -1,33 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from '@/lib/AuthMiddleware';
 
 // Initialize PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://zenith_user:zenith_password@localhost:5432/zenith_db'
 });
 
-// Helper function to verify JWT token
-async function verifyAuth(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { authenticated: false, userId: null };
-  }
-
-  try {
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    return { authenticated: true, userId: decoded.userId };
-  } catch (error) {
-    return { authenticated: false, userId: null };
-  }
-}
 
 export async function GET(
   request: NextRequest,
@@ -36,11 +15,16 @@ export async function GET(
   try {
     const { id: assignmentId } = await params;
     
-    // Get JWT claims
-    const { userId, authenticated } = await verifyAuth(request);
-    if (!authenticated || !userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
+
+    const userId = authResult.user!.id;
 
     // Get user details
     const userQuery = 'SELECT id, email, name FROM users WHERE id = $1';

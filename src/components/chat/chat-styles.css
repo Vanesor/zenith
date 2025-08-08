@@ -1,0 +1,109 @@
+.avatar-circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: #128C7E; /* Default WhatsApp green */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 16px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* Avatar colors based on user role */
+.avatar-circle.bg-self {
+  background-color: #3b82f6; /* Blue for self */
+}
+
+.avatar-circle.bg-management {
+  background-color: #10b981; /* Green for management team */
+}
+
+.avatar-circle.bg-zenith {
+  background-color: #8b5cf6; /* Purple for Zenith team */
+}
+
+.avatar-circle.bg-student {
+  background-color: #f59e0b; /* Amber for students */
+}
+
+/* Custom animation for fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Message bubble styling without tails */
+
+/* Reply message styling */
+.reply-bubble {
+  border-left: 4px solid #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.dark .reply-bubble {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* User role color styling */
+.username-self {
+  color: #3b82f6; /* Blue for self */
+}
+
+.username-management {
+  color: #10b981; /* Green for management team */
+}
+
+.username-zenith {
+  color: #8b5cf6; /* Purple for Zenith team */
+}
+
+.username-student {
+  color: #f59e0b; /* Amber for students */
+}
+
+.dark .username-self {
+  color: #60a5fa; /* Lighter blue for dark mode */
+}
+
+.dark .username-management {
+  color: #34d399; /* Lighter green for dark mode */
+}
+
+.dark .username-zenith {
+  color: #a78bfa; /* Lighter purple for dark mode */
+}
+
+.dark .username-student {
+  color: #fbbf24; /* Lighter amber for dark mode */
+}

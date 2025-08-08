@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-interface JwtPayload {
-  userId: string;
-}
 
 interface Props {
   params: Promise<{ id: string }>;

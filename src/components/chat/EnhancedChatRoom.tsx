@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Reply, Edit, Trash2, Image, File, Paperclip, X, Smile, MoreVertical } from 'lucide-react';
+import { Send, Reply, Edit, Trash2, Image, File, Paperclip, X, Smile, MoreVertical, User } from 'lucide-react';
 import { ZenithChatEncryption, SimpleEncryption } from '@/lib/encryption';
+import './chat-styles.css';
 
 // Emoji data
 const EMOJIS = [
@@ -103,8 +104,8 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
   onInviteUser,
   isCoordinator = false
 }) => {
-  // Add autoScroll state to control auto-scrolling behavior
-  const [autoScroll, setAutoScroll] = useState(true);
+  // Add state to show scroll to bottom button
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
@@ -129,32 +130,35 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
     setErrorModal({show: true, message});
   };
 
-  // Enhanced scroll to bottom function
+  // Simple scroll to bottom function - only when explicitly called
   const scrollToBottom = useCallback((forceScroll = false) => {
-    if (messagesEndRef.current) {
-      // If forceScroll is true or autoScroll is enabled, scroll to bottom
-      if (forceScroll || autoScroll) {
-        messagesEndRef.current.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'end' 
-        });
-      } else {
-        // Calculate if we're already at the bottom before auto-scrolling
-        const container = chatContainerRef.current;
-        if (container) {
-          const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-          if (isAtBottom) {
-            messagesEndRef.current.scrollIntoView({
-              behavior: 'smooth',
-              block: 'end'
-            });
-            // Update autoScroll state when we're at the bottom
-            if (!autoScroll) setAutoScroll(true);
-          }
-        }
-      }
+    if (messagesEndRef.current && forceScroll) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'auto',
+        block: 'end' 
+      });
     }
-  }, [autoScroll]);
+  }, []);
+  
+  // Determine user role for color coding
+  const getUserRole = (userId: string): 'self' | 'management' | 'zenith' | 'student' => {
+    // Check if it's the current user
+    if (userId === currentUser.id) return 'self';
+    
+    // This would normally come from user metadata, club data, etc.
+    // For demonstration, we're using simple checks
+    
+    // Management team (club coordinators, etc.)
+    const managementIds = ['club_coordinator', 'club_secretary', 'club_media']; 
+    if (managementIds.includes(userId)) return 'management';
+    
+    // Zenith team members
+    const zenithIds = ['zenith_admin', 'zenith_core']; 
+    if (zenithIds.includes(userId)) return 'zenith';
+    
+    // Default is regular student
+    return 'student';
+  };
 
   // Scroll to specific message
   const scrollToMessage = useCallback((messageId: string) => {
@@ -203,9 +207,23 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
           return msg;
         });
         
-        setMessages(decryptedMessages);
+        // Process messages to ensure replies are properly displayed
+        const processedMessages = decryptedMessages.map((msg: ChatMessage) => {
+          // Ensure we have consistent property names
+          return {
+            ...msg,
+            message: msg.message || msg.content || '',
+            content: msg.content || msg.message || '',
+            user_id: msg.user_id || msg.sender_id || '',
+            sender_id: msg.sender_id || msg.user_id || '',
+            reply_to: msg.reply_to || msg.reply_to_message_id || '',
+            reply_to_message_id: msg.reply_to_message_id || msg.reply_to || '',
+          };
+        });
         
-        if (messages.length === 0 && decryptedMessages.length > 0) {
+        setMessages(processedMessages);
+        
+        if (messages.length === 0 && processedMessages.length > 0) {
           setTimeout(() => scrollToBottom(true), 100);
         }
       }
@@ -227,21 +245,14 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
     };
   }, [fetchMessages]);
   
-  // Monitor messages array for changes and handle scrolling
+  // Don't auto-scroll when messages change - user controls scrolling manually
   useEffect(() => {
-    // If messages change and we have messages, check if we should scroll
-    if (messages.length > 0) {
-      const container = chatContainerRef.current;
-      if (container) {
-        // Check if user is already near the bottom
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-        if (isNearBottom) {
-          // Small timeout to ensure DOM updates before scrolling
-          setTimeout(() => scrollToBottom(true), 50);
-        }
-      }
+    // Only scroll to the bottom on the initial load of messages
+    if (messages.length > 0 && messages.length === 1) {
+      // Only scroll on first load
+      setTimeout(() => scrollToBottom(true), 50);
     }
-  }, [messages, scrollToBottom]);
+  }, [messages.length === 1, scrollToBottom]);
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -361,12 +372,18 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
       });
       
       if (response.ok) {
+        // Get the newly created message from the response if available
+        const messageResponse = await response.json();
+        
         setNewMessage('');
         setReplyingTo(null);
         setAttachments([]);
+        
+        // Force refresh to ensure reply bubbles are shown correctly
         await fetchMessages();
+        
         // Ensure we scroll to bottom after sending a message, with additional delay to ensure rendering
-        setTimeout(() => scrollToBottom(true), 150);
+        setTimeout(() => scrollToBottom(true), 300);
       } else {
         const errorData = await response.json();
         showError('Failed to send message: ' + errorData.error);
@@ -509,7 +526,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
         style={{ 
           backgroundImage: "url('/chat-background.svg')", // Using the WhatsApp-like SVG pattern
           backgroundSize: "contain",
-          scrollBehavior: 'smooth',
+          scrollBehavior: 'auto', // Use auto instead of smooth for more natural scrolling
           overscrollBehavior: 'none', // Prevent scroll chaining
           scrollbarWidth: 'thin',
           WebkitOverflowScrolling: 'touch',
@@ -517,15 +534,10 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
           paddingBottom: '80px' // Extra padding at bottom to always show input field
         }}
         onScroll={(e) => {
-          // Store the user's scroll position
+          // Check if we should show the scroll to bottom button
           const container = e.currentTarget;
-          const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
-          // If user manually scrolls, remember their position
-          if (!isAtBottom) {
-            setAutoScroll(false);
-          } else {
-            setAutoScroll(true);
-          }
+          const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+          setShowScrollButton(!isAtBottom);
         }}
       >
         {messages.map((message, index) => {
@@ -536,6 +548,22 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
           
           const isOwnMessage = (message.user_id || message.sender_id) === currentUser.id;
           const canModify = canEditDelete(message);
+          
+          // WhatsApp-style message grouping: Check if previous message is from the same user
+          const prevMessage = index > 0 ? messages[index - 1] : null;
+          const isPrevSameSender = prevMessage && 
+            ((prevMessage.user_id || prevMessage.sender_id) === (message.user_id || message.sender_id));
+          
+          // Get proper user name and role
+          const senderName = message.sender_name || 
+            (message.user_id === 'system' ? 'System' : 'Unknown User');
+          const userInitial = senderName.charAt(0).toUpperCase();
+          
+          // Determine user role/type for color coding
+          const userRole = getUserRole(message.user_id || message.sender_id || '');
+          
+          // Show avatar only for the first message in a group
+          const showAvatar = !isOwnMessage && (!isPrevSameSender || dateSeparator);
           
           return (
             <div key={message.id}>
@@ -548,16 +576,29 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                 </div>
               )}
               
-              {/* Message */}
+              {/* Message with avatar for WhatsApp-like styling */}
               <div
                 id={`message-${message.id}`}
-                className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                className={`flex items-end mb-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
               >
+                {/* Avatar - only show for received messages and first in group */}
+                {!isOwnMessage && (
+                  <div className="flex-shrink-0 mr-1">
+                    {showAvatar ? (
+                      <div className={`avatar-circle bg-${userRole}`} title={senderName}>
+                        {userInitial}
+                      </div>
+                    ) : (
+                      <div style={{ width: '35px' }}></div> // Spacer when avatar is hidden
+                    )}
+                  </div>
+                )}
+                
                 <div
                   className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative group shadow-sm ${
                     isOwnMessage
-                      ? 'bg-blue-500 text-white ml-auto rounded-br-none' // WhatsApp-like styling
-                      : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white mr-auto rounded-bl-none'
+                      ? 'bg-blue-500 text-white ml-auto' // Removed the tail styling
+                      : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white mr-auto'
                   }`}
                 >
                   {/* Dropdown menu toggle */}
@@ -610,21 +651,23 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                     )}
                   </div>
 
-                  {/* Reply Preview */}
-                  {message.reply_to && (
+                  {/* Reply Preview - Improved WhatsApp-like style */}
+                  {(message.reply_to || message.reply_to_message_id || message.reply_message) && (
                     <div 
-                      className="mb-2 p-2 rounded bg-black bg-opacity-20 cursor-pointer text-xs"
-                      onClick={() => scrollToMessage(message.reply_to!)}
+                      className="mb-2 reply-bubble cursor-pointer text-xs"
+                      onClick={() => scrollToMessage(message.reply_to || message.reply_to_message_id || '')}
                     >
-                      <div className="font-semibold">{message.reply_sender}</div>
+                      <div className="font-semibold text-blue-600 dark:text-blue-400">
+                        {message.reply_sender || 'Reply'}
+                      </div>
                       <div className="truncate">{message.reply_message}</div>
                     </div>
                   )}
                   
-                  {/* Sender Name - with proper naming and color */}
-                  {!isOwnMessage && (
-                    <div className="text-xs font-semibold mb-1 text-blue-600 dark:text-blue-400">
-                      {message.sender_name || message.user_id === 'system' ? 'System' : currentUser.name !== message.sender_name ? message.sender_name : 'You'}
+                  {/* Sender Name - with proper naming and role-based color */}
+                  {!isOwnMessage && showAvatar && (
+                    <div className={`text-xs font-semibold mb-1 username-${userRole}`}>
+                      {senderName}
                     </div>
                   )}
                   
@@ -731,6 +774,21 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
           );
         })}
         <div ref={messagesEndRef} className="h-24" /> {/* Further increased space to ensure message input is always visible */}
+        
+        {/* WhatsApp-style scroll to bottom button */}
+        {showScrollButton && (
+          <div className="fixed bottom-20 right-6 z-30">
+            <button
+              onClick={() => scrollToBottom(true)}
+              className="bg-gray-200 dark:bg-gray-700 rounded-full p-3 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              aria-label="Scroll to bottom"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Message Input Area - Fixed at bottom, always visible, modern WhatsApp-like styling */}
@@ -794,6 +852,9 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
         
         {/* Input Area - Modern WhatsApp-like styling */}
         <div className="flex items-center space-x-2 relative mt-1 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
+          <div className="avatar-circle bg-self hidden md:flex">
+            {currentUser.name.charAt(0).toUpperCase()}
+          </div>
           <input
             type="file"
             ref={fileInputRef}

@@ -13,10 +13,12 @@ import {
   Shield,
   Plus,
   X,
+  Eye
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import ProfileModal from "@/components/ProfileModal";
 import TokenManager from "@/lib/TokenManager";
 
 interface ClubMember {
@@ -85,6 +87,8 @@ export default function ClubManagementPage() {
     id: string;
     name: string;
   }>({ show: false, type: "", id: "", name: "" });
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newEvent, setNewEvent] = useState({
@@ -244,6 +248,18 @@ export default function ClubManagementPage() {
         message: "An unexpected error occurred",
       });
     }
+  };
+
+  // Show member profile modal
+  const handleViewMemberProfile = (memberId: string) => {
+    setSelectedMemberId(memberId);
+    setShowProfileModal(true);
+  };
+  
+  // Close member profile modal
+  const handleCloseProfileModal = () => {
+    setShowProfileModal(false);
+    setSelectedMemberId(null);
   };
 
   const handleCreateEvent = async () => {
@@ -485,22 +501,33 @@ export default function ClubManagementPage() {
                           {member.role.replace("_", " ").toUpperCase()}
                         </span>
                       </div>
-                      {member.role === "member" && (
+                      <div className="flex items-center space-x-2">
                         <button
-                          onClick={() =>
-                            setShowDeleteModal({
-                              show: true,
-                              type: "member",
-                              id: member.id,
-                              name: member.name,
-                            })
-                          }
-                          className="text-red-600 hover:text-red-700 p-2"
-                          title="Remove member"
+                          onClick={() => handleViewMemberProfile(member.id)}
+                          className="text-blue-600 hover:text-blue-700 p-2 rounded-md bg-blue-100 dark:bg-blue-800 dark:text-blue-200 flex items-center"
+                          title="View member profile"
                         >
-                          <UserMinus className="w-4 h-4" />
+                          <Eye className="w-4 h-4 mr-1" />
+                          <span className="text-xs">View Profile</span>
                         </button>
-                      )}
+                        
+                        {member.role === "member" && (
+                          <button
+                            onClick={() =>
+                              setShowDeleteModal({
+                                show: true,
+                                type: "member",
+                                id: member.id,
+                                name: member.name,
+                              })
+                            }
+                            className="text-red-600 hover:text-red-700 p-2"
+                            title="Remove member"
+                          >
+                            <UserMinus className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -698,6 +725,14 @@ export default function ClubManagementPage() {
         message={`Are you sure you want to remove ${showDeleteModal.name} from the club? This action cannot be undone.`}
         confirmText="Remove"
         type="danger"
+      />
+
+      {/* Member Details Modal */}
+      {/* ProfileModal for viewing member details */}
+      <ProfileModal 
+        userId={selectedMemberId} 
+        open={showProfileModal} 
+        onClose={handleCloseProfileModal} 
       />
     </div>
   );

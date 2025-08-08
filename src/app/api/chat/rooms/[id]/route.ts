@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // PUT /api/chat/rooms/[id] - Update room name (managers only)
 export async function PUT(
@@ -17,14 +11,17 @@ export async function PUT(
   const { id } = context.params;
   console.log('PUT /api/chat/rooms/[id] called with ID:', id);
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Use centralized authentication system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    
+    const userId = authResult.user!.id;
 
     const { name } = await request.json();
 
@@ -121,14 +118,17 @@ export async function DELETE(
   const { id } = await context.params;
   console.log('DELETE /api/chat/rooms/[id] called with ID:', id);
   try {
-    const authHeader = request.headers.get("authorization"); 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Use centralized authentication system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
     }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    
+    const userId = authResult.user!.id;
 
     // Check if user is a manager and owns the room
     const roomQuery = `
