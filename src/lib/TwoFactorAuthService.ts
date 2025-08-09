@@ -4,6 +4,8 @@ import Database from './database';
 import crypto from 'crypto';
 import { HashAlgorithms } from 'otplib/core';
 import emailService from './EmailService';
+import { TrustedDeviceService } from './TrustedDeviceService';
+import { UAParser } from 'ua-parser-js';
 
 export type TwoFactorAuthStatus = {
   enabled: boolean;
@@ -11,6 +13,8 @@ export type TwoFactorAuthStatus = {
   tempSecret?: string;
   secret?: string; // Permanent secret for verification
   emailOtpEnabled?: boolean; // Whether email OTP is enabled
+  method?: '2fa_app' | 'email_otp'; // Method used for 2FA
+  trustedDevice?: boolean; // Whether the current device is trusted
 };
 
 export class TwoFactorAuthService {
@@ -185,7 +189,7 @@ export class TwoFactorAuthService {
   }
 
   // Get user's 2FA status
-  static async get2FAStatus(userId: string): Promise<TwoFactorAuthStatus> {
+  static async get2FAStatus(userId: string, deviceId?: string): Promise<TwoFactorAuthStatus> {
     try {
       const result = await Database.query(
         `SELECT 
@@ -204,12 +208,30 @@ export class TwoFactorAuthService {
       
       const { totp_enabled, totp_temp_secret, totp_secret, email_otp_enabled } = result.rows[0];
       
+      // Check if this is a trusted device
+      let trustedDevice = false;
+      let method: '2fa_app' | 'email_otp' | undefined = undefined;
+      
+      if (deviceId) {
+        const trustStatus = await TrustedDeviceService.verifyTrustedDevice(userId, deviceId);
+        trustedDevice = trustStatus.trusted;
+      }
+      
+      // Determine 2FA method
+      if (totp_enabled) {
+        method = '2fa_app';
+      } else if (email_otp_enabled) {
+        method = 'email_otp';
+      }
+      
       return { 
         enabled: totp_enabled === true || email_otp_enabled === true,
         tempSecret: totp_temp_secret || undefined,
         secret: totp_secret || undefined,
         verified: totp_enabled === true,
-        emailOtpEnabled: email_otp_enabled === true
+        emailOtpEnabled: email_otp_enabled === true,
+        method,
+        trustedDevice
       };
       
     } catch (error) {
@@ -224,7 +246,7 @@ export class TwoFactorAuthService {
       // Generate a 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // Hash the OTP for storage
+      // Hash the OTP for storage - will be stored in the updated CHAR(64) field
       const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
       
       // Store hashed OTP in database with expiration (10 minutes)
@@ -241,46 +263,16 @@ export class TwoFactorAuthService {
       // Send OTP via email
       const emailSent = await emailService.sendOtpEmail(email, otp);
       
+      // Log security event if email was sent successfully
+      if (emailSent) {
+        await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_sent', {
+          email: email.replace(/^(.{2})(.*)(@.*)$/, '$1***$3') // Partially mask email for logging
+        });
+      }
+      
       return emailSent;
     } catch (error) {
       console.error('Error generating and sending email OTP:', error);
-      return false;
-    }
-  }
-  
-  // Verify email OTP
-  static async verifyEmailOTP(userId: string, providedOtp: string): Promise<boolean> {
-    try {
-      // Hash the provided OTP for comparison
-      const hashedOtp = crypto.createHash('sha256').update(providedOtp).digest('hex');
-      
-      // Check if OTP is valid and not expired
-      const result = await Database.query(
-        `SELECT id FROM users 
-         WHERE id = $1 
-         AND email_otp = $2 
-         AND email_otp_expires_at > NOW()`,
-        [userId, hashedOtp]
-      );
-      
-      if (result.rows.length === 0) {
-        return false;
-      }
-      
-      // Clear the OTP after successful verification
-      await Database.query(
-        `UPDATE users 
-         SET 
-          email_otp = NULL, 
-          email_otp_created_at = NULL,
-          email_otp_expires_at = NULL
-         WHERE id = $1`,
-        [userId]
-      );
-      
-      return true;
-    } catch (error) {
-      console.error('Error verifying email OTP:', error);
       return false;
     }
   }
@@ -291,17 +283,135 @@ export class TwoFactorAuthService {
       const result = await Database.query(
         `UPDATE users 
          SET 
-          email_otp_enabled = true,
-          email_otp_enabled_at = NOW()
+          email_otp_enabled = TRUE,
+          email_otp_verified = TRUE,
+          email_otp_created_at = NOW()
          WHERE id = $1
          RETURNING id`,
         [userId]
       );
       
-      return result.rows.length > 0;
+      const success = result.rows.length > 0;
+      
+      if (success) {
+        await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_enabled', {});
+      }
+      
+      return success;
     } catch (error) {
       console.error('Error enabling email OTP:', error);
       return false;
+    }
+  }
+  
+  // Verify email OTP code
+  static async verifyEmailOTP(userId: string, otp: string): Promise<boolean> {
+    try {
+      const result = await Database.query(
+        `SELECT 
+          email_otp,
+          email_otp_expires_at
+         FROM users 
+         WHERE id = $1`,
+        [userId]
+      );
+      
+      if (result.rows.length === 0 || !result.rows[0].email_otp) {
+        return false;
+      }
+      
+      const storedHash = result.rows[0].email_otp;
+      const expiresAt = new Date(result.rows[0].email_otp_expires_at);
+      
+      // Check if OTP has expired
+      if (expiresAt < new Date()) {
+        return false;
+      }
+      
+      // Hash the provided OTP and compare
+      const providedOtpHash = crypto.createHash('sha256').update(otp).digest('hex');
+      
+      if (providedOtpHash !== storedHash) {
+        // Log failed attempt
+        await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_failed', {});
+        return false;
+      }
+      
+      // Clear the OTP after successful verification
+      await Database.query(
+        `UPDATE users 
+         SET 
+          email_otp = NULL,
+          email_otp_expires_at = NULL,
+          email_otp_last_used = NOW()
+         WHERE id = $1`,
+        [userId]
+      );
+      
+      await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_verified', {});
+      
+      return true;
+    } catch (error) {
+      console.error('Error verifying email OTP:', error);
+      return false;
+    }
+  }
+  
+  // Create and trust a device after successful 2FA
+  static async trustDevice(
+    userId: string, 
+    userAgent: string,
+    ipAddress?: string,
+    trustLevel: 'login_only' | 'full_access' = 'login_only'
+  ): Promise<string | null> {
+    try {
+      let deviceInfo = {
+        deviceName: 'Unknown Device',
+        deviceType: 'unknown',
+        browser: 'Unknown Browser',
+        os: 'Unknown OS',
+        ipAddress,
+        userAgent
+      };
+      
+      // Parse user agent
+      if (userAgent) {
+        try {
+          // Note: We'll install this package later
+          const parser = new UAParser(userAgent);
+          const result = parser.getResult();
+          
+          deviceInfo.browser = `${result.browser.name || 'Unknown'} ${result.browser.version || ''}`;
+          deviceInfo.os = `${result.os.name || 'Unknown'} ${result.os.version || ''}`;
+          
+          if (result.device.type) {
+            deviceInfo.deviceType = result.device.type;
+            if (result.device.type === 'mobile') deviceInfo.deviceName = 'Mobile Device';
+            else if (result.device.type === 'tablet') deviceInfo.deviceName = 'Tablet';
+            else deviceInfo.deviceName = 'Desktop';
+            
+            if (result.device.vendor) {
+              deviceInfo.deviceName = `${result.device.vendor} ${deviceInfo.deviceName}`;
+            }
+          } else {
+            deviceInfo.deviceName = 'Desktop';
+          }
+        } catch (e) {
+          console.error('Error parsing user agent:', e);
+        }
+      }
+      
+      // Register trusted device
+      const deviceId = await TrustedDeviceService.registerTrustedDevice(
+        userId,
+        deviceInfo,
+        trustLevel
+      );
+      
+      return deviceId;
+    } catch (error) {
+      console.error('Error trusting device:', error);
+      return null;
     }
   }
   

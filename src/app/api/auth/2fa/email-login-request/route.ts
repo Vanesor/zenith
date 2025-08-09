@@ -5,20 +5,30 @@ import Database from "@/lib/database";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email } = body;
+    const { email, userId } = body;
     
-    if (!email) {
+    if (!email && !userId) {
       return NextResponse.json(
-        { error: "Email is required" },
+        { error: "Either email or userId is required" },
         { status: 400 }
       );
     }
     
-    // Get the user by email
-    const userResult = await Database.query(
-      "SELECT id, email, email_otp_enabled FROM users WHERE email = $1",
-      [email]
-    );
+    let userResult;
+    
+    if (userId) {
+      // Get the user by ID
+      userResult = await Database.query(
+        "SELECT id, email, email_otp_enabled FROM users WHERE id = $1",
+        [userId]
+      );
+    } else {
+      // Get the user by email
+      userResult = await Database.query(
+        "SELECT id, email, email_otp_enabled FROM users WHERE email = $1",
+        [email]
+      );
+    }
     
     if (userResult.rows.length === 0) {
       return NextResponse.json(

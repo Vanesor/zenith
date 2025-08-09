@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  Bell,
   LogOut,
   Settings,
   User,
@@ -14,10 +13,10 @@ import {
   BookOpen,
   ChevronDown,
   MessageSquare,
+  Mail,
 } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { useAuth } from "@/contexts/AuthContext";
-import NotificationBell from "@/components/NotificationBell";
 
 export function NavigationHeader() {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
@@ -140,7 +139,7 @@ export function NavigationHeader() {
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Assignments", href: "/assignments", icon: BookOpen },
-    { name: "Notifications", href: "/notifications", icon: Bell },
+    { name: "Settings", href: "/settings", icon: Settings },
     ...(isManager ? [{ name: "Club Management", href: "/club-management", icon: Settings }] : []),
   ];
 
@@ -180,9 +179,6 @@ export function NavigationHeader() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <NotificationBell />
-
             {/* User Menu */}
             <div className="relative">
               <button

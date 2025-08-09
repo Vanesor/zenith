@@ -16,7 +16,7 @@ import {
   Heart,
   ExternalLink,
 } from "lucide-react";
-import { ZenithLogo } from "@/components/ZenithLogo";
+import MainLayout from "@/components/MainLayout";
 import ZenChatbot from "@/components/ZenChatbot";
 
 interface EventItem {
@@ -200,64 +200,15 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <MainLayout>
       {loading ? (
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
         </div>
       ) : (
         <>
-          {/* Header */}
-          <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/">
-              <ZenithLogo size="md" />
-            </Link>
-
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/dashboard"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/clubs"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                Clubs
-              </Link>
-              <Link
-                href="/events"
-                className="text-blue-600 dark:text-blue-400 font-medium"
-              >
-                Events
-              </Link>
-              <Link
-                href="/announcements"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                Announcements
-              </Link>
-            </nav>
-
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                Back to Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <motion.div
+          {/* Hero Section */}
+          <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -467,11 +418,10 @@ export default function EventsPage() {
             </p>
           </motion.div>
         )}
-      </main>
 
-      <ZenChatbot />
+          <ZenChatbot />
         </>
       )}
-    </div>
+    </MainLayout>
   );
 }

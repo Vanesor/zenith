@@ -30,6 +30,9 @@ function generateRefreshToken(payload: {
   );
 }
 
+import { TrustedDeviceService } from "@/lib/TrustedDeviceService";
+import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
+
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
@@ -38,7 +41,7 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
-    const { email, password } = await request.json();
+    const { email, password, rememberMe = false } = await request.json();
 
     // Validation
     if (!email || !password) {
@@ -97,19 +100,38 @@ export async function POST(request: NextRequest) {
     // Clear failed login attempts on successful login
     await CacheManager.delete(emailKey);
     
-    // Check if 2FA is enabled for this user
-    const twoFAResult = await Database.query(
-      "SELECT totp_enabled FROM users WHERE id = $1",
-      [existingUser.id]
+    // Check if 2FA is enabled for this user and get trusted device status
+    // First, check for a trusted device cookie
+    const trustedDeviceId = request.cookies.get('zenith-trusted-device')?.value;
+    let isTrustedDevice = false;
+    
+    if (trustedDeviceId) {
+      const trustStatus = await TrustedDeviceService.verifyTrustedDevice(
+        existingUser.id, 
+        trustedDeviceId
+      );
+      isTrustedDevice = trustStatus.trusted;
+    }
+    
+    const twoFAStatus = await TwoFactorAuthService.get2FAStatus(
+      existingUser.id,
+      trustedDeviceId || undefined
     );
     
-    const twoFAEnabled = twoFAResult.rows[0]?.totp_enabled === true;
-    
-    // If 2FA is enabled, return a different response that requires verification
-    if (twoFAEnabled) {
+    // If 2FA is enabled and this is not a trusted device, require verification
+    if (twoFAStatus.enabled && !isTrustedDevice) {
+      // For email OTP method, we should generate and send the code automatically
+      if (twoFAStatus.method === 'email_otp') {
+        await TwoFactorAuthService.generateAndSendEmailOTP(
+          existingUser.id,
+          existingUser.email
+        );
+      }
+      
       return NextResponse.json({
         requiresTwoFactor: true,
         userId: existingUser.id,
+        method: twoFAStatus.method,
         message: "Two-factor authentication required"
       });
     }
@@ -180,12 +202,42 @@ export async function POST(request: NextRequest) {
     });
 
     // Set secure HTTP-only cookie for additional security
+    const maxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000; // 30 days if remember me is checked, otherwise 7 days
+    
     response.cookies.set('zenith-session', sessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: maxAge, 
     });
+    
+    // If user checked "remember me" and they don't have 2FA enabled,
+    // we can register this as a trusted device directly
+    if (rememberMe && !twoFAStatus.enabled) {
+      try {
+        // Create a trusted device
+        const deviceId = await TwoFactorAuthService.trustDevice(
+          existingUser.id,
+          userAgent,
+          ipAddress,
+          'login_only' // Only bypass 2FA for login, still require for sensitive actions
+        );
+        
+        if (deviceId) {
+          // Set a cookie to identify this device in the future
+          response.cookies.set('zenith-trusted-device', deviceId, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            path: '/'
+          });
+        }
+      } catch (trustError) {
+        console.error("Error trusting device:", trustError);
+        // Continue with login even if trusting device fails
+      }
+    }
 
     return response;
   } catch (error) {

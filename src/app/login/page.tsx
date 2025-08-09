@@ -18,9 +18,13 @@ export default function LoginPage() {
   const [oauthLoading, setOAuthLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [trustDevice, setTrustDevice] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [twoFactorMethod, setTwoFactorMethod] = useState<'2fa_app' | 'email_otp' | undefined>();
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
   const router = useRouter();
   const { login, user, isLoading: authLoading } = useAuth();
 
@@ -56,7 +60,8 @@ export default function LoginPage() {
           },
           body: JSON.stringify({ 
             userId: userId,
-            code: twoFactorCode 
+            code: twoFactorCode,
+            trustDevice: trustDevice
           }),
         });
 
@@ -75,7 +80,7 @@ export default function LoginPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, password, rememberMe }),
         });
 
         const data = await response.json();
@@ -85,6 +90,7 @@ export default function LoginPage() {
           if (data.requiresTwoFactor) {
             setRequiresTwoFactor(true);
             setUserId(data.userId);
+            setTwoFactorMethod(data.method || '2fa_app');
           } else {
             // Normal login success
             login(data.token, data.user);
@@ -218,6 +224,8 @@ export default function LoginPage() {
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label
@@ -242,9 +250,22 @@ export default function LoginPage() {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Two-Factor Authentication
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    Enter the 6-digit verification code from your authentication app.
-                  </p>
+                  
+                  {twoFactorMethod === 'email_otp' ? (
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Enter the 6-digit verification code sent to your email.
+                      </p>
+                      
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 px-4 py-3 rounded-lg mb-6">
+                        A verification code has been sent to your email address.
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      Enter the 6-digit verification code from your authentication app.
+                    </p>
+                  )}
                   
                   <label
                     htmlFor="twoFactorCode"
@@ -267,6 +288,59 @@ export default function LoginPage() {
                       autoFocus
                       required
                     />
+                  </div>
+                  
+                  {twoFactorMethod === 'email_otp' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!userId || isResendingOtp) return;
+                        
+                        setIsResendingOtp(true);
+                        try {
+                          const response = await fetch("/api/auth/2fa/email-login-request", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ userId }),
+                          });
+                          
+                          if (response.ok) {
+                            setError("");
+                          } else {
+                            const data = await response.json();
+                            setError(data.error || "Failed to resend code");
+                          }
+                        } catch (err) {
+                          setError("Network error. Please try again.");
+                        } finally {
+                          setIsResendingOtp(false);
+                        }
+                      }}
+                      disabled={isResendingOtp}
+                      className="mt-3 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
+                    >
+                      {isResendingOtp ? "Sending..." : "Resend verification code"}
+                    </button>
+                  )}
+                  
+                  {/* Trust device option for 2FA */}
+                  <div className="mt-6">
+                    <div className="flex items-center">
+                      <input
+                        id="trust-device"
+                        name="trust-device"
+                        type="checkbox"
+                        checked={trustDevice}
+                        onChange={(e) => setTrustDevice(e.target.checked)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="trust-device"
+                        className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        Remember this device (won't ask for 2FA on this device for 30 days)
+                      </label>
+                    </div>
                   </div>
                   
                   <div className="mt-4">

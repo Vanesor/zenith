@@ -15,6 +15,7 @@ import {
   X,
   User as UserIcon,
 } from "lucide-react";
+import MainLayout from "@/components/MainLayout";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateNotificationRequest } from "@/shared/types";
@@ -342,15 +343,16 @@ export default function NotificationsPage() {
 
   if (isLoading || loading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <MainLayout>
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
@@ -663,9 +665,8 @@ export default function NotificationsPage() {
             </button>
           </div>
         )}
-      </div>
 
       <ZenChatbot />
-    </div>
+    </MainLayout>
   );
 }

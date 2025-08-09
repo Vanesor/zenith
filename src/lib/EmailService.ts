@@ -28,7 +28,7 @@ class EmailService {
     });
   }
 
-  async sendEmail(options: EmailOptions): Promise<boolean> {
+  async sendEmail(options: EmailOptions, category?: string, relatedId?: string): Promise<boolean> {
     try {
       const { to, subject, text, html, attachments } = options;
       
@@ -44,16 +44,16 @@ class EmailService {
       const info = await this.transporter.sendMail(mailOptions);
       console.log(`Email sent: ${info.messageId}`);
       
-      // Log the email in database if we have the table
+      // Log the email in database
       try {
         const { default: Database } = await import('./database');
         await Database.query(
-          `INSERT INTO email_logs (recipient, subject, content_preview, status, message_id)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [to, subject, html.substring(0, 200), 'sent', info.messageId]
+          `INSERT INTO email_logs (recipient, subject, content_preview, status, message_id, category, related_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [to, subject, html.substring(0, 200), 'sent', info.messageId, category || null, relatedId || null]
         );
       } catch (dbError: unknown) {
-        // Silently fail if the table doesn't exist
+        // Log any database errors
         if (dbError instanceof Error) {
           console.log("Email log not saved to database:", dbError.message);
         } else {
@@ -64,6 +64,19 @@ class EmailService {
       return true;
     } catch (error) {
       console.error('Error sending email:', error);
+      
+      // Try to log the failed email
+      try {
+        const { default: Database } = await import('./database');
+        await Database.query(
+          `INSERT INTO email_logs (recipient, subject, content_preview, status)
+           VALUES ($1, $2, $3, $4)`,
+          [options.to, options.subject, options.html.substring(0, 200), 'failed']
+        );
+      } catch (logError) {
+        console.error('Failed to log email error:', logError);
+      }
+      
       return false;
     }
   }
@@ -101,7 +114,7 @@ class EmailService {
       to,
       subject: 'Your Zenith Verification Code',
       html
-    });
+    }, 'authentication');
   }
   
   async sendVerificationEmail(to: string, verificationToken: string): Promise<boolean> {
@@ -137,7 +150,7 @@ class EmailService {
       to,
       subject: 'Verify Your Email Address - Zenith',
       html
-    });
+    }, 'verification');
   }
   
   async sendPasswordResetEmail(to: string, resetToken: string): Promise<boolean> {
@@ -177,7 +190,7 @@ class EmailService {
       to,
       subject: 'Reset Your Zenith Password',
       html
-    });
+    }, 'password-reset');
   }
   
   async sendAssignmentNotification(
@@ -185,7 +198,8 @@ class EmailService {
     userName: string,
     assignmentTitle: string,
     dueDate: string,
-    clubName?: string
+    clubName?: string,
+    assignmentId?: string
   ): Promise<boolean> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     
@@ -206,7 +220,7 @@ class EmailService {
           
           <p style="text-align: center; margin: 25px 0;">
             <a 
-              href="${baseUrl}/assignments" 
+              href="${baseUrl}/assignments${assignmentId ? `/${assignmentId}` : ''}" 
               style="background-color: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
             >
               View Assignment
@@ -219,11 +233,15 @@ class EmailService {
       </div>
     `;
     
-    return this.sendEmail({
-      to,
-      subject: `New Assignment: ${assignmentTitle}`,
-      html
-    });
+    return this.sendEmail(
+      {
+        to,
+        subject: `New Assignment: ${assignmentTitle}`,
+        html
+      }, 
+      'assignment',
+      assignmentId
+    );
   }
   
   async sendAssignmentResultNotification(
@@ -231,6 +249,7 @@ class EmailService {
     userName: string,
     assignmentTitle: string,
     score?: string,
+    assignmentId?: string
   ): Promise<boolean> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     
@@ -251,7 +270,7 @@ class EmailService {
           
           <p style="text-align: center; margin: 25px 0;">
             <a 
-              href="${baseUrl}/assignments" 
+              href="${baseUrl}/assignments${assignmentId ? `/${assignmentId}/results` : ''}" 
               style="background-color: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
             >
               View Results
@@ -264,11 +283,15 @@ class EmailService {
       </div>
     `;
     
-    return this.sendEmail({
-      to,
-      subject: `Results Available: ${assignmentTitle}`,
-      html
-    });
+    return this.sendEmail(
+      {
+        to,
+        subject: `Results Available: ${assignmentTitle}`,
+        html
+      }, 
+      'assignment-result',
+      assignmentId
+    );
   }
   
   async sendEventNotification(
@@ -277,7 +300,8 @@ class EmailService {
     eventTitle: string,
     eventDate: string,
     eventLocation: string,
-    clubName?: string
+    clubName?: string,
+    eventId?: string
   ): Promise<boolean> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     
@@ -299,7 +323,7 @@ class EmailService {
           
           <p style="text-align: center; margin: 25px 0;">
             <a 
-              href="${baseUrl}/events" 
+              href="${baseUrl}/events${eventId ? `/${eventId}` : ''}" 
               style="background-color: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
             >
               View Event Details
@@ -312,11 +336,15 @@ class EmailService {
       </div>
     `;
     
-    return this.sendEmail({
-      to,
-      subject: `New Event: ${eventTitle}`,
-      html
-    });
+    return this.sendEmail(
+      {
+        to,
+        subject: `New Event: ${eventTitle}`,
+        html
+      },
+      'event',
+      eventId
+    );
   }
   
   async sendDiscussionNotification(
@@ -324,7 +352,8 @@ class EmailService {
     userName: string,
     discussionTitle: string,
     authorName: string,
-    clubName?: string
+    clubName?: string,
+    discussionId?: string
   ): Promise<boolean> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     
@@ -345,7 +374,7 @@ class EmailService {
           
           <p style="text-align: center; margin: 25px 0;">
             <a 
-              href="${baseUrl}/discussions" 
+              href="${baseUrl}/discussions${discussionId ? `/${discussionId}` : ''}" 
               style="background-color: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
             >
               Join the Discussion
@@ -358,11 +387,15 @@ class EmailService {
       </div>
     `;
     
-    return this.sendEmail({
-      to,
-      subject: `New Discussion: ${discussionTitle}`,
-      html
-    });
+    return this.sendEmail(
+      {
+        to,
+        subject: `New Discussion: ${discussionTitle}`,
+        html
+      },
+      'discussion',
+      discussionId
+    );
   }
 }
 
