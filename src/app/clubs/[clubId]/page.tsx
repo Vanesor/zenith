@@ -71,6 +71,24 @@ const getIconComponent = (iconName: string) => {
       return Code;
   }
 };
+const getClubTextColor = (clubName: string) => {
+  const clubColors: Record<string, string> = {
+    'Ascend': 'text-blue-500',    // Blue for ASCEND
+    'Aster': 'text-pink-500',     // Pink for ASTER  
+    'Achievers': 'text-purple-500', // Purple for ACHIEVERS
+    'Altogether': 'text-green-500', // Green for ALTOGETHER
+  };
+  
+  // Find the club by checking if the name contains the key
+  for (const [key, color] of Object.entries(clubColors)) {
+    if (clubName.toLowerCase().includes(key.toLowerCase())) {
+      return color;
+    }
+  }
+  
+  // Default to brand color if not found
+  return 'text-zenith-brand';
+};
 
 export default function ClubPage() {
   const params = useParams();
@@ -172,9 +190,10 @@ export default function ClubPage() {
                   <Icon size={40} className="text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold mb-2">{club.name}</h1>
-                  <p className="text-xl opacity-90">{club.type}</p>
-                  <p className="text-lg opacity-80 mt-2">{club.description}</p>
+                  {/* clubs name should be of color as mention early */}
+                  <h1 className={`text-4xl font-bold mb-2 ${getClubTextColor(club.name)}`}>{club.name}</h1>
+                  <p className={`text-xl opacity-90 ${getClubTextColor(club.type)}`}>{club.type}</p>
+                  <p className={`text-lg opacity-80 mt-2 ${getClubTextColor(club.description)}`}>{club.description}</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
