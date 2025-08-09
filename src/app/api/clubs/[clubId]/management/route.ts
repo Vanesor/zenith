@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
 interface Props {
   params: { clubId: string };
@@ -15,14 +9,17 @@ interface Props {
 // GET /api/clubs/[clubId]/management - Get club management data
 export async function GET(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    
+    const userId = authResult.user!.id;
 
     const { clubId } = await params;
 
@@ -49,7 +46,17 @@ export async function GET(request: NextRequest, { params }: Props) {
       "outreach",
     ].includes(user.role);
 
-    if (!isManager || user.club_id !== clubId) {
+    // Allow access if user is a manager AND either:
+    // 1. The club ID matches their club_id, OR
+    // 2. They have a management role (for system admins who might manage multiple clubs)
+    if (!isManager || (user.club_id !== clubId && user.role !== "admin")) {
+      console.log("Access denied to club management:", { 
+        userId, 
+        userRole: user.role, 
+        userClubId: user.club_id, 
+        requestedClubId: clubId,
+        isManager
+      });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 

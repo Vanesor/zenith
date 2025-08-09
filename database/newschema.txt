@@ -17,8 +17,8 @@ CREATE TABLE public.ai_assignment_generations (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   completed_at timestamp with time zone,
   CONSTRAINT ai_assignment_generations_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_ai_generations_assignment FOREIGN KEY (generated_assignment_id) REFERENCES public.assignments(id),
   CONSTRAINT fk_ai_generations_template FOREIGN KEY (template_id) REFERENCES public.assignment_templates(id),
+  CONSTRAINT fk_ai_generations_assignment FOREIGN KEY (generated_assignment_id) REFERENCES public.assignments(id),
   CONSTRAINT fk_ai_generations_user FOREIGN KEY (generated_by) REFERENCES public.users(id)
 );
 CREATE TABLE public.announcements (
@@ -70,9 +70,9 @@ CREATE TABLE public.assignment_audit_log (
   details jsonb DEFAULT '{}'::jsonb,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT assignment_audit_log_pkey PRIMARY KEY (id),
-  CONSTRAINT assignment_audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT assignment_audit_log_attempt_id_fkey FOREIGN KEY (attempt_id) REFERENCES public.assignment_attempts(id),
-  CONSTRAINT assignment_audit_log_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.assignments(id)
+  CONSTRAINT assignment_audit_log_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.assignments(id),
+  CONSTRAINT assignment_audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.assignment_questions (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -129,8 +129,8 @@ CREATE TABLE public.assignment_submissions (
   user_agent text,
   total_score integer DEFAULT 0,
   CONSTRAINT assignment_submissions_pkey PRIMARY KEY (id),
-  CONSTRAINT assignment_submissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT assignment_submissions_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.assignments(id)
+  CONSTRAINT assignment_submissions_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.assignments(id),
+  CONSTRAINT assignment_submissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.assignment_templates (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -256,10 +256,10 @@ CREATE TABLE public.chat_messages (
   CONSTRAINT chat_messages_pkey PRIMARY KEY (id),
   CONSTRAINT chat_messages_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.chat_rooms(id),
   CONSTRAINT chat_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT chat_messages_reply_to_message_id_fkey FOREIGN KEY (reply_to_message_id) REFERENCES public.chat_messages(id),
-  CONSTRAINT chat_messages_reply_to_fkey FOREIGN KEY (reply_to) REFERENCES public.chat_messages(id),
+  CONSTRAINT fk_chat_messages_thread FOREIGN KEY (thread_id) REFERENCES public.chat_messages(id),
   CONSTRAINT chat_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.users(id),
-  CONSTRAINT fk_chat_messages_thread FOREIGN KEY (thread_id) REFERENCES public.chat_messages(id)
+  CONSTRAINT chat_messages_reply_to_fkey FOREIGN KEY (reply_to) REFERENCES public.chat_messages(id),
+  CONSTRAINT chat_messages_reply_to_message_id_fkey FOREIGN KEY (reply_to_message_id) REFERENCES public.chat_messages(id)
 );
 CREATE TABLE public.chat_room_members (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -288,8 +288,8 @@ CREATE TABLE public.chat_rooms (
   room_images jsonb DEFAULT '[]'::jsonb,
   room_settings jsonb DEFAULT '{}'::jsonb,
   CONSTRAINT chat_rooms_pkey PRIMARY KEY (id),
-  CONSTRAINT chat_rooms_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
-  CONSTRAINT chat_rooms_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id)
+  CONSTRAINT chat_rooms_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id),
+  CONSTRAINT chat_rooms_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
 );
 CREATE TABLE public.club_members (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -320,9 +320,9 @@ CREATE TABLE public.clubs (
   club_images jsonb DEFAULT '[]'::jsonb,
   CONSTRAINT clubs_pkey PRIMARY KEY (id),
   CONSTRAINT fk_clubs_co_coordinator FOREIGN KEY (co_coordinator_id) REFERENCES public.users(id),
-  CONSTRAINT fk_clubs_coordinator FOREIGN KEY (coordinator_id) REFERENCES public.users(id),
   CONSTRAINT fk_clubs_media FOREIGN KEY (media_id) REFERENCES public.users(id),
-  CONSTRAINT fk_clubs_secretary FOREIGN KEY (secretary_id) REFERENCES public.users(id)
+  CONSTRAINT fk_clubs_secretary FOREIGN KEY (secretary_id) REFERENCES public.users(id),
+  CONSTRAINT fk_clubs_coordinator FOREIGN KEY (coordinator_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.code_results (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -358,9 +358,9 @@ CREATE TABLE public.comments (
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   likes_count integer DEFAULT 0,
   CONSTRAINT comments_pkey PRIMARY KEY (id),
-  CONSTRAINT comments_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id),
+  CONSTRAINT comments_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.comments(id),
   CONSTRAINT comments_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id),
-  CONSTRAINT comments_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.comments(id)
+  CONSTRAINT comments_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id)
 );
 CREATE TABLE public.discussion_replies (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -372,9 +372,9 @@ CREATE TABLE public.discussion_replies (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT discussion_replies_pkey PRIMARY KEY (id),
-  CONSTRAINT discussion_replies_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.discussion_replies(id),
+  CONSTRAINT discussion_replies_discussion_id_fkey FOREIGN KEY (discussion_id) REFERENCES public.discussions(id),
   CONSTRAINT discussion_replies_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id),
-  CONSTRAINT discussion_replies_discussion_id_fkey FOREIGN KEY (discussion_id) REFERENCES public.discussions(id)
+  CONSTRAINT discussion_replies_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.discussion_replies(id)
 );
 CREATE TABLE public.discussions (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -441,8 +441,8 @@ CREATE TABLE public.likes (
   user_id uuid,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT likes_pkey PRIMARY KEY (id),
-  CONSTRAINT likes_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id),
-  CONSTRAINT likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT likes_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id)
 );
 CREATE TABLE public.media_files (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -514,9 +514,9 @@ CREATE TABLE public.posts (
   featured_image_url text,
   attachments jsonb DEFAULT '[]'::jsonb,
   CONSTRAINT posts_pkey PRIMARY KEY (id),
-  CONSTRAINT posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id),
+  CONSTRAINT posts_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id),
   CONSTRAINT posts_edited_by_fkey FOREIGN KEY (edited_by) REFERENCES public.users(id),
-  CONSTRAINT posts_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id)
+  CONSTRAINT posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.proctoring_sessions (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -532,8 +532,8 @@ CREATE TABLE public.proctoring_sessions (
   system_info jsonb DEFAULT '{}'::jsonb,
   session_data jsonb DEFAULT '{}'::jsonb,
   CONSTRAINT proctoring_sessions_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_proctoring_sessions_assignment FOREIGN KEY (assignment_id) REFERENCES public.assignments(id),
-  CONSTRAINT fk_proctoring_sessions_user FOREIGN KEY (user_id) REFERENCES public.users(id)
+  CONSTRAINT fk_proctoring_sessions_user FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT fk_proctoring_sessions_assignment FOREIGN KEY (assignment_id) REFERENCES public.assignments(id)
 );
 CREATE TABLE public.question_media (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -626,6 +626,22 @@ CREATE TABLE public.users (
   github character varying,
   linkedin character varying,
   twitter character varying,
+  email_verified boolean DEFAULT false,
+  email_verification_token character varying,
+  email_verification_token_expires_at timestamp without time zone,
+  password_reset_token character varying,
+  password_reset_token_expires_at timestamp without time zone,
+  oauth_provider character varying,
+  oauth_id character varying,
+  oauth_data jsonb,
+  has_password boolean DEFAULT true,
+  totp_secret character varying,
+  totp_temp_secret character varying,
+  totp_temp_secret_created_at timestamp without time zone,
+  totp_enabled boolean DEFAULT false,
+  totp_enabled_at timestamp without time zone,
+  totp_recovery_codes jsonb,
+  notification_preferences jsonb DEFAULT '{"email": {"events": true, "results": true, "assignments": true, "discussions": true}}'::jsonb,
   CONSTRAINT users_pkey PRIMARY KEY (id),
   CONSTRAINT users_club_id_fkey FOREIGN KEY (club_id) REFERENCES public.clubs(id)
 );

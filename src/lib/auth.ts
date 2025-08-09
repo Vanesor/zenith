@@ -62,7 +62,7 @@ export async function getCurrentUser() {
         return acc;
       }, {} as Record<string, string>);
       
-      token = cookies['zenith_auth'];
+      token = cookies['zenith-token'];
     }
     
     if (!token) return null;

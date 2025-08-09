@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { verifyAuth, AuthenticatedRequest } from "@/lib/AuthMiddleware";
+import jwt from "jsonwebtoken";
 
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
+interface JwtPayload {
+  userId: string;
+  email: string;
+  role: string;
+  sessionId: string;
+}
 
 // GET /api/chat/rooms/[id]/messages - Get messages for a specific room
 export async function GET(
@@ -16,15 +24,16 @@ export async function GET(
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication using the AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
 
     // Verify user has access to this room
     const roomQuery = `
@@ -92,15 +101,16 @@ export async function POST(
     const params = await context.params;
     const { id: roomId } = params;
 
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication using the AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
 
     const { content, message_type, file_url } = await request.json();
 
@@ -192,15 +202,16 @@ export async function PUT(
     const params = await context.params;
     const { id: roomId } = params;
 
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication using the AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
 
     const { messageId, content } = await request.json();
 
@@ -269,15 +280,16 @@ export async function DELETE(
     const params = await context.params;
     const { id: roomId } = params;
 
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication using the AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
 
     const { searchParams } = new URL(request.url);
     const messageId = searchParams.get("messageId");

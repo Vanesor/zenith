@@ -248,7 +248,10 @@ export default function ClubManagementPage() {
     ].includes(user.role);
 
   useEffect(() => {
+    console.log("Auth state:", { isLoading, user: user?.id, role: user?.role, isManager });
+    
     if (!isLoading && (!user || !isManager)) {
+      console.log("Redirecting to dashboard, user not manager:", { user: user?.id, role: user?.role, isManager });
       router.push("/dashboard");
     }
   }, [user, isLoading, isManager, router]);

@@ -96,6 +96,23 @@ export async function POST(request: NextRequest) {
 
     // Clear failed login attempts on successful login
     await CacheManager.delete(emailKey);
+    
+    // Check if 2FA is enabled for this user
+    const twoFAResult = await Database.query(
+      "SELECT totp_enabled FROM users WHERE id = $1",
+      [existingUser.id]
+    );
+    
+    const twoFAEnabled = twoFAResult.rows[0]?.totp_enabled === true;
+    
+    // If 2FA is enabled, return a different response that requires verification
+    if (twoFAEnabled) {
+      return NextResponse.json({
+        requiresTwoFactor: true,
+        userId: existingUser.id,
+        message: "Two-factor authentication required"
+      });
+    }
 
     // Get device info for session tracking
     const userAgent = request.headers.get('user-agent') || 'Unknown';

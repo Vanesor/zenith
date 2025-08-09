@@ -1,7 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Database from "@/lib/database";
+import { verifyAuth } from "@/lib/AuthMiddleware";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Verify authentication
+  const authResult = await verifyAuth(request);
+    
+  if (!authResult.success) {
+    return NextResponse.json(
+      { error: authResult.error || "Unauthorized" },
+      { status: 401 }
+    );
+  }
+  
+  const userId = authResult.user!.id;
   try {
     // Get all clubs with member counts and upcoming events
     const clubsResult = await Database.query(`
@@ -20,6 +32,11 @@ export async function GET() {
       GROUP BY c.id, c.name, c.type, c.description, c.color, c.icon
       ORDER BY c.name
     `);
+    
+    // Get the current user's club information
+    const userClubQuery = await Database.query(`
+      SELECT club_id FROM users WHERE id = $1
+    `, [userId]);
 
     // Get recent announcements
     const announcementsResult = await Database.query(`
@@ -76,7 +93,11 @@ export async function GET() {
       LIMIT 4
     `);
 
+    // Get the user's club_id
+    const userClubId = userClubQuery.rows.length > 0 ? userClubQuery.rows[0].club_id : null;
+
     return NextResponse.json({
+      userClubId: userClubId, // Add user's club ID directly in the response
       clubs: clubsResult.rows.map((club) => ({
         id: club.id,
         name: club.name,

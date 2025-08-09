@@ -264,11 +264,26 @@ export default function DashboardPage() {
                 My Clubs
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Debug information */}
+                <div className="hidden">
+                  <pre>User club_id: {JSON.stringify(user?.club_id)}</pre>
+                  <pre>Available clubs: {JSON.stringify(clubs?.map(c => c.id))}</pre>
+                </div>
+                
                 {user?.club_id ? (
                   // Show the single club the user is a member of
-                  clubs
-                    .filter((club) => club.id === user.club_id)
-                    .map((club) => {
+                  (() => {
+                    const filteredClubs = clubs.filter((club) => club.id === user.club_id);
+                    
+                    if (filteredClubs.length === 0) {
+                      return (
+                        <div className="col-span-2 p-4 text-center">
+                          <p className="text-gray-500 dark:text-gray-400">Your club was not found. Please refresh the page.</p>
+                        </div>
+                      );
+                    }
+                    
+                    return filteredClubs.map((club) => {
                       const IconComponent = iconMap[club.icon] || Code;
                       return (
                         <Link
@@ -305,7 +320,8 @@ export default function DashboardPage() {
                           </motion.div>
                         </Link>
                       );
-                    })
+                    });
+                  })()
                 ) : (
                   // Show message if user hasn't joined any club
                   <div className="col-span-2 text-center py-8">

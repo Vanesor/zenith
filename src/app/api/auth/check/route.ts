@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
           name: user.name,
           email: user.email,
           role: user.role,
-          avatar: user.avatar
+          avatar: user.avatar,
+          club_id: user.club_id
         }
       });
     } else {

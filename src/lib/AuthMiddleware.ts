@@ -11,6 +11,7 @@ export interface AuthenticatedRequest extends NextRequest {
     email: string;
     role: string;
     sessionId: string;
+    club_id?: string | null;
   };
 }
 
@@ -21,6 +22,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
     email: string;
     role: string;
     sessionId: string;
+    club_id?: string | null;
   };
   error?: string;
   expired?: boolean;
@@ -69,7 +71,14 @@ export async function verifyAuth(request: NextRequest): Promise<{
     }
 
     // Check if user data is cached
-    let userData = await CacheManager.get(CacheKeys.user(decoded.userId));
+    interface UserData {
+      id: string;
+      email: string;
+      role: string;
+      club_id?: string | null;
+    }
+    
+    let userData: UserData | null = await CacheManager.get(CacheKeys.user(decoded.userId));
     
     if (!userData) {
       // If not cached, we could fetch from database here
@@ -81,6 +90,26 @@ export async function verifyAuth(request: NextRequest): Promise<{
       };
     }
 
+    // Try to get club_id from database
+    let club_id = null;
+    if (userData && userData.club_id) {
+      club_id = userData.club_id;
+    } else {
+      // Try to fetch from database
+      try {
+        const Database = (await import('./database')).default;
+        const userResult = await Database.query(
+          "SELECT club_id FROM users WHERE id = $1",
+          [decoded.userId]
+        );
+        if (userResult && userResult.rows && userResult.rows.length > 0) {
+          club_id = userResult.rows[0].club_id;
+        }
+      } catch (dbError) {
+        console.error("Error fetching user club_id:", dbError);
+      }
+    }
+
     return {
       success: true,
       user: {
@@ -88,6 +117,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
         email: decoded.email,
         role: decoded.role,
         sessionId: decoded.sessionId,
+        club_id: club_id
       }
     };
 
