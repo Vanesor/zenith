@@ -67,7 +67,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main flex items-center justify-center p-4 transition-colors duration-300">
       <ThemeToggle />
 
       <motion.div
@@ -79,35 +79,35 @@ export default function LoginPage() {
         {/* Back to Home */}
         <Link
           href="/"
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-8 transition-colors"
+          className="inline-flex items-center text-zenith-accent hover:text-zenith-accent mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </Link>
 
         {/* Login Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-zenith-card rounded-2xl shadow-xl p-8 border border-zenith">
           {/* Logo */}
           <div className="text-center mb-8">
             <ZenithLogo size="lg" className="justify-center mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-zenith-primary">
               Welcome Back
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-zenith-secondary mt-2">
               Sign in to your Zenith account
             </p>
           </div>
 
           {/* Session Expired Message */}
           {showSessionExpired && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-amber-50 border border-amber-200 text-amber-600 px-4 py-3 rounded-lg mb-6">
               Your session has expired. Please log in again to continue.
             </div>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
               {error}
             </div>
           )}
@@ -118,13 +118,13 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-medium text-zenith-secondary mb-2"
               >
                 Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Mail className="h-5 w-5 text-zenith-muted" />
                 </div>
                 <input
                   id="email"
@@ -132,7 +132,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-3 py-3 border border-zenith rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-accent focus:border-transparent bg-zenith-main text-zenith-primary placeholder-zenith-muted"
                   placeholder="Enter your email"
                 />
               </div>
@@ -142,7 +142,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-medium text-zenith-secondary mb-2"
               >
                 Password
               </label>
@@ -201,7 +201,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="w-full bg-zenith-accent text-white py-3 px-4 rounded-lg hover:bg-zenith-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </button>
@@ -211,10 +211,10 @@ export default function LoginPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-zenith" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+                <span className="px-2 bg-zenith-card text-zenith-muted">
                   Don&apos;t have an account?
                 </span>
               </div>
@@ -225,7 +225,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <Link
               href="/register"
-              className="text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+              className="text-zenith-accent hover:text-zenith-accent font-semibold transition-colors"
             >
               Create a new account
             </Link>
@@ -233,17 +233,17 @@ export default function LoginPage() {
         </div>
 
         {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-2">
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800 font-medium mb-2">
             Demo Credentials:
           </p>
-          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+          <p className="text-sm text-yellow-700">
             Email: alex.chen.coord@zenith.edu
           </p>
-          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+          <p className="text-sm text-yellow-700">
             Password: password123
           </p>
-          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+          <p className="text-xs text-yellow-600 mt-2">
             (Alex Chen - Ascend Club Coordinator)
           </p>
         </div>

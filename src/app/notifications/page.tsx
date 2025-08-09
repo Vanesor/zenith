@@ -342,22 +342,22 @@ export default function NotificationsPage() {
 
   if (isLoading || loading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-zenith-primary mb-2">
               Notifications
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-zenith-muted">
               Stay updated with club activities and important announcements
               {unreadCount > 0 && (
                 <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 text-sm rounded-full">
@@ -389,7 +389,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+        <div className="bg-zenith-card rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -400,7 +400,7 @@ export default function NotificationsPage() {
                   placeholder="Search notifications..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-zenith-primary"
                 />
               </div>
             </div>
@@ -433,9 +433,9 @@ export default function NotificationsPage() {
         {/* Create Notification Modal */}
         {user?.role === 'coordinator' && showCreateForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-zenith-card rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Send Notification</h3>
+                <h3 className="text-lg font-semibold text-zenith-primary">Send Notification</h3>
                 <button 
                   onClick={() => setShowCreateForm(false)}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -456,7 +456,7 @@ export default function NotificationsPage() {
                       console.log('Title input changed:', e.target.value);
                       setNewNotification(prev => ({ ...prev, title: e.target.value }));
                     }}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full p-3 border border-zenith-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-zenith-primary"
                     placeholder="Notification title"
                   />
                 </div>
@@ -471,7 +471,7 @@ export default function NotificationsPage() {
                       console.log('Message input changed:', e.target.value);
                       setNewNotification(prev => ({ ...prev, message: e.target.value }));
                     }}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full p-3 border border-zenith-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-zenith-primary"
                     rows={4}
                     placeholder="Notification message"
                   />
@@ -485,7 +485,7 @@ export default function NotificationsPage() {
                     <select
                       value={newNotification.type}
                       onChange={(e) => setNewNotification(prev => ({ ...prev, type: e.target.value as any }))}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full p-3 border border-zenith-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-zenith-primary"
                     >
                       <option value="announcement">Announcement</option>
                       <option value="event">Event</option>
@@ -501,7 +501,7 @@ export default function NotificationsPage() {
                     <select
                       value={newNotification.delivery_method}
                       onChange={(e) => setNewNotification(prev => ({ ...prev, delivery_method: e.target.value as any }))}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full p-3 border border-zenith-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-zenith-primary"
                     >
                       <option value="in-app">In-App Only</option>
                       <option value="email">Email Only</option>
@@ -554,7 +554,7 @@ export default function NotificationsPage() {
                             }}
                             className="mr-2"
                           />
-                          <span className="text-sm text-gray-900 dark:text-white">{member.name} ({member.email})</span>
+                          <span className="text-sm text-zenith-primary">{member.name} ({member.email})</span>
                         </label>
                       ))}
                     </div>
@@ -564,7 +564,7 @@ export default function NotificationsPage() {
                 <div className="flex justify-end space-x-2 pt-4">
                   <button
                     onClick={() => setShowCreateForm(false)}
-                    className="px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="px-4 py-2 text-zenith-muted border border-zenith-border rounded-md hover:bg-zenith-hover"
                   >
                     Cancel
                   </button>
@@ -585,12 +585,12 @@ export default function NotificationsPage() {
         {/* Notifications List */}
         <div className="space-y-4">
           {filteredNotifications.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+            <div className="bg-zenith-card rounded-xl shadow-lg p-12 text-center">
               <Bell className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                 No notifications found
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-zenith-muted">
                 {searchTerm
                   ? "Try adjusting your search terms."
                   : "You&apos;re all caught up!"}
@@ -658,7 +658,7 @@ export default function NotificationsPage() {
         {/* Load More Button (for pagination in real app) */}
         {filteredNotifications.length > 0 && (
           <div className="text-center mt-8">
-            <button className="px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button className="px-6 py-3 bg-zenith-card text-gray-700 dark:text-gray-300 border border-zenith-border rounded-lg hover:bg-zenith-hover transition-colors">
               Load More Notifications
             </button>
           </div>

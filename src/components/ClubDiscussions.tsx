@@ -59,43 +59,27 @@ export default function ClubDiscussions({
   }, [activeTab, chatRooms.length, fetchChatRooms]);
 
   return (
-    <div
-      className={`min-h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
-    >
+    <div className="min-h-screen bg-zenith-main">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1
-            className={`text-3xl font-bold mb-2 ${
-              isDarkMode ? "text-white" : "text-gray-900"
-            }`}
-          >
+          <h1 className="text-3xl font-bold mb-2 text-zenith-primary">
             {clubName} Community
           </h1>
-          <p
-            className={`text-lg ${
-              isDarkMode ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className="text-lg text-zenith-muted">
             Connect, discuss, and collaborate with club members
           </p>
         </div>
 
         {/* Tab Navigation */}
-        <div
-          className={`border-b mb-8 ${
-            isDarkMode ? "border-gray-700" : "border-gray-200"
-          }`}
-        >
+        <div className="border-b mb-8 border-zenith-border">
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab("discussions")}
               className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "discussions"
                   ? "border-blue-500 text-blue-600"
-                  : isDarkMode
-                  ? "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-zenith-muted hover:text-zenith-secondary hover:border-zenith-border"
               }`}
             >
               <MessageSquare className="w-4 h-4" />
@@ -106,9 +90,7 @@ export default function ClubDiscussions({
               className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "chat"
                   ? "border-blue-500 text-blue-600"
-                  : isDarkMode
-                  ? "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-zenith-muted hover:text-zenith-secondary hover:border-zenith-border"
               }`}
             >
               <Users className="w-4 h-4" />
@@ -123,39 +105,21 @@ export default function ClubDiscussions({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[700px]">
             {/* Chat Room Sidebar */}
-            <div
-              className={`lg:col-span-1 p-4 rounded-lg border ${
-                isDarkMode
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
-              }`}
-            >
-              <h3
-                className={`text-lg font-semibold mb-4 ${
-                  isDarkMode ? "text-white" : "text-gray-900"
-                }`}
-              >
+            <div className="lg:col-span-1 p-4 rounded-lg border bg-zenith-card border-zenith-border">
+              <h3 className="text-lg font-semibold mb-4 text-zenith-primary">
                 Chat Rooms
               </h3>
               <div className="space-y-2">
                 {loadingRooms ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                    <p
-                      className={`text-sm mt-2 ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
+                    <p className="text-sm mt-2 text-zenith-muted">
                       Loading rooms...
                     </p>
                   </div>
                 ) : chatRooms.length === 0 ? (
                   <div className="text-center py-4">
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
+                    <p className="text-sm text-zenith-muted">
                       No chat rooms available
                     </p>
                   </div>
@@ -167,9 +131,7 @@ export default function ClubDiscussions({
                       className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${
                         activeChatRoom === room.id
                           ? "bg-blue-600 text-white"
-                          : isDarkMode
-                          ? "hover:bg-gray-700 text-gray-300"
-                          : "hover:bg-gray-100 text-gray-700"
+                          : "hover:bg-zenith-hover text-zenith-secondary"
                       }`}
                     >
                       <Hash className="w-4 h-4" />
@@ -179,9 +141,7 @@ export default function ClubDiscussions({
                           className={`text-xs ${
                             activeChatRoom === room.id
                               ? "text-blue-200"
-                              : isDarkMode
-                              ? "text-gray-500"
-                              : "text-gray-500"
+                              : "text-zenith-muted"
                           }`}
                         >
                           {room.description ||
@@ -197,35 +157,17 @@ export default function ClubDiscussions({
             </div>
 
             {/* Chat Area */}
-            <div
-              className={`lg:col-span-3 rounded-lg border overflow-hidden ${
-                isDarkMode
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
-              }`}
-            >
+            <div className="lg:col-span-3 rounded-lg border overflow-hidden bg-zenith-card border-zenith-border">
               {activeChatRoom ? (
                 <ChatRoom roomId={activeChatRoom} />
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <Hash
-                      className={`w-12 h-12 mx-auto mb-4 ${
-                        isDarkMode ? "text-gray-600" : "text-gray-400"
-                      }`}
-                    />
-                    <h3
-                      className={`text-lg font-medium mb-2 ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
+                    <Hash className="w-12 h-12 mx-auto mb-4 text-zenith-muted" />
+                    <h3 className="text-lg font-medium mb-2 text-zenith-primary">
                       Select a chat room
                     </h3>
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
+                    <p className="text-sm text-zenith-muted">
                       Choose a room from the sidebar to start chatting
                     </p>
                   </div>

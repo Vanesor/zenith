@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Reply, Edit, Trash2, Image, File, Paperclip, ArrowUp, X } from 'lucide-react';
 import { ZenithChatEncryption, SimpleEncryption } from '@/lib/encryption';
+import UserAvatar from '@/components/UserAvatar';
 
 interface ChatMessage {
   id: string;
@@ -9,6 +10,7 @@ interface ChatMessage {
   user_id: string; // Using existing field name
   sender_id?: string; // Optional alias
   sender_name?: string;
+  sender_avatar?: string; // Add avatar field
   room_id: string;
   created_at: string; // Using existing field name
   timestamp?: string; // Optional alias
@@ -30,6 +32,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  avatar?: string;
 }
 
 interface EnhancedChatRoomProps {
@@ -100,23 +103,43 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
       const data = await response.json();
       
       if (data.success) {
-        const decryptedMessages = data.messages.map((msg: ChatMessage) => {
-          if (msg.is_encrypted && msg.content) {
+        const decryptedMessages = data.messages.map((msg: any) => {
+          // Map API response fields to our message interface
+          const mappedMessage: ChatMessage = {
+            id: msg.id,
+            message: msg.message || '',
+            content: msg.content || msg.message || '',
+            user_id: msg.user_id,
+            sender_id: msg.user_id,
+            sender_name: msg.author_name || 'Unknown User',
+            sender_avatar: msg.author_avatar || '',
+            room_id: msg.room_id,
+            created_at: msg.created_at,
+            timestamp: msg.created_at,
+            reply_to: msg.reply_to,
+            reply_message: msg.reply_message,
+            reply_sender: msg.reply_sender,
+            attachments: msg.attachments,
+            is_encrypted: msg.is_encrypted || false,
+            is_edited: msg.is_edited || false,
+          };
+
+          if (mappedMessage.is_encrypted && mappedMessage.content) {
             try {
               // Try to decrypt with ZenithChatEncryption first
-              const decrypted = ZenithChatEncryption.decrypt(msg.content, roomId);
-              return { ...msg, content: decrypted };
+              const decrypted = ZenithChatEncryption.decrypt(mappedMessage.content, roomId);
+              return { ...mappedMessage, content: decrypted };
             } catch {
               try {
                 // Fallback to SimpleEncryption
-                const decrypted = SimpleEncryption.decrypt(msg.content, roomId);
-                return { ...msg, content: decrypted };
+                const decrypted = SimpleEncryption.decrypt(mappedMessage.content, roomId);
+                return { ...mappedMessage, content: decrypted };
               } catch {
-                return { ...msg, content: '[Encrypted message - cannot decrypt]' };
+                return { ...mappedMessage, content: '[Encrypted message - cannot decrypt]' };
               }
             }
           }
-          return msg;
+          return mappedMessage;
         });
         
         setMessages(decryptedMessages);
@@ -426,135 +449,149 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            id={`message-${message.id}`}
-            className={`flex ${
-              (message.user_id || message.sender_id) === currentUser.id ? 'justify-end' : 'justify-start'
-            }`}
-          >
+        {messages.map((message) => {
+          const isCurrentUser = (message.user_id || message.sender_id) === currentUser.id;
+          
+          return (
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                (message.user_id || message.sender_id) === currentUser.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+              key={message.id}
+              id={`message-${message.id}`}
+              className={`flex items-start space-x-3 ${
+                isCurrentUser ? 'flex-row-reverse space-x-reverse' : ''
               }`}
             >
-              {/* Reply Preview */}
-              {message.reply_to && (
-                <div 
-                  className="mb-2 p-2 rounded bg-black bg-opacity-20 cursor-pointer text-xs"
-                  onClick={() => scrollToMessage(message.reply_to!)}
-                >
-                  <div className="font-semibold">{message.reply_sender}</div>
-                  <div className="truncate">{message.reply_message}</div>
-                </div>
-              )}
-              
-              {/* Sender Name (for other users) */}
-              {(message.user_id || message.sender_id) !== currentUser.id && (
-                <div className="text-xs font-semibold mb-1">
-                  {message.sender_name || 'Unknown User'}
-                </div>
-              )}
-              
+              {/* User Avatar */}
+              <div className="flex-shrink-0">
+                <UserAvatar 
+                  avatar={isCurrentUser ? currentUser.avatar : message.sender_avatar}
+                  name={isCurrentUser ? currentUser.name : message.sender_name}
+                  email={isCurrentUser ? currentUser.email : undefined}
+                  size="sm"
+                  showOnlineStatus={false}
+                />
+              </div>
+
               {/* Message Content */}
-              <div className="break-words">
-                {editingMessage === message.id ? (
-                  <div className="space-y-2">
-                    <textarea
-                      value={editingContent}
-                      onChange={(e) => setEditingContent(e.target.value)}
-                      className="w-full p-2 rounded bg-white dark:bg-gray-800 text-black dark:text-white resize-none"
-                      rows={3}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (editingContent.trim()) {
-                            editMessage(message.id, editingContent);
-                          }
-                        }
-                        if (e.key === 'Escape') {
-                          setEditingMessage(null);
-                          setEditingContent('');
-                        }
-                      }}
-                      placeholder="Edit your message..."
-                      autoFocus
-                    />
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => {
-                          setEditingMessage(null);
-                          setEditingContent('');
-                        }}
-                        className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (editingContent.trim()) {
-                            editMessage(message.id, editingContent);
-                          }
-                        }}
-                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                        disabled={!editingContent.trim()}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    {message.message || message.content || ''}
-                    {message.is_encrypted && (
-                      <span className="ml-2 text-xs opacity-70">🔐</span>
-                    )}
-                    {message.is_edited && (
-                      <span className="ml-2 text-xs opacity-70">(edited)</span>
-                    )}
+              <div
+                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  isCurrentUser
+                    ? 'bg-blue-600 text-white rounded-br-sm'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm'
+                }`}
+              >
+                {/* Reply Preview */}
+                {message.reply_to && (
+                  <div 
+                    className="mb-2 p-2 rounded bg-black bg-opacity-20 cursor-pointer text-xs"
+                    onClick={() => scrollToMessage(message.reply_to!)}
+                  >
+                    <div className="font-semibold">{message.reply_sender}</div>
+                    <div className="truncate">{message.reply_message}</div>
                   </div>
                 )}
-              </div>
-              
-              {/* Attachments */}
-              {message.attachments && message.attachments.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  {message.attachments.map((attachment) => (
-                    <div key={attachment.id}>
-                      {attachment.type === 'image' ? (
-                        <img
-                          src={attachment.url}
-                          alt={attachment.filename}
-                          className="max-w-full h-auto rounded cursor-pointer"
-                          onClick={() => window.open(attachment.url, '_blank')}
-                        />
-                      ) : (
-                        <div className="flex items-center space-x-2 p-2 bg-black bg-opacity-20 rounded">
-                          <File size={16} />
-                          <span className="text-xs">{attachment.filename}</span>
-                          <button
-                            onClick={() => window.open(attachment.url, '_blank')}
-                            className="text-xs underline"
-                          >
-                            Download
-                          </button>
-                        </div>
+                
+                {/* Sender Name (for other users) */}
+                {!isCurrentUser && (
+                  <div className="text-xs font-semibold mb-1 text-gray-600 dark:text-gray-300">
+                    {message.sender_name || 'Unknown User'}
+                  </div>
+                )}
+                
+                {/* Message Content */}
+                <div className="break-words">
+                  {editingMessage === message.id ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={editingContent}
+                        onChange={(e) => setEditingContent(e.target.value)}
+                        className="w-full p-2 rounded bg-white dark:bg-gray-800 text-black dark:text-white resize-none"
+                        rows={3}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (editingContent.trim()) {
+                              editMessage(message.id, editingContent);
+                            }
+                          }
+                          if (e.key === 'Escape') {
+                            setEditingMessage(null);
+                            setEditingContent('');
+                          }
+                        }}
+                        placeholder="Edit your message..."
+                        autoFocus
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => {
+                            setEditingMessage(null);
+                            setEditingContent('');
+                          }}
+                          className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (editingContent.trim()) {
+                              editMessage(message.id, editingContent);
+                            }
+                          }}
+                          className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                          disabled={!editingContent.trim()}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {message.message || message.content || ''}
+                      {message.is_encrypted && (
+                        <span className="ml-2 text-xs opacity-70">🔐</span>
+                      )}
+                      {message.is_edited && (
+                        <span className="ml-2 text-xs opacity-70">(edited)</span>
                       )}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-              
-              {/* Message Actions */}
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs opacity-70">
-                  {new Date(message.created_at || message.timestamp || Date.now()).toLocaleTimeString()}
-                </span>
                 
-                {(message.user_id || message.sender_id) === currentUser.id && (
+                {/* Attachments */}
+                {message.attachments && message.attachments.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {message.attachments.map((attachment) => (
+                      <div key={attachment.id}>
+                        {attachment.type === 'image' ? (
+                          <img
+                            src={attachment.url}
+                            alt={attachment.filename}
+                            className="max-w-full h-auto rounded cursor-pointer"
+                            onClick={() => window.open(attachment.url, '_blank')}
+                          />
+                        ) : (
+                          <div className="flex items-center space-x-2 p-2 bg-black bg-opacity-20 rounded">
+                            <File size={16} />
+                            <span className="text-xs">{attachment.filename}</span>
+                            <button
+                              onClick={() => window.open(attachment.url, '_blank')}
+                              className="text-xs underline"
+                            >
+                              Download
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Message Actions */}
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs opacity-70">
+                    {new Date(message.created_at || message.timestamp || Date.now()).toLocaleTimeString()}
+                  </span>
+                  
                   <div className="flex space-x-1">
                     <button
                       onClick={() => setReplyingTo(message)}
@@ -563,29 +600,33 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                     >
                       <Reply size={12} />
                     </button>
-                    <button
-                      onClick={() => {
-                        setEditingMessage(message.id);
-                        setEditingContent(message.message || message.content || '');
-                      }}
-                      className="p-1 rounded hover:bg-black hover:bg-opacity-20"
-                      title="Edit"
-                    >
-                      <Edit size={12} />
-                    </button>
-                    <button
-                      onClick={() => deleteMessage(message.id)}
-                      className="p-1 rounded hover:bg-black hover:bg-opacity-20"
-                      title="Delete"
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                    {isCurrentUser && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingMessage(message.id);
+                            setEditingContent(message.message || message.content || '');
+                          }}
+                          className="p-1 rounded hover:bg-black hover:bg-opacity-20"
+                          title="Edit"
+                        >
+                          <Edit size={12} />
+                        </button>
+                        <button
+                          onClick={() => deleteMessage(message.id)}
+                          className="p-1 rounded hover:bg-black hover:bg-opacity-20"
+                          title="Delete"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 

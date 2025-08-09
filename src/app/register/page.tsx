@@ -156,7 +156,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main flex items-center justify-center p-4 transition-colors duration-300">
       <ThemeToggle />
       
       <motion.div
@@ -168,24 +168,24 @@ export default function RegisterPage() {
         {/* Back to Home */}
         <Link
           href="/"
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-8 transition-colors"
+          className="inline-flex items-center text-zenith-accent hover:text-zenith-accent mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </Link>
 
         {/* Register Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-zenith-card rounded-2xl shadow-xl p-8 border border-zenith">
           {/* Logo */}
           <div className="text-center mb-8">
             <ZenithLogo size="lg" className="justify-center mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Join Zenith</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Create your account to get started</p>
+            <h1 className="text-2xl font-bold text-zenith-primary">Join Zenith</h1>
+            <p className="text-zenith-secondary mt-2">Create your account to get started</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
               {error}
             </div>
           )}
@@ -195,7 +195,7 @@ export default function RegisterPage() {
             {/* Name Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="firstName" className="block text-sm font-medium text-zenith-secondary mb-2">
                   First Name
                 </label>
                 <div className="relative">

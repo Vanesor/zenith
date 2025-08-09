@@ -106,7 +106,7 @@ export default function ClubsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300 pt-16">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300 pt-16">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
@@ -116,13 +116,13 @@ export default function ClubsPage() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl lg:text-5xl font-bold text-zenith-primary mb-4">
             Explore Our{" "}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Clubs
             </span>
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-zenith-secondary max-w-3xl mx-auto">
             Discover four specialized clubs designed to enhance your skills,
             expand your network, and accelerate your personal and professional
             growth.
@@ -137,22 +137,22 @@ export default function ClubsPage() {
           className="flex flex-col md:flex-row gap-4 mb-8"
         >
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zenith-muted w-5 h-5" />
             <input
               type="text"
               placeholder="Search clubs, skills, or activities..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary placeholder-zenith-muted"
             />
           </div>
 
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zenith-muted w-5 h-5" />
             <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
-              className="pl-10 pr-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="pl-10 pr-8 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
             >
               <option value="all">All Clubs</option>
               <option value="coding">Coding</option>
@@ -171,34 +171,34 @@ export default function ClubsPage() {
           className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12"
         >
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-3xl font-bold text-blue-600">
               4
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-zenith-muted">
               Specialized Clubs
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+            <div className="text-3xl font-bold text-green-600">
               446
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-zenith-muted">
               Total Members
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+            <div className="text-3xl font-bold text-purple-600">
               50+
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-zenith-muted">
               Monthly Events
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-pink-600 dark:text-pink-400">
+            <div className="text-3xl font-bold text-pink-600">
               4.7
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-zenith-muted">
               Average Rating
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function ClubsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
                 whileHover={{ scale: 1.02 }}
-                className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 ${club.borderColor} p-8 hover:shadow-xl transition-all duration-300`}
+                className={`bg-zenith-card rounded-2xl shadow-lg border-2 ${club.borderColor} p-8 hover:shadow-xl transition-all duration-300`}
               >
                 <div className="flex items-start justify-between mb-6">
                   <div className={`p-4 rounded-xl ${club.bgColor}`}>
@@ -225,23 +225,23 @@ export default function ClubsPage() {
                   <div className="text-right">
                     <div className="flex items-center space-x-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-sm font-medium text-zenith-secondary">
                         {club.rating}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <div className="text-sm text-zenith-muted mt-1">
                       {club.members} members
                     </div>
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-2xl font-bold text-zenith-primary mb-2">
                   {club.name}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <p className="text-sm text-zenith-muted mb-1">
                   {club.type}
                 </p>
-                <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+                <p className="text-zenith-secondary mb-6 leading-relaxed">
                   {club.description}
                 </p>
 
@@ -250,7 +250,7 @@ export default function ClubsPage() {
                   {club.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full"
+                      className="px-3 py-1 bg-zenith-hover text-zenith-secondary text-xs rounded-full"
                     >
                       {tag}
                     </span>
@@ -261,13 +261,13 @@ export default function ClubsPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center text-sm">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                    <span className="text-gray-600 dark:text-gray-400">
+                    <span className="text-zenith-muted">
                       Recent: {club.recentActivity}
                     </span>
                   </div>
                   <div className="flex items-center text-sm">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="text-gray-600 dark:text-gray-400">
+                    <span className="text-zenith-muted">
                       Upcoming: {club.upcomingEvent}
                     </span>
                   </div>
@@ -283,7 +283,7 @@ export default function ClubsPage() {
                   </Link>
                   <Link
                     href={`/clubs/${club.id}/preview`}
-                    className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="px-6 py-3 border border-zenith-border text-zenith-secondary rounded-lg hover:bg-zenith-hover transition-colors"
                   >
                     Preview
                   </Link>
@@ -300,13 +300,13 @@ export default function ClubsPage() {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <div className="text-gray-400 dark:text-gray-500 mb-4">
+            <div className="text-zenith-muted mb-4">
               <Search className="w-16 h-16 mx-auto" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-xl font-semibold text-zenith-primary mb-2">
               No clubs found
             </h3>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-zenith-muted">
               Try adjusting your search terms or filters.
             </p>
           </motion.div>

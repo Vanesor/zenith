@@ -11,7 +11,7 @@ function generateToken(payload: {
   email: string;
   role: string;
 }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "3h" }); // 3-hour access token
 }
 
 // Password validation function

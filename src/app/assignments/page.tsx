@@ -87,22 +87,22 @@ export default function AssignmentsPage() {
       case "graded":
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       default:
-        return <FileText className="w-5 h-5 text-gray-500" />;
+        return <FileText className="w-5 h-5 text-zenith-muted" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300";
+        return "bg-orange-100 text-orange-800";
       case "submitted":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
+        return "bg-blue-100 text-blue-800";
       case "graded":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
+        return "bg-green-100 text-green-800";
       case "overdue":
-        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300";
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300";
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -181,7 +181,7 @@ export default function AssignmentsPage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -189,11 +189,11 @@ export default function AssignmentsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+      <div className="min-h-screen bg-zenith-main transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600 dark:text-gray-400">
+            <span className="ml-4 text-zenith-muted">
               Loading assignments...
             </span>
           </div>
@@ -203,23 +203,23 @@ export default function AssignmentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-zenith-primary mb-2">
               Assignments
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-zenith-muted">
               Track your club assignments and submissions
               {pendingCount > 0 && (
-                <span className="ml-2 px-2 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 text-sm rounded-full">
+                <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 text-sm rounded-full">
                   {pendingCount} pending
                 </span>
               )}
               {overdueCount > 0 && (
-                <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 text-sm rounded-full">
+                <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 text-sm rounded-full">
                   {overdueCount} overdue
                 </span>
               )}
@@ -229,52 +229,52 @@ export default function AssignmentsPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Total
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {assignments.length}
                 </p>
               </div>
               <FileText className="w-8 h-8 text-blue-600" />
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Pending
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {pendingCount}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-orange-600" />
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Submitted
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {assignments.filter((a) => a.status === "submitted").length}
                 </p>
               </div>
               <CheckCircle className="w-8 h-8 text-blue-600" />
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Graded
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {assignments.filter((a) => a.status === "graded").length}
                 </p>
               </div>
@@ -284,18 +284,18 @@ export default function AssignmentsPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+        <div className="bg-zenith-card rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-3 w-5 h-5 text-zenith-muted" />
                 <input
                   type="text"
                   placeholder="Search assignments..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
                 />
               </div>
             </div>
@@ -314,7 +314,7 @@ export default function AssignmentsPage() {
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     filter === filterOption.key
                       ? "bg-blue-600 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      : "bg-zenith-hover text-zenith-secondary hover:bg-zenith-border"
                   }`}
                 >
                   {filterOption.label}
@@ -338,22 +338,22 @@ export default function AssignmentsPage() {
         {/* Assignments List */}
         <div className="space-y-6">
           {loading ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+            <div className="bg-zenith-card rounded-xl shadow-lg p-12 text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                 Loading assignments...
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-zenith-muted">
                 Please wait while we fetch your assignments.
               </p>
             </div>
           ) : filteredAssignments.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+            <div className="bg-zenith-card rounded-xl shadow-lg p-12 text-center">
               <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                 No assignments found
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-zenith-muted">
                 {searchTerm
                   ? "Try adjusting your search terms."
                   : "No assignments match your current filter."}
@@ -363,7 +363,7 @@ export default function AssignmentsPage() {
             filteredAssignments.map((assignment) => (
               <div
                 key={assignment.id}
-                className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-xl ${
+                className={`bg-zenith-card rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-xl ${
                   assignment.status === "pending" &&
                   isOverdue(assignment.dueDate)
                     ? "border-l-4 border-red-500"
@@ -378,7 +378,7 @@ export default function AssignmentsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          <h3 className="text-xl font-semibold text-zenith-primary">
                             {assignment.title}
                           </h3>
                           <span
@@ -389,14 +389,14 @@ export default function AssignmentsPage() {
                             {assignment.status.charAt(0).toUpperCase() +
                               assignment.status.slice(1)}
                           </span>
-                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs rounded-full">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                             {assignment.club}
                           </span>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        <p className="text-zenith-muted mb-4">
                           {assignment.description}
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500 dark:text-gray-500">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-zenith-muted">
                           <div className="flex items-center">
                             <User size={16} className="mr-2" />
                             Assigned by {assignment.assignedBy}
@@ -414,10 +414,10 @@ export default function AssignmentsPage() {
                     </div>
                     {assignment.grade && (
                       <div className="text-right ml-4">
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        <div className="text-2xl font-bold text-green-600">
                           {assignment.grade}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-500">
+                        <div className="text-sm text-zenith-muted">
                           /{assignment.maxPoints}
                         </div>
                       </div>
@@ -425,20 +425,20 @@ export default function AssignmentsPage() {
                   </div>
 
                   {assignment.instructions && (
-                    <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                    <div className="mb-4 p-4 bg-zenith-hover rounded-lg">
+                      <h4 className="font-medium text-zenith-primary mb-2">
                         Instructions:
                       </h4>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      <p className="text-zenith-muted text-sm">
                         {assignment.instructions}
                       </p>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between pt-4 border-t border-zenith-border">
                     <div className="flex items-center space-x-4">
                       {assignment.submittedAt && (
-                        <span className="text-sm text-gray-500 dark:text-gray-500">
+                        <span className="text-sm text-zenith-muted">
                           Submitted{" "}
                           {new Date(
                             assignment.submittedAt
@@ -447,7 +447,7 @@ export default function AssignmentsPage() {
                       )}
                       {assignment.status === "pending" &&
                         isOverdue(assignment.dueDate) && (
-                          <span className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                          <span className="flex items-center text-red-600 text-sm">
                             <AlertCircle size={16} className="mr-1" />
                             Overdue
                           </span>
@@ -472,7 +472,7 @@ export default function AssignmentsPage() {
                         <button 
                           onClick={() => handleViewResults(assignment.id)}
                           disabled={startingAssignment === assignment.id}
-                          className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="flex items-center px-4 py-2 text-zenith-muted hover:text-zenith-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           {startingAssignment === assignment.id ? (
                             <Loader2 size={16} className="mr-2 animate-spin" />
