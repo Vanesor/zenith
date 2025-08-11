@@ -17,7 +17,6 @@ import {
   MapPin,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
-import Layout from "@/components/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -185,16 +184,17 @@ export default function DashboardPage() {
   const { clubs, announcements, upcomingEvents } = dashboardData;
 
   return (
-    <Layout>
-      {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome back, {user.name}!
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Here&apos;s what&apos;s happening in your clubs today.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Welcome back, {user.name}!
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Here&apos;s what&apos;s happening in your clubs today.
+          </p>
+        </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -456,16 +456,6 @@ export default function DashboardPage() {
               </Link>
 
               <Link
-                href="/notifications"
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Bell size={16} className="text-orange-600" />
-                <span className="text-sm text-gray-900 dark:text-white">
-                  Notifications
-                </span>
-              </Link>
-
-              <Link
                 href="/profile"
                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
@@ -480,6 +470,7 @@ export default function DashboardPage() {
       </div>
 
       <ZenChatbot />
-    </Layout>
+      </div>
+    </div>
   );
 }

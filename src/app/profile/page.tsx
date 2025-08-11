@@ -1010,13 +1010,13 @@ export default function ProfilePage() {
                           <div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">Percentage</div>
                             <div className={`font-semibold ${
-                              (submission.percentage || 0) >= 80 
+                              Number(submission.percentage) >= 80 
                                 ? 'text-green-600 dark:text-green-400'
-                                : (submission.percentage || 0) >= 60 
+                                : Number(submission.percentage) >= 60 
                                 ? 'text-yellow-600 dark:text-yellow-400'
                                 : 'text-red-600 dark:text-red-400'
                             }`}>
-                              {(submission.percentage || 0).toFixed(1)}%
+                              {Number.isFinite(Number(submission.percentage)) ? Number(submission.percentage).toFixed(1) : '0.0'}%
                             </div>
                           </div>
                           <div>
