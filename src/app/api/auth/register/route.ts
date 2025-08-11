@@ -11,7 +11,7 @@ function generateToken(payload: {
   email: string;
   role: string;
 }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "3h" }); // 3-hour access token
 }
 
 // Password validation function
@@ -44,19 +44,37 @@ function validatePassword(password: string): { isValid: boolean; message?: strin
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name, club_id } = await request.json();
+    const requestBody = await request.json();
+    console.log('Registration request received:', { 
+      ...requestBody, 
+      password: '[HIDDEN]' 
+    });
+
+    const { email, password, name, club_id, phone, dateOfBirth, interests } = requestBody;
 
     // Validation
     if (!email || !password || !name) {
+      console.log('Validation failed: Missing required fields', { email: !!email, password: !!password, name: !!name });
       return NextResponse.json(
         { error: "Email, password, and name are required" },
         { status: 400 }
       );
     }
 
+    // Trim whitespace from required fields
+    const trimmedEmail = email.trim();
+    const trimmedName = name.trim();
+
+    if (!trimmedEmail || !trimmedName) {
+      return NextResponse.json(
+        { error: "Email and name cannot be empty" },
+        { status: 400 }
+      );
+    }
+
     // Validate email format
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(trimmedEmail)) {
       return NextResponse.json(
         { error: "Invalid email format" },
         { status: 400 }
@@ -89,7 +107,7 @@ export async function POST(request: NextRequest) {
     // Check if user already exists
     const existingUserResult = await Database.query(
       "SELECT id FROM users WHERE email = $1",
-      [email]
+      [trimmedEmail]
     );
 
     if (existingUserResult.rows.length > 0) {
@@ -103,17 +121,20 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Determine user type based on email domain
-    const isCollegeStudent = email.endsWith("@stvincentngp.edu.in");
+    const isCollegeStudent = trimmedEmail.endsWith("@stvincentngp.edu.in");
+
+    console.log('Creating user:', { email: trimmedEmail, name: trimmedName, club_id, isCollegeStudent });
 
     // Insert new user with single club membership
     const result = await Database.query(
       `INSERT INTO users (email, password_hash, name, role, club_id) 
        VALUES ($1, $2, $3, $4, $5) 
        RETURNING id, email, name, role, club_id`,
-      [email, hashedPassword, name, "student", club_id || null]
+      [trimmedEmail, hashedPassword, trimmedName, "student", club_id || null]
     );
 
     if (result.rows.length === 0) {
+      console.log('Failed to create user: No rows returned');
       return NextResponse.json(
         { error: "Failed to create user" },
         { status: 500 }
@@ -121,6 +142,7 @@ export async function POST(request: NextRequest) {
     }
 
     const newUser = result.rows[0];
+    console.log('User created successfully:', { id: newUser.id, email: newUser.email, name: newUser.name });
 
     // Generate JWT token
     const token = generateToken({

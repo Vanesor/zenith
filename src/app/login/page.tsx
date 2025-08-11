@@ -160,8 +160,7 @@ export default function LoginPage() {
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!requiresTwoFactor ? (
+          <form onSubmit={handleSubmit} className="space-y-6">{!requiresTwoFactor ? (
               <>
                 {/* Email Field */}
                 <div>

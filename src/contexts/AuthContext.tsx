@@ -20,6 +20,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, userData: User) => void;
   logout: (redirect?: boolean) => void;
+  updateUser: (userData: Partial<User>) => void;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -234,6 +235,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("zenith-user", JSON.stringify(updatedUser));
+      }
+    }
+  };
+
   const logout = (redirect = true) => {
     setToken(null);
     setUser(null);
@@ -252,6 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     token,
     login,
     logout,
+    updateUser,
     isLoading,
     isAuthenticated: !!token && !!user,
   };

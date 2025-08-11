@@ -24,15 +24,24 @@ export async function GET(request: NextRequest) {
     }
     
     if (user) {
+      // Split name into firstName and lastName for frontend compatibility
+      const nameParts = (user.name || "").trim().split(/\s+/);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
       return NextResponse.json({ 
         authenticated: true, 
         user: {
           id: user.id,
           name: user.name,
+          firstName,
+          lastName,
           email: user.email,
           role: user.role,
+          username: user.username,
+          club_id: user.club_id,
           avatar: user.avatar,
-          club_id: user.club_id
+          bio: user.bio
         }
       });
     } else {

@@ -38,12 +38,12 @@ export function ZenithLogo({
       {showText && (
         <div className="flex flex-col">
           <span
-            className={`font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent ${textSize}`}
+            className={`font-bold text-zenith-brand ${textSize}`}
           >
             ZENITH
           </span>
           {size === "xl" && (
-            <span className="text-xs text-gray-600 dark:text-gray-400 font-medium tracking-wider">
+            <span className="text-xs text-zenith-muted font-medium tracking-wider">
               DRIVEN BY PASSION, BUILT FOR EXCELLENCE
             </span>
           )}

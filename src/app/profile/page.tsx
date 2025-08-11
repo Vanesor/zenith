@@ -77,7 +77,7 @@ interface AssignmentSubmission {
 }
 
 export default function ProfilePage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, updateUser } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
@@ -85,6 +85,12 @@ export default function ProfilePage() {
   const [assignmentHistory, setAssignmentHistory] = useState<AssignmentActivity[]>([]);
   const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     firstName: "",
@@ -115,6 +121,58 @@ export default function ProfilePage() {
     new: false,
     confirm: false,
   });
+
+  const fetchProfileData = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingProfile(true);
+      setProfileError(null);
+      
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile data');
+      }
+
+      const data = await response.json();
+      const profileData = data.profile || data; // Handle both wrapped and unwrapped responses
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        ...profileData,
+        firstName: profileData.firstName || "",
+        lastName: profileData.lastName || "",
+        username: profileData.username || "",
+        bio: profileData.bio || "",
+        phone: profileData.phone || "",
+        location: profileData.location || "",
+        website: profileData.website || "",
+        github: profileData.github || "",
+        linkedin: profileData.linkedin || "",
+        twitter: profileData.twitter || "",
+      }));
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Invalid or expired token')) {
+        setProfileError('Your session has expired. Please log in again.');
+        // Optionally redirect to login after a delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        setProfileError('Failed to load profile data. Please refresh the page.');
+      }
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
   
   // 2FA states
   const [twoFactorState, setTwoFactorState] = useState<{
@@ -143,10 +201,15 @@ export default function ProfilePage() {
     if (!isLoading && !user) {
       router.push("/login");
     } else if (user) {
+      // Parse name field if it exists, otherwise use empty strings
+      const nameParts = user.name ? user.name.split(' ') : ['', ''];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
       setProfile({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        username: user.username || "",
+        firstName: firstName,
+        lastName: lastName,
+        username: user.email?.split('@')[0] || "",
         email: user.email,
         bio: "",
         avatar: user.avatar || "",
@@ -160,7 +223,9 @@ export default function ProfilePage() {
         clubs: [],
         role: user.role || "MEMBER",
       });
-      // Fetch data when profile loads
+      // Fetch complete profile data from API
+      fetchProfileData();
+      // Fetch assignment history when profile loads
       fetchAssignmentHistory();
       fetchSubmissions();
       fetchTwoFactorStatus();
@@ -456,13 +521,56 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      // In a real app, this would make an API call to update the profile
-      console.log("Saving profile:", profile);
+      setSavingProfile(true);
+      setProfileError(null);
+      setProfileSuccess(null);
+      
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(profile)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      const updatedData = await response.json();
+      const updatedProfile = updatedData.profile || updatedData; // Handle wrapped response
+      setProfile(prevProfile => ({ ...prevProfile, ...updatedProfile }));
       setIsEditing(false);
-      // Show success message
+      setProfileSuccess('Profile updated successfully!');
+      
+      // Update auth context with new profile data
+      updateUser({
+        name: `${profile.firstName} ${profile.lastName}`.trim(),
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        username: profile.username,
+        bio: profile.bio,
+        avatar: profile.avatar,
+      });
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setProfileSuccess(null), 3000);
     } catch (error) {
       console.error("Error saving profile:", error);
-      // Show error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save profile. Please try again.';
+      if (errorMessage.includes('Invalid or expired token')) {
+        setProfileError('Your session has expired. Please log in again.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else {
+        setProfileError(errorMessage);
+      }
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -488,47 +596,192 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading || !user) {
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setProfileError('Please select a valid image file (JPEG, PNG, GIF, or WebP).');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileError('Image file size must be less than 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingAvatar(true);
+      setProfileError(null);
+
+      // Create preview
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+
+      // Upload to server
+      const token = localStorage.getItem('zenith-token');
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const response = await fetch('/api/profile/upload-avatar', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload image');
+      }
+
+      const data = await response.json();
+      
+      // Update profile with new avatar URL
+      setProfile(prev => ({ ...prev, avatar: data.avatarUrl }));
+      // Update user in auth context
+      updateUser({ avatar: data.avatarUrl });
+      setProfileSuccess('Profile image updated successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setProfileSuccess(null), 3000);
+
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      setProfileError(error instanceof Error ? error.message : 'Failed to upload image');
+      // Reset preview on error
+      setAvatarPreview(null);
+    } finally {
+      setUploadingAvatar(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const triggerAvatarUpload = () => {
+    const fileInput = document.getElementById('avatar-upload') as HTMLInputElement;
+    fileInput?.click();
+  };
+
+  const handleAvatarDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      // Create a fake input change event
+      const fileList = new DataTransfer();
+      fileList.items.add(file);
+      
+      const fakeEvent = {
+        target: { 
+          files: fileList.files, 
+          value: '' 
+        }
+      } as React.ChangeEvent<HTMLInputElement>;
+      handleAvatarUpload(fakeEvent);
+    }
+  };
+
+  const handleAvatarDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  if (isLoading || !user || loadingProfile) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+            <p className="text-gray-600 dark:text-gray-300">Loading profile...</p>
+          </div>
         </div>
       </MainLayout>
     );
   }
-
+  
   return (
     <MainLayout>
+      <div className="min-h-screen bg-zenith-main transition-colors duration-300">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8">
+        <div className="bg-zenith-card rounded-2xl shadow-xl overflow-hidden mb-8">
+          {/* Success/Error Messages */}
+          {(profileSuccess || profileError) && (
+            <div className={`px-6 py-3 ${profileSuccess ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'} border-l-4`}>
+              <div className="flex items-center">
+                {profileSuccess ? (
+                  <CheckCircle size={20} className="mr-2" />
+                ) : (
+                  <X size={20} className="mr-2" />
+                )}
+                <p>{profileSuccess || profileError}</p>
+              </div>
+            </div>
+          )}
+          
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white">
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
               <div className="relative">
-                <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center">
-                  {profile.avatar ? (
+                <div 
+                  className={`w-32 h-32 bg-white/20 rounded-full flex items-center justify-center overflow-hidden cursor-pointer transition-all ${isEditing ? 'hover:bg-white/30 border-2 border-dashed border-transparent hover:border-white/50' : ''}`}
+                  onClick={isEditing ? triggerAvatarUpload : undefined}
+                  onDrop={isEditing ? handleAvatarDrop : undefined}
+                  onDragOver={isEditing ? handleAvatarDragOver : undefined}
+                  title={isEditing ? "Click to upload or drag & drop an image" : undefined}
+                >
+                  {(avatarPreview || profile.avatar) ? (
                     <Image
-                      src={profile.avatar}
+                      src={avatarPreview || profile.avatar}
                       alt="Profile"
                       className="w-full h-full rounded-full object-cover"
                       width={128}
                       height={128}
                     />
                   ) : (
-                    <User size={48} className="text-white" />
+                    <div className="flex flex-col items-center text-center">
+                      <User size={48} className="text-white mb-1" />
+                      {isEditing && (
+                        <span className="text-xs text-white/80">Click to upload</span>
+                      )}
+                    </div>
+                  )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    </div>
                   )}
                 </div>
                 {isEditing && (
-                  <button className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
+                  <button 
+                    onClick={triggerAvatarUpload}
+                    disabled={uploadingAvatar}
+                    className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
+                    title="Change profile picture"
+                  >
                     <Camera size={20} className="text-white" />
                   </button>
                 )}
+                {/* Hidden file input */}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
               </div>
               <div className="text-center md:text-left flex-1">
                 <h1 className="text-3xl font-bold mb-2">
-                  {profile.firstName} {profile.lastName}
+                  {profile.firstName && profile.lastName 
+                    ? `${profile.firstName} ${profile.lastName}`
+                    : user?.name || "User"}
                 </h1>
-                <p className="text-xl opacity-90 mb-2">@{profile.username}</p>
+                <p className="text-xl opacity-90 mb-2">
+                  @{profile.username || user?.username || user?.email?.split('@')[0] || "user"}
+                </p>
                 <p className="text-lg opacity-80 mb-4">
                   {profile.bio || "No bio available"}
                 </p>
@@ -560,10 +813,20 @@ export default function ProfilePage() {
                   <div className="flex gap-2">
                     <button
                       onClick={handleSave}
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all flex items-center"
+                      disabled={savingProfile}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center"
                     >
-                      <Save size={20} className="mr-2" />
-                      Save
+                      {savingProfile ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={20} className="mr-2" />
+                          Save
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
@@ -580,8 +843,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8">
-          <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-zenith-card rounded-xl shadow-lg mb-8">
+          <div className="border-b border-zenith-border">
             <nav className="flex space-x-8 px-6">
               {[
                 { id: "profile", label: "Profile Info", icon: User },
@@ -625,7 +888,7 @@ export default function ProfilePage() {
                         setProfile({ ...profile, firstName: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     />
                   </div>
                   <div>
@@ -639,7 +902,7 @@ export default function ProfilePage() {
                         setProfile({ ...profile, lastName: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     />
                   </div>
                   <div>
@@ -653,7 +916,7 @@ export default function ProfilePage() {
                         setProfile({ ...profile, username: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     />
                   </div>
                   <div>
@@ -664,7 +927,7 @@ export default function ProfilePage() {
                       type="email"
                       value={profile.email}
                       disabled={true} // Email usually shouldn't be editable
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-zenith-primary"
                     />
                   </div>
                   <div>
@@ -678,7 +941,7 @@ export default function ProfilePage() {
                         setProfile({ ...profile, phone: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                       placeholder="Enter phone number"
                     />
                   </div>
@@ -693,7 +956,7 @@ export default function ProfilePage() {
                         setProfile({ ...profile, location: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                       placeholder="Enter location"
                     />
                   </div>
@@ -710,13 +973,13 @@ export default function ProfilePage() {
                     }
                     disabled={!isEditing}
                     rows={4}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                    className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     placeholder="Tell us about yourself..."
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-lg font-semibold text-zenith-primary">
                     Social Links
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -732,7 +995,7 @@ export default function ProfilePage() {
                           setProfile({ ...profile, github: e.target.value })
                         }
                         disabled={!isEditing}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                         placeholder="GitHub profile URL"
                       />
                     </div>
@@ -748,7 +1011,7 @@ export default function ProfilePage() {
                           setProfile({ ...profile, linkedin: e.target.value })
                         }
                         disabled={!isEditing}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                         placeholder="LinkedIn profile URL"
                       />
                     </div>
@@ -764,7 +1027,7 @@ export default function ProfilePage() {
                           setProfile({ ...profile, website: e.target.value })
                         }
                         disabled={!isEditing}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                         placeholder="Personal website URL"
                       />
                     </div>
@@ -777,10 +1040,10 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-zenith-primary">
                       Assignment History
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Track your assignment submissions and scores
                     </p>
                   </div>
@@ -796,15 +1059,15 @@ export default function ProfilePage() {
                 {loadingActivities ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-3 text-gray-600 dark:text-gray-400">Loading activities...</span>
+                    <span className="ml-3 text-zenith-muted">Loading activities...</span>
                   </div>
                 ) : assignmentHistory.length === 0 ? (
                   <div className="text-center py-12">
                     <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-lg font-semibold text-zenith-primary mb-2">
                       No Assignments Yet
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-zenith-muted">
                       Your assignment submissions will appear here once you start taking assignments.
                     </p>
                   </div>
@@ -824,7 +1087,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       
-                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                      <div className="bg-green-50 rounded-lg p-4">
                         <div className="flex items-center">
                           <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400 mr-3" />
                           <div>
@@ -869,7 +1132,7 @@ export default function ProfilePage() {
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
-                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                              <h4 className="text-lg font-semibold text-zenith-primary">
                                 {assignment.title}
                               </h4>
                               <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs rounded-full">
@@ -877,16 +1140,16 @@ export default function ProfilePage() {
                               </span>
                               <span className={`px-2 py-1 text-xs rounded-full ${
                                 assignment.status === 'completed' 
-                                  ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
+                                  ? 'bg-green-100 text-green-800'
                                   : assignment.status === 'graded'
-                                  ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300'
-                                  : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
+                                  ? 'bg-purple-100 text-purple-800'
+                                  : 'bg-yellow-100 text-yellow-800'
                               }`}>
                                 {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
                               </span>
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-zenith-muted">
                               <div>
                                 <span className="font-medium">Score:</span> {assignment.score}/{assignment.maxScore}
                               </div>
@@ -1083,7 +1346,120 @@ export default function ProfilePage() {
                     </button>
                   </div>
 
-                  {showPasswordChange && (
+                {showPasswordChange && (
+                  <div className="space-y-4 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.current ? "text" : "password"}
+                          value={passwordData.currentPassword}
+                          onChange={(e) =>
+                            setPasswordData({
+                              ...passwordData,
+                              currentPassword: e.target.value,
+                            })
+                          }
+                          className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPasswords({
+                              ...showPasswords,
+                              current: !showPasswords.current,
+                            })
+                          }
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPasswords.current ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.new ? "text" : "password"}
+                          value={passwordData.newPassword}
+                          onChange={(e) =>
+                            setPasswordData({
+                              ...passwordData,
+                              newPassword: e.target.value,
+                            })
+                          }
+                          className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPasswords({
+                              ...showPasswords,
+                              new: !showPasswords.new,
+                            })
+                          }
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPasswords.new ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.confirm ? "text" : "password"}
+                          value={passwordData.confirmPassword}
+                          onChange={(e) =>
+                            setPasswordData({
+                              ...passwordData,
+                              confirmPassword: e.target.value,
+                            })
+                          }
+                          className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPasswords({
+                              ...showPasswords,
+                              confirm: !showPasswords.confirm,
+                            })
+                          }
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPasswords.confirm ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handlePasswordChange}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Update Password
+                    </button>
+                  </div>
+                )}
+
+                {showPasswordChange && (
                     <div className="space-y-4 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1544,31 +1920,31 @@ export default function ProfilePage() {
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-lg font-semibold text-zenith-primary mb-4">
                     Account Settings
                   </h3>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex items-center justify-between p-4 border border-zenith-border rounded-lg">
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">
+                        <h4 className="font-medium text-zenith-primary">
                           Profile Visibility
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-zenith-muted">
                           Control who can see your profile
                         </p>
                       </div>
-                      <select className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                      <select className="px-3 py-2 border border-zenith-border rounded-lg bg-zenith-card text-zenith-primary">
                         <option>Public</option>
                         <option>Club Members Only</option>
                         <option>Private</option>
                       </select>
                     </div>
-                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex items-center justify-between p-4 border border-zenith-border rounded-lg">
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">
+                        <h4 className="font-medium text-zenith-primary">
                           Activity Status
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-zenith-muted">
                           Show when you&apos;re online
                         </p>
                       </div>
@@ -1589,7 +1965,7 @@ export default function ProfilePage() {
             {activeTab === "notifications" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-lg font-semibold text-zenith-primary mb-4">
                     Notification Preferences
                   </h3>
                   <div className="space-y-4">
@@ -1618,13 +1994,13 @@ export default function ProfilePage() {
                     ].map((item, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                        className="flex items-center justify-between p-4 border border-zenith-border rounded-lg"
                       >
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
+                          <h4 className="font-medium text-zenith-primary">
                             {item.title}
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-zenith-muted">
                             {item.description}
                           </p>
                         </div>
@@ -1645,7 +2021,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-      <ZenChatbot />
+        <ZenChatbot />
+        </div>
+      </div>
     </MainLayout>
   );
 }

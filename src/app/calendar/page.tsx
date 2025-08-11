@@ -185,25 +185,25 @@ export default function CalendarPage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-zenith-primary mb-2">
               Calendar & Events
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-zenith-secondary">
               Stay updated with club events and activities
               {attendingEvents.length > 0 && (
-                <span className="ml-2 px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-sm rounded-full">
+                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                   {attendingEvents.length} attending
                 </span>
               )}
@@ -223,52 +223,52 @@ export default function CalendarPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Total Events
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {events.length}
                 </p>
               </div>
               <Calendar className="w-8 h-8 text-blue-600" />
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Upcoming
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {upcomingEvents.length}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-green-600" />
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Attending
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {attendingEvents.length}
                 </p>
               </div>
               <Users className="w-8 h-8 text-purple-600" />
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   This Week
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {
                     events.filter((event) => {
                       const eventDate = new Date(event.event_date);
@@ -287,30 +287,30 @@ export default function CalendarPage() {
         </div>
 
         {/* Filters and Controls */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+        <div className="bg-zenith-card rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-3 w-5 h-5 text-zenith-muted" />
                 <input
                   type="text"
                   placeholder="Search events..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
                 />
               </div>
             </div>
 
             {/* View Toggle */}
-            <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
+            <div className="flex rounded-lg border border-zenith-border overflow-hidden">
               <button
                 onClick={() => setView("list")}
                 className={`px-4 py-3 font-medium transition-colors ${
                   view === "list"
                     ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    : "bg-zenith-card text-zenith-secondary hover:bg-zenith-hover"
                 }`}
               >
                 List View
@@ -320,7 +320,7 @@ export default function CalendarPage() {
                 className={`px-4 py-3 font-medium transition-colors ${
                   view === "calendar"
                     ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    : "bg-zenith-card text-zenith-secondary hover:bg-zenith-hover"
                 }`}
               >
                 Calendar View
@@ -353,22 +353,22 @@ export default function CalendarPage() {
         {/* Events List */}
         <div className="space-y-6">
           {loading ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+            <div className="bg-zenith-card rounded-xl shadow-lg p-12 text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                 Loading events...
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-zenith-muted">
                 Please wait while we fetch your events.
               </p>
             </div>
           ) : filteredEvents.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+            <div className="bg-zenith-card rounded-xl shadow-lg p-12 text-center">
               <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                 No events found
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-zenith-muted">
                 {searchTerm
                   ? "Try adjusting your search terms."
                   : "No events match your current filter."}
@@ -378,7 +378,7 @@ export default function CalendarPage() {
             upcomingEvents.map((event) => (
               <div
                 key={event.id}
-                className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-xl ${
+                className={`bg-zenith-card rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-xl ${
                   isToday(event.event_date) ? "border-l-4 border-blue-500" : ""
                 }`}
               >
@@ -387,7 +387,7 @@ export default function CalendarPage() {
                     <div className="flex items-start space-x-4 flex-1">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          <h3 className="text-xl font-semibold text-zenith-primary">
                             {event.title}
                           </h3>
                           {/* Display club information instead of event type */}
@@ -400,7 +400,7 @@ export default function CalendarPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        <p className="text-zenith-muted mb-4">
                           {event.description}
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500 dark:text-gray-500">
@@ -424,7 +424,7 @@ export default function CalendarPage() {
                       <div className="text-sm text-gray-500 dark:text-gray-500 mb-1">
                         Attendees
                       </div>
-                      <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <div className="text-lg font-semibold text-zenith-primary">
                         {event.attendees}
                         {event.maxAttendees && (
                           <span className="text-sm text-gray-500 dark:text-gray-500">
@@ -442,7 +442,7 @@ export default function CalendarPage() {
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <button className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                      <button className="flex items-center px-4 py-2 text-zenith-muted hover:text-gray-900 dark:hover:text-white transition-colors">
                         <ExternalLink size={16} className="mr-2" />
                         View Details
                       </button>

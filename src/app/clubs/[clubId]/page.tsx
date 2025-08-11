@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
+import UserAvatar from "@/components/UserAvatar";
+import ClubLogo from "@/components/ClubLogo";
 
 interface ClubData {
   club: {
@@ -69,6 +71,24 @@ const getIconComponent = (iconName: string) => {
     default:
       return Code;
   }
+};
+const getClubTextColor = (clubName: string) => {
+  const clubColors: Record<string, string> = {
+    'Ascend': 'text-blue-500',    // Blue for ASCEND
+    'Aster': 'text-pink-500',     // Pink for ASTER  
+    'Achievers': 'text-purple-500', // Purple for ACHIEVERS
+    'Altogether': 'text-green-500', // Green for ALTOGETHER
+  };
+  
+  // Find the club by checking if the name contains the key
+  for (const [key, color] of Object.entries(clubColors)) {
+    if (clubName.toLowerCase().includes(key.toLowerCase())) {
+      return color;
+    }
+  }
+  
+  // Default to brand color if not found
+  return 'text-zenith-brand';
 };
 
 export default function ClubPage() {
@@ -128,7 +148,7 @@ export default function ClubPage() {
 
   if (isLoading || loading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -136,14 +156,14 @@ export default function ClubPage() {
 
   if (error || !clubData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-zenith-primary mb-4">
             {error || "Club Not Found"}
           </h1>
           <Link
             href="/dashboard"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-zenith-accent hover:underline"
           >
             Back to Dashboard
           </Link>
@@ -160,20 +180,26 @@ export default function ClubPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Club Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8">
+        <div className="bg-zenith-card rounded-2xl shadow-xl overflow-hidden mb-8">
           <div className={`bg-gradient-to-r ${club.color} p-8 text-white`}>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
               <div className="flex items-center space-x-6 mb-4 md:mb-0">
                 <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <Icon size={40} className="text-white" />
+                  <ClubLogo 
+                    clubId={club.id}
+                    clubName={club.name}
+                    size="xl"
+                    fallbackIcon={club.icon}
+                    className="text-white"
+                  />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold mb-2">{club.name}</h1>
-                  <p className="text-xl opacity-90">{club.type}</p>
-                  <p className="text-lg opacity-80 mt-2">{club.description}</p>
+                  <h1 className={`text-4xl font-bold mb-2 ${getClubTextColor(club.name)}`}>{club.name}</h1>
+                  <p className={`text-xl opacity-90 ${getClubTextColor(club.type)}`}>{club.type}</p>
+                  <p className={`text-lg opacity-80 mt-2 ${getClubTextColor(club.description)}`}>{club.description}</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -203,37 +229,37 @@ export default function ClubPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {club.memberCount}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Members
                 </p>
               </div>
               <div className="text-center">
                 <Calendar className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {events.length}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Events
                 </p>
               </div>
               <div className="text-center">
                 <MessageSquare className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {posts.length}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Recent Posts
                 </p>
               </div>
               <div className="text-center">
                 <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   4.8
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-zenith-muted">
                   Rating
                 </p>
               </div>
@@ -245,18 +271,18 @@ export default function ClubPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* About Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold text-zenith-primary mb-4">
                 About {club.name}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p className="text-zenith-muted leading-relaxed">
                 {club.long_description}
               </p>
             </div>
 
             {/* Recent Posts */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold text-zenith-primary mb-6">
                 Recent Posts
               </h2>
               <div className="space-y-4">
@@ -264,18 +290,18 @@ export default function ClubPage() {
                   posts.map((post) => (
                     <div
                       key={post.id}
-                      className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                      className="p-4 border border-zenith-border rounded-lg hover:border-blue-300 transition-colors"
                     >
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                      <h3 className="font-semibold text-zenith-primary mb-2">
                         {post.title}
                       </h3>
-                      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center justify-between text-sm text-zenith-muted">
                         <span>By {post.author?.name || "Unknown"}</span>
                         <span>
                           {new Date(post.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 mt-3 text-sm text-zenith-muted">
                         <span className="flex items-center">
                           <Star size={16} className="mr-1" />
                           {post.likeCount}
@@ -288,7 +314,7 @@ export default function ClubPage() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  <p className="text-zenith-muted text-center py-8">
                     No posts yet
                   </p>
                 )}
@@ -299,51 +325,67 @@ export default function ClubPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Club Leadership */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+              <h2 className="text-lg font-semibold text-zenith-primary mb-4">
                 Leadership Team
               </h2>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
+                  <UserAvatar 
+                    name={club.leadership.coordinator?.name}
+                    size="sm"
+                  />
                   <Crown className="w-5 h-5 text-yellow-500" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-zenith-primary">
                       {club.leadership.coordinator?.name || "Not assigned"}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Coordinator
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
+                  <UserAvatar 
+                    name={club.leadership.coCoordinator?.name}
+                    size="sm"
+                  />
                   <Shield className="w-5 h-5 text-blue-500" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-zenith-primary">
                       {club.leadership.coCoordinator?.name || "Not assigned"}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Co-Coordinator
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
+                  <UserAvatar 
+                    name={club.leadership.secretary?.name}
+                    size="sm"
+                  />
                   <FileText className="w-5 h-5 text-green-500" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-zenith-primary">
                       {club.leadership.secretary?.name || "Not assigned"}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Secretary
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
+                  <UserAvatar 
+                    name={club.leadership.media?.name}
+                    size="sm"
+                  />
                   <Edit className="w-5 h-5 text-purple-500" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-zenith-primary">
                       {club.leadership.media?.name || "Not assigned"}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Media Head
                     </p>
                   </div>
@@ -352,8 +394,8 @@ export default function ClubPage() {
             </div>
 
             {/* Upcoming Events */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+              <h2 className="text-lg font-semibold text-zenith-primary mb-4">
                 Upcoming Events
               </h2>
               <div className="space-y-4">
@@ -363,20 +405,20 @@ export default function ClubPage() {
                       key={event.id}
                       className="border-l-4 border-blue-500 pl-4"
                     >
-                      <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                      <h3 className="font-medium text-zenith-primary text-sm">
                         {event.title}
                       </h3>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                        {new Date(event.event_date).toLocaleDateString()} at{" "}
-                        {event.event_time}
+                      <p className="text-xs text-zenith-muted mt-1">
+                        {new Date(event.date).toLocaleDateString()} at{" "}
+                        {event.time}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                      <p className="text-xs text-zenith-muted">
                         {event.location}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                  <p className="text-zenith-muted text-center py-4">
                     No upcoming events
                   </p>
                 )}
@@ -384,32 +426,32 @@ export default function ClubPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+              <h2 className="text-lg font-semibold text-zenith-primary mb-4">
                 Quick Actions
               </h2>
               <div className="space-y-3">
-                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left">
+                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
                   <Calendar size={16} className="text-blue-600" />
-                  <span className="text-sm text-gray-900 dark:text-white">
+                  <span className="text-sm text-zenith-primary">
                     View Events
                   </span>
                 </button>
-                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left">
+                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
                   <MessageSquare size={16} className="text-green-600" />
-                  <span className="text-sm text-gray-900 dark:text-white">
+                  <span className="text-sm text-zenith-primary">
                     Join Discussion
                   </span>
                 </button>
-                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left">
+                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
                   <FileText size={16} className="text-purple-600" />
-                  <span className="text-sm text-gray-900 dark:text-white">
+                  <span className="text-sm text-zenith-primary">
                     View Resources
                   </span>
                 </button>
-                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left">
+                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
                   <Settings size={16} className="text-gray-600" />
-                  <span className="text-sm text-gray-900 dark:text-white">
+                  <span className="text-sm text-zenith-primary">
                     Settings
                   </span>
                 </button>

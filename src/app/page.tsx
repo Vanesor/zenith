@@ -19,6 +19,7 @@ import {
 import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ClubLogo from "@/components/ClubLogo";
 import { CollegeHeader } from "@/components/CollegeHeader";
 
 // Icon mapping for clubs
@@ -27,6 +28,26 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MessageSquare: MessageSquare,
   GraduationCap: GraduationCap,
   Heart: Heart,
+};
+
+// Club color mapping for text display
+const getClubTextColor = (clubName: string) => {
+  const clubColors: Record<string, string> = {
+    'Ascend': 'text-blue-500',    // Blue for ASCEND
+    'Aster': 'text-pink-500',     // Pink for ASTER  
+    'Achievers': 'text-purple-500', // Purple for ACHIEVERS
+    'Altogether': 'text-green-500', // Green for ALTOGETHER
+  };
+  
+  // Find the club by checking if the name contains the key
+  for (const [key, color] of Object.entries(clubColors)) {
+    if (clubName.toLowerCase().includes(key.toLowerCase())) {
+      return color;
+    }
+  }
+  
+  // Default to brand color if not found
+  return 'text-zenith-brand';
 };
 
 interface Club {
@@ -105,10 +126,10 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zenith-accent mx-auto mb-4"></div>
+          <p className="text-zenith-secondary">
             Loading Zenith Forum...
           </p>
         </div>
@@ -118,15 +139,15 @@ export default function HomePage() {
 
   if (error || !homeData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-zenith-primary mb-4">
             Unable to load data
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <p className="text-zenith-secondary mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-zenith-accent text-white rounded-lg hover:bg-zenith-accent transition-colors"
           >
             Retry
           </button>
@@ -138,7 +159,7 @@ export default function HomePage() {
   const { stats, clubs, upcomingEvents, recentPosts } = homeData;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       <ThemeToggle />
       <ZenChatbot />
 
@@ -146,7 +167,7 @@ export default function HomePage() {
       <CollegeHeader />
 
       {/* Navigation */}
-      <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+      <nav className="bg-zenith-section backdrop-blur-md border-b border-zenith sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <ZenithLogo size="md" />
@@ -155,13 +176,13 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/login"
-                    className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 text-sm font-medium transition-colors"
+                    className="text-zenith-secondary hover:text-zenith-accent px-3 py-2 text-sm font-medium transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/register"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    className="bg-zenith-accent hover:bg-zenith-accent text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                   >
                     Join Now
                   </Link>
@@ -169,7 +190,7 @@ export default function HomePage() {
               ) : (
                 <Link
                   href="/dashboard"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="bg-zenith-accent hover:bg-zenith-accent text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   Dashboard
                 </Link>
@@ -187,30 +208,30 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-zenith-primary mb-6">
               Welcome to{" "}
-              <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+              <span className="text-zenith-brand">
                 ZENITH
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-zenith-secondary mb-8 max-w-3xl mx-auto leading-relaxed">
               DRIVEN BY PASSION, BUILT FOR EXCELLENCE
             </p>
-            <p className="text-lg text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+            <p className="text-lg text-zenith-muted mb-12 max-w-2xl mx-auto">
               Join our vibrant college forum community where students connect,
               learn, and grow together through specialized clubs and activities.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center"
+                className="bg-zenith-accent hover:bg-zenith-accent text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center"
               >
                 Get Started
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+                className="bg-zenith-card text-zenith-primary border border-zenith hover:bg-zenith-section px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>
@@ -220,7 +241,7 @@ export default function HomePage() {
       </section>
 
       {/* Statistics */}
-      <section className="py-16 bg-white dark:bg-gray-800">
+      <section className="py-16 bg-zenith-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -229,34 +250,34 @@ export default function HomePage() {
             className="grid grid-cols-2 md:grid-cols-4 gap-8"
           >
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="text-3xl font-bold stat-clubs">
                 {stats.totalClubs}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-muted">
                 Specialized Clubs
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+              <div className="text-3xl font-bold stat-members">
                 {stats.totalMembers}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-muted">
                 Active Members
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="text-3xl font-bold stat-events">
                 {stats.upcomingEvents}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-muted">
                 Upcoming Events
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-pink-600 dark:text-pink-400">
+              <div className="text-3xl font-bold stat-posts">
                 {stats.totalPosts}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-muted">
                 Forum Posts
               </div>
             </div>
@@ -267,7 +288,7 @@ export default function HomePage() {
       {/* Clubs Section */}
       <section
         id="clubs"
-        className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800"
+        className="py-20 bg-zenith-main"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -276,10 +297,10 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-zenith-brand mb-4">
               Our Specialized Clubs
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl text-zenith-secondary max-w-2xl mx-auto">
               Choose your path and join like-minded peers in your area of
               interest
             </p>
@@ -294,40 +315,49 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+                  className="bg-zenith-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
                 >
                   <div
                     className={`bg-gradient-to-r ${club.color} p-6 text-white`}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                          <IconComponent className="w-6 h-6 text-white" />
+                        <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                          <ClubLogo 
+                            clubId={club.id}
+                            clubName={club.name}
+                            size="lg"
+                            fallbackIcon={club.icon}
+                            className="text-white"
+                          />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold">{club.name}</h3>
-                          <p className="text-white/80">{club.type}</p>
+                          <h3 className={`text-2xl font-bold ${getClubTextColor(club.name)}`}>{club.name}</h3>
+                          <p className={`text-white/80 ${getClubTextColor(club.name)}`}>{club.type}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-white">
+                        <p className={`text-2xl font-bold ${getClubTextColor(club.name)}`}>
                           {club.member_count}
                         </p>
-                        <p className="text-sm text-white/80">members</p>
+                        <p className={`text-sm font-bold ${getClubTextColor(club.name)}`}>members</p>
                       </div>
                     </div>
                   </div>
                   <div className="p-6">
-                    <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+                    {/* <h3 className={`text-2xl font-bold mb-3 ${getClubTextColor(club.name)}`}>
+                      {club.name}
+                    </h3> */}
+                    <p className="text-zenith-secondary mb-6 leading-relaxed">
                       {club.description}
                     </p>
                     <div className="flex justify-between items-center">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-sm text-zenith-muted">
                         {club.upcoming_events} upcoming events
                       </div>
                       <Link
                         href={`/clubs/${club.id}`}
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors"
+                        className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold transition-colors"
                       >
                         Learn More
                         <ChevronRight className="ml-1 w-4 h-4" />
@@ -342,7 +372,7 @@ export default function HomePage() {
       </section>
 
       {/* Upcoming Events */}
-      <section id="events" className="py-20 bg-white dark:bg-gray-800">
+      <section id="events" className="py-20 bg-zenith-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -350,10 +380,10 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-zenith-brand mb-4">
               Upcoming Events
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
+            <p className="text-xl text-zenith-secondary">
               Don&apos;t miss out on these exciting opportunities
             </p>
           </motion.div>
@@ -365,7 +395,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700"
+                className="bg-zenith-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith"
               >
                 <div className={`bg-gradient-to-r ${event.club_color} p-4`}>
                   <div className="flex justify-between items-center text-white">
@@ -378,13 +408,13 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                     {event.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                  <p className="text-zenith-secondary mb-4 line-clamp-2">
                     {event.description}
                   </p>
-                  <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="space-y-2 text-sm text-zenith-muted">
                     <div className="flex items-center">
                       <Clock className="w-4 h-4 mr-2" />
                       {event.event_time}
@@ -406,7 +436,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <Link
               href="/events"
-              className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-semibold text-lg"
+              className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold text-lg"
             >
               View All Events
               <ChevronRight className="ml-2 w-5 h-5" />
@@ -416,7 +446,7 @@ export default function HomePage() {
       </section>
 
       {/* Recent Posts Preview */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+      <section className="py-20 bg-zenith-main">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -424,10 +454,10 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-zenith-brand mb-4">
               Recent Discussions
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
+            <p className="text-xl text-zenith-secondary">
               Join the conversation with fellow students
             </p>
           </motion.div>
@@ -439,7 +469,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+                className="bg-zenith-card rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div
@@ -447,17 +477,17 @@ export default function HomePage() {
                   >
                     {post.club_name}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-sm text-zenith-muted">
                     {new Date(post.created_at).toLocaleDateString()}
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                <h3 className="text-xl font-semibold text-zenith-primary mb-3">
                   {post.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                <p className="text-zenith-secondary mb-4 line-clamp-3">
                   {post.content}
                 </p>
-                <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex justify-between items-center text-sm text-zenith-muted">
                   <span>By {post.author_name}</span>
                   <span>{new Date(post.created_at).toLocaleDateString()}</span>
                 </div>
@@ -466,7 +496,7 @@ export default function HomePage() {
                     {post.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-full"
+                        className="px-2 py-1 bg-zenith-section text-zenith-secondary text-xs rounded-full"
                       >
                         #{tag}
                       </span>
@@ -480,7 +510,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <Link
               href="/forums"
-              className="inline-flex items-center text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-semibold text-lg"
+              className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold text-lg"
             >
               Join the Discussion
               <ChevronRight className="ml-2 w-5 h-5" />
@@ -490,7 +520,7 @@ export default function HomePage() {
       </section>
 
       {/* What is Zenith */}
-      <section className="py-20 bg-white dark:bg-gray-800">
+      <section className="py-20 bg-zenith-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -498,10 +528,10 @@ export default function HomePage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+              <h2 className="text-4xl font-bold text-zenith-brand mb-6">
                 What is Zenith?
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+              <p className="text-lg text-zenith-secondary mb-6 leading-relaxed">
                 Zenith is more than just a college forum - it&apos;s a thriving
                 ecosystem where passionate students come together to learn,
                 grow, and excel. Our platform connects like-minded individuals
@@ -510,53 +540,53 @@ export default function HomePage() {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Users className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <h3 className="font-semibold text-zenith-primary">
                       Community Driven
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Built by students, for students
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <h3 className="font-semibold text-zenith-primary">
                       Skill Development
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Learn and grow with expert guidance
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lightbulb className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <h3 className="font-semibold text-zenith-primary">
                       Innovation Hub
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Where ideas come to life
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                  <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-pink-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <h3 className="font-semibold text-zenith-primary">
                       Regular Events
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-muted">
                       Workshops, competitions, and more
                     </p>
                   </div>
@@ -598,7 +628,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20 bg-zenith-accent">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -615,14 +645,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
+                className="bg-white text-zenith-accent hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
               >
                 Join Zenith Today
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+                className="border-2 border-white text-white hover:bg-white hover:text-zenith-accent px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>

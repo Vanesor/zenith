@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { useAuth } from "@/contexts/AuthContext";
+import UserAvatar from "@/components/UserAvatar";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export function NavigationHeader() {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
@@ -89,17 +91,17 @@ export function NavigationHeader() {
   if (isLoading) {
     return (
       <header className="fixed top-0 inset-x-0 z-50">
-        <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+        <nav className="bg-zenith-section backdrop-blur-md border-b border-zenith">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex">
                 <ZenithLogo size="md" />
               </div>
               <div className="flex items-center space-x-4">
-                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                <div className="animate-pulse h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="animate-pulse h-8 w-8 bg-zenith-card rounded-full"></div>
+                <div className="animate-pulse h-8 w-8 bg-zenith-card rounded-full"></div>
+                <div className="animate-pulse h-8 w-8 bg-zenith-card rounded-full"></div>
+                <div className="animate-pulse h-8 w-24 bg-zenith-card rounded"></div>
               </div>
             </div>
           </div>
@@ -145,7 +147,7 @@ export function NavigationHeader() {
 
   return (
     <header className="fixed top-0 inset-x-0 z-50">
-      <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+      <nav className="bg-zenith-section backdrop-blur-md border-b border-zenith">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -166,8 +168,8 @@ export function NavigationHeader() {
                   href={item.href}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-zenith-accent text-white"
+                      : "text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-card"
                   }`}
                 >
                   <Icon size={16} />
@@ -179,36 +181,42 @@ export function NavigationHeader() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* User Menu */}
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-zenith-card transition-colors"
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">
-                    {user.name?.charAt(0) || user.email.charAt(0)}
-                  </span>
-                </div>
+                <UserAvatar 
+                  avatar={user.avatar}
+                  name={user.name}
+                  email={user.email}
+                  size="md"
+                  showOnlineStatus={true}
+                  isOnline={true}
+                />
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user.firstName} {user.lastName}
+                  <p className="text-sm font-medium text-zenith-primary">
+                    {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-zenith-muted">
                     {user.role}
                   </p>
                 </div>
                 <ChevronDown
                   size={16}
-                  className="text-gray-500 dark:text-gray-400"
+                  className="text-zenith-muted"
                 />
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+                <div className="absolute right-0 mt-2 w-48 bg-zenith-card rounded-lg shadow-lg border border-zenith py-2">
                   <Link
                     href="/profile"
-                    className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-zenith-secondary hover:bg-zenith-section"
                     onClick={() => setShowUserMenu(false)}
                   >
                     <User size={16} />
@@ -216,16 +224,16 @@ export function NavigationHeader() {
                   </Link>
                   <Link
                     href="/settings"
-                    className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-zenith-secondary hover:bg-zenith-section"
                     onClick={() => setShowUserMenu(false)}
                   >
                     <Settings size={16} />
                     <span>Settings</span>
                   </Link>
-                  <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                  <hr className="my-2 border-zenith" />
                   <button
                     onClick={handleLogout}
-                    className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-red-500 hover:bg-zenith-section w-full text-left"
                   >
                     <LogOut size={16} />
                     <span>Logout</span>
@@ -238,7 +246,7 @@ export function NavigationHeader() {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
+      <div className="md:hidden border-t border-zenith">
         <div className="px-4 py-2 space-y-1">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -251,8 +259,8 @@ export function NavigationHeader() {
                 href={item.href}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                    : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-zenith-accent text-white"
+                    : "text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-card"
                 }`}
               >
                 <Icon size={16} />

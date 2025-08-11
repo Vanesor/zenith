@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Reply, Edit, Trash2, Image, File, Paperclip, X, Smile, MoreVertical, User } from 'lucide-react';
 import { ZenithChatEncryption, SimpleEncryption } from '@/lib/encryption';
+import UserAvatar from '@/components/UserAvatar';
 import './chat-styles.css';
 
 // Emoji data
@@ -65,6 +66,7 @@ interface ChatMessage {
   user_id: string;
   sender_id?: string;
   sender_name?: string;
+  sender_avatar?: string; // Add avatar field
   room_id: string;
   created_at: string;
   timestamp?: string;
@@ -87,6 +89,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  avatar?: string;
 }
 
 interface EnhancedChatRoomProps {
@@ -190,21 +193,43 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
       const data = await response.json();
       
       if (data.success) {
-        const decryptedMessages = data.messages.map((msg: ChatMessage) => {
-          if (msg.is_encrypted && msg.content) {
+        const decryptedMessages = data.messages.map((msg: any) => {
+          // Map API response fields to our message interface
+          const mappedMessage: ChatMessage = {
+            id: msg.id,
+            message: msg.message || '',
+            content: msg.content || msg.message || '',
+            user_id: msg.user_id,
+            sender_id: msg.user_id,
+            sender_name: msg.author_name || 'Unknown User',
+            sender_avatar: msg.author_avatar || '',
+            room_id: msg.room_id,
+            created_at: msg.created_at,
+            timestamp: msg.created_at,
+            reply_to: msg.reply_to,
+            reply_message: msg.reply_message,
+            reply_sender: msg.reply_sender,
+            attachments: msg.attachments,
+            is_encrypted: msg.is_encrypted || false,
+            is_edited: msg.is_edited || false,
+          };
+
+          if (mappedMessage.is_encrypted && mappedMessage.content) {
             try {
-              const decrypted = ZenithChatEncryption.decrypt(msg.content, roomId);
-              return { ...msg, content: decrypted };
+              // Try to decrypt with ZenithChatEncryption first
+              const decrypted = ZenithChatEncryption.decrypt(mappedMessage.content, roomId);
+              return { ...mappedMessage, content: decrypted };
             } catch {
               try {
-                const decrypted = SimpleEncryption.decrypt(msg.content, roomId);
-                return { ...msg, content: decrypted };
+                // Fallback to SimpleEncryption
+                const decrypted = SimpleEncryption.decrypt(mappedMessage.content, roomId);
+                return { ...mappedMessage, content: decrypted };
               } catch {
-                return { ...msg, content: '[Encrypted message - cannot decrypt]' };
+                return { ...mappedMessage, content: '[Encrypted message - cannot decrypt]' };
               }
             }
           }
-          return msg;
+          return mappedMessage;
         });
         
         // Process messages to ensure replies are properly displayed

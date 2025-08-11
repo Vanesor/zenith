@@ -16,7 +16,7 @@ function generateToken(payload: {
   role: string;
   sessionId: string;
 }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" }); // Short-lived access token
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "3h" }); // 3-hour access token
 }
 
 function generateRefreshToken(payload: {

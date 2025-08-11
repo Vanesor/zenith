@@ -17,7 +17,7 @@ function generateAccessToken(payload: {
   role: string;
   sessionId: string;
 }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "3h" }); // 3-hour access token
 }
 
 export async function POST(request: NextRequest) {

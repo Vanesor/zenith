@@ -1,26 +1,196 @@
 @import "tailwindcss";
 
+/* Custom Zenith Theme Variables */
 :root {
+  /* Dark theme (default) variables */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  
+  /* Dark theme colors */
+  --bg-main: #111827;
+  --bg-section: #1f2937;
+  --bg-card: #374151;
+  --bg-hover: #4b5563;
+  --primary-brand: #d97706;
+  --primary-accent: #3b82f6;
+  --primary-hover: #2563eb;
+  --secondary-accent: #ec4899;
+  --success-green: #10b981;
+  --events-purple: #a855f7;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --border-color: #4b5563;
+}
+
+/* Light theme variables */
+.light {
   --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground: #1f2937;
+  
+  /* Custom light theme colors - Updated Two-Color Scheme */
+  --bg-main: #ffffff;           /* Main background → White */
+  --bg-section: #ffffff;        /* Section background → White */
+  --bg-card: #f9fafb;           /* Card background → Light Gray */
+  --bg-hover: #f3f4f6;          /* Hover background → Lighter Gray */
+  --primary-brand: #d97706;     /* Keep Zenith Yellow for logo/headings */
+  --primary-accent: #2563eb;    /* Blue for buttons & CTAs */
+  --primary-hover: #1e40af;     /* Blue hover state */
+  --secondary-accent: #db2777;  /* Keep pink for secondary actions */
+  --success-green: #059669;     /* Keep green for success states */
+  --events-purple: #9333ea;     /* Keep purple for events */
+  --text-primary: #1f2937;      /* Primary text → Dark gray */
+  --text-secondary: #4b5563;    /* Secondary text → Medium gray */
+  --text-muted: #6b7280;        /* Muted text → Light gray */
+  --border-color: #e5e7eb;      /* Light gray borders */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom utility classes for the new light theme */
+.bg-zenith-main {
+  background-color: var(--bg-main);
+}
+
+.bg-zenith-section {
+  background-color: var(--bg-section);
+}
+
+.bg-zenith-card {
+  background-color: var(--bg-card);
+  /* Add subtle border for card definition */
+  border: 1px solid var(--border-color);
+}
+
+.text-zenith-primary {
+  color: var(--text-primary);
+}
+
+.text-zenith-secondary {
+  color: var(--text-secondary);
+}
+
+.text-zenith-muted {
+  color: var(--text-muted);
+}
+
+.bg-zenith-hover {
+  background-color: var(--bg-hover);
+}
+
+.border-zenith {
+  border-color: var(--border-color);
+}
+
+.border-zenith-border {
+  border-color: var(--border-color);
+}
+
+.bg-zenith-brand {
+  background-color: var(--primary-brand);
+}
+
+.bg-zenith-accent {
+  background-color: var(--primary-accent);
+}
+
+.bg-zenith-accent:hover {
+  background-color: var(--primary-hover);
+}
+
+.text-zenith-brand {
+  color: var(--primary-brand);
+}
+
+.text-zenith-accent {
+  color: var(--primary-accent);
+}
+
+/* Light mode specific enhancements */
+.light .bg-zenith-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.light .bg-zenith-section {
+  border: 1px solid var(--border-color);
+}
+
+/* Form input styling for light mode */
+.light input[type="email"],
+.light input[type="password"], 
+.light input[type="text"],
+.light input[type="tel"],
+.light input[type="date"],
+.light textarea,
+.light select {
+  background-color: #ffffff;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.light input[type="email"]:focus,
+.light input[type="password"]:focus,
+.light input[type="text"]:focus,
+.light input[type="tel"]:focus,
+.light input[type="date"]:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 1px var(--primary-accent);
+}
+
+/* Button styling consistency */
+.btn-primary {
+  background-color: var(--primary-accent);
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--primary-accent);
+  border: 1px solid var(--primary-accent);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-accent);
+  color: white;
+}
+
+/* Link styling */
+.link-accent {
+  color: var(--primary-accent);
+  transition: color 0.2s ease;
+}
+
+.link-accent:hover {
+  color: var(--primary-hover);
+}
+
+/* Stat colors - consistent across both modes */
+.stat-clubs { color: #2563eb; }
+.stat-members { color: #059669; }
+.stat-events { color: #9333ea; }
+.stat-posts { color: #db2777; }
+
+/* Club-specific colors - consistent across both modes */
+.text-blue-500 { color: #3b82f6; }
+.text-green-500 { color: #10b981; }
+.text-purple-500 { color: #a855f7; }
+.text-pink-500 { color: #ec4899; }
+
