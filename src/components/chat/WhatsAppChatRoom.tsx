@@ -292,9 +292,9 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
     const isRead = message.read_by && message.read_by.length > 1; // More than just sender
     
     if (isRead) {
-      return <CheckCheck className="w-4 h-4 text-blue-500" />;
+      return <CheckCheck className="w-4 h-4 text-zenith-primary" />;
     } else {
-      return <Check className="w-4 h-4 text-gray-400" />;
+      return <Check className="w-4 h-4 text-zenith-muted" />;
     }
   };
 
@@ -317,13 +317,13 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zenith-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-full bg-zenith-section dark:bg-gray-900">
       {/* Header */}
       <div className="bg-green-600 dark:bg-green-700 text-white p-3 flex items-center justify-between shadow-md">
         <div className="flex items-center space-x-3">
@@ -369,13 +369,13 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
 
       {/* Search Bar */}
       {showSearch && (
-        <div className="p-3 bg-white dark:bg-gray-800 border-b shadow-sm">
+        <div className="p-3 bg-zenith-card dark:bg-gray-800 border-b shadow-sm">
           <input
             type="text"
             placeholder="Search messages..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
           />
         </div>
       )}
@@ -405,14 +405,14 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
               <div className={`max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}>
                 {/* Avatar for other users */}
                 {showAvatar && !isOwnMessage && (
-                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold mb-1 text-gray-600">
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold mb-1 text-zenith-secondary">
                     {message.sender_name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
                 
                 {/* Reply Reference */}
                 {message.reply_to_message_id && (
-                  <div className="text-xs text-gray-500 mb-1 pl-2 border-l-2 border-gray-300 bg-gray-100 rounded p-1">
+                  <div className="text-xs text-zenith-muted mb-1 pl-2 border-l-2 border-zenith-border bg-zenith-section rounded p-1">
                     Replying to previous message
                   </div>
                 )}
@@ -422,7 +422,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                   className={`relative px-3 py-2 rounded-lg shadow-sm max-w-full ${
                     isOwnMessage 
                       ? 'bg-green-500 text-white rounded-br-sm' 
-                      : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm'
+                      : 'bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white rounded-bl-sm'
                   }`}
                 >
                   {/* Sender Name */}
@@ -445,13 +445,13 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                       )}
                     </div>
                   ) : message.message_type === 'file' && message.file_url ? (
-                    <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-600 rounded p-2">
+                    <div className="flex items-center space-x-2 bg-zenith-section dark:bg-zenith-secondary rounded p-2">
                       <File className="w-4 h-4" />
                       <a 
                         href={message.file_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline text-sm truncate"
+                        className="text-zenith-primary hover:underline text-sm truncate"
                       >
                         {message.message || 'Download file'}
                       </a>
@@ -470,7 +470,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                             <button
                               key={emoji}
                               onClick={() => handleReaction(message.id, emoji)}
-                              className="text-xs bg-gray-100 dark:bg-gray-600 rounded-full px-2 py-1 hover:bg-gray-200 dark:hover:bg-gray-500"
+                              className="text-xs bg-zenith-section dark:bg-zenith-secondary rounded-full px-2 py-1 hover:bg-zenith-section dark:hover:bg-zenith-section0"
                             >
                               {emoji} {users.length}
                             </button>
@@ -480,12 +480,12 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                     </div>
                     
                     <div className="flex items-center space-x-1">
-                      <span className={`text-xs ${isOwnMessage ? 'text-green-100' : 'text-gray-500'}`}>
+                      <span className={`text-xs ${isOwnMessage ? 'text-green-100' : 'text-zenith-muted'}`}>
                         {formatTime(message.created_at)}
                       </span>
                       {getMessageStatus(message)}
                       {message.is_edited && (
-                        <span className={`text-xs ${isOwnMessage ? 'text-green-200' : 'text-gray-400'}`}>
+                        <span className={`text-xs ${isOwnMessage ? 'text-green-200' : 'text-zenith-muted'}`}>
                           edited
                         </span>
                       )}
@@ -518,11 +518,11 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
         {/* Typing Indicator */}
         {typing.length > 0 && (
           <div className="flex justify-start">
-            <div className="bg-gray-300 dark:bg-gray-600 rounded-lg px-4 py-2">
+            <div className="bg-gray-300 dark:bg-zenith-secondary rounded-lg px-4 py-2">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-zenith-section0 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-zenith-section0 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-zenith-section0 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
@@ -553,13 +553,13 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
 
       {/* Emoji Picker */}
       {showEmojiPicker && (
-        <div className="absolute bottom-20 left-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-4 shadow-lg max-w-xs">
+        <div className="absolute bottom-20 left-4 bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-600 rounded-lg p-4 shadow-lg max-w-xs">
           <div className="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto">
             {EMOJIS.map((emoji, index) => (
               <button
                 key={index}
                 onClick={() => handleEmojiClick(emoji)}
-                className="text-xl hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded"
+                className="text-xl hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 p-1 rounded"
               >
                 {emoji}
               </button>
@@ -569,11 +569,11 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
       )}
 
       {/* Message Input */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-300 dark:border-gray-600 p-3">
+      <div className="bg-zenith-card dark:bg-gray-800 border-t border-zenith-border dark:border-gray-600 p-3">
         <div className="flex items-end space-x-2">
           <button
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200 rounded-full hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
             title="Add emoji"
           >
             <Smile className="w-5 h-5" />
@@ -581,7 +581,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
           
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200 rounded-full hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
             title="Attach file"
           >
             <Paperclip className="w-5 h-5" />
@@ -596,7 +596,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
             }}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
-            className="flex-1 resize-none border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 max-h-20 min-h-[40px]"
+            className="flex-1 resize-none border border-zenith-border dark:border-gray-600 rounded-lg px-3 py-2 bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 max-h-20 min-h-[40px]"
             rows={1}
           />
           

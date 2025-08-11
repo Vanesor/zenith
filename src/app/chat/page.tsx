@@ -352,19 +352,19 @@ export default function ChatPage() {
   const getRoomTypeColor = (type: string) => {
     switch (type) {
       case "public":
-        return "text-green-600 dark:text-green-400";
+        return "text-emerald-500 dark:text-emerald-400";
       case "private":
-        return "text-blue-600 dark:text-blue-400";
+        return "text-zenith-primary dark:text-blue-400";
       case "club":
-        return "text-purple-600 dark:text-purple-400";
+        return "text-purple-500 dark:text-purple-400";
       default:
-        return "text-gray-600 dark:text-gray-400";
+        return "text-zenith-secondary";
     }
   };
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -375,13 +375,13 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-zenith-primary mb-2">
             Chat Rooms
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-zenith-secondary">
             Connect with your peers and club members in real-time
           </p>
         </div>
@@ -389,17 +389,17 @@ export default function ChatPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-[calc(100vh-8rem)] overflow-hidden">
           {/* Sidebar - Room List */}
           <div className="lg:col-span-1 max-h-full overflow-hidden">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-full flex flex-col">
+            <div className="bg-zenith-card rounded-xl shadow-lg h-full flex flex-col">
               {/* Search and Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <div className="p-4 border-b border-zenith-border flex-shrink-0">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h2 className="text-lg font-semibold text-zenith-primary">
                     Rooms
                   </h2>
                   {isManager && (
                     <button
                       onClick={() => setShowCreateRoom(true)}
-                      className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                      className="p-2 text-zenith-muted hover:text-zenith-accent transition-colors rounded-lg hover:bg-zenith-hover"
                       title="Create new room"
                     >
                       <Plus className="w-5 h-5" />
@@ -411,20 +411,20 @@ export default function ChatPage() {
                   placeholder="Search rooms..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-zenith-border rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-main text-zenith-primary placeholder-zenith-muted"
                 />
               </div>
 
               {/* Room List */}
               <div 
-                className="flex-1 overflow-y-auto max-h-[calc(100vh-15rem)]" 
+                className="flex-1 overflow-y-auto max-h-[calc(100vh-15rem)] scrollbar-thin scrollbar-thumb-zenith-border scrollbar-track-transparent scroll-smooth" 
                 style={{
                   scrollbarWidth: 'thin',
-                  scrollbarColor: 'rgba(156, 163, 175, 0.5) transparent'
+                  scrollBehavior: 'smooth'
                 }}
               >
                 {filteredRooms.length === 0 ? (
-                  <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                  <div className="p-6 text-center text-zenith-secondary">
                     <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No chat rooms available</p>
                   </div>
@@ -433,9 +433,9 @@ export default function ChatPage() {
                     {filteredRooms.map((room) => (
                     <div
                       key={room.id}
-                      className={`relative border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
+                      className={`relative border-b border-zenith-border hover:bg-zenith-hover transition-colors ${
                         selectedRoom?.id === room.id
-                          ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600"
+                          ? "bg-zenith-brand/10 border-l-4 border-l-zenith-brand"
                           : ""
                       }`}
                     >
@@ -447,10 +447,10 @@ export default function ChatPage() {
                           {getRoomIcon(room.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                          <h3 className="font-medium text-zenith-primary truncate">
                             {room.name}
                           </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                          <p className="text-sm text-zenith-secondary truncate">
                             {room.description}
                           </p>
                           <div className="flex items-center space-x-2 mt-1">
@@ -459,7 +459,7 @@ export default function ChatPage() {
                                 {room.club_name}
                               </span>
                             )}
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="text-xs text-zenith-secondary">
                               {room.members_count} members
                             </span>
                           </div>
@@ -476,14 +476,14 @@ export default function ChatPage() {
                               console.log('Menu button clicked for room:', room.id);
                               setShowRoomMenu(showRoomMenu === room.id ? null : room.id);
                             }}
-                            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors room-menu-button"
+                            className="p-2 text-zenith-muted hover:text-zenith-secondary dark:hover:text-gray-300 rounded-full hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors room-menu-button"
                           >
                             <MoreVertical className="w-4 h-4" />
                           </button>
                           
                           {/* Dropdown menu */}
                           {showRoomMenu === room.id && (
-                            <div className="absolute right-0 top-10 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10 min-w-[120px] room-menu-dropdown">
+                            <div className="absolute right-0 top-10 bg-zenith-card dark:bg-gray-800 rounded-lg shadow-lg border border-zenith-border py-1 z-10 min-w-[120px] room-menu-dropdown">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -492,7 +492,7 @@ export default function ChatPage() {
                                   setRenameValue(room.name);
                                   setShowRoomMenu(null);
                                 }}
-                                className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                                className="w-full px-3 py-2 text-left text-sm text-zenith-secondary dark:text-gray-300 hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 flex items-center space-x-2"
                               >
                                 <Edit3 className="w-4 h-4" />
                                 <span>Rename</span>
@@ -524,7 +524,7 @@ export default function ChatPage() {
           {/* Main Chat Area */}
           <div className="lg:col-span-2">
             {selectedRoom ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-full">
+              <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-sm border border-zenith-border h-full">
                 <EnhancedChatRoom
                   roomId={selectedRoom.id}
                   currentUser={{
@@ -537,8 +537,8 @@ export default function ChatPage() {
                 />
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-full flex items-center justify-center">
-                <div className="text-center text-gray-500 dark:text-gray-400">
+              <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-sm border border-zenith-border h-full flex items-center justify-center">
+                <div className="text-center text-zenith-secondary">
                   <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-medium mb-2">
                     Select a Chat Room
@@ -554,14 +554,14 @@ export default function ChatPage() {
       {/* Create Room Modal */}
       {showCreateRoom && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-zenith-primary">
                 Create New Chat Room
               </h3>
               <button
                 onClick={() => setShowCreateRoom(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -575,7 +575,7 @@ export default function ChatPage() {
                 onChange={(e) =>
                   setNewRoom({ ...newRoom, name: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
               />
 
               <textarea
@@ -584,7 +584,7 @@ export default function ChatPage() {
                 onChange={(e) =>
                   setNewRoom({ ...newRoom, description: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                 rows={3}
               />
 
@@ -596,7 +596,7 @@ export default function ChatPage() {
                     type: e.target.value as "public" | "private" | "club",
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
               >
                 <option value="club">Club Room</option>
                 <option value="public">Public Room</option>
@@ -606,13 +606,13 @@ export default function ChatPage() {
               <div className="flex space-x-3">
                 <button
                   onClick={handleCreateRoom}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
                 >
                   Create Room
                 </button>
                 <button
                   onClick={() => setShowCreateRoom(false)}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                  className="flex-1 px-4 py-2 bg-gray-300 text-zenith-secondary rounded-lg hover:bg-gray-400 transition-colors dark:bg-zenith-secondary dark:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -636,11 +636,11 @@ export default function ChatPage() {
           }}
         >
           <div 
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
+            className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-zenith-primary">
                 Rename Room
               </h3>
               <button
@@ -648,7 +648,7 @@ export default function ChatPage() {
                   setShowRenameModal(null);
                   setRenameValue("");
                 }}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -660,7 +660,7 @@ export default function ChatPage() {
                 placeholder="New room name"
                 value={renameValue}
                 onChange={(e) => setRenameValue(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                 autoFocus
               />
 
@@ -670,7 +670,7 @@ export default function ChatPage() {
                     console.log('Rename button clicked');
                     handleRenameRoom();
                   }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
                 >
                   Rename
                 </button>
@@ -679,7 +679,7 @@ export default function ChatPage() {
                     setShowRenameModal(null);
                     setRenameValue("");
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                  className="flex-1 px-4 py-2 bg-gray-300 text-zenith-secondary rounded-lg hover:bg-gray-400 transition-colors dark:bg-zenith-secondary dark:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -702,23 +702,23 @@ export default function ChatPage() {
           }}
         >
           <div 
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
+            className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-zenith-primary">
                 Delete Room
               </h3>
               <button
                 onClick={() => setShowDeleteModal(null)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-zenith-secondary dark:text-gray-300">
                 Are you sure you want to delete the room "{showDeleteModal.name}"? 
                 This action cannot be undone and all messages will be lost.
               </p>
@@ -735,7 +735,7 @@ export default function ChatPage() {
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(null)}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                  className="flex-1 px-4 py-2 bg-gray-300 text-zenith-secondary rounded-lg hover:bg-gray-400 transition-colors dark:bg-zenith-secondary dark:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -748,7 +748,7 @@ export default function ChatPage() {
       {/* Invite User Modal */}
       {showInviteModal && selectedRoom && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 max-w-full mx-4">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-lg p-6 w-96 max-w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Invite User to {selectedRoom.name}</h3>
             
             <div className="space-y-4">
@@ -782,7 +782,7 @@ export default function ChatPage() {
                   setInviteEmail('');
                   setInviteMessage('');
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                className="flex-1 px-4 py-2 border border-zenith-border rounded-lg hover:bg-zenith-section dark:border-gray-600 dark:hover:bg-zenith-secondary/90"
               >
                 Cancel
               </button>
@@ -830,7 +830,7 @@ export default function ChatPage() {
                   }
                 }}
                 disabled={!inviteEmail.trim()}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="flex-1 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 <Mail size={16} />
                 <span>Send Invite</span>

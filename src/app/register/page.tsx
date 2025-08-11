@@ -256,7 +256,7 @@ export default function RegisterPage() {
           {/* Back to Home */}
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-8 transition-colors"
+            className="inline-flex items-center text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300 mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -288,7 +288,7 @@ export default function RegisterPage() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <User className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   </div>
                   <input
                     id="firstName"
@@ -297,14 +297,14 @@ export default function RegisterPage() {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Enter your first name"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="lastName" className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                   Last Name
                 </label>
                 <input
@@ -314,7 +314,7 @@ export default function RegisterPage() {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   required
-                  className="block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full px-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter your last name"
                 />
               </div>
@@ -322,12 +322,12 @@ export default function RegisterPage() {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Mail className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                 </div>
                 <input
                   id="email"
@@ -336,7 +336,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter your email"
                 />
               </div>
@@ -345,7 +345,7 @@ export default function RegisterPage() {
             {/* Phone and Date of Birth */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="phone" className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                   Phone Number
                 </label>
                 <div className="flex">
@@ -354,14 +354,14 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                      className="flex items-center justify-between px-3 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors min-w-[100px]"
+                      className="flex items-center justify-between px-3 py-3 bg-zenith-card dark:bg-gray-700 border border-zenith-border dark:border-gray-600 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent text-zenith-primary dark:text-white hover:bg-zenith-section dark:hover:bg-zenith-secondary transition-colors min-w-[100px]"
                     >
                       <div className="flex items-center space-x-2">
                         <span className="text-lg">{selectedCountry.flag}</span>
                         <span className="text-sm font-medium">{selectedCountry.code}</span>
                       </div>
                       <ChevronDown 
-                        className={`w-4 h-4 text-gray-400 transition-transform ${
+                        className={`w-4 h-4 text-zenith-muted transition-transform ${
                           isCountryDropdownOpen ? 'rotate-180' : ''
                         }`} 
                       />
@@ -375,18 +375,18 @@ export default function RegisterPage() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.2 }}
-                          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-hidden"
+                          className="absolute top-full left-0 right-0 mt-1 bg-zenith-card dark:bg-gray-700 border border-zenith-border dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-hidden"
                         >
                           {/* Search Input */}
-                          <div className="p-2 border-b border-gray-200 dark:border-gray-600">
+                          <div className="p-2 border-b border-zenith-border dark:border-gray-600">
                             <div className="relative">
-                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zenith-muted" />
                               <input
                                 type="text"
                                 placeholder="Search countries..."
                                 value={countrySearchTerm}
                                 onChange={(e) => setCountrySearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                className="w-full pl-9 pr-3 py-2 bg-zenith-section dark:bg-zenith-secondary border border-zenith-border dark:border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-zenith-primary text-sm text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                               />
                             </div>
                           </div>
@@ -398,21 +398,21 @@ export default function RegisterPage() {
                                 key={country.code}
                                 type="button"
                                 onClick={() => handleCountrySelect(country.code)}
-                                className={`w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-left ${
+                                className={`w-full flex items-center space-x-3 px-3 py-2 hover:bg-zenith-section dark:hover:bg-zenith-secondary transition-colors text-left ${
                                   formData.countryCode === country.code 
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
-                                    : 'text-gray-900 dark:text-white'
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-zenith-primary dark:text-blue-400' 
+                                    : 'text-zenith-primary dark:text-white'
                                 }`}
                               >
                                 <span className="text-lg">{country.flag}</span>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium truncate">{country.name}</span>
-                                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">{country.code}</span>
+                                    <span className="text-sm text-zenith-muted dark:text-zenith-muted ml-2">{country.code}</span>
                                   </div>
                                 </div>
                                 {formData.countryCode === country.code && (
-                                  <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                  <Check className="w-4 h-4 text-zenith-primary dark:text-blue-400" />
                                 )}
                               </button>
                             ))}
@@ -425,7 +425,7 @@ export default function RegisterPage() {
                   {/* Phone Number Input */}
                   <div className="relative flex-1">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      <Phone className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                     </div>
                     <input
                       id="phone"
@@ -434,7 +434,7 @@ export default function RegisterPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       maxLength={10}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       placeholder="Enter 10-digit number"
                     />
                   </div>
@@ -461,12 +461,12 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                   Date of Birth
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Calendar className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   </div>
                   <input
                     id="dateOfBirth"
@@ -474,7 +474,7 @@ export default function RegisterPage() {
                     type="date"
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
                   />
                 </div>
               </div>
@@ -483,12 +483,12 @@ export default function RegisterPage() {
             {/* Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Lock className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   </div>
                   <input
                     id="password"
@@ -497,7 +497,7 @@ export default function RegisterPage() {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-10 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Create a password"
                   />
                   <button
@@ -506,21 +506,21 @@ export default function RegisterPage() {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      <EyeOff className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      <Eye className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                     )}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Lock className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   </div>
                   <input
                     id="confirmPassword"
@@ -529,7 +529,7 @@ export default function RegisterPage() {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-10 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Confirm your password"
                   />
                   <button
@@ -538,9 +538,9 @@ export default function RegisterPage() {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      <EyeOff className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      <Eye className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                     )}
                   </button>
                 </div>
@@ -549,7 +549,7 @@ export default function RegisterPage() {
 
             {/* Club Interests */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-3">
                 Which clubs interest you? (Optional)
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -560,21 +560,21 @@ export default function RegisterPage() {
                       onClick={() => handleInterestToggle(club.id)}
                       className={`w-full p-3 text-left border-2 rounded-lg transition-all ${
                         formData.interests.includes(club.id)
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-gray-300 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
+                          ? 'border-zenith-primary bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-zenith-border dark:border-gray-600 hover:border-zenith-primary dark:hover:border-blue-700'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white text-sm">
+                          <h4 className="font-medium text-zenith-primary dark:text-white text-sm">
                             {club.name}
                           </h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                          <p className="text-xs text-zenith-secondary dark:text-zenith-muted">
                             {club.description}
                           </p>
                         </div>
                         {formData.interests.includes(club.id) && (
-                          <Check className="w-5 h-5 text-blue-600" />
+                          <Check className="w-5 h-5 text-zenith-primary" />
                         )}
                       </div>
                     </button>
@@ -592,15 +592,15 @@ export default function RegisterPage() {
                 checked={formData.agreeToTerms}
                 onChange={handleInputChange}
                 required
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                className="h-4 w-4 text-zenith-primary focus:ring-zenith-primary border-zenith-border rounded mt-1"
               />
-              <label htmlFor="agreeToTerms" className="ml-3 text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor="agreeToTerms" className="ml-3 text-sm text-zenith-secondary dark:text-gray-300">
                 I agree to the{' '}
-                <Link href="/terms" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                <Link href="/terms" className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300">
                   Terms and Conditions
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                <Link href="/privacy" className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300">
                   Privacy Policy
                 </Link>
               </label>
@@ -620,10 +620,10 @@ export default function RegisterPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                <div className="w-full border-t border-zenith-border dark:border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                <span className="px-2 bg-zenith-card dark:bg-gray-800 text-zenith-muted dark:text-zenith-muted">
                   Or sign up with
                 </span>
               </div>
@@ -635,7 +635,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => signIn('google', { callbackUrl: '/onboarding' })}
-              className="flex items-center justify-center w-full py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center justify-center w-full py-2.5 px-4 border border-zenith-border dark:border-gray-600 rounded-lg shadow-sm bg-zenith-card dark:bg-gray-700 hover:bg-zenith-section dark:hover:bg-zenith-secondary transition-colors"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -660,7 +660,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => signIn('github', { callbackUrl: '/onboarding' })}
-              className="flex items-center justify-center w-full py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center justify-center w-full py-2.5 px-4 border border-zenith-border dark:border-gray-600 rounded-lg shadow-sm bg-zenith-card dark:bg-gray-700 hover:bg-zenith-section dark:hover:bg-zenith-secondary transition-colors"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
@@ -671,11 +671,11 @@ export default function RegisterPage() {
 
           {/* Login Link */}
           <div className="mt-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-zenith-secondary dark:text-zenith-muted">
               Already have an account?{' '}
               <Link
                 href="/login"
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold transition-colors"
+                className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300 font-semibold transition-colors"
               >
                 Sign in here
               </Link>

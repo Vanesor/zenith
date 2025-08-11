@@ -132,7 +132,7 @@ export default function ZenChatbot() {
       >
         <MessageCircle size={24} className="group-hover:animate-pulse" />
         <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-          <Bot size={12} className="text-gray-800" />
+          <Bot size={12} className="text-zenith-primary" />
         </div>
       </motion.button>
 
@@ -144,16 +144,16 @@ export default function ZenChatbot() {
             animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: 50, y: 50 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`fixed z-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-2xl ${
+            className={`fixed z-40 bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-600 rounded-2xl shadow-2xl ${
               isMinimized
                 ? "bottom-6 right-6 w-80 h-16"
                 : "bottom-6 right-6 w-96 h-[600px]"
             } transition-all duration-300 flex flex-col`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl flex-shrink-0">
+            <div className="flex items-center justify-between p-4 border-b border-zenith-border dark:border-gray-600 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl flex-shrink-0">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-zenith-card/20 rounded-full flex items-center justify-center">
                   <Bot size={20} className="text-white" />
                 </div>
                 <div>
@@ -166,7 +166,7 @@ export default function ZenChatbot() {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setIsMinimized(!isMinimized)}
-                  className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 text-white/80 hover:text-white hover:bg-zenith-card/20 rounded-lg transition-colors"
                 >
                   {isMinimized ? (
                     <Maximize2 size={16} />
@@ -176,7 +176,7 @@ export default function ZenChatbot() {
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 text-white/80 hover:text-white hover:bg-zenith-card/20 rounded-lg transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -200,7 +200,7 @@ export default function ZenChatbot() {
                         className={`max-w-[80%] p-3 rounded-2xl ${
                           message.sender === "user"
                             ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-none"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-none"
+                            : "bg-zenith-section dark:bg-gray-700 text-zenith-primary dark:text-white rounded-bl-none"
                         }`}
                       >
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -218,15 +218,15 @@ export default function ZenChatbot() {
 
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl rounded-bl-none">
+                      <div className="bg-zenith-section dark:bg-gray-700 p-4 rounded-2xl rounded-bl-none">
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-zenith-primary rounded-full animate-bounce"></div>
                           <div
-                            className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-zenith-primary rounded-full animate-bounce"
                             style={{ animationDelay: "0.2s" }}
                           ></div>
                           <div
-                            className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-zenith-primary rounded-full animate-bounce"
                             style={{ animationDelay: "0.4s" }}
                           ></div>
                         </div>
@@ -244,7 +244,7 @@ export default function ZenChatbot() {
                       <button
                         key={reply}
                         onClick={() => setInputMessage(reply)}
-                        className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                        className="px-3 py-1 text-xs bg-zenith-section dark:bg-gray-700 text-zenith-secondary dark:text-gray-300 rounded-full hover:bg-zenith-hover dark:hover:bg-blue-900/30 transition-colors"
                       >
                         {reply}
                       </button>
@@ -253,7 +253,7 @@ export default function ZenChatbot() {
                 </div>
 
                 {/* Input */}
-                <div className="p-4 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
+                <div className="p-4 border-t border-zenith-border dark:border-gray-600 flex-shrink-0">
                   <div className="flex space-x-3">
                     <input
                       type="text"
@@ -261,7 +261,7 @@ export default function ZenChatbot() {
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Ask Zen about Zenith..."
-                      className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      className="flex-1 p-3 border border-zenith-border dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-zenith-primary text-sm bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       disabled={isLoading}
                     />
                     <button

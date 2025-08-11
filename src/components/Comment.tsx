@@ -82,7 +82,7 @@ export default function Comment({
       treasurer: "bg-yellow-100 text-yellow-800 border-yellow-200",
       outreach: "bg-teal-100 text-teal-800 border-teal-200",
     };
-    return roleColors[role] || "bg-gray-100 text-gray-800 border-gray-200";
+    return roleColors[role] || "bg-zenith-section text-zenith-primary border-zenith-border";
   };
 
   const formatRole = (role: string) => {
@@ -269,7 +269,7 @@ export default function Comment({
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-zenith-border dark:border-gray-700">
         {/* Comment Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3">
@@ -278,7 +278,7 @@ export default function Comment({
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                <h4 className="font-semibold text-zenith-primary dark:text-white text-sm">
                   {comment.author_name}
                 </h4>
                 {comment.author_role && comment.author_role !== "member" && (
@@ -291,7 +291,7 @@ export default function Comment({
                   </span>
                 )}
               </div>
-              <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center space-x-2 text-xs text-zenith-muted dark:text-zenith-muted">
                 <Clock className="w-3 h-3" />
                 <span>{formatTimestamp(comment.created_at)}</span>
                 {comment.updated_at &&
@@ -308,7 +308,7 @@ export default function Comment({
               {canEdit() && (
                 <button
                   onClick={handleEdit}
-                  className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors p-1"
+                  className="text-zenith-muted hover:text-zenith-primary dark:text-zenith-muted dark:hover:text-blue-400 transition-colors p-1"
                   title="Edit comment"
                 >
                   <Edit className="w-4 h-4" />
@@ -317,7 +317,7 @@ export default function Comment({
               {canDelete() && (
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors p-1"
+                  className="text-zenith-muted hover:text-red-600 dark:text-zenith-muted dark:hover:text-red-400 transition-colors p-1"
                   title="Delete comment"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -334,7 +334,7 @@ export default function Comment({
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full p-3 border border-zenith-border dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                 rows={3}
                 placeholder="Write your comment..."
               />
@@ -342,7 +342,7 @@ export default function Comment({
                 <button
                   onClick={handleSaveEdit}
                   disabled={isSubmitting}
-                  className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1"
+                  className="px-3 py-1.5 bg-zenith-primary text-white rounded-md hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1"
                 >
                   {isSubmitting ? (
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
@@ -354,7 +354,7 @@ export default function Comment({
                 <button
                   onClick={handleCancelEdit}
                   disabled={isSubmitting}
-                  className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500"
+                  className="px-3 py-1.5 bg-zenith-section text-zenith-secondary rounded-md hover:bg-zenith-hover disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1 dark:bg-zenith-secondary dark:text-gray-300 dark:hover:bg-zenith-section0"
                 >
                   <X className="w-3 h-3" />
                   <span>Cancel</span>
@@ -362,7 +362,7 @@ export default function Comment({
               </div>
             </div>
           ) : (
-            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+            <p className="text-zenith-secondary dark:text-gray-300 text-sm leading-relaxed">
               {comment.content}
             </p>
           )}
@@ -376,7 +376,7 @@ export default function Comment({
               className={`flex items-center space-x-1 text-sm transition-colors ${
                 comment.isLiked
                   ? "text-red-600 dark:text-red-400"
-                  : "text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                  : "text-zenith-muted dark:text-zenith-muted hover:text-red-600 dark:hover:text-red-400"
               }`}
             >
               <Heart

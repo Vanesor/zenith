@@ -83,7 +83,7 @@ export default function AssignmentDetails() {
           <p>{error}</p>
           <button
             onClick={() => router.back()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-zenith-primary text-white rounded hover:bg-zenith-primary/90"
           >
             Go Back
           </button>
@@ -98,7 +98,7 @@ export default function AssignmentDetails() {
         <div className="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg">
           <h1 className="text-xl font-semibold">Assignment Not Found</h1>
           <p>The requested assignment could not be found.</p>
-          <Link href="/assignments" className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          <Link href="/assignments" className="mt-4 inline-block px-4 py-2 bg-zenith-primary text-white rounded hover:bg-zenith-primary/90">
             View All Assignments
           </Link>
         </div>
@@ -123,11 +123,11 @@ export default function AssignmentDetails() {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <div className="bg-zenith-card dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-bold">{assignment.title}</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{assignment.club}</p>
+            <p className="text-sm text-zenith-secondary dark:text-zenith-muted">{assignment.club}</p>
           </div>
           
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -145,34 +145,34 @@ export default function AssignmentDetails() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
+          <div className="p-3 bg-zenith-section dark:bg-gray-700 rounded">
             <p className="font-medium">Due Date</p>
             <p>{formattedDueDate} at {formattedDueTime}</p>
           </div>
           
-          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
+          <div className="p-3 bg-zenith-section dark:bg-gray-700 rounded">
             <p className="font-medium">Maximum Points</p>
             <p>{assignment.maxPoints} points</p>
           </div>
           
-          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
+          <div className="p-3 bg-zenith-section dark:bg-gray-700 rounded">
             <p className="font-medium">Assigned By</p>
             <p>{assignment.assignedBy}</p>
           </div>
           
-          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
+          <div className="p-3 bg-zenith-section dark:bg-gray-700 rounded">
             <p className="font-medium">Assignment Type</p>
             <p className="capitalize">{assignment.assignmentType || 'Regular'}</p>
           </div>
           
           {assignment.timeLimit && (
-            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
+            <div className="p-3 bg-zenith-section dark:bg-gray-700 rounded">
               <p className="font-medium">Time Limit</p>
               <p>{assignment.timeLimit} minutes</p>
             </div>
           )}
           
-          <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded">
+          <div className="p-3 bg-zenith-section dark:bg-gray-700 rounded">
             <p className="font-medium">Passing Score</p>
             <p>{assignment.passingScore || 60}%</p>
           </div>
@@ -207,21 +207,21 @@ export default function AssignmentDetails() {
         {assignment.instructions && (
           <div className="mb-6">
             <h2 className="text-lg font-semibold mb-2">Instructions</h2>
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded whitespace-pre-line">
+            <div className="p-4 bg-zenith-section dark:bg-gray-700 rounded whitespace-pre-line">
               {assignment.instructions}
             </div>
           </div>
         )}
 
         <div className="flex flex-wrap gap-3 mt-6">
-          <Link href="/assignments" className="px-4 py-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+          <Link href="/assignments" className="px-4 py-2 border rounded hover:bg-zenith-section dark:hover:bg-zenith-secondary/90">
             Back to Assignments
           </Link>
           
           {assignment.status === 'pending' && (
             <Link
               href={`/assignments/${assignmentId}/take`}
-              className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
+              className={`px-4 py-2 bg-zenith-primary text-white rounded hover:bg-zenith-primary/90 ${
                 new Date() > new Date(assignment.dueDate) ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >

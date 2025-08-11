@@ -74,7 +74,7 @@ export default function SetPasswordPage() {
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-zenith-primary"></div>
       </div>
     );
   }
@@ -92,21 +92,21 @@ export default function SetPasswordPage() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-8 transition-colors"
+          className="inline-flex items-center text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300 mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </button>
 
         {/* Set Password Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-zenith-card dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-zenith-border dark:border-gray-700">
           {/* Logo */}
           <div className="text-center mb-8">
             <ZenithLogo size="lg" className="justify-center mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-zenith-primary dark:text-white">
               Set Your Password
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-zenith-secondary dark:text-zenith-muted mt-2">
               Create a password for your account
             </p>
           </div>
@@ -131,13 +131,13 @@ export default function SetPasswordPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
               >
                 New Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Lock className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                 </div>
                 <input
                   id="password"
@@ -145,7 +145,7 @@ export default function SetPasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-10 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Create a secure password"
                 />
                 <button
@@ -154,9 +154,9 @@ export default function SetPasswordPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <EyeOff className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Eye className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   )}
                 </button>
               </div>
@@ -166,13 +166,13 @@ export default function SetPasswordPage() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
               >
                 Confirm Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Lock className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -180,7 +180,7 @@ export default function SetPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-10 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Confirm your password"
                 />
                 <button
@@ -189,16 +189,16 @@ export default function SetPasswordPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <EyeOff className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Eye className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   )}
                 </button>
               </div>
             </div>
 
             {/* Password Requirements */}
-            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+            <div className="text-sm text-zenith-secondary dark:text-zenith-muted space-y-2">
               <p>Password must:</p>
               <ul className="list-disc pl-5">
                 <li>Be at least 6 characters long</li>

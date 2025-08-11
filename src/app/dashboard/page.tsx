@@ -141,7 +141,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zenith-primary"></div>
       </div>
     );
   }
@@ -173,7 +173,7 @@ export default function DashboardPage() {
           <p className="text-zenith-muted mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90"
           >
             Retry
           </button>
@@ -209,7 +209,7 @@ export default function DashboardPage() {
                   {user?.club_id ? 1 : 0}
                 </p>
               </div>
-              <Users className="w-8 h-8 text-blue-600" />
+              <Users className="w-8 h-8 text-zenith-primary" />
             </div>
           </div>
 
@@ -279,7 +279,7 @@ export default function DashboardPage() {
                         >
                           <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="p-4 rounded-lg border border-zenith-border hover:border-blue-300 transition-colors"
+                            className="p-4 rounded-lg border border-zenith-border hover:border-zenith-primary transition-colors"
                           >
                             <div className="flex items-center space-x-3 mb-3">
                               <div
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                     </p>
                     <Link
                       href="/clubs"
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="inline-flex items-center px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
                     >
                       Browse Clubs
                     </Link>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/clubs"
-                className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                className="mt-4 inline-flex items-center text-zenith-primary hover:text-zenith-primary/90 text-sm font-medium"
               >
                 Explore all clubs →
               </Link>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
                 {announcements.map((announcement) => (
                   <div
                     key={announcement.id}
-                    className="p-4 rounded-lg border border-zenith-border hover:border-blue-300 transition-colors"
+                    className="p-4 rounded-lg border border-zenith-border hover:border-zenith-primary transition-colors"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-zenith-primary">
@@ -358,7 +358,7 @@ export default function DashboardPage() {
                             ? "bg-red-100 text-red-800"
                             : announcement.priority === "medium"
                             ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
+                            : "bg-zenith-section text-zenith-primary"
                         }`}
                       >
                         {announcement.priority}
@@ -390,7 +390,7 @@ export default function DashboardPage() {
                 {upcomingEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="border-l-4 border-blue-500 pl-4"
+                    className="border-l-4 border-zenith-primary pl-4"
                   >
                     <h3 className="font-medium text-zenith-primary text-sm">
                       {event.title}
@@ -414,7 +414,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/events"
-                className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                className="mt-4 inline-flex items-center text-zenith-primary hover:text-zenith-primary/90 text-sm font-medium"
               >
                 View all events →
               </Link>
@@ -440,7 +440,7 @@ export default function DashboardPage() {
                   href="/calendar"
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
                 >
-                  <Calendar size={16} className="text-blue-600" />
+                  <Calendar size={16} className="text-zenith-primary" />
                   <span className="text-sm text-zenith-primary">
                     Calendar & Events
                   </span>
@@ -460,7 +460,7 @@ export default function DashboardPage() {
                   href="/profile"
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
                 >
-                  <Settings size={16} className="text-gray-600" />
+                  <Settings size={16} className="text-zenith-secondary" />
                   <span className="text-sm text-zenith-primary">
                     Profile Settings
                   </span>

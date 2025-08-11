@@ -213,7 +213,7 @@ export default function CalendarPage() {
           {user && ["coordinator", "co_coordinator", "secretary", "president", "vice_president"].includes(user.role) && (
             <button 
               onClick={() => router.push('/calendar/create')}
-              className="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
             >
               <Plus size={16} className="mr-2" />
               Create Event
@@ -233,7 +233,7 @@ export default function CalendarPage() {
                   {events.length}
                 </p>
               </div>
-              <Calendar className="w-8 h-8 text-blue-600" />
+              <Calendar className="w-8 h-8 text-zenith-primary" />
             </div>
           </div>
           <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
@@ -298,7 +298,7 @@ export default function CalendarPage() {
                   placeholder="Search events..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary"
                 />
               </div>
             </div>
@@ -309,7 +309,7 @@ export default function CalendarPage() {
                 onClick={() => setView("list")}
                 className={`px-4 py-3 font-medium transition-colors ${
                   view === "list"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-zenith-primary text-white"
                     : "bg-zenith-card text-zenith-secondary hover:bg-zenith-hover"
                 }`}
               >
@@ -319,7 +319,7 @@ export default function CalendarPage() {
                 onClick={() => setView("calendar")}
                 className={`px-4 py-3 font-medium transition-colors ${
                   view === "calendar"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-zenith-primary text-white"
                     : "bg-zenith-card text-zenith-secondary hover:bg-zenith-hover"
                 }`}
               >
@@ -339,8 +339,8 @@ export default function CalendarPage() {
                   }
                   className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
                     filterType === filterOption.key
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      ? "bg-zenith-primary text-white"
+                      : "bg-zenith-section dark:bg-gray-700 text-zenith-secondary dark:text-gray-300 hover:bg-zenith-section dark:hover:bg-zenith-secondary"
                   }`}
                 >
                   {filterOption.label}
@@ -364,7 +364,7 @@ export default function CalendarPage() {
             </div>
           ) : filteredEvents.length === 0 ? (
             <div className="bg-zenith-card rounded-xl shadow-lg p-12 text-center">
-              <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <Calendar className="w-16 h-16 text-zenith-muted mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                 No events found
               </h3>
@@ -379,7 +379,7 @@ export default function CalendarPage() {
               <div
                 key={event.id}
                 className={`bg-zenith-card rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-xl ${
-                  isToday(event.event_date) ? "border-l-4 border-blue-500" : ""
+                  isToday(event.event_date) ? "border-l-4 border-zenith-primary" : ""
                 }`}
               >
                 <div className="p-6">
@@ -403,7 +403,7 @@ export default function CalendarPage() {
                         <p className="text-zenith-muted mb-4">
                           {event.description}
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500 dark:text-gray-500">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-zenith-muted dark:text-zenith-muted">
                           <div className="flex items-center">
                             <Calendar size={16} className="mr-2" />
                             {getDateLabel(event.event_date)}
@@ -421,13 +421,13 @@ export default function CalendarPage() {
                       </div>
                     </div>
                     <div className="text-right ml-4">
-                      <div className="text-sm text-gray-500 dark:text-gray-500 mb-1">
+                      <div className="text-sm text-zenith-muted dark:text-zenith-muted mb-1">
                         Attendees
                       </div>
                       <div className="text-lg font-semibold text-zenith-primary">
                         {event.attendees}
                         {event.maxAttendees && (
-                          <span className="text-sm text-gray-500 dark:text-gray-500">
+                          <span className="text-sm text-zenith-muted dark:text-zenith-muted">
                             /{event.maxAttendees}
                           </span>
                         )}
@@ -435,14 +435,14 @@ export default function CalendarPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between pt-4 border-t border-zenith-border dark:border-gray-700">
                     <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-500 dark:text-gray-500">
+                      <span className="text-sm text-zenith-muted dark:text-zenith-muted">
                         Organized by {event.organizer}
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <button className="flex items-center px-4 py-2 text-zenith-muted hover:text-gray-900 dark:hover:text-white transition-colors">
+                      <button className="flex items-center px-4 py-2 text-zenith-muted hover:text-zenith-primary dark:hover:text-white transition-colors">
                         <ExternalLink size={16} className="mr-2" />
                         View Details
                       </button>
@@ -456,7 +456,7 @@ export default function CalendarPage() {
                       ) : (
                         <button 
                           onClick={() => toggleEventAttendance(event.id, false)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                          className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors disabled:bg-gray-300 disabled:text-zenith-muted disabled:cursor-not-allowed"
                           disabled={event.maxAttendees ? (event.attendees >= event.maxAttendees) : false}
                         >
                           {event.maxAttendees && event.attendees >= event.maxAttendees 

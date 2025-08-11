@@ -42,9 +42,9 @@ export default function ConfirmationModal({
         };
       case "info":
         return {
-          icon: "text-blue-600",
-          button: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
-          accent: "text-blue-600",
+          icon: "text-zenith-primary",
+          button: "bg-zenith-primary hover:bg-zenith-primary/90 focus:ring-zenith-primary",
+          accent: "text-zenith-primary",
         };
       default:
         return {
@@ -58,21 +58,21 @@ export default function ConfirmationModal({
   const styles = getTypeStyles();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+    <div className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+      <div className="bg-zenith-card rounded-lg shadow-xl max-w-md w-full">
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
           <div className="flex items-center">
             <div className={`flex-shrink-0 ${styles.icon} mr-3`}>
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            <h3 className="text-lg font-medium text-zenith-primary">
               {title}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-zenith-muted hover:text-zenith-secondary transition-colors focus-ring"
             disabled={isLoading}
           >
             <X className="w-6 h-6" />
@@ -81,22 +81,22 @@ export default function ConfirmationModal({
 
         {/* Content */}
         <div className="px-6 pb-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
+          <p className="text-sm text-zenith-muted">{message}</p>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end space-x-3 px-6 py-4 bg-gray-50 dark:bg-gray-700 rounded-b-lg">
+        <div className="flex items-center justify-end space-x-3 px-6 py-4 bg-zenith-section rounded-b-lg">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-medium text-zenith-secondary bg-zenith-card border border-zenith-border rounded-md hover:bg-zenith-hover focus-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`px-4 py-2 text-sm font-medium text-white ${styles.button} border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+            className={`px-4 py-2 text-sm font-medium text-white ${styles.button} border border-transparent rounded-md focus-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
           >
             {isLoading ? (
               <div className="flex items-center">

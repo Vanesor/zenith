@@ -14,7 +14,7 @@ export function CollegeHeader({ className = "" }: CollegeHeaderProps) {
           {/* Left - College Logo and Name */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-zenith-card rounded-full flex items-center justify-center">
                 <span className="text-blue-800 font-bold text-sm">GOVT</span>
               </div>
               <div className="hidden sm:block">
@@ -38,7 +38,7 @@ export function CollegeHeader({ className = "" }: CollegeHeaderProps) {
               <h2 className="text-sm font-semibold">Zenith Platform</h2>
               <p className="text-xs text-blue-100">Student Management System</p>
             </div>
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-zenith-card rounded-full flex items-center justify-center">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">Z</span>
               </div>

@@ -26,7 +26,7 @@ const clubs = [
     icon: Code,
     color: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-50 dark:bg-blue-900/20",
-    textColor: "text-blue-600 dark:text-blue-400",
+    textColor: "text-zenith-primary dark:text-blue-400",
     borderColor: "border-blue-200 dark:border-blue-800",
     members: 156,
     rating: 4.8,
@@ -144,7 +144,7 @@ export default function ClubsPage() {
               placeholder="Search clubs, skills, or activities..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary placeholder-zenith-muted"
+              className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary placeholder-zenith-muted"
             />
           </div>
 
@@ -153,7 +153,7 @@ export default function ClubsPage() {
             <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value)}
-              className="pl-10 pr-8 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+              className="pl-10 pr-8 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary"
             >
               <option value="all">All Clubs</option>
               <option value="coding">Coding</option>
@@ -172,7 +172,7 @@ export default function ClubsPage() {
           className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12"
         >
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600">
+            <div className="text-3xl font-bold text-zenith-primary">
               4
             </div>
             <div className="text-sm text-zenith-muted">
@@ -242,12 +242,14 @@ export default function ClubsPage() {
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-bold text-zenith-primary mb-2">
+                <h3 className="text-3xl font-bold text-zenith-primary mb-3 leading-tight">
                   {club.name}
                 </h3>
-                <p className="text-sm text-zenith-muted mb-1">
-                  {club.type}
-                </p>
+                <div className="inline-block bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 px-4 py-2 rounded-lg">
+                  <p className="text-sm font-semibold text-zenith-primary bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {club.type}
+                  </p>
+                </div>
                 <p className="text-zenith-secondary mb-6 leading-relaxed">
                   {club.description}
                 </p>
@@ -273,7 +275,7 @@ export default function ClubsPage() {
                     </span>
                   </div>
                   <div className="flex items-center text-sm">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                    <div className="w-2 h-2 bg-zenith-primary rounded-full mr-3"></div>
                     <span className="text-zenith-muted">
                       Upcoming: {club.upcomingEvent}
                     </span>
@@ -335,7 +337,7 @@ export default function ClubsPage() {
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
+            className="inline-flex items-center bg-zenith-card text-zenith-brand px-8 py-3 rounded-lg hover:bg-zenith-hover transition-colors font-semibold border border-zenith-border"
           >
             Get Started Today
             <ArrowRight className="ml-2 w-5 h-5" />

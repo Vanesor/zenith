@@ -145,7 +145,7 @@ export default function AssignmentResults() {
   const getScoreColor = (percentage: number, isPassing: boolean) => {
     if (isPassing) {
       if (percentage >= 90) return 'text-green-600 dark:text-green-400';
-      if (percentage >= 80) return 'text-blue-600 dark:text-blue-400';
+      if (percentage >= 80) return 'text-zenith-primary dark:text-blue-400';
       return 'text-yellow-600 dark:text-yellow-400';
     }
     return 'text-red-600 dark:text-red-400';
@@ -213,15 +213,15 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
 
   if (!results) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <AlertTriangle className="w-16 h-16 text-zenith-muted mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
             Results not available
           </h2>
           <button
             onClick={() => router.push('/assignments')}
-            className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            className="mt-4 px-6 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg"
           >
             Back to Assignments
           </button>
@@ -238,15 +238,15 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
           <div className="flex items-center">
             <button
               onClick={() => router.push('/assignments')}
-              className="mr-4 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="mr-4 p-2 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white"
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-zenith-primary dark:text-white">
                 Assignment Results
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-zenith-secondary dark:text-zenith-muted">
                 {results.title}
               </p>
             </div>
@@ -255,14 +255,14 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
           <div className="flex items-center space-x-3">
             <button
               onClick={downloadResults}
-              className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
+              className="flex items-center px-4 py-2 bg-zenith-secondary hover:bg-zenith-secondary/90 text-white rounded-lg"
             >
               <Download className="w-4 h-4 mr-2" />
               Download
             </button>
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+              className="flex items-center px-4 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg"
             >
               <Eye className="w-4 h-4 mr-2" />
               {showDetails ? 'Hide Details' : 'Show Details'}
@@ -272,42 +272,42 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
 
         {/* Results Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
             <div className={`text-4xl font-bold mb-2 ${getScoreColor(results.percentage, results.isPassing)}`}>
               {results.percentage.toFixed(1)}%
             </div>
-            <div className="text-gray-600 dark:text-gray-400 mb-1">Final Score</div>
-            <div className="text-sm text-gray-500 dark:text-gray-500">
+            <div className="text-zenith-secondary dark:text-zenith-muted mb-1">Final Score</div>
+            <div className="text-sm text-zenith-muted dark:text-zenith-muted">
               {results.totalScore}/{results.maxScore} points
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
             <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.percentage, results.isPassing)}`}>
               {getGradeLabel(results.percentage, results.isPassing)}
             </div>
-            <div className="text-gray-600 dark:text-gray-400 mb-1">Grade</div>
+            <div className="text-zenith-secondary dark:text-zenith-muted mb-1">Grade</div>
             <div className={`text-sm font-medium ${results.isPassing ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {results.isPassing ? 'PASSED' : 'FAILED'}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
+            <div className="text-3xl font-bold text-zenith-primary dark:text-blue-400 mb-2">
               {formatTime(results.timeSpent)}
             </div>
-            <div className="text-gray-600 dark:text-gray-400 mb-1">Time Spent</div>
-            <div className="text-sm text-gray-500 dark:text-gray-500">
+            <div className="text-zenith-secondary dark:text-zenith-muted mb-1">Time Spent</div>
+            <div className="text-sm text-zenith-muted dark:text-zenith-muted">
               of {formatTime(results.timeLimit)}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
             <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
               {results.attempt}
             </div>
-            <div className="text-gray-600 dark:text-gray-400 mb-1">Attempt</div>
-            <div className="text-sm text-gray-500 dark:text-gray-500">
+            <div className="text-zenith-secondary dark:text-zenith-muted mb-1">Attempt</div>
+            <div className="text-sm text-zenith-muted dark:text-zenith-muted">
               of {results.totalAttempts}
             </div>
           </div>
@@ -348,36 +348,36 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
         </div>
 
         {/* Assignment Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+          <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-4">
             Assignment Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center">
-              <User className="w-4 h-4 text-gray-500 mr-2" />
-              <span className="text-gray-600 dark:text-gray-400">Student:</span>
-              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+              <User className="w-4 h-4 text-zenith-muted mr-2" />
+              <span className="text-zenith-secondary dark:text-zenith-muted">Student:</span>
+              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
                 {user?.name || 'Unknown'}
               </span>
             </div>
             <div className="flex items-center">
-              <Calendar className="w-4 h-4 text-gray-500 mr-2" />
-              <span className="text-gray-600 dark:text-gray-400">Submitted:</span>
-              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+              <Calendar className="w-4 h-4 text-zenith-muted mr-2" />
+              <span className="text-zenith-secondary dark:text-zenith-muted">Submitted:</span>
+              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
                 {new Date(results.submittedAt).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center">
-              <FileText className="w-4 h-4 text-gray-500 mr-2" />
-              <span className="text-gray-600 dark:text-gray-400">Questions:</span>
-              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+              <FileText className="w-4 h-4 text-zenith-muted mr-2" />
+              <span className="text-zenith-secondary dark:text-zenith-muted">Questions:</span>
+              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
                 {results.questions.length}
               </span>
             </div>
             <div className="flex items-center">
-              <Target className="w-4 h-4 text-gray-500 mr-2" />
-              <span className="text-gray-600 dark:text-gray-400">Status:</span>
-              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+              <Target className="w-4 h-4 text-zenith-muted mr-2" />
+              <span className="text-zenith-secondary dark:text-zenith-muted">Status:</span>
+              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
                 {results.status.charAt(0).toUpperCase() + results.status.slice(1)}
               </span>
             </div>
@@ -419,18 +419,18 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
 
         {/* Question Results */}
         {(results.allowReview || showDetails) && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-6">
               Question Results
             </h3>
             
             <div className="space-y-4">
               {results.questions.map((question, index) => (
-                <div key={question.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div key={question.id} className="border border-zenith-border dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <span className="text-lg font-semibold text-gray-900 dark:text-white mr-3">
+                        <span className="text-lg font-semibold text-zenith-primary dark:text-white mr-3">
                           Question {index + 1}
                         </span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -440,14 +440,14 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                         }`}>
                           {question.pointsAwarded}/{question.maxPoints} points
                         </span>
-                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                        <span className="ml-2 text-xs text-zenith-muted dark:text-zenith-muted bg-zenith-section dark:bg-gray-700 px-2 py-1 rounded">
                           {question.type.replace('-', ' ').toUpperCase()}
                         </span>
                       </div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                      <h4 className="font-medium text-zenith-primary dark:text-white mb-2">
                         {question.title}
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-3">
                         {question.description}
                       </p>
                     </div>
@@ -465,16 +465,16 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                   {showDetails && (
                     <div className="space-y-3 text-sm">
                       <div>
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                        <span className="font-medium text-zenith-secondary dark:text-gray-300">
                           Your Answer:
                         </span>
-                        <div className="mt-1 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                        <div className="mt-1 p-2 bg-zenith-section dark:bg-gray-700 rounded">
                           {question.type === 'coding' ? (
-                            <pre className="text-xs overflow-x-auto p-4 bg-gray-100 dark:bg-gray-800 rounded">
+                            <pre className="text-xs overflow-x-auto p-4 bg-zenith-section dark:bg-gray-800 rounded">
                               {question.userAnswer?.code ? question.userAnswer.code : 'No code submitted'}
                             </pre>
                           ) : (
-                            <span className="text-gray-900 dark:text-white">
+                            <span className="text-zenith-primary dark:text-white">
                               {Array.isArray(question.userAnswer)
                                 ? question.userAnswer.join(', ')
                                 : question.userAnswer || 'No answer provided'
@@ -502,7 +502,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                       
                       {question.testCaseResults && question.testCaseResults.length > 0 && (
                         <div>
-                          <span className="font-medium text-gray-700 dark:text-gray-300">
+                          <span className="font-medium text-zenith-secondary dark:text-gray-300">
                             Test Case Results:
                           </span>
                           <div className="mt-2 space-y-2">
@@ -540,7 +540,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                           <span className="font-medium text-purple-700 dark:text-purple-300">
                             AI Code Analysis:
                           </span>
-                          <div className="mt-2 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded text-sm text-gray-800 dark:text-gray-300 whitespace-pre-line">
+                          <div className="mt-2 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded text-sm text-zenith-primary dark:text-gray-300 whitespace-pre-line">
                             {question.analysisContent}
                           </div>
                         </div>
@@ -570,7 +570,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
         <div className="mt-8 flex justify-center space-x-4">
           <button
             onClick={() => router.push('/assignments')}
-            className="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg"
+            className="px-8 py-3 bg-zenith-secondary hover:bg-zenith-secondary/90 text-white font-semibold rounded-lg"
           >
             Back to Assignments
           </button>
@@ -578,7 +578,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
           {results.attempt < results.totalAttempts && !results.isPassing && (
             <button
               onClick={() => router.push(`/assignments/${assignmentId}/take`)}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+              className="px-8 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white font-semibold rounded-lg"
             >
               Try Again
             </button>

@@ -35,7 +35,7 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">$1</code>')
+      .replace(/`(.*?)`/g, '<code class="bg-zenith-section px-1 rounded">$1</code>')
       .replace(/\n/g, '<br>');
   };
 
@@ -56,18 +56,18 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
       case 'integer':
         return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        return 'bg-zenith-section text-zenith-secondary';
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-zenith-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-zenith-border">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <Eye className="w-5 h-5 text-zenith-primary dark:text-blue-400" />
+              <h2 className="text-xl font-semibold text-zenith-primary">
                 Question Preview
               </h2>
             </div>
@@ -75,11 +75,11 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getQuestionTypeColor(question.type)}`}>
                 {question.type.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-zenith-secondary">
                 <strong>{question.points}</strong> points
               </span>
               {question.timeLimit && (
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-zenith-secondary">
                   <strong>{question.timeLimit}</strong> minutes
                 </span>
               )}
@@ -87,7 +87,7 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="p-2 text-zenith-muted hover:text-zenith-secondary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -97,11 +97,11 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
           <div className="space-y-6">
             {/* Question Title */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+              <h3 className="text-lg font-semibold text-zenith-primary mb-3">
                 {question.title}
               </h3>
               <div 
-                className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
+                className="prose prose-sm dark:prose-invert max-w-none text-zenith-secondary dark:text-gray-300"
                 dangerouslySetInnerHTML={{ __html: renderMarkdown(question.description) }}
               />
             </div>
@@ -109,7 +109,7 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
             {/* Multiple Choice / Multi-Select / True-False Options */}
             {(question.type === 'multiple-choice' || question.type === 'multi-select' || question.type === 'true-false') && question.options && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-3">
                   Answer Options:
                 </h4>
                 <div className="space-y-2">
@@ -124,13 +124,13 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
                         className={`p-3 rounded-lg border transition-colors ${
                           isCorrect
                             ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                            : 'bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
+                            : 'bg-zenith-section border-zenith-border dark:bg-gray-700 dark:border-gray-600'
                         }`}
                       >
                         <div className={`flex items-start space-x-3 ${
                           isCorrect
                             ? 'text-green-800 dark:text-green-300'
-                            : 'text-gray-800 dark:text-gray-300'
+                            : 'text-zenith-primary dark:text-gray-300'
                         }`}>
                           <span className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold">
                             {String.fromCharCode(65 + index)}
@@ -157,10 +157,10 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
               <div className="space-y-4">
                 {question.language && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Programming Language:
                     </h4>
-                    <div className="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg text-sm">
+                    <div className="bg-zenith-section dark:bg-gray-700 px-3 py-2 rounded-lg text-sm">
                       {question.language}
                     </div>
                   </div>
@@ -168,7 +168,7 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
 
                 {question.starterCode && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Starter Code:
                     </h4>
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
@@ -179,26 +179,26 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
 
                 {question.testCases && question.testCases.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-3">
                       Test Cases:
                     </h4>
                     <div className="space-y-3">
                       {question.testCases.map((testCase, index) => (
-                        <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <div key={index} className="bg-zenith-section dark:bg-gray-700 p-4 rounded-lg">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <h5 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                              <h5 className="text-xs font-medium text-zenith-secondary mb-2">
                                 Input:
                               </h5>
-                              <pre className="bg-white dark:bg-gray-800 p-2 rounded text-xs overflow-x-auto">
+                              <pre className="bg-zenith-card p-2 rounded text-xs overflow-x-auto">
                                 {testCase.input}
                               </pre>
                             </div>
                             <div>
-                              <h5 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                              <h5 className="text-xs font-medium text-zenith-secondary mb-2">
                                 Expected Output:
                               </h5>
-                              <pre className="bg-white dark:bg-gray-800 p-2 rounded text-xs overflow-x-auto">
+                              <pre className="bg-zenith-card p-2 rounded text-xs overflow-x-auto">
                                 {testCase.output}
                               </pre>
                             </div>
@@ -285,14 +285,14 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
             {/* Question Tags */}
             {question.tags && question.tags.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                   Tags:
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {question.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded"
+                      className="px-2 py-1 bg-zenith-section dark:bg-gray-700 text-zenith-secondary dark:text-gray-300 text-xs rounded"
                     >
                       {tag}
                     </span>

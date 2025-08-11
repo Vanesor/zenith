@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import SafeAvatar from "@/components/SafeAvatar";
 import {
   User,
   Mail,
@@ -28,7 +28,6 @@ import {
   AlertTriangle,
   Smartphone,
 } from "lucide-react";
-import MainLayout from "@/components/MainLayout";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -691,26 +690,27 @@ export default function ProfilePage() {
 
   if (isLoading || !user || loadingProfile) {
     return (
-      <MainLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-            <p className="text-gray-600 dark:text-gray-300">Loading profile...</p>
-          </div>
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zenith-accent"></div>
+          <p className="text-zenith-muted">Loading profile...</p>
         </div>
-      </MainLayout>
+      </div>
     );
   }
   
   return (
-    <MainLayout>
-      <div className="min-h-screen bg-zenith-main transition-colors duration-300">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}
         <div className="bg-zenith-card rounded-2xl shadow-xl overflow-hidden mb-8">
           {/* Success/Error Messages */}
           {(profileSuccess || profileError) && (
-            <div className={`px-6 py-3 ${profileSuccess ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'} border-l-4`}>
+            <div className={`px-6 py-3 border-l-4 ${
+              profileSuccess 
+                ? 'bg-green-50 border-green-400 text-green-700' 
+                : 'bg-red-50 border-red-400 text-red-700'
+            }`}>
               <div className="flex items-center">
                 {profileSuccess ? (
                   <CheckCircle size={20} className="mr-2" />
@@ -726,19 +726,19 @@ export default function ProfilePage() {
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
               <div className="relative">
                 <div 
-                  className={`w-32 h-32 bg-white/20 rounded-full flex items-center justify-center overflow-hidden cursor-pointer transition-all ${isEditing ? 'hover:bg-white/30 border-2 border-dashed border-transparent hover:border-white/50' : ''}`}
+                  className={`w-32 h-32 bg-zenith-card/20 rounded-full flex items-center justify-center overflow-hidden cursor-pointer transition-all ${isEditing ? 'hover:bg-zenith-card/30 border-2 border-dashed border-transparent hover:border-white/50' : ''}`}
                   onClick={isEditing ? triggerAvatarUpload : undefined}
                   onDrop={isEditing ? handleAvatarDrop : undefined}
                   onDragOver={isEditing ? handleAvatarDragOver : undefined}
                   title={isEditing ? "Click to upload or drag & drop an image" : undefined}
                 >
                   {(avatarPreview || profile.avatar) ? (
-                    <Image
+                    <SafeAvatar
                       src={avatarPreview || profile.avatar}
                       alt="Profile"
-                      className="w-full h-full rounded-full object-cover"
-                      width={128}
-                      height={128}
+                      fallbackName={profile.firstName || profile.email}
+                      size="xl"
+                      className="w-full h-full"
                     />
                   ) : (
                     <div className="flex flex-col items-center text-center">
@@ -758,7 +758,7 @@ export default function ProfilePage() {
                   <button 
                     onClick={triggerAvatarUpload}
                     disabled={uploadingAvatar}
-                    className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
+                    className="absolute bottom-0 right-0 w-10 h-10 bg-zenith-primary rounded-full flex items-center justify-center hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
                     title="Change profile picture"
                   >
                     <Camera size={20} className="text-white" />
@@ -804,7 +804,7 @@ export default function ProfilePage() {
                 {!isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="px-6 py-3 bg-white/20 text-white rounded-lg border border-white/30 hover:bg-white/30 transition-all flex items-center"
+                    className="px-6 py-3 bg-zenith-card/20 text-white rounded-lg border border-white/30 hover:bg-zenith-card/30 transition-all flex items-center"
                   >
                     <Edit size={20} className="mr-2" />
                     Edit Profile
@@ -830,7 +830,7 @@ export default function ProfilePage() {
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="px-6 py-3 bg-white/20 text-white rounded-lg border border-white/30 hover:bg-white/30 transition-all flex items-center"
+                      className="px-6 py-3 bg-zenith-card/20 text-white rounded-lg border border-white/30 hover:bg-zenith-card/30 transition-all flex items-center"
                     >
                       <X size={20} className="mr-2" />
                       Cancel
@@ -852,7 +852,6 @@ export default function ProfilePage() {
                 { id: "submissions", label: "Submissions", icon: FileText },
                 { id: "settings", label: "Settings", icon: Settings },
                 { id: "security", label: "Security", icon: Lock },
-                { id: "notifications", label: "Notifications", icon: Bell },
               ].map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -861,8 +860,8 @@ export default function ProfilePage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center transition-colors ${
                       activeTab === tab.id
-                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                        ? "border-zenith-primary text-zenith-primary dark:text-blue-400"
+                        : "border-transparent text-zenith-muted dark:text-zenith-muted hover:text-zenith-secondary dark:hover:text-gray-300"
                     }`}
                   >
                     <Icon size={16} className="mr-2" />
@@ -878,7 +877,7 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       First Name
                     </label>
                     <input
@@ -888,11 +887,11 @@ export default function ProfilePage() {
                         setProfile({ ...profile, firstName: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Last Name
                     </label>
                     <input
@@ -902,11 +901,11 @@ export default function ProfilePage() {
                         setProfile({ ...profile, lastName: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Username
                     </label>
                     <input
@@ -916,22 +915,22 @@ export default function ProfilePage() {
                         setProfile({ ...profile, username: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Email
                     </label>
                     <input
                       type="email"
                       value={profile.email}
                       disabled={true} // Email usually shouldn't be editable
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-zenith-primary"
+                      className="w-full p-3 border border-zenith-border dark:border-gray-600 rounded-lg bg-zenith-section dark:bg-gray-800 text-zenith-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Phone
                     </label>
                     <input
@@ -941,12 +940,12 @@ export default function ProfilePage() {
                         setProfile({ ...profile, phone: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                       placeholder="Enter phone number"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Location
                     </label>
                     <input
@@ -956,14 +955,14 @@ export default function ProfilePage() {
                         setProfile({ ...profile, location: e.target.value })
                       }
                       disabled={!isEditing}
-                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                      className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                       placeholder="Enter location"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                     Bio
                   </label>
                   <textarea
@@ -973,7 +972,7 @@ export default function ProfilePage() {
                     }
                     disabled={!isEditing}
                     rows={4}
-                    className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                    className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                     placeholder="Tell us about yourself..."
                   />
                 </div>
@@ -984,7 +983,7 @@ export default function ProfilePage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                         <Github size={16} className="inline mr-2" />
                         GitHub
                       </label>
@@ -995,12 +994,12 @@ export default function ProfilePage() {
                           setProfile({ ...profile, github: e.target.value })
                         }
                         disabled={!isEditing}
-                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                         placeholder="GitHub profile URL"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                         <Linkedin size={16} className="inline mr-2" />
                         LinkedIn
                       </label>
@@ -1011,12 +1010,12 @@ export default function ProfilePage() {
                           setProfile({ ...profile, linkedin: e.target.value })
                         }
                         disabled={!isEditing}
-                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                         placeholder="LinkedIn profile URL"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                         <Globe size={16} className="inline mr-2" />
                         Website
                       </label>
@@ -1027,7 +1026,7 @@ export default function ProfilePage() {
                           setProfile({ ...profile, website: e.target.value })
                         }
                         disabled={!isEditing}
-                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
+                        className="w-full p-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary disabled:bg-zenith-hover"
                         placeholder="Personal website URL"
                       />
                     </div>
@@ -1050,7 +1049,7 @@ export default function ProfilePage() {
                   <button
                     onClick={fetchAssignmentHistory}
                     disabled={loadingActivities}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+                    className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 disabled:bg-blue-400 transition-colors"
                   >
                     {loadingActivities ? 'Refreshing...' : 'Refresh'}
                   </button>
@@ -1063,7 +1062,7 @@ export default function ProfilePage() {
                   </div>
                 ) : assignmentHistory.length === 0 ? (
                   <div className="text-center py-12">
-                    <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <FileText className="w-16 h-16 text-zenith-muted mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-zenith-primary mb-2">
                       No Assignments Yet
                     </h3>
@@ -1077,9 +1076,9 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                         <div className="flex items-center">
-                          <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" />
+                          <FileText className="w-8 h-8 text-zenith-primary dark:text-blue-400 mr-3" />
                           <div>
-                            <p className="text-sm text-blue-600 dark:text-blue-400">Total Assignments</p>
+                            <p className="text-sm text-zenith-primary dark:text-blue-400">Total Assignments</p>
                             <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                               {assignmentHistory.length}
                             </p>
@@ -1128,7 +1127,7 @@ export default function ProfilePage() {
 
                     {/* Assignment List */}
                     {assignmentHistory.map((assignment) => (
-                      <div key={assignment.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                      <div key={assignment.id} className="bg-zenith-section dark:bg-gray-700 rounded-lg p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
@@ -1175,13 +1174,13 @@ export default function ProfilePage() {
                             }`}>
                               {assignment.percentage.toFixed(0)}%
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-500">
+                            <div className="text-sm text-zenith-muted dark:text-zenith-muted">
                               {new Date(assignment.submittedAt).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
                         
-                        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                        <div className="w-full bg-zenith-section dark:bg-zenith-secondary rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full ${
                               assignment.percentage >= 80 
@@ -1204,17 +1203,17 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">
                       My Assignment Submissions
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                       View your assignment submission history and scores
                     </p>
                   </div>
                   <button
                     onClick={fetchSubmissions}
                     disabled={loadingSubmissions}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors disabled:opacity-50"
                   >
                     {loadingSubmissions ? "Loading..." : "Refresh"}
                   </button>
@@ -1226,11 +1225,11 @@ export default function ProfilePage() {
                   </div>
                 ) : submissions.length === 0 ? (
                   <div className="text-center py-8">
-                    <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                    <FileText className="mx-auto h-12 w-12 text-zenith-muted" />
+                    <h3 className="mt-2 text-sm font-medium text-zenith-primary dark:text-white">
                       No submissions yet
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-zenith-muted dark:text-zenith-muted">
                       You haven't submitted any assignments yet.
                     </p>
                   </div>
@@ -1239,10 +1238,10 @@ export default function ProfilePage() {
                     {submissions.map((submission) => (
                       <div 
                         key={submission.id} 
-                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+                        className="border border-zenith-border dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                          <h4 className="font-semibold text-zenith-primary dark:text-white">
                             {submission.title}
                           </h4>
                           <div className="flex items-center space-x-2">
@@ -1265,13 +1264,13 @@ export default function ProfilePage() {
                         
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                           <div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Score</div>
-                            <div className="font-semibold text-gray-900 dark:text-white">
+                            <div className="text-sm text-zenith-secondary dark:text-zenith-muted">Score</div>
+                            <div className="font-semibold text-zenith-primary dark:text-white">
                               {submission.score}/{submission.maxScore}
                             </div>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Percentage</div>
+                            <div className="text-sm text-zenith-secondary dark:text-zenith-muted">Percentage</div>
                             <div className={`font-semibold ${
                               Number(submission.percentage) >= 80 
                                 ? 'text-green-600 dark:text-green-400'
@@ -1283,20 +1282,20 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Time Spent</div>
-                            <div className="font-semibold text-gray-900 dark:text-white">
+                            <div className="text-sm text-zenith-secondary dark:text-zenith-muted">Time Spent</div>
+                            <div className="font-semibold text-zenith-primary dark:text-white">
                               {Math.floor(submission.timeSpent / 60)}m {submission.timeSpent % 60}s
                             </div>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Submitted</div>
-                            <div className="font-semibold text-gray-900 dark:text-white">
+                            <div className="text-sm text-zenith-secondary dark:text-zenith-muted">Submitted</div>
+                            <div className="font-semibold text-zenith-primary dark:text-white">
                               {new Date(submission.submittedAt).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
                         
-                        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-3">
+                        <div className="w-full bg-zenith-section dark:bg-zenith-secondary rounded-full h-2 mb-3">
                           <div 
                             className={`h-2 rounded-full ${
                               submission.percentage >= 80 
@@ -1312,7 +1311,7 @@ export default function ProfilePage() {
                         <div className="flex justify-end">
                           <button
                             onClick={() => router.push(`/assignments/${submission.assignmentId}/results`)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                            className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors text-sm"
                           >
                             View Results
                           </button>
@@ -1327,19 +1326,19 @@ export default function ProfilePage() {
             {activeTab === "security" && (
               <div className="space-y-8">
                 {/* Password Change Section */}
-                <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="p-6 bg-zenith-card dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">
                         Change Password
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                         Update your password to keep your account secure
                       </p>
                     </div>
                     <button
                       onClick={() => setShowPasswordChange(!showPasswordChange)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors flex items-center gap-2"
                     >
                       {showPasswordChange ? <X size={18} /> : <Lock size={18} />}
                       {showPasswordChange ? "Cancel" : "Change Password"}
@@ -1347,9 +1346,9 @@ export default function ProfilePage() {
                   </div>
 
                 {showPasswordChange && (
-                  <div className="space-y-4 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="space-y-4 p-6 bg-zenith-section dark:bg-gray-700 rounded-lg">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                         Current Password
                       </label>
                       <div className="relative">
@@ -1362,7 +1361,7 @@ export default function ProfilePage() {
                               currentPassword: e.target.value,
                             })
                           }
-                          className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                          className="w-full p-3 pr-10 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary"
                         />
                         <button
                           type="button"
@@ -1372,7 +1371,7 @@ export default function ProfilePage() {
                               current: !showPasswords.current,
                             })
                           }
-                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-3 text-zenith-muted hover:text-zenith-secondary"
                         >
                           {showPasswords.current ? (
                             <EyeOff size={20} />
@@ -1383,7 +1382,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                         New Password
                       </label>
                       <div className="relative">
@@ -1396,7 +1395,7 @@ export default function ProfilePage() {
                               newPassword: e.target.value,
                             })
                           }
-                          className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                          className="w-full p-3 pr-10 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary"
                         />
                         <button
                           type="button"
@@ -1406,7 +1405,7 @@ export default function ProfilePage() {
                               new: !showPasswords.new,
                             })
                           }
-                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-3 text-zenith-muted hover:text-zenith-secondary"
                         >
                           {showPasswords.new ? (
                             <EyeOff size={20} />
@@ -1417,7 +1416,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                         Confirm New Password
                       </label>
                       <div className="relative">
@@ -1430,7 +1429,7 @@ export default function ProfilePage() {
                               confirmPassword: e.target.value,
                             })
                           }
-                          className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                          className="w-full p-3 pr-10 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary"
                         />
                         <button
                           type="button"
@@ -1440,7 +1439,7 @@ export default function ProfilePage() {
                               confirm: !showPasswords.confirm,
                             })
                           }
-                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-3 text-zenith-muted hover:text-zenith-secondary"
                         >
                           {showPasswords.confirm ? (
                             <EyeOff size={20} />
@@ -1452,7 +1451,7 @@ export default function ProfilePage() {
                     </div>
                     <button
                       onClick={handlePasswordChange}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-6 py-3 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
                     >
                       Update Password
                     </button>
@@ -1460,9 +1459,9 @@ export default function ProfilePage() {
                 )}
 
                 {showPasswordChange && (
-                    <div className="space-y-4 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div className="space-y-4 p-6 bg-zenith-section dark:bg-gray-700 rounded-lg border border-zenith-border dark:border-gray-600">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                           Current Password
                         </label>
                         <div className="relative">
@@ -1475,7 +1474,7 @@ export default function ProfilePage() {
                                 currentPassword: e.target.value,
                               })
                             }
-                            className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            className="w-full p-3 pr-10 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white"
                           />
                           <button
                             type="button"
@@ -1485,7 +1484,7 @@ export default function ProfilePage() {
                                 current: !showPasswords.current,
                               })
                             }
-                            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                            className="absolute right-3 top-3 text-zenith-muted hover:text-zenith-secondary"
                           >
                             {showPasswords.current ? (
                               <EyeOff size={20} />
@@ -1496,7 +1495,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                           New Password
                         </label>
                         <div className="relative">
@@ -1509,7 +1508,7 @@ export default function ProfilePage() {
                                 newPassword: e.target.value,
                               })
                             }
-                            className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            className="w-full p-3 pr-10 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white"
                           />
                           <button
                             type="button"
@@ -1519,7 +1518,7 @@ export default function ProfilePage() {
                                 new: !showPasswords.new,
                               })
                             }
-                            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                            className="absolute right-3 top-3 text-zenith-muted hover:text-zenith-secondary"
                           >
                             {showPasswords.new ? (
                               <EyeOff size={20} />
@@ -1530,7 +1529,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                           Confirm New Password
                         </label>
                         <div className="relative">
@@ -1543,7 +1542,7 @@ export default function ProfilePage() {
                                 confirmPassword: e.target.value,
                               })
                             }
-                            className="w-full p-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            className="w-full p-3 pr-10 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white"
                           />
                           <button
                             type="button"
@@ -1553,7 +1552,7 @@ export default function ProfilePage() {
                                 confirm: !showPasswords.confirm,
                               })
                             }
-                            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                            className="absolute right-3 top-3 text-zenith-muted hover:text-zenith-secondary"
                           >
                             {showPasswords.confirm ? (
                               <EyeOff size={20} />
@@ -1565,7 +1564,7 @@ export default function ProfilePage() {
                       </div>
                       <button
                         onClick={handlePasswordChange}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        className="px-6 py-3 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors flex items-center gap-2"
                       >
                         <CheckCircle size={18} />
                         Update Password
@@ -1575,14 +1574,14 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Two-Factor Authentication Section */}
-                <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="p-6 bg-zenith-card dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Shield size={20} className="text-blue-600" />
+                      <h3 className="text-lg font-semibold text-zenith-primary dark:text-white flex items-center gap-2">
+                        <Shield size={20} className="text-zenith-primary" />
                         Two-Factor Authentication (2FA)
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                         Add an extra layer of security to your account
                       </p>
                     </div>
@@ -1605,16 +1604,16 @@ export default function ProfilePage() {
                     {/* 2FA Status and Action Button */}
                     {!twoFactorState.inProgress && !twoFactorState.showRecoveryCodes && (
                       <div className="flex flex-col space-y-6">
-                        <div className="p-5 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <div className="p-5 border border-zenith-border dark:border-gray-700 rounded-lg bg-zenith-section dark:bg-gray-700">
                           <div className="flex items-start">
                             <div className="mr-4 bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
-                              <Shield size={24} className="text-blue-600 dark:text-blue-400" />
+                              <Shield size={24} className="text-zenith-primary dark:text-blue-400" />
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 dark:text-white text-lg mb-1">
+                              <h4 className="font-semibold text-zenith-primary dark:text-white text-lg mb-1">
                                 {twoFactorState.enabled ? 'Two-Factor Authentication is Enabled' : 'Protect Your Account with 2FA'}
                               </h4>
-                              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                              <p className="text-zenith-secondary dark:text-zenith-muted text-sm">
                                 {twoFactorState.enabled 
                                   ? 'Your account is protected with an authenticator app. You\'ll need to enter a verification code when signing in.'
                                   : 'Two-factor authentication adds an extra layer of security to your account by requiring a verification code in addition to your password.'}
@@ -1636,7 +1635,7 @@ export default function ProfilePage() {
                                 ) : (
                                   <button 
                                     onClick={handleSetup2FA} 
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors flex items-center gap-2"
                                     disabled={twoFactorState.isLoading}
                                   >
                                     {twoFactorState.isLoading ? (
@@ -1686,12 +1685,12 @@ export default function ProfilePage() {
 
                     {/* 2FA Setup Process */}
                     {twoFactorState.inProgress && !twoFactorState.enabled && (
-                      <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <div className="space-y-6 p-6 bg-zenith-section dark:bg-gray-700 rounded-lg border border-zenith-border dark:border-gray-600">
                         <div className="text-center space-y-2">
-                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <h4 className="text-lg font-semibold text-zenith-primary dark:text-white">
                             Setup Two-Factor Authentication
                           </h4>
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-zenith-secondary dark:text-zenith-muted">
                             Scan the QR code with an authenticator app or manually enter the setup key.
                           </p>
                         </div>
@@ -1700,7 +1699,7 @@ export default function ProfilePage() {
                           {/* QR Code */}
                           <div className="flex-shrink-0">
                             {twoFactorState.qrCode && (
-                              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                              <div className="bg-zenith-card p-4 rounded-lg border border-zenith-border shadow-sm">
                                 <img 
                                   src={twoFactorState.qrCode} 
                                   alt="2FA QR Code" 
@@ -1713,11 +1712,11 @@ export default function ProfilePage() {
                           {/* Instructions */}
                           <div className="flex-1 space-y-5">
                             <div className="space-y-2">
-                              <h5 className="font-medium text-gray-800 dark:text-gray-200">1. Download an authenticator app</h5>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <h5 className="font-medium text-zenith-primary dark:text-gray-200">1. Download an authenticator app</h5>
+                              <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                                 If you don't already have an authenticator app, download one of these:
                               </p>
-                              <ul className="text-sm text-gray-600 dark:text-gray-400 list-disc pl-5 space-y-1">
+                              <ul className="text-sm text-zenith-secondary dark:text-zenith-muted list-disc pl-5 space-y-1">
                                 <li>Google Authenticator</li>
                                 <li>Microsoft Authenticator</li>
                                 <li>Authy</li>
@@ -1726,12 +1725,12 @@ export default function ProfilePage() {
                             </div>
 
                             <div className="space-y-2">
-                              <h5 className="font-medium text-gray-800 dark:text-gray-200">2. Scan QR code or enter key</h5>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <h5 className="font-medium text-zenith-primary dark:text-gray-200">2. Scan QR code or enter key</h5>
+                              <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                                 Scan the QR code with your authenticator app or manually enter this key:
                               </p>
                               {twoFactorState.tempSecret && (
-                                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-2 rounded border border-gray-300 dark:border-gray-600">
+                                <div className="flex items-center gap-2 bg-zenith-section dark:bg-gray-800 p-2 rounded border border-zenith-border dark:border-gray-600">
                                   <code className="text-sm font-mono break-all">
                                     {twoFactorState.tempSecret}
                                   </code>
@@ -1740,8 +1739,8 @@ export default function ProfilePage() {
                             </div>
 
                             <div className="space-y-2">
-                              <h5 className="font-medium text-gray-800 dark:text-gray-200">3. Verify setup</h5>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <h5 className="font-medium text-zenith-primary dark:text-gray-200">3. Verify setup</h5>
+                              <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                                 Enter the 6-digit code from your authenticator app:
                               </p>
                               <div className="flex items-center gap-2">
@@ -1751,7 +1750,7 @@ export default function ProfilePage() {
                                   maxLength={6}
                                   value={twoFactorState.verificationCode}
                                   onChange={(e) => setTwoFactorState(prev => ({...prev, verificationCode: e.target.value}))}
-                                  className="w-full max-w-[200px] p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-center text-lg font-mono tracking-widest"
+                                  className="w-full max-w-[200px] p-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white text-center text-lg font-mono tracking-widest"
                                 />
                               </div>
                             </div>
@@ -1769,17 +1768,17 @@ export default function ProfilePage() {
                         )}
                         
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-zenith-border dark:border-gray-600">
                           <button 
                             onClick={handleCancel2FASetup}
-                            className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                            className="px-4 py-2 bg-zenith-section dark:bg-zenith-secondary text-zenith-primary dark:text-gray-200 rounded-lg hover:bg-zenith-hover dark:hover:bg-zenith-section0 transition-colors"
                             disabled={twoFactorState.isLoading}
                           >
                             Cancel
                           </button>
                           <button 
                             onClick={handleVerify2FA}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors flex items-center gap-2"
                             disabled={!twoFactorState.verificationCode || twoFactorState.verificationCode.length !== 6 || twoFactorState.isLoading}
                           >
                             {twoFactorState.isLoading ? (
@@ -1797,7 +1796,7 @@ export default function ProfilePage() {
                     {twoFactorState.showRecoveryCodes && twoFactorState.recoveryCodes && (
                       <div className="space-y-4 p-6 bg-yellow-50 dark:bg-gray-700 rounded-lg border border-yellow-200 dark:border-gray-600">
                         <div className="text-center mb-4">
-                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <h4 className="text-lg font-semibold text-zenith-primary dark:text-white">
                             Save Your Recovery Codes
                           </h4>
                           <p className="text-yellow-800 dark:text-yellow-200 text-sm">
@@ -1807,7 +1806,7 @@ export default function ProfilePage() {
 
                         <div className="grid grid-cols-2 gap-3">
                           {twoFactorState.recoveryCodes.map((code, index) => (
-                            <div key={index} className="bg-white dark:bg-gray-800 p-2 border border-gray-200 dark:border-gray-600 rounded font-mono text-sm flex justify-center">
+                            <div key={index} className="bg-zenith-card dark:bg-gray-800 p-2 border border-zenith-border dark:border-gray-600 rounded font-mono text-sm flex justify-center">
                               {code}
                             </div>
                           ))}
@@ -1816,7 +1815,7 @@ export default function ProfilePage() {
                         <div className="flex justify-center pt-4">
                           <button
                             onClick={() => setTwoFactorState(prev => ({...prev, showRecoveryCodes: false}))}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            className="px-6 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors flex items-center gap-2"
                             disabled={twoFactorState.isLoading}
                           >
                             <CheckCircle size={18} />
@@ -1834,7 +1833,7 @@ export default function ProfilePage() {
                     {twoFactorState.inProgress && twoFactorState.enabled && (
                       <div className="space-y-4 p-6 bg-red-50 dark:bg-gray-700 rounded-lg border border-red-200 dark:border-gray-600">
                         <div className="text-center">
-                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <h4 className="text-lg font-semibold text-zenith-primary dark:text-white">
                             Disable Two-Factor Authentication
                           </h4>
                           <p className="text-red-800 dark:text-red-200 text-sm mt-1">
@@ -1843,7 +1842,7 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="space-y-3 mt-4">
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <p className="text-sm text-zenith-secondary dark:text-gray-300">
                             To confirm, enter the 6-digit code from your authenticator app:
                           </p>
                           <div className="flex justify-center">
@@ -1853,7 +1852,7 @@ export default function ProfilePage() {
                               maxLength={6}
                               value={twoFactorState.verificationCode}
                               onChange={(e) => setTwoFactorState(prev => ({...prev, verificationCode: e.target.value}))}
-                              className="w-full max-w-[200px] p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-center text-lg font-mono tracking-widest"
+                              className="w-full max-w-[200px] p-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white text-center text-lg font-mono tracking-widest"
                             />
                           </div>
                         </div>
@@ -1871,7 +1870,7 @@ export default function ProfilePage() {
                         <div className="flex justify-center gap-3 pt-4">
                           <button 
                             onClick={handleCancel2FASetup}
-                            className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                            className="px-4 py-2 bg-zenith-section dark:bg-zenith-secondary text-zenith-primary dark:text-gray-200 rounded-lg hover:bg-zenith-hover dark:hover:bg-zenith-section0 transition-colors"
                             disabled={twoFactorState.isLoading}
                           >
                             Cancel
@@ -1895,21 +1894,21 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Session Management Section */}
-                <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="p-6 bg-zenith-card dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Globe size={20} className="text-blue-600" />
+                      <h3 className="text-lg font-semibold text-zenith-primary dark:text-white flex items-center gap-2">
+                        <Globe size={20} className="text-zenith-primary" />
                         Active Sessions
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                         Manage your active sessions and devices
                       </p>
                     </div>
                   </div>
                   
-                  <div className="p-5 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700">
-                    <p className="text-center text-gray-600 dark:text-gray-400">
+                  <div className="p-5 border border-zenith-border dark:border-gray-700 rounded-lg bg-zenith-section dark:bg-gray-700">
+                    <p className="text-center text-zenith-secondary dark:text-zenith-muted">
                       Session management will be available soon
                     </p>
                   </div>
@@ -1954,66 +1953,9 @@ export default function ProfilePage() {
                           className="sr-only peer"
                           defaultChecked
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <div className="w-11 h-6 bg-zenith-section peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zenith-card after:border-zenith-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-zenith-primary"></div>
                       </label>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "notifications" && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-zenith-primary mb-4">
-                    Notification Preferences
-                  </h3>
-                  <div className="space-y-4">
-                    {[
-                      {
-                        title: "Email Notifications",
-                        description:
-                          "Receive email updates for important activities",
-                      },
-                      {
-                        title: "Push Notifications",
-                        description: "Get notified on your device",
-                      },
-                      {
-                        title: "Club Announcements",
-                        description: "Notifications for club announcements",
-                      },
-                      {
-                        title: "Event Reminders",
-                        description: "Reminders for upcoming events",
-                      },
-                      {
-                        title: "Assignment Deadlines",
-                        description: "Notifications for assignment due dates",
-                      },
-                    ].map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 border border-zenith-border rounded-lg"
-                      >
-                        <div>
-                          <h4 className="font-medium text-zenith-primary">
-                            {item.title}
-                          </h4>
-                          <p className="text-sm text-zenith-muted">
-                            {item.description}
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            defaultChecked
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -2022,8 +1964,7 @@ export default function ProfilePage() {
         </div>
 
         <ZenChatbot />
-        </div>
       </div>
-    </MainLayout>
+    </div>
   );
 }

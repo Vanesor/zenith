@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import jwt from 'jsonwebtoken';
-import Database from '@/lib/database';
+import { SupabaseStorageService } from '@/lib/supabaseStorage';
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,65 +41,37 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate file type
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Validate file using SupabaseStorageService
+    const validation = SupabaseStorageService.validateFile(file, 'profile', MAX_FILE_SIZE);
+    if (!validation.valid) {
       return NextResponse.json({
         success: false,
-        error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.'
+        error: validation.error
       }, { status: 400 });
     }
 
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
+    // Upload new avatar using Supabase Storage
+    const uploadResult = await SupabaseStorageService.uploadUserAvatar(
+      file,
+      file.name,
+      decoded.userId
+    );
+
+    if (!uploadResult.success) {
       return NextResponse.json({
-        success: false,
-        error: 'File too large. Maximum size is 5MB.'
-      }, { status: 400 });
-    }
-
-    // Create uploads directory for profile images
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'avatars');
-    try {
-      await mkdir(uploadsDir, { recursive: true });
-    } catch (error) {
-      console.log('Directory creation error (might already exist):', error);
-    }
-
-    // Get file buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
-    // Generate unique filename based on user ID and timestamp
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop() || 'jpg';
-    const uniqueFilename = `avatar_${decoded.userId}_${timestamp}.${fileExtension}`;
-    
-    // Save file
-    const filePath = join(uploadsDir, uniqueFilename);
-    await writeFile(filePath, buffer);
-    
-    // Generate public URL
-    const publicUrl = `/uploads/avatars/${uniqueFilename}`;
-    
-    // Update user's avatar in the database
-    try {
-      await Database.query(
-        'UPDATE users SET avatar = $1 WHERE id = $2',
-        [publicUrl, decoded.userId]
-      );
-      console.log(`✅ Database updated with avatar URL for user ${decoded.userId}`);
-    } catch (dbError) {
-      console.error('❌ Database update failed:', dbError);
-      // Don't fail the request, but log the error
+         success: false,
+        error: uploadResult.error || 'Failed to upload to Supabase Storage'
+       }, { status: 500 });
     }
     
-    console.log(`✅ Profile image uploaded for user ${decoded.userId}: ${publicUrl}`);
+    console.log(`✅ Profile image uploaded to Supabase Storage for user ${decoded.userId}: ${uploadResult.fileUrl}`);
     
     return NextResponse.json({
       success: true,
-      message: 'Profile image uploaded successfully',
-      avatarUrl: publicUrl,
-      filename: uniqueFilename
+      message: 'Profile image uploaded successfully to Supabase Storage',
+      avatarUrl: uploadResult.fileUrl,
+      fileId: uploadResult.fileId,
+      thumbnailUrl: uploadResult.thumbnailUrl
     });
 
   } catch (error) {

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { User } from 'lucide-react';
+import SafeAvatar from './SafeAvatar';
 
 interface UserAvatarProps {
   /** User's avatar URL */
@@ -100,35 +100,14 @@ export function UserAvatar({
   `.trim();
 
   return (
-    <div className={containerClasses} onClick={onClick}>
-      {avatar && avatar.trim() ? (
-        <img
-          src={avatar}
-          alt={alt || `${name || email || 'User'}'s avatar`}
-          className="object-cover w-full h-full rounded-full"
-          onError={(e) => {
-            // Hide the image on error and show fallback
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            const parent = target.parentElement;
-            if (parent) {
-              parent.innerHTML = `
-                <div class="w-full h-full flex items-center justify-center text-white font-semibold ${textSizeClass} rounded-full" 
-                     style="background: ${getBackgroundColor()}">
-                  ${getInitials()}
-                </div>
-              `;
-            }
-          }}
-        />
-      ) : (
-        <div 
-          className={`w-full h-full flex items-center justify-center text-white font-semibold ${textSizeClass}`}
-          style={{ background: getBackgroundColor() }}
-        >
-          {getInitials()}
-        </div>
-      )}
+    <div className="relative inline-flex" onClick={onClick}>
+      <SafeAvatar
+        src={avatar}
+        alt={alt || `${name || email || 'User'}'s avatar`}
+        size={size === 'xs' ? 'sm' : size === 'xl' ? 'xl' : size === 'lg' ? 'lg' : 'md'}
+        className={className}
+        fallbackName={name || email}
+      />
       
       {/* Online status indicator */}
       {showOnlineStatus && (

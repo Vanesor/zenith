@@ -75,7 +75,7 @@ export default function EventsList({ clubId }: EventsListProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zenith-primary"></div>
       </div>
     );
   }
@@ -93,14 +93,14 @@ export default function EventsList({ clubId }: EventsListProps) {
       <h2 className="text-xl font-semibold">Upcoming Events</h2>
       
       {events.length === 0 ? (
-        <p className="text-gray-500">No upcoming events</p>
+        <p className="text-zenith-muted">No upcoming events</p>
       ) : (
         <div className="space-y-4">
           {events.map((event) => (
-            <div key={event.id} className="border rounded-lg p-4 shadow-sm bg-white">
+            <div key={event.id} className="border rounded-lg p-4 shadow-sm bg-zenith-card">
               <h3 className="font-medium text-lg">{event.title}</h3>
               
-              <div className="mt-2 text-sm text-gray-500">
+              <div className="mt-2 text-sm text-zenith-muted">
                 <div className="flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
@@ -124,14 +124,14 @@ export default function EventsList({ clubId }: EventsListProps) {
               </div>
               
               {event.description && (
-                <p className="mt-2 text-sm text-gray-600">{event.description}</p>
+                <p className="mt-2 text-sm text-zenith-secondary">{event.description}</p>
               )}
               
               <div className="mt-3">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   event.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
                   event.status === 'ongoing' ? 'bg-green-100 text-green-800' :
-                  event.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                  event.status === 'completed' ? 'bg-zenith-section text-zenith-primary' :
                   'bg-red-100 text-red-800'
                 }`}>
                   {event.status}

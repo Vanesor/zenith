@@ -456,18 +456,18 @@ export default function TakeAssignment() {
 
   if (errorMessage) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+      <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex items-center justify-center">
+        <div className="max-w-md w-full bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-2">
             Assignment Unavailable
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-zenith-secondary dark:text-zenith-muted mb-6">
             {errorMessage}
           </p>
           <button
             onClick={() => router.push('/assignments')}
-            className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+            className="w-full px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg font-medium"
           >
             Back to Assignments
           </button>
@@ -478,10 +478,10 @@ export default function TakeAssignment() {
 
   if (!assignment) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <AlertTriangle className="w-16 h-16 text-zenith-muted mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
             Assignment not found
           </h2>
         </div>
@@ -537,10 +537,10 @@ export default function TakeAssignment() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold text-zenith-primary dark:text-white mb-4">
             {assignment.title}
           </h1>
-          <div className="flex items-center justify-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center justify-center space-x-6 text-sm text-zenith-secondary dark:text-zenith-muted">
             <div className="flex items-center">
               <User className="w-4 h-4 mr-2" />
               {user?.name || 'Student'}
@@ -558,55 +558,55 @@ export default function TakeAssignment() {
 
         {/* Assignment Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="flex items-center mb-3">
-              <Clock className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <Clock className="w-8 h-8 text-zenith-primary dark:text-blue-400 mr-3" />
+              <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">
                 Time Limit
               </h3>
             </div>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+            <p className="text-2xl font-bold text-zenith-primary dark:text-blue-400 mb-2">
               {formatTimeRemaining(assignment.timeLimit)}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
               Complete within time limit
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="flex items-center mb-3">
               <FileText className="w-8 h-8 text-green-600 dark:text-green-400 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">
                 Questions
               </h3>
             </div>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
               {assignment.questions.length}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
               Mixed question types
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="flex items-center mb-3">
               <CheckCircle className="w-8 h-8 text-purple-600 dark:text-purple-400 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">
                 Attempts
               </h3>
             </div>
             <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-2">
               {previousAttempts.length} / {assignment.maxAttempts}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
               Attempts used
             </p>
           </div>
         </div>
 
         {/* Assignment Description */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mb-4">
             Assignment Description
           </h2>
           <div 
@@ -629,36 +629,36 @@ export default function TakeAssignment() {
         )}
 
         {/* Assignment Features */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
+          <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-6">
             Assignment Features
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded mr-3 ${assignment.allowNavigation ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-zenith-secondary dark:text-gray-300">
                 {assignment.allowNavigation ? 'Navigation between questions allowed' : 'Sequential question navigation'}
               </span>
             </div>
             
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded mr-3 ${assignment.allowCalculator ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-zenith-secondary dark:text-gray-300">
                 {assignment.allowCalculator ? 'Calculator available' : 'No calculator allowed'}
               </span>
             </div>
             
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded mr-3 ${assignment.isProctored ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-zenith-secondary dark:text-gray-300">
                 {assignment.isProctored ? 'Proctored (monitored)' : 'Not proctored'}
               </span>
             </div>
             
             <div className="flex items-center">
-              <div className={`w-4 h-4 rounded mr-3 ${assignment.showResults ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <div className={`w-4 h-4 rounded mr-3 ${assignment.showResults ? 'bg-green-500' : 'bg-zenith-section0'}`}></div>
+              <span className="text-zenith-secondary dark:text-gray-300">
                 {assignment.showResults ? 'Results shown after submission' : 'Results not immediately shown'}
               </span>
             </div>
@@ -667,18 +667,18 @@ export default function TakeAssignment() {
 
         {/* Previous Attempts */}
         {previousAttempts.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
+            <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-4">
               Previous Attempts
             </h3>
             <div className="space-y-3">
               {previousAttempts.map((attempt, index) => (
-                <div key={attempt.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div key={attempt.id} className="flex items-center justify-between p-4 bg-zenith-section dark:bg-gray-700 rounded-lg">
                   <div>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-zenith-primary dark:text-white">
                       Attempt {index + 1}
                     </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                    <span className="text-sm text-zenith-secondary dark:text-zenith-muted ml-2">
                       {new Date(attempt.startTime).toLocaleDateString()}
                     </span>
                   </div>
@@ -688,7 +688,7 @@ export default function TakeAssignment() {
                         {attempt.score}/{assignment.maxPoints}
                       </span>
                     ) : (
-                      <span className="text-gray-500">In Progress</span>
+                      <span className="text-zenith-muted">In Progress</span>
                     )}
                   </div>
                 </div>
@@ -754,12 +754,12 @@ export default function TakeAssignment() {
             </button>
           ) : (
             <div className="text-center">
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-lg text-zenith-secondary dark:text-zenith-muted mb-4">
                 You have used all your attempts for this assignment.
               </p>
               <button
                 onClick={() => router.push('/assignments')}
-                className="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg"
+                className="px-8 py-3 bg-zenith-secondary hover:bg-zenith-secondary/90 text-white font-semibold rounded-lg"
               >
                 Back to Assignments
               </button>
@@ -768,7 +768,7 @@ export default function TakeAssignment() {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-12 text-center text-sm text-zenith-muted dark:text-zenith-muted">
           <p>
             Make sure you have a stable internet connection and enough time to complete the assignment.
             <br />
@@ -780,16 +780,16 @@ export default function TakeAssignment() {
       {/* Warning Modal */}
       {showWarningModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
               <div className="flex items-center mb-6">
                 <AlertTriangle className="w-8 h-8 text-yellow-500 mr-3" />
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-2xl font-bold text-zenith-primary dark:text-white">
                   Assignment Guidelines & Rules
                 </h2>
               </div>
               
-              <div className="space-y-4 text-gray-700 dark:text-gray-300">
+              <div className="space-y-4 text-zenith-secondary dark:text-gray-300">
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
                   <h3 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
                     Important Guidelines:
@@ -838,14 +838,14 @@ export default function TakeAssignment() {
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <button
                   onClick={() => setShowWarningModal(false)}
-                  className="flex-1 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 bg-zenith-section0 hover:bg-zenith-secondary text-white font-semibold rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmStartAssignment}
                   disabled={submitting}
-                  className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
                 >
                   {submitting ? 'Starting...' : 'I Understand, Start Assignment'}
                 </button>
@@ -858,24 +858,24 @@ export default function TakeAssignment() {
       {/* Success Modal */}
       {showSuccessModal && submissionResult && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl max-w-md w-full">
             <div className="p-8 text-center">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
               
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-4">
                 Assignment Submitted Successfully!
               </h2>
               
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <div className="bg-zenith-section dark:bg-gray-700 rounded-lg p-4 mb-6">
+                <div className="text-sm text-zenith-secondary dark:text-zenith-muted mb-2">
                   Your Score
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                <div className="text-3xl font-bold text-zenith-primary dark:text-white">
                   {submissionResult.score}/{submissionResult.maxPoints}
                 </div>
-                <div className="text-lg text-gray-600 dark:text-gray-400">
+                <div className="text-lg text-zenith-secondary dark:text-zenith-muted">
                   ({submissionResult.percentage.toFixed(1)}%)
                 </div>
               </div>
@@ -884,19 +884,19 @@ export default function TakeAssignment() {
                 {submissionResult.showResults ? (
                   <button
                     onClick={() => router.push(`/assignments/${assignmentId}/results`)}
-                    className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                    className="w-full px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white font-semibold rounded-lg transition-colors"
                   >
                     View Detailed Results
                   </button>
                 ) : (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-4">
                     Detailed results will be available after instructor review.
                   </p>
                 )}
                 
                 <button
                   onClick={() => router.push('/assignments')}
-                  className="w-full px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                  className="w-full px-6 py-3 bg-zenith-section0 hover:bg-zenith-secondary text-white font-semibold rounded-lg transition-colors"
                 >
                   Back to Assignments
                 </button>

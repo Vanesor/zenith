@@ -19,8 +19,8 @@ export function StageNavigator({ currentStage, stages, onStageChange }: StageNav
   const currentIndex = stages.findIndex(stage => stage.id === currentStage);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+    <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+      <h2 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">
         Assignment Creation Progress
       </h2>
       
@@ -35,31 +35,31 @@ export function StageNavigator({ currentStage, stages, onStageChange }: StageNav
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => isClickable && onStageChange(stage.id)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all border-2 ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-lg scale-110'
+                      ? 'bg-zenith-primary text-white shadow-lg scale-110 border-zenith-primary'
                       : isPast
-                      ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer'
-                      : 'bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500'
+                      ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer border-green-600'
+                      : 'bg-white dark:bg-gray-800 text-zenith-primary dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-zenith-hover dark:hover:bg-gray-700'
                   } ${isClickable ? 'hover:scale-105' : 'cursor-not-allowed'}`}
                   disabled={!isClickable}
                 >
                   {isPast ? (
-                    <CheckCircle className="w-5 h-5" />
+                    <CheckCircle className="w-6 h-6" />
                   ) : (
-                    <span className="text-sm font-medium">{index + 1}</span>
+                    <span className="text-lg font-bold">{index + 1}</span>
                   )}
                 </button>
                 
-                <div className="mt-2 text-center">
-                  <p className={`text-sm font-medium ${
-                    isActive ? 'text-blue-600 dark:text-blue-400' : 
+                <div className="mt-3 text-center">
+                  <p className={`text-sm font-semibold ${
+                    isActive ? 'text-zenith-primary dark:text-blue-400' : 
                     isPast ? 'text-green-600 dark:text-green-400' : 
-                    'text-gray-500 dark:text-gray-400'
+                    'text-zenith-secondary dark:text-gray-300'
                   }`}>
                     {stage.title}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 max-w-24 mt-1">
+                  <p className="text-xs text-zenith-muted dark:text-gray-400 max-w-24 mt-1">
                     {stage.description}
                   </p>
                 </div>
@@ -67,7 +67,7 @@ export function StageNavigator({ currentStage, stages, onStageChange }: StageNav
               
               {index < stages.length - 1 && (
                 <ChevronRight className={`w-5 h-5 mx-4 ${
-                  index < currentIndex ? 'text-green-600' : 'text-gray-300 dark:text-gray-600'
+                  index < currentIndex ? 'text-green-600' : 'text-gray-300 dark:text-zenith-secondary'
                 }`} />
               )}
             </div>

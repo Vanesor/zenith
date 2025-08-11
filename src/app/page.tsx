@@ -33,7 +33,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 // Club color mapping for text display
 const getClubTextColor = (clubName: string) => {
   const clubColors: Record<string, string> = {
-    'Ascend': 'text-blue-500',    // Blue for ASCEND
+    'Ascend': 'text-zenith-primary',    // Blue for ASCEND
     'Aster': 'text-pink-500',     // Pink for ASTER  
     'Achievers': 'text-purple-500', // Purple for ACHIEVERS
     'Altogether': 'text-green-500', // Green for ALTOGETHER
@@ -322,7 +322,7 @@ export default function HomePage() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                        <div className="w-16 h-16 bg-zenith-card/20 rounded-xl flex items-center justify-center">
                           <ClubLogo 
                             clubId={club.id}
                             clubName={club.name}
@@ -402,7 +402,7 @@ export default function HomePage() {
                     <span className="text-sm font-medium">
                       {event.club_name}
                     </span>
-                    <span className="text-xs bg-white/20 px-2 py-1 rounded">
+                    <span className="text-xs bg-zenith-card/20 px-2 py-1 rounded">
                       {new Date(event.event_date).toLocaleDateString()}
                     </span>
                   </div>
@@ -541,7 +541,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-blue-600" />
+                    <Users className="w-4 h-4 text-zenith-primary" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-zenith-primary">
@@ -645,14 +645,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-white text-zenith-accent hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
+                className="bg-zenith-card text-zenith-accent hover:bg-zenith-section px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
               >
                 Join Zenith Today
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="border-2 border-white text-white hover:bg-white hover:text-zenith-accent px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+                className="border-2 border-white text-white hover:bg-zenith-card hover:text-zenith-accent px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>
@@ -667,17 +667,17 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <ZenithLogo size="lg" className="mb-4" />
-              <p className="text-gray-400 mb-4 max-w-md">
+              <p className="text-zenith-muted mb-4 max-w-md">
                 A vibrant college forum community where students connect, learn,
                 and grow together through specialized clubs and activities.
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-zenith-muted">
                 St. Vincent College, Nagpur • Made with ❤️ by students
               </p>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-zenith-muted">
                 <li>
                   <Link
                     href="#clubs"
@@ -714,7 +714,7 @@ export default function HomePage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-zenith-muted">
                 <li>
                   <Link
                     href="/help"
@@ -750,7 +750,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-zenith-muted">
             <p>&copy; 2025 Zenith Forum. All rights reserved.</p>
           </div>
         </div>

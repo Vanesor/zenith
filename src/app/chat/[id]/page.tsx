@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { WhatsAppChatRoom } from '@/components/chat/WhatsAppChatRoom';
+import SafeAvatar from "@/components/SafeAvatar";
 
 interface Room {
   id: string;
@@ -79,10 +80,10 @@ export default function ChatRoomPage({ params }: { params: { id: string } }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading chat room...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zenith-primary mx-auto"></div>
+          <p className="mt-4 text-zenith-secondary dark:text-zenith-muted">Loading chat room...</p>
         </div>
       </div>
     );
@@ -90,17 +91,17 @@ export default function ChatRoomPage({ params }: { params: { id: string } }) {
 
   if (error || !room || !currentUser) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-          <p className="text-gray-600 dark:text-gray-400">{error || 'Room or user not found'}</p>
+          <p className="text-zenith-secondary dark:text-zenith-muted">{error || 'Room or user not found'}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
+    <div className="h-screen flex flex-col bg-zenith-section dark:bg-gray-900">
       <WhatsAppChatRoom
         roomId={room.id}
         roomName={room.name}

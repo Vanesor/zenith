@@ -64,7 +64,7 @@ export function ToastItem({ toast, onClose }: ToastProps) {
         <div className="flex-shrink-0">
           <button
             onClick={() => onClose(id)}
-            className="inline-flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center justify-center w-8 h-8 text-zenith-muted hover:text-zenith-secondary dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-zenith-primary rounded-full hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

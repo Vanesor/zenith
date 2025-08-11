@@ -56,15 +56,15 @@ export function MarkdownEditor({
     let html = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">$1</code>')
-      .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 dark:bg-gray-700 p-3 rounded mt-2 mb-2 overflow-x-auto"><code>$1</code></pre>')
+      .replace(/`(.*?)`/g, '<code class="bg-zenith-section dark:bg-gray-700 px-1 rounded">$1</code>')
+      .replace(/```([\s\S]*?)```/g, '<pre class="bg-zenith-section dark:bg-gray-700 p-3 rounded mt-2 mb-2 overflow-x-auto"><code>$1</code></pre>')
       .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
       .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mt-4 mb-2">$1</h2>')
       .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>')
-      .replace(/^\> (.*$)/gm, '<blockquote class="border-l-4 border-blue-500 pl-4 italic text-gray-600 dark:text-gray-400">$1</blockquote>')
+      .replace(/^\> (.*$)/gm, '<blockquote class="border-l-4 border-zenith-primary pl-4 italic text-zenith-secondary dark:text-zenith-muted">$1</blockquote>')
       .replace(/^\- (.*$)/gm, '<li class="ml-4">$1</li>')
       .replace(/^\d+\. (.*$)/gm, '<li class="ml-4">$1</li>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:underline">$1</a>');
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-zenith-primary hover:underline">$1</a>');
 
     // Wrap lists
     html = html.replace(/(<li.*<\/li>)/g, '<ul class="list-disc ml-4">$1</ul>');
@@ -89,21 +89,21 @@ export function MarkdownEditor({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300">
           {label}
         </label>
       )}
       
-      <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+      <div className="border border-zenith-border dark:border-gray-600 rounded-lg overflow-hidden">
         {/* Toolbar */}
-        <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 p-2 flex items-center justify-between">
+        <div className="bg-zenith-section dark:bg-gray-700 border-b border-zenith-border dark:border-gray-600 p-2 flex items-center justify-between">
           <div className="flex items-center space-x-1">
             {toolbarButtons.map((button, index) => (
               <button
                 key={index}
                 type="button"
                 onClick={button.action}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                className="p-2 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white hover:bg-zenith-section dark:hover:bg-zenith-secondary rounded transition-colors"
                 title={button.title}
               >
                 <button.icon className="w-4 h-4" />
@@ -114,7 +114,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="flex items-center space-x-2 px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+            className="flex items-center space-x-2 px-3 py-1 text-sm text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white hover:bg-zenith-section dark:hover:bg-zenith-secondary rounded transition-colors"
           >
             {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             <span>{showPreview ? 'Edit' : 'Preview'}</span>
@@ -135,7 +135,7 @@ export function MarkdownEditor({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
-              className="w-full p-4 border-none outline-none resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="w-full p-4 border-none outline-none resize-none bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white"
               style={{ height }}
             />
           )}
@@ -143,7 +143,7 @@ export function MarkdownEditor({
       </div>
       
       {/* Help text */}
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-xs text-zenith-muted dark:text-zenith-muted">
         Use **bold**, *italic*, `code`, {'>'}quotes, - lists, [links](url), # headings
       </p>
     </div>

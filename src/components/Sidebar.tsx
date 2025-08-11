@@ -67,30 +67,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed left-0 top-0 bottom-0 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-50 lg:relative lg:translate-x-0"
+            className="fixed left-0 top-0 bottom-0 w-72 bg-zenith-card dark:bg-gray-900 border-r border-zenith-border dark:border-gray-700 z-50 lg:relative lg:translate-x-0"
           >
             {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-4 border-b border-zenith-border dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-zenith-primary rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">Z</span>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-zenith-primary dark:text-white">
                   Zenith
                 </span>
               </div>
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 lg:hidden"
+                className="p-1 rounded-lg hover:bg-zenith-section dark:hover:bg-gray-800 lg:hidden"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-zenith-muted" />
               </button>
             </div>
 
             {/* User Profile Section */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-b border-zenith-border dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gray-300 dark:bg-zenith-secondary rounded-full flex items-center justify-center">
                   {user?.avatar ? (
                     <img
                       src={user.avatar}
@@ -98,14 +98,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
-                    <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <User className="w-5 h-5 text-zenith-secondary dark:text-zenith-muted" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-medium text-zenith-primary dark:text-white truncate">
                     {user?.name || "Guest User"}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <p className="text-xs text-zenith-muted dark:text-zenith-muted truncate">
                     {user?.role || "Student"}
                   </p>
                 </div>
@@ -123,8 +123,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     onClick={onClose}
                     className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                       isActive(item.href)
-                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-blue-50 dark:bg-blue-900/20 text-zenith-primary dark:text-blue-400"
+                        : "text-zenith-secondary dark:text-gray-300 hover:bg-zenith-section dark:hover:bg-gray-800"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -135,11 +135,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </nav>
 
             {/* Bottom Actions */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            <div className="p-4 border-t border-zenith-border dark:border-gray-700 space-y-2">
               <Link
                 href="/settings"
                 onClick={onClose}
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-zenith-secondary dark:text-gray-300 hover:bg-zenith-section dark:hover:bg-gray-800 transition-colors"
               >
                 <Settings className="w-5 h-5" />
                 <span className="font-medium">Settings</span>

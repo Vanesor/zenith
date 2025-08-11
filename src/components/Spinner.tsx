@@ -13,7 +13,7 @@ export function Spinner({ size = 'md', color = 'white' }: SpinnerProps) {
   };
 
   const colorClass = {
-    primary: 'text-blue-600',
+    primary: 'text-zenith-primary',
     white: 'text-white'
   };
 

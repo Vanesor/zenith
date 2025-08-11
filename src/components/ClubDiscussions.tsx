@@ -78,7 +78,7 @@ export default function ClubDiscussions({
               onClick={() => setActiveTab("discussions")}
               className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "discussions"
-                  ? "border-blue-500 text-blue-600"
+                  ? "border-zenith-primary text-zenith-primary"
                   : "border-transparent text-zenith-muted hover:text-zenith-secondary hover:border-zenith-border"
               }`}
             >
@@ -89,7 +89,7 @@ export default function ClubDiscussions({
               onClick={() => setActiveTab("chat")}
               className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "chat"
-                  ? "border-blue-500 text-blue-600"
+                  ? "border-zenith-primary text-zenith-primary"
                   : "border-transparent text-zenith-muted hover:text-zenith-secondary hover:border-zenith-border"
               }`}
             >
@@ -130,7 +130,7 @@ export default function ClubDiscussions({
                       onClick={() => setActiveChatRoom(room.id)}
                       className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${
                         activeChatRoom === room.id
-                          ? "bg-blue-600 text-white"
+                          ? "bg-zenith-primary text-white"
                           : "hover:bg-zenith-hover text-zenith-secondary"
                       }`}
                     >

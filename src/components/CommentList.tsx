@@ -216,7 +216,7 @@ export default function CommentList({
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+        <div className="flex items-center space-x-2 text-zenith-secondary dark:text-zenith-muted">
           <MessageSquare className="w-5 h-5" />
           <span className="font-semibold">Comments</span>
         </div>
@@ -236,14 +236,14 @@ export default function CommentList({
     <div className="space-y-4">
       {/* Comments Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+        <div className="flex items-center space-x-2 text-zenith-secondary dark:text-zenith-muted">
           <MessageSquare className="w-5 h-5" />
           <span className="font-semibold">Comments ({comments.length})</span>
         </div>
         {user && !showCommentForm && (
           <button
             onClick={() => setShowCommentForm(true)}
-            className="flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-sm"
+            className="flex items-center space-x-1 text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300 transition-colors text-sm"
           >
             <Plus className="w-4 h-4" />
             <span>Add Comment</span>
@@ -255,17 +255,17 @@ export default function CommentList({
       {showCommentForm && (
         <form
           onSubmit={handleSubmitComment}
-          className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700"
+          className="bg-zenith-section dark:bg-gray-800 rounded-xl p-4 border border-zenith-border dark:border-gray-700"
         >
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Write your comment..."
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            className="w-full p-3 border border-zenith-border dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
             rows={3}
           />
           <div className="flex items-center justify-between mt-3">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-zenith-muted dark:text-zenith-muted">
               Press Ctrl+Enter to submit
             </div>
             <div className="flex items-center space-x-2">
@@ -275,14 +275,14 @@ export default function CommentList({
                   setShowCommentForm(false);
                   setNewComment("");
                 }}
-                className="px-3 py-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors text-sm"
+                className="px-3 py-1.5 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-gray-200 transition-colors text-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !newComment.trim()}
-                className="flex items-center space-x-1 px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                className="flex items-center space-x-1 px-4 py-1.5 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
               >
                 {isSubmitting ? (
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
@@ -299,7 +299,7 @@ export default function CommentList({
       {/* Comments List */}
       <div className="space-y-3">
         {comments.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-zenith-muted dark:text-zenith-muted">
             <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>No comments yet. Be the first to comment!</p>
           </div>

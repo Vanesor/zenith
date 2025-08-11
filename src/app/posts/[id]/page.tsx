@@ -15,7 +15,9 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import CommentList from "@/components/CommentList";
+import SafeAvatar from "@/components/SafeAvatar";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import SafeAvatar from "@/components/SafeAvatar";
 
 interface Post {
   id: string;
@@ -246,12 +248,12 @@ export default function PostDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-4">
             Post Not Found
           </h2>
           <Link
             href="/dashboard"
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-zenith-primary hover:text-zenith-primary/90 dark:text-blue-400 dark:hover:text-blue-300"
           >
             Return to Dashboard
           </Link>
@@ -266,26 +268,26 @@ export default function PostDetailPage() {
         {/* Back Button */}
         <Link
           href="/dashboard"
-          className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6 transition-colors"
+          className="inline-flex items-center space-x-2 text-zenith-secondary hover:text-zenith-primary dark:text-zenith-muted dark:hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Dashboard</span>
         </Link>
 
         {/* Post Container */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg border border-zenith-border dark:border-gray-700">
           {/* Post Header */}
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-zenith-border dark:border-gray-700">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
                   {post.author_name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+                  <h3 className="font-semibold text-zenith-primary dark:text-white text-lg">
                     {post.author_name}
                   </h3>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center space-x-2 text-sm text-zenith-muted dark:text-zenith-muted">
                     <Clock className="w-4 h-4" />
                     <span>{formatTimestamp(post.created_at)}</span>
                     {post.updated_at && post.updated_at !== post.created_at && (
@@ -315,14 +317,14 @@ export default function PostDetailPage() {
                   <div className="flex items-center space-x-2">
                     <Link
                       href={`/posts/${post.id}/edit`}
-                      className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors p-2"
+                      className="text-zenith-muted hover:text-zenith-primary dark:text-zenith-muted dark:hover:text-blue-400 transition-colors p-2"
                       title="Edit post"
                     >
                       <Edit className="w-5 h-5" />
                     </Link>
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors p-2"
+                      className="text-zenith-muted hover:text-red-600 dark:text-zenith-muted dark:hover:text-red-400 transition-colors p-2"
                       title="Delete post"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -335,18 +337,18 @@ export default function PostDetailPage() {
 
           {/* Post Content */}
           <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-3xl font-bold text-zenith-primary dark:text-white mb-4">
               {post.title}
             </h1>
             <div className="prose dark:prose-invert max-w-none">
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+              <p className="text-zenith-secondary dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                 {post.content}
               </p>
             </div>
           </div>
 
           {/* Post Actions */}
-          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+          <div className="px-6 py-4 bg-zenith-section dark:bg-gray-700 border-t border-zenith-border dark:border-gray-600">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
                 {/* Like Button */}
@@ -355,7 +357,7 @@ export default function PostDetailPage() {
                   className={`flex items-center space-x-2 text-sm transition-colors ${
                     isLiked
                       ? "text-red-600 dark:text-red-400"
-                      : "text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                      : "text-zenith-muted dark:text-zenith-muted hover:text-red-600 dark:hover:text-red-400"
                   }`}
                 >
                   <Heart
@@ -365,13 +367,13 @@ export default function PostDetailPage() {
                 </button>
 
                 {/* Comment Count */}
-                <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-sm text-zenith-muted dark:text-zenith-muted">
                   <MessageSquare className="w-5 h-5" />
                   <span className="font-medium">{post.comment_count}</span>
                 </div>
 
                 {/* View Count */}
-                <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-2 text-sm text-zenith-muted dark:text-zenith-muted">
                   <Eye className="w-5 h-5" />
                   <span className="font-medium">{viewCount}</span>
                 </div>
@@ -384,7 +386,7 @@ export default function PostDetailPage() {
         <div className="mt-8">
           <div
             id="comments"
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
+            className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg border border-zenith-border dark:border-gray-700 p-6"
           >
             <CommentList postId={postId} />
           </div>

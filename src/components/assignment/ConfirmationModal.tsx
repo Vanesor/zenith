@@ -48,10 +48,10 @@ export function ConfirmationModal({
       case 'info':
         return {
           icon: CheckCircle,
-          iconColor: 'text-blue-600',
+          iconColor: 'text-zenith-primary',
           bgColor: 'bg-blue-50 dark:bg-blue-900/20',
           borderColor: 'border-blue-200 dark:border-blue-800',
-          confirmBg: 'bg-blue-600 hover:bg-blue-700',
+          confirmBg: 'bg-zenith-primary hover:bg-zenith-primary/90',
           textColor: 'text-blue-800 dark:text-blue-400'
         };
     }
@@ -62,15 +62,15 @@ export function ConfirmationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4">
+      <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between p-6 border-b border-zenith-border dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-zenith-muted hover:text-zenith-secondary dark:hover:text-gray-300"
           >
             <X className="w-5 h-5" />
           </button>
@@ -84,7 +84,7 @@ export function ConfirmationModal({
               <p className={`${styles.textColor} font-medium mb-1`}>
                 {title}
               </p>
-              <p className={`text-gray-600 dark:text-gray-400 text-sm`}>
+              <p className={`text-zenith-secondary dark:text-zenith-muted text-sm`}>
                 {message}
               </p>
             </div>
@@ -94,7 +94,7 @@ export function ConfirmationModal({
           <div className="flex justify-end space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 border border-zenith-border dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
             >
               {cancelText}
             </button>

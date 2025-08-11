@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import SafeAvatar from "@/components/SafeAvatar";
 import {
   Users,
   UserPlus,
@@ -459,7 +460,7 @@ export default function ClubManagementPage() {
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -471,13 +472,13 @@ export default function ClubManagementPage() {
 
   if (!clubData) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="text-center">
-          <Shield className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <Shield className="w-16 h-16 mx-auto mb-4 text-zenith-muted" />
+          <h2 className="text-xl font-semibold text-zenith-primary mb-2">
             No Club Data
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-zenith-secondary dark:text-zenith-muted">
             Unable to load club management data
           </p>
         </div>
@@ -493,76 +494,76 @@ export default function ClubManagementPage() {
       media: "bg-pink-100 text-pink-800 border-pink-200",
       president: "bg-red-100 text-red-800 border-red-200",
       vice_president: "bg-orange-100 text-orange-800 border-orange-200",
-      member: "bg-gray-100 text-gray-800 border-gray-200",
+      member: "bg-zenith-section text-zenith-secondary border-zenith-border",
     };
-    return roleColors[role] || "bg-gray-100 text-gray-800 border-gray-200";
+    return roleColors[role] || "bg-zenith-section text-zenith-secondary border-zenith-border";
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-zenith-primary mb-2">
             Club Management
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-zenith-secondary">
             Manage {clubData.club?.name} members, events, and activities
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
-              <Users className="w-8 h-8 text-blue-600" />
+              <Users className="w-8 h-8 text-zenith-primary" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-zenith-muted">
                   Total Members
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {clubData.stats.totalMembers}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
               <Calendar className="w-8 h-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-zenith-muted">
                   Active Events
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {clubData.stats.activeEvents}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-sm border border-zenith-border">
             <div className="flex items-center">
               <FileText className="w-8 h-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-zenith-muted">
                   Assignments
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {clubData.stats.pendingAssignments}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-zenith-card rounded-xl p-6 shadow-sm border border-zenith-border">
             <div className="flex items-center">
               <MessageSquare className="w-8 h-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted">
                   Monthly Posts
                 </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-zenith-primary">
                   {clubData.stats.monthlyPosts}
                 </p>
               </div>
@@ -571,8 +572,8 @@ export default function ClubManagementPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-zenith-card rounded-xl shadow-sm border border-zenith-border">
+          <div className="border-b border-zenith-border">
             <nav className="flex space-x-8 px-6">
               {[
                 { id: "overview", name: "Overview", icon: Settings },
@@ -585,8 +586,8 @@ export default function ClubManagementPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                      ? "border-zenith-primary text-zenith-primary"
+                      : "border-transparent text-zenith-muted hover:text-zenith-secondary hover:border-zenith-border dark:text-zenith-muted dark:hover:text-gray-300"
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -600,12 +601,12 @@ export default function ClubManagementPage() {
             {activeTab === "members" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-lg font-semibold text-zenith-primary">
                     Club Members
                   </h3>
                   <button
                     onClick={() => setShowAddMember(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Add Member</span>
@@ -616,17 +617,19 @@ export default function ClubManagementPage() {
                   {clubData.members.map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                      className="flex items-center justify-between p-4 bg-zenith-section dark:bg-gray-700 rounded-lg"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                          {member.name.charAt(0).toUpperCase()}
-                        </div>
+                        <SafeAvatar
+                          src={member.avatar}
+                          fallbackName={member.name}
+                          size="md"
+                        />
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
+                          <h4 className="font-medium text-zenith-primary">
                             {member.name}
                           </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-zenith-muted dark:text-zenith-muted">
                             {member.email}
                           </p>
                         </div>
@@ -641,11 +644,11 @@ export default function ClubManagementPage() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewMemberProfile(member.id)}
-                          className="text-blue-600 hover:text-blue-700 p-2 rounded-md bg-blue-100 dark:bg-blue-800 dark:text-blue-200 flex items-center"
+                          className="flex items-center px-3 py-2 text-sm font-medium text-zenith-primary bg-zenith-card hover:bg-zenith-hover border border-zenith-border rounded-lg transition-colors shadow-sm"
                           title="View member profile"
                         >
-                          <Eye className="w-4 h-4 mr-1" />
-                          <span className="text-xs">View Profile</span>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Profile
                         </button>
                         
                         {member.role === "member" && (
@@ -674,12 +677,12 @@ export default function ClubManagementPage() {
             {activeTab === "assignments" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-lg font-semibold text-zenith-primary">
                     Club Assignments
                   </h3>
                   <button
                     onClick={() => router.push("/assignments/create")}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Create Assignment</span>
@@ -688,8 +691,8 @@ export default function ClubManagementPage() {
 
                 <div className="space-y-4">
                   {clubData.assignments.length === 0 ? (
-                    <div className="text-center p-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <p className="text-gray-600 dark:text-gray-400">
+                    <div className="text-center p-8 bg-zenith-section dark:bg-gray-700 rounded-lg">
+                      <p className="text-zenith-secondary dark:text-zenith-muted">
                         No assignments found. Create your first assignment!
                       </p>
                     </div>
@@ -697,17 +700,17 @@ export default function ClubManagementPage() {
                     clubData.assignments.map((assignment) => (
                       <div
                         key={assignment.id}
-                        className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                        className="p-4 bg-zenith-section dark:bg-gray-700 rounded-lg"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                            <h4 className="font-medium text-zenith-primary mb-2">
                               {assignment.title}
                             </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-2">
                               {assignment.description}
                             </p>
-                            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center space-x-4 text-sm text-zenith-muted dark:text-zenith-muted">
                               <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
                               {assignment.startDate && (
                                 <span>Starts: {new Date(assignment.startDate).toLocaleDateString()}</span>
@@ -725,7 +728,7 @@ export default function ClubManagementPage() {
                                   ? "bg-green-100 text-green-800" 
                                   : assignment.status === "overdue"
                                   ? "bg-red-100 text-red-800"
-                                  : "bg-gray-100 text-gray-800"
+                                  : "bg-zenith-section text-zenith-primary"
                               }`}
                             >
                               {assignment.status.toUpperCase()}
@@ -734,8 +737,8 @@ export default function ClubManagementPage() {
                               <button
                                 onClick={() => handleEditAssignment(assignment)}
                                 className={`p-1 ${new Date() > new Date(assignment.startDate || '2000-01-01') 
-                                  ? 'text-gray-400 cursor-not-allowed' 
-                                  : 'text-blue-600 hover:text-blue-800 transition-colors'}`}
+                                  ? 'text-zenith-muted cursor-not-allowed' 
+                                  : 'text-zenith-primary hover:text-zenith-primary/90 transition-colors'}`}
                                 title="Edit Assignment"
                                 disabled={new Date() > new Date(assignment.startDate || '2000-01-01')}
                               >
@@ -755,7 +758,7 @@ export default function ClubManagementPage() {
                               <button
                                 onClick={() => handleDeleteAssignmentModal(assignment)}
                                 className={`p-1 ${new Date() > new Date(assignment.startDate || '2000-01-01') 
-                                  ? 'text-gray-400 cursor-not-allowed' 
+                                  ? 'text-zenith-muted cursor-not-allowed' 
                                   : 'text-red-600 hover:text-red-800 transition-colors'}`}
                                 title="Delete Assignment"
                                 disabled={new Date() > new Date(assignment.startDate || '2000-01-01')}
@@ -777,7 +780,7 @@ export default function ClubManagementPage() {
             {activeTab === "events" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-lg font-semibold text-zenith-primary">
                     Club Events
                   </h3>
                   <button
@@ -793,17 +796,17 @@ export default function ClubManagementPage() {
                   {clubData.events.map((event) => (
                     <div
                       key={event.id}
-                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                      className="p-4 bg-zenith-section dark:bg-gray-700 rounded-lg"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                          <h4 className="font-medium text-zenith-primary mb-2">
                             {event.title}
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-2">
                             {event.description}
                           </p>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center space-x-4 text-sm text-zenith-muted dark:text-zenith-muted">
                             <span>
                               {event.event_date} at {event.event_time}
                             </span>
@@ -817,7 +820,7 @@ export default function ClubManagementPage() {
                               ? "bg-blue-100 text-blue-800"
                               : event.status === "ongoing"
                               ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              : "bg-zenith-section text-zenith-primary"
                           }`}
                         >
                           {event.status.toUpperCase()}
@@ -835,14 +838,14 @@ export default function ClubManagementPage() {
       {/* Add Member Modal */}
       {showAddMember && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+          <div className="bg-zenith-card rounded-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-zenith-primary">
                 Add New Member
               </h3>
               <button
                 onClick={() => setShowAddMember(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -853,18 +856,18 @@ export default function ClubManagementPage() {
                 placeholder="Enter member's email"
                 value={newMemberEmail}
                 onChange={(e) => setNewMemberEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
               />
               <div className="flex space-x-3">
                 <button
                   onClick={handleAddMember}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
                 >
                   Add Member
                 </button>
                 <button
                   onClick={() => setShowAddMember(false)}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                  className="flex-1 px-4 py-2 bg-gray-300 text-zenith-secondary rounded-lg hover:bg-gray-400 transition-colors dark:bg-zenith-secondary dark:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -877,14 +880,14 @@ export default function ClubManagementPage() {
       {/* Create Event Modal */}
       {showCreateEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg">
+          <div className="bg-zenith-card rounded-xl p-6 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-zenith-primary">
                 Create New Event
               </h3>
               <button
                 onClick={() => setShowCreateEvent(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -897,7 +900,7 @@ export default function ClubManagementPage() {
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, title: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
               />
               <textarea
                 placeholder="Event description"
@@ -905,7 +908,7 @@ export default function ClubManagementPage() {
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, description: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                 rows={3}
               />
               <div className="grid grid-cols-2 gap-4">
@@ -915,7 +918,7 @@ export default function ClubManagementPage() {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, event_date: e.target.value })
                   }
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                 />
                 <input
                   type="time"
@@ -923,7 +926,7 @@ export default function ClubManagementPage() {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, event_time: e.target.value })
                   }
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                 />
               </div>
               <input
@@ -933,7 +936,7 @@ export default function ClubManagementPage() {
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, location: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
               />
               <div className="flex space-x-3">
                 <button
@@ -944,7 +947,7 @@ export default function ClubManagementPage() {
                 </button>
                 <button
                   onClick={() => setShowCreateEvent(false)}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                  className="flex-1 px-4 py-2 bg-gray-300 text-zenith-secondary rounded-lg hover:bg-gray-400 transition-colors dark:bg-zenith-secondary dark:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -987,9 +990,9 @@ export default function ClubManagementPage() {
       {/* Assignment Action Modal */}
       {showAssignmentActionModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg">
+          <div className="bg-zenith-card rounded-xl p-6 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-lg font-semibold ${showAssignmentActionModal.type === 'error' ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+              <h3 className={`text-lg font-semibold ${showAssignmentActionModal.type === 'error' ? 'text-red-600' : 'text-zenith-primary'}`}>
                 {showAssignmentActionModal.title}
               </h3>
               <button
@@ -1001,12 +1004,12 @@ export default function ClubManagementPage() {
                   message: '',
                   canProceed: true 
                 })}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-zenith-secondary dark:text-gray-300 mb-6">
               {showAssignmentActionModal.message}
             </p>
             <div className="flex space-x-3">
@@ -1022,7 +1025,7 @@ export default function ClubManagementPage() {
                   className={`flex-1 px-4 py-2 ${
                     showAssignmentActionModal.type === 'delete' 
                       ? 'bg-red-600 hover:bg-red-700' 
-                      : 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-zenith-primary hover:bg-zenith-primary/90'
                   } text-white rounded-lg transition-colors`}
                 >
                   {showAssignmentActionModal.type === 'edit' ? 'Edit' : 'Delete'}
@@ -1037,7 +1040,7 @@ export default function ClubManagementPage() {
                   message: '',
                   canProceed: true 
                 })}
-                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-gray-300"
+                className="flex-1 px-4 py-2 bg-gray-300 text-zenith-secondary rounded-lg hover:bg-gray-400 transition-colors dark:bg-zenith-secondary dark:text-gray-300"
               >
                 {showAssignmentActionModal.canProceed ? 'Cancel' : 'Close'}
               </button>

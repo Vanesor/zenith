@@ -217,7 +217,7 @@ export default function DiscussionList({
           <div
             key={i}
             className={`p-4 rounded-lg ${
-              isDarkMode ? "bg-gray-800" : "bg-white"
+              isDarkMode ? "bg-gray-800" : "bg-zenith-card"
             } animate-pulse`}
           >
             <div className="h-6 bg-gray-300 rounded w-3/4 mb-2"></div>
@@ -239,14 +239,14 @@ export default function DiscussionList({
       <div className="flex justify-between items-center">
         <h2
           className={`text-2xl font-bold ${
-            isDarkMode ? "text-white" : "text-gray-900"
+            isDarkMode ? "text-white" : "text-zenith-primary"
           }`}
         >
           Discussions
         </h2>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          className="bg-zenith-primary hover:bg-zenith-primary/90 text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
           Start Discussion
         </button>
@@ -269,7 +269,7 @@ export default function DiscussionList({
             className={`p-6 rounded-lg border hover:shadow-md transition-all cursor-pointer ${
               isDarkMode
                 ? "bg-gray-800 border-gray-700 hover:bg-gray-750"
-                : "bg-white border-gray-200 hover:shadow-lg"
+                : "bg-zenith-card border-zenith-border hover:shadow-lg"
             }`}
           >
             {/* Header */}
@@ -285,7 +285,7 @@ export default function DiscussionList({
                 </div>
                 <h3
                   className={`text-lg font-semibold line-clamp-2 ${
-                    isDarkMode ? "text-white" : "text-gray-900"
+                    isDarkMode ? "text-white" : "text-zenith-primary"
                   }`}
                 >
                   {discussion.title}
@@ -295,7 +295,7 @@ export default function DiscussionList({
                 className={`text-sm px-2 py-1 rounded-full ${
                   isDarkMode
                     ? "bg-gray-700 text-gray-300"
-                    : "bg-gray-100 text-gray-600"
+                    : "bg-zenith-section text-zenith-secondary"
                 }`}
               >
                 {discussion.category}
@@ -306,7 +306,7 @@ export default function DiscussionList({
             {discussion.description && (
               <p
                 className={`text-sm mb-4 line-clamp-2 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
+                  isDarkMode ? "text-gray-300" : "text-zenith-secondary"
                 }`}
               >
                 {discussion.description}
@@ -337,7 +337,7 @@ export default function DiscussionList({
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                      isDarkMode ? "bg-gray-700" : "bg-zenith-section"
                     }`}
                   >
                     {discussion.author_avatar ? (
@@ -355,7 +355,7 @@ export default function DiscussionList({
                   <div>
                     <p
                       className={`text-sm font-medium ${
-                        isDarkMode ? "text-white" : "text-gray-900"
+                        isDarkMode ? "text-white" : "text-zenith-primary"
                       }`}
                     >
                       {discussion.author_name}
@@ -371,30 +371,30 @@ export default function DiscussionList({
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <MessageSquare className="w-4 h-4 text-gray-500" />
+                  <MessageSquare className="w-4 h-4 text-zenith-muted" />
                   <span
                     className={`text-sm ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                      isDarkMode ? "text-zenith-muted" : "text-zenith-secondary"
                     }`}
                   >
                     {discussion.reply_count}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Eye className="w-4 h-4 text-gray-500" />
+                  <Eye className="w-4 h-4 text-zenith-muted" />
                   <span
                     className={`text-sm ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                      isDarkMode ? "text-zenith-muted" : "text-zenith-secondary"
                     }`}
                   >
                     {discussion.views}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4 text-gray-500" />
+                  <Clock className="w-4 h-4 text-zenith-muted" />
                   <span
                     className={`text-sm ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                      isDarkMode ? "text-zenith-muted" : "text-zenith-secondary"
                     }`}
                   >
                     {formatDate(discussion.last_activity)}
@@ -413,10 +413,10 @@ export default function DiscussionList({
                         // TODO: Implement edit functionality
                         alert("Edit functionality not implemented yet");
                       }}
-                      className={`p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
+                      className={`p-1 rounded-full hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors ${
                         isDarkMode
-                          ? "text-gray-400 hover:text-gray-200"
-                          : "text-gray-600 hover:text-gray-800"
+                          ? "text-zenith-muted hover:text-gray-200"
+                          : "text-zenith-secondary hover:text-zenith-primary"
                       }`}
                       title="Edit discussion"
                     >
@@ -450,7 +450,7 @@ export default function DiscussionList({
         {discussions.length === 0 && (
           <div
             className={`text-center py-12 ${
-              isDarkMode ? "text-gray-400" : "text-gray-600"
+              isDarkMode ? "text-zenith-muted" : "text-zenith-secondary"
             }`}
           >
             <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -502,12 +502,12 @@ function CreateDiscussionForm({
   return (
     <div
       className={`p-6 rounded-lg border ${
-        isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        isDarkMode ? "bg-gray-800 border-gray-700" : "bg-zenith-card border-zenith-border"
       }`}
     >
       <h3
         className={`text-lg font-semibold mb-4 ${
-          isDarkMode ? "text-white" : "text-gray-900"
+          isDarkMode ? "text-white" : "text-zenith-primary"
         }`}
       >
         Start New Discussion
@@ -517,7 +517,7 @@ function CreateDiscussionForm({
         <div>
           <label
             className={`block text-sm font-medium mb-2 ${
-              isDarkMode ? "text-gray-300" : "text-gray-700"
+              isDarkMode ? "text-gray-300" : "text-zenith-secondary"
             }`}
           >
             Title *
@@ -528,10 +528,10 @@ function CreateDiscussionForm({
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent ${
               isDarkMode
                 ? "bg-gray-700 border-gray-600 text-white"
-                : "bg-white border-gray-300 text-gray-900"
+                : "bg-zenith-card border-zenith-border text-zenith-primary"
             }`}
             placeholder="What would you like to discuss?"
             required
@@ -541,7 +541,7 @@ function CreateDiscussionForm({
         <div>
           <label
             className={`block text-sm font-medium mb-2 ${
-              isDarkMode ? "text-gray-300" : "text-gray-700"
+              isDarkMode ? "text-gray-300" : "text-zenith-secondary"
             }`}
           >
             Description
@@ -551,10 +551,10 @@ function CreateDiscussionForm({
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent ${
               isDarkMode
                 ? "bg-gray-700 border-gray-600 text-white"
-                : "bg-white border-gray-300 text-gray-900"
+                : "bg-zenith-card border-zenith-border text-zenith-primary"
             }`}
             rows={4}
             placeholder="Provide more details about your discussion..."
@@ -565,7 +565,7 @@ function CreateDiscussionForm({
           <div>
             <label
               className={`block text-sm font-medium mb-2 ${
-                isDarkMode ? "text-gray-300" : "text-gray-700"
+                isDarkMode ? "text-gray-300" : "text-zenith-secondary"
               }`}
             >
               Category
@@ -575,10 +575,10 @@ function CreateDiscussionForm({
               onChange={(e) =>
                 setFormData({ ...formData, category: e.target.value })
               }
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent ${
                 isDarkMode
                   ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300 text-gray-900"
+                  : "bg-zenith-card border-zenith-border text-zenith-primary"
               }`}
             >
               <option value="general">General</option>
@@ -593,7 +593,7 @@ function CreateDiscussionForm({
           <div>
             <label
               className={`block text-sm font-medium mb-2 ${
-                isDarkMode ? "text-gray-300" : "text-gray-700"
+                isDarkMode ? "text-gray-300" : "text-zenith-secondary"
               }`}
             >
               Tags (comma-separated)
@@ -604,10 +604,10 @@ function CreateDiscussionForm({
               onChange={(e) =>
                 setFormData({ ...formData, tags: e.target.value })
               }
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent ${
                 isDarkMode
                   ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300 text-gray-900"
+                  : "bg-zenith-card border-zenith-border text-zenith-primary"
               }`}
               placeholder="e.g., javascript, beginners, help"
             />
@@ -618,7 +618,7 @@ function CreateDiscussionForm({
           <button
             type="submit"
             disabled={loading || !formData.title.trim()}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            className="bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
           >
             {loading ? "Creating..." : "Create Discussion"}
           </button>
@@ -627,8 +627,8 @@ function CreateDiscussionForm({
             onClick={onCancel}
             className={`px-6 py-2 rounded-lg font-medium transition-colors ${
               isDarkMode
-                ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
-                : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                ? "bg-gray-700 hover:bg-zenith-secondary text-gray-300"
+                : "bg-zenith-section hover:bg-zenith-hover text-zenith-secondary"
             }`}
           >
             Cancel

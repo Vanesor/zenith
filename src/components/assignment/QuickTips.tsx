@@ -15,7 +15,7 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
     return (
       <button
         onClick={() => setIsVisible(true)}
-        className="fixed bottom-4 right-4 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-colors z-40"
+        className="fixed bottom-4 right-4 p-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-full shadow-lg transition-colors z-40"
         title="Show tips"
       >
         <Lightbulb className="w-5 h-5" />
@@ -45,7 +45,7 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
             'Set appropriate attempt limits',
             'Consider allowing practice attempts'
           ],
-          icon: <AlertCircle className="w-5 h-5 text-blue-500" />
+          icon: <AlertCircle className="w-5 h-5 text-zenith-primary" />
         };
       case 'scoring':
         return {
@@ -78,7 +78,7 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
             'Test with sample data first',
             'Keep accessibility in mind'
           ],
-          icon: <Lightbulb className="w-5 h-5 text-gray-500" />
+          icon: <Lightbulb className="w-5 h-5 text-zenith-muted" />
         };
     }
   };
@@ -91,12 +91,12 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
         <div className="flex items-start space-x-3">
           {currentTips.icon}
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+            <h3 className="font-semibold text-zenith-primary dark:text-white mb-2 flex items-center">
               Quick Tips: {currentTips.title}
             </h3>
             <ul className="space-y-1">
               {currentTips.tips.map((tip, index) => (
-                <li key={index} className="text-sm text-gray-600 dark:text-gray-400 flex items-start">
+                <li key={index} className="text-sm text-zenith-secondary dark:text-zenith-muted flex items-start">
                   <span className="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 mr-2 flex-shrink-0" />
                   {tip}
                 </li>
@@ -106,7 +106,7 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
         </div>
         <button
           onClick={() => setIsVisible(false)}
-          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="flex-shrink-0 p-1 text-zenith-muted hover:text-zenith-secondary dark:hover:text-gray-300 transition-colors"
           title="Hide tips"
         >
           <X className="w-4 h-4" />

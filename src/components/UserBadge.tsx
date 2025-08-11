@@ -22,7 +22,7 @@ interface UserBadgeProps {
 const getRoleColor = (role: string): string => {
   const roleColors: { [key: string]: string } = {
     coordinator: "bg-yellow-500 text-yellow-900",
-    co_coordinator: "bg-blue-500 text-blue-900",
+    co_coordinator: "bg-zenith-primary text-blue-900",
     secretary: "bg-green-500 text-green-900",
     media: "bg-purple-500 text-purple-900",
     president: "bg-red-500 text-red-900",
@@ -30,7 +30,7 @@ const getRoleColor = (role: string): string => {
     innovation_head: "bg-pink-500 text-pink-900",
     treasurer: "bg-indigo-500 text-indigo-900",
     outreach: "bg-teal-500 text-teal-900",
-    student: "bg-gray-500 text-gray-900",
+    student: "bg-zenith-section0 text-zenith-primary",
   };
   return roleColors[role] || roleColors.student;
 };
@@ -86,7 +86,7 @@ export default function UserBadge({
     );
   }
 
-  const roleColor = role ? getRoleColor(role) : "bg-gray-500 text-gray-900";
+  const roleColor = role ? getRoleColor(role) : "bg-zenith-section0 text-zenith-primary";
   const roleDisplay = role ? getRoleDisplay(role) : "Student";
 
   return (
@@ -117,7 +117,7 @@ export default function UserBadge({
 
       {badges.length > 2 && (
         <span
-          className="px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700"
+          className="px-2 py-1 text-xs font-medium rounded-full bg-zenith-section text-zenith-secondary"
           title={showTooltip ? `+${badges.length - 2} more badges` : undefined}
         >
           +{badges.length - 2}

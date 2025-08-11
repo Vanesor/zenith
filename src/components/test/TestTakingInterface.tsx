@@ -289,10 +289,10 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'current': return 'bg-blue-600 text-white';
+      case 'current': return 'bg-zenith-primary text-white';
       case 'answered': return 'bg-green-600 text-white';
       case 'flagged': return 'bg-yellow-600 text-white';
-      default: return 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300';
+      default: return 'bg-zenith-section text-zenith-secondary';
     }
   };
 
@@ -313,7 +313,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               {currentQuestion.options?.map((option, index) => (
                 <label 
                   key={index} 
-                  className="flex items-start p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border-2 border-transparent has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-900/20"
+                  className="flex items-start p-4 bg-zenith-card rounded-xl cursor-pointer hover:bg-zenith-hover transition-colors border-2 border-transparent has-[:checked]:border-zenith-brand has-[:checked]:bg-zenith-brand/10"
                 >
                   <input
                     type="radio"
@@ -321,9 +321,9 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
                     value={index}
                     checked={answer === index}
                     onChange={() => handleAnswerChange(currentQuestion.id, index)}
-                    className="mt-1 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    className="mt-1 text-zenith-primary border-zenith-border focus:ring-zenith-brand"
                   />
-                  <span className="ml-3 text-gray-900 dark:text-gray-100 flex-1">{option}</span>
+                  <span className="ml-3 text-zenith-primary flex-1">{option}</span>
                 </label>
               ))}
             </div>
@@ -342,7 +342,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               {currentQuestion.options?.map((option, index) => (
                 <label 
                   key={index} 
-                  className="flex items-start p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border-2 border-transparent has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-900/20"
+                  className="flex items-start p-4 bg-zenith-card rounded-xl cursor-pointer hover:bg-zenith-hover transition-colors border-2 border-transparent has-[:checked]:border-zenith-brand has-[:checked]:bg-zenith-brand/10"
                 >
                   <input
                     type="checkbox"
@@ -355,9 +355,9 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
                         handleAnswerChange(currentQuestion.id, currentAnswers.filter(a => a !== index));
                       }
                     }}
-                    className="mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="mt-1 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                   />
-                  <span className="ml-3 text-gray-900 dark:text-gray-100 flex-1">{option}</span>
+                  <span className="ml-3 text-zenith-primary flex-1">{option}</span>
                 </label>
               ))}
             </div>
@@ -409,7 +409,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               value={typeof answer === 'string' ? answer : ''}
               onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
               placeholder="Enter your answer..."
-              className="w-full h-32 p-4 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full h-32 p-4 border border-zenith-border dark:border-gray-600 rounded-xl bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent"
             />
           </div>
         );
@@ -425,7 +425,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               value={typeof answer === 'string' ? answer : ''}
               onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
               placeholder="Write your essay here..."
-              className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full h-64 p-4 border border-zenith-border dark:border-gray-600 rounded-xl bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent"
             />
           </div>
         );
@@ -437,7 +437,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               className="prose dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: currentQuestion.description.replace(/\n/g, '<br>') }}
             />
-            <div className={`flex-grow border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden ${
+            <div className={`flex-grow border border-zenith-border dark:border-gray-700 rounded-lg overflow-hidden ${
               state.isFullscreen ? 'h-[calc(100vh-300px)]' : 'h-[calc(100vh-350px)] min-h-[500px]'
             }`}>
               <EnhancedCodeEditor
@@ -472,7 +472,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               dangerouslySetInnerHTML={{ __html: currentQuestion.description.replace(/\n/g, '<br>') }}
             />
             <div className="flex flex-col items-start space-y-3">
-              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <label className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted">
                 Enter a number:
               </label>
               <input
@@ -482,7 +482,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
                   const val = e.target.value !== '' ? parseInt(e.target.value, 10) : '';
                   handleAnswerChange(currentQuestion.id, val);
                 }}
-                className="w-full max-w-md p-4 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full max-w-md p-4 border border-zenith-border dark:border-gray-600 rounded-xl bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white text-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent"
                 placeholder="Enter your answer..."
               />
             </div>
@@ -490,30 +490,30 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
         );
         
       default:
-        return <div className="text-center text-gray-500 dark:text-gray-400">Unsupported question type</div>;
+        return <div className="text-center text-zenith-muted dark:text-zenith-muted">Unsupported question type</div>;
     }
   };
 
   // Fullscreen layout optimization
   const containerClass = state.isFullscreen 
-    ? "min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col"
-    : "min-h-screen bg-gray-50 dark:bg-gray-900";
+    ? "min-h-screen bg-zenith-section dark:bg-gray-900 flex flex-col"
+    : "min-h-screen bg-zenith-section dark:bg-gray-900";
 
   return (
     <>
       {/* Proctoring Setup Modal */}
       {showSetup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-2">
                   Proctored Assignment Setup
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-zenith-secondary dark:text-zenith-muted">
                   This assignment is proctored. Please review the guidelines and complete the setup.
                 </p>
               </div>
@@ -564,7 +564,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleSetupCancel}
-                  className="flex-1 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 bg-zenith-section0 hover:bg-zenith-secondary text-white font-semibold rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -578,7 +578,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
                     });
                     setTestStarted(true);
                   }}
-                  className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white font-semibold rounded-lg transition-colors"
                 >
                   I Understand, Start Assignment
                 </button>
@@ -592,21 +592,21 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
       {testStarted && (
         <div className={containerClass}>
           {/* Header - Always visible, optimized for fullscreen */}
-          <div className={`bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 ${
+          <div className={`bg-zenith-card dark:bg-gray-800 shadow-sm border-b border-zenith-border dark:border-gray-700 ${
             state.isFullscreen ? 'fixed top-0 left-0 right-0 z-30' : 'sticky top-0 z-30'
           }`}>
             <div className="container mx-auto px-6 py-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">{assignment.title}</h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <h1 className="text-xl font-bold text-zenith-primary dark:text-white">{assignment.title}</h1>
+                  <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                     Question {currentQuestionIndex + 1} of {assignment.questions.length}
                   </p>
                 </div>
                 
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+                    <Clock className="w-5 h-5 text-zenith-primary dark:text-blue-400 mr-2" />
                     <span className="font-mono text-lg font-semibold text-blue-900 dark:text-blue-300">
                       {formatTime(timeLeft)}
                     </span>
@@ -615,9 +615,9 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
                   {assignment.allowNavigation && !state.isFullscreen && (
                     <button
                       onClick={() => setShowQuestionNav(!showQuestionNav)}
-                      className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                      className="p-2 bg-zenith-section dark:bg-gray-700 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary transition-colors"
                     >
-                      <BookOpen className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      <BookOpen className="w-5 h-5 text-zenith-secondary dark:text-zenith-muted" />
                     </button>
                   )}
                   
@@ -626,7 +626,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
                     className={`p-2 rounded-lg transition-colors ${
                       flaggedQuestions.has(currentQuestion.id)
                         ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        : 'bg-zenith-section dark:bg-gray-700 text-zenith-secondary dark:text-zenith-muted hover:bg-zenith-section dark:hover:bg-zenith-secondary'
                     }`}
                     title="Flag for review"
                   >
@@ -639,9 +639,9 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
 
           {/* Question Navigation Panel - Hidden in fullscreen */}
           {showQuestionNav && !state.isFullscreen && (
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+            <div className="bg-zenith-card dark:bg-gray-800 border-b border-zenith-border dark:border-gray-700 p-4">
               <div className="container mx-auto">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Navigate to Question:</h3>
+                <h3 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-3">Navigate to Question:</h3>
                 <div className="grid grid-cols-10 gap-2">
                   {assignment.questions.map((_, index) => (
                     <button
@@ -661,18 +661,18 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
           {/* Main Content - Optimized for fullscreen */}
           <div className={`flex-1 ${state.isFullscreen ? 'pt-20 pb-20' : 'py-8 pb-32'} px-6`}>
             <div className="container mx-auto max-w-4xl">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden h-full">
+              <div className="bg-zenith-card dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden h-full">
                 <div className="p-8 h-full">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                      <div className="w-8 h-8 bg-zenith-primary text-white rounded-full flex items-center justify-center font-bold">
                         {currentQuestionIndex + 1}
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        <h2 className="text-xl font-bold text-zenith-primary dark:text-white">
                           {currentQuestion?.title || `Question ${currentQuestionIndex + 1}`}
                         </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                           {currentQuestion?.points} point{(currentQuestion?.points || 0) !== 1 ? 's' : ''}
                         </p>
                       </div>
@@ -688,7 +688,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
           </div>
 
           {/* Fixed Bottom Navigation - Always visible */}
-          <div className={`bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-2xl py-4 px-6 z-40 ${
+          <div className={`bg-zenith-card dark:bg-gray-800 border-t border-zenith-border dark:border-gray-700 shadow-2xl py-4 px-6 z-40 ${
             state.isFullscreen ? 'fixed bottom-0 left-0 right-0' : 'fixed bottom-0 left-0 right-0'
           }`}>
             <div className="container mx-auto max-w-6xl flex items-center justify-between">
@@ -702,15 +702,15 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               </button>
 
               <div className="flex-grow text-center px-4">
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-xl py-3 px-6">
-                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                <div className="bg-zenith-section dark:bg-gray-700 rounded-xl py-3 px-6">
+                  <div className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted mb-1">
                     Progress
                   </div>
                   <div className="flex items-center justify-center space-x-3">
-                    <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    <span className="text-lg font-bold text-zenith-primary dark:text-white">
                       {currentQuestionIndex + 1} / {assignment.questions.length}
                     </span>
-                    <div className="w-32 h-2 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
+                    <div className="w-32 h-2 bg-gray-300 dark:bg-zenith-secondary rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
                         style={{ width: `${((currentQuestionIndex + 1) / assignment.questions.length) * 100}%` }}
@@ -755,43 +755,43 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
       {/* Submission Success Modal */}
       {submissionSuccessful && submissionSummary && (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 md:p-8 m-4">
+          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 md:p-8 m-4">
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
                 <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-2">
                 Successfully Submitted!
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-zenith-secondary dark:text-zenith-muted">
                 Your test has been recorded and safely stored.
               </p>
             </div>
             
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-5 mb-6">
+            <div className="bg-zenith-section dark:bg-gray-700 rounded-lg p-5 mb-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Questions Answered</p>
+                  <p className="text-sm text-zenith-muted dark:text-zenith-muted mb-1">Questions Answered</p>
                   <div className="flex items-center">
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-xl font-bold text-zenith-primary dark:text-white">
                       {submissionSummary.questionsAttempted}
-                      <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-1">
+                      <span className="text-sm font-normal text-zenith-muted dark:text-zenith-muted ml-1">
                         / {submissionSummary.totalQuestions}
                       </span>
                     </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Time Used</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                    <Clock className="w-4 h-4 mr-1 text-blue-500 dark:text-blue-400" />
+                  <p className="text-sm text-zenith-muted dark:text-zenith-muted mb-1">Time Used</p>
+                  <p className="text-xl font-bold text-zenith-primary dark:text-white flex items-center">
+                    <Clock className="w-4 h-4 mr-1 text-zenith-primary dark:text-blue-400" />
                     {submissionSummary.timeSpent}
                   </p>
                 </div>
               </div>
               
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="mt-4 pt-4 border-t border-zenith-border dark:border-gray-600">
+                <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                   {assignment.showResults 
                     ? 'Your results are now available to view.' 
                     : 'Your instructor will grade your submission soon.'}
@@ -803,7 +803,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               {assignment.showResults && (
                 <button
                   onClick={() => window.location.href = `/assignments/${assignment.id}/results`}
-                  className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                  className="w-full py-3 px-4 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
                 >
                   <span>View Results</span>
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -811,7 +811,7 @@ function TestTakingInterfaceInner({ assignment, onSubmit, allowCalculator = true
               )}
               <button
                 onClick={() => window.location.href = '/assignments'}
-                className="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors"
+                className="w-full py-3 px-4 bg-zenith-section hover:bg-zenith-hover dark:bg-gray-700 dark:hover:bg-zenith-secondary text-zenith-primary dark:text-white rounded-lg font-medium transition-colors"
               >
                 Back to Assignments
               </button>

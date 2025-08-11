@@ -146,7 +146,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-xl">
           <div className="flex items-center justify-between">
@@ -169,7 +169,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
         <div className="p-6">
           {/* Step 1: File Upload */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">
               1. Upload PDF Document
             </h3>
             
@@ -177,7 +177,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
               className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                 selectedFile 
                   ? 'border-green-400 bg-green-50 dark:bg-green-900/20' 
-                  : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                  : 'border-zenith-border dark:border-gray-600 hover:border-blue-400 dark:hover:border-zenith-primary'
               }`}
               onClick={() => fileInputRef.current?.click()}
             >
@@ -203,11 +203,11 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                 </div>
               ) : (
                 <div>
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400 mb-2">
+                  <Upload className="w-12 h-12 text-zenith-muted mx-auto mb-3" />
+                  <p className="text-zenith-secondary dark:text-zenith-muted mb-2">
                     Click to upload a PDF document
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-zenith-muted">
                     Supports question papers, study materials, and textbook chapters
                   </p>
                 </div>
@@ -218,32 +218,32 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
           {/* Step 2: Generation Options */}
           {selectedFile && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">
                 2. Configure Generation Options
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                     Assignment Title
                   </label>
                   <input
                     type="text"
                     value={generationOptions.assignmentTitle}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, assignmentTitle: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-md focus:ring-zenith-primary focus:border-zenith-primary dark:bg-gray-700 dark:text-white"
                     placeholder="Enter assignment title"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                     Assignment Type
                   </label>
                   <select
                     value={generationOptions.assignmentType}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, assignmentType: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-md focus:ring-zenith-primary focus:border-zenith-primary dark:bg-gray-700 dark:text-white"
                   >
                     <option value="objective">Objective (MCQ/True-False)</option>
                     <option value="mixed">Mixed (MCQ + Essay)</option>
@@ -252,13 +252,13 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                     Difficulty Level
                   </label>
                   <select
                     value={generationOptions.difficulty}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, difficulty: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-md focus:ring-zenith-primary focus:border-zenith-primary dark:bg-gray-700 dark:text-white"
                   >
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
@@ -267,7 +267,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                     Time Limit (minutes)
                   </label>
                   <input
@@ -276,12 +276,12 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                     max="300"
                     value={generationOptions.timeLimit}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, timeLimit: parseInt(e.target.value) }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-md focus:ring-zenith-primary focus:border-zenith-primary dark:bg-gray-700 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                     Maximum Questions
                   </label>
                   <input
@@ -290,12 +290,12 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                     max="50"
                     value={generationOptions.maxQuestions}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, maxQuestions: parseInt(e.target.value) }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-md focus:ring-zenith-primary focus:border-zenith-primary dark:bg-gray-700 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                     Passing Score (%)
                   </label>
                   <input
@@ -304,7 +304,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                     max="100"
                     value={generationOptions.passingScore}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, passingScore: parseInt(e.target.value) }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-md focus:ring-zenith-primary focus:border-zenith-primary dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               </div>
@@ -315,9 +315,9 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                     type="checkbox"
                     checked={generationOptions.includeExplanations}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, includeExplanations: e.target.checked }))}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                   />
-                  <span className="ml-3 text-gray-700 dark:text-gray-300">
+                  <span className="ml-3 text-zenith-secondary dark:text-gray-300">
                     Include answer explanations
                   </span>
                 </label>
@@ -327,9 +327,9 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                     type="checkbox"
                     checked={generationOptions.shuffleQuestions}
                     onChange={(e) => setGenerationOptions(prev => ({ ...prev, shuffleQuestions: e.target.checked }))}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                   />
-                  <span className="ml-3 text-gray-700 dark:text-gray-300">
+                  <span className="ml-3 text-zenith-secondary dark:text-gray-300">
                     Shuffle questions for each student
                   </span>
                 </label>
@@ -347,7 +347,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
                     {uploading ? 'Uploading PDF...' : 'AI is analyzing the document and generating questions...'}
                   </span>
                 </div>
-                <div className="mt-2 text-sm text-blue-600 dark:text-blue-500">
+                <div className="mt-2 text-sm text-zenith-primary dark:text-zenith-primary">
                   This may take a few minutes depending on the document size and complexity.
                 </div>
               </div>
@@ -396,7 +396,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
           <div className="flex justify-between">
             <button
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="px-6 py-2 border border-zenith-border dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90"
             >
               Cancel
             </button>
@@ -404,7 +404,7 @@ export function PDFToAssignmentConverter({ onAssignmentGenerated, onClose }: PDF
             <button
               onClick={handleUploadAndGenerate}
               disabled={!selectedFile || uploading || processing}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? 'Uploading...' : processing ? 'Generating...' : 'Generate Assignment'}
             </button>

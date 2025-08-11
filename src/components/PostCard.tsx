@@ -15,18 +15,18 @@ export const PostCard: React.FC<PostCardProps> = ({
   truncateContent = 150,
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+    <div className="bg-zenith-card rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
       {/* Post Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+          <div className="w-10 h-10 bg-zenith-primary rounded-full flex items-center justify-center text-white font-semibold">
             {post.author.username.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-zenith-primary">
               {post.author.username}
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-zenith-muted">
               {formatDate(post.createdAt)}
             </p>
           </div>
@@ -47,9 +47,9 @@ export const PostCard: React.FC<PostCardProps> = ({
       {/* Post Content */}
       <div className="mb-4">
         <Link href={`/posts/${post.id}`} className="hover:underline">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h2>
+          <h2 className="text-xl font-bold text-zenith-primary mb-2">{post.title}</h2>
         </Link>
-        <p className="text-gray-700 leading-relaxed">
+        <p className="text-zenith-secondary leading-relaxed">
           {truncateText(post.content, truncateContent)}
         </p>
       </div>
@@ -61,7 +61,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             {post.tags.map((tag: string) => (
               <span
                 key={tag}
-                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md"
+                className="px-2 py-1 bg-zenith-section text-zenith-secondary text-xs rounded-md"
               >
                 #{tag}
               </span>
@@ -71,9 +71,9 @@ export const PostCard: React.FC<PostCardProps> = ({
       )}
 
       {/* Post Stats */}
-      <div className="flex items-center justify-between text-sm text-gray-500">
+      <div className="flex items-center justify-between text-sm text-zenith-muted">
         <div className="flex items-center space-x-4">
-          <button className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+          <button className="flex items-center space-x-1 hover:text-zenith-primary transition-colors">
             <svg
               className="w-4 h-4"
               fill="none"
@@ -92,7 +92,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
           <Link
             href={`/posts/${post.id}#comments`}
-            className="flex items-center space-x-1 hover:text-blue-500 transition-colors"
+            className="flex items-center space-x-1 hover:text-zenith-primary transition-colors"
           >
             <svg
               className="w-4 h-4"

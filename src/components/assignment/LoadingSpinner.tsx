@@ -24,9 +24,9 @@ export function LoadingSpinner({ size = 'md', text, className = '' }: LoadingSpi
 
   return (
     <div className={`flex items-center justify-center space-x-2 ${className}`}>
-      <Loader2 className={`${getSizeClasses()} animate-spin text-blue-600 dark:text-blue-400`} />
+      <Loader2 className={`${getSizeClasses()} animate-spin text-zenith-brand`} />
       {text && (
-        <span className="text-sm text-gray-600 dark:text-gray-400">
+        <span className="text-sm text-zenith-secondary">
           {text}
         </span>
       )}
@@ -44,23 +44,23 @@ export function FullscreenLoading({
   message = 'Please wait while we process your assignment.'
 }: FullscreenLoadingProps) {
   return (
-    <div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-zenith-main/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-zenith-card rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
         <div className="text-center">
           <div className="mb-6">
             <div className="relative">
-              <div className="w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+              <div className="w-16 h-16 mx-auto bg-zenith-brand/10 rounded-full flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-zenith-brand" />
               </div>
-              <div className="absolute inset-0 w-16 h-16 mx-auto border-4 border-blue-200 dark:border-blue-800 rounded-full animate-pulse" />
+              <div className="absolute inset-0 w-16 h-16 mx-auto border-4 border-zenith-brand/30 rounded-full animate-pulse" />
             </div>
           </div>
           
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-semibold text-zenith-primary mb-2">
             {title}
           </h3>
           
-          <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+          <p className="text-zenith-secondary text-sm leading-relaxed">
             {message}
           </p>
           

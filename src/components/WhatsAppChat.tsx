@@ -179,7 +179,7 @@ export default function WhatsAppChat({
   const getRoleBadgeColor = (role: string) => {
     const roleColors: { [key: string]: string } = {
       coordinator: "bg-purple-500",
-      co_coordinator: "bg-blue-500",
+      co_coordinator: "bg-zenith-primary",
       secretary: "bg-green-500",
       media: "bg-pink-500",
       president: "bg-red-500",
@@ -188,7 +188,7 @@ export default function WhatsAppChat({
       treasurer: "bg-yellow-500",
       outreach: "bg-teal-500",
     };
-    return roleColors[role] || "bg-gray-500";
+    return roleColors[role] || "bg-zenith-section0";
   };
 
   const formatRole = (role: string) => {
@@ -214,19 +214,19 @@ export default function WhatsAppChat({
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-full bg-zenith-section dark:bg-gray-900">
       {/* Chat Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+      <div className="bg-zenith-card dark:bg-gray-800 border-b border-zenith-border dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
               {roomName}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-zenith-muted dark:text-zenith-muted">
               {messages.length} messages
             </p>
           </div>
-          <button className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+          <button className="text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-200">
             <MoreHorizontal className="w-5 h-5" />
           </button>
         </div>
@@ -235,7 +235,7 @@ export default function WhatsAppChat({
       {/* Messages Container with WhatsApp-like styling */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
         {messages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-zenith-muted dark:text-zenith-muted">
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
@@ -278,7 +278,7 @@ export default function WhatsAppChat({
                       className={`px-3 py-2 rounded-2xl relative shadow-md ${
                         isOwn
                           ? "bg-green-500 text-white rounded-br-md" // WhatsApp green for own messages
-                          : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md"
+                          : "bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white rounded-bl-md"
                       }`}
                     >
                       {/* Message tail */}
@@ -291,7 +291,7 @@ export default function WhatsAppChat({
                       {/* Author Name (for others' messages) */}
                       {!isOwn && showAvatar && (
                         <div className="flex items-center space-x-2 mb-1">
-                          <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          <p className="text-xs font-semibold text-zenith-primary dark:text-blue-400">
                             {message.author_name}
                           </p>
                           {message.author_role &&
@@ -325,7 +325,7 @@ export default function WhatsAppChat({
                   {/* Reply Button */}
                   <button
                     onClick={() => handleReply(message)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 bg-white dark:bg-gray-700 rounded-full shadow-md"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-zenith-muted hover:text-zenith-primary dark:hover:text-blue-400 bg-zenith-card dark:bg-gray-700 rounded-full shadow-md"
                     title="Reply to this message"
                   >
                     <Reply className="w-4 h-4" />
@@ -344,18 +344,18 @@ export default function WhatsAppChat({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-1">
-                <Reply className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <Reply className="w-4 h-4 text-zenith-primary dark:text-blue-400" />
                 <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
                   Replying to {replyTo.author_name}
                 </p>
               </div>
-              <p className="text-sm text-blue-600 dark:text-blue-300 truncate pl-6">
+              <p className="text-sm text-zenith-primary dark:text-blue-300 truncate pl-6">
                 {replyTo.message}
               </p>
             </div>
             <button
               onClick={cancelReply}
-              className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600"
+              className="p-1 rounded-full hover:bg-zenith-hover dark:hover:bg-zenith-secondary"
             >
               <X className="w-4 h-4" />
             </button>
@@ -364,9 +364,9 @@ export default function WhatsAppChat({
       )}
 
       {/* Message Input - WhatsApp style */}
-      <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3">
+      <div className="bg-zenith-section dark:bg-gray-800 px-4 py-3">
         <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
-          <div className="flex-1 bg-white dark:bg-gray-700 rounded-3xl border border-gray-300 dark:border-gray-600 px-4 py-2">
+          <div className="flex-1 bg-zenith-card dark:bg-gray-700 rounded-3xl border border-zenith-border dark:border-gray-600 px-4 py-2">
             <textarea
               ref={messageInputRef}
               value={newMessage}

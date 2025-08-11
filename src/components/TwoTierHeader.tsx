@@ -15,16 +15,15 @@ import {
   MessageSquare,
   Menu,
   X,
-  Moon,
-  Sun,
 } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/contexts/ThemeContext";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { CollegeHeader } from "@/components/CollegeHeader";
 
 export function TwoTierHeader() {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -78,16 +77,16 @@ export function TwoTierHeader() {
         </div>
         
         {/* Navigation - Loading */}
-        <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+        <nav className="bg-zenith-section/90 backdrop-blur-md border-b border-zenith-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-4">
-                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <div className="animate-pulse h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="animate-pulse h-8 w-8 bg-zenith-card rounded"></div>
+                <div className="animate-pulse h-8 w-64 bg-zenith-card rounded"></div>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="animate-pulse h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                <div className="animate-pulse h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="animate-pulse h-8 w-8 bg-zenith-card rounded-full"></div>
+                <div className="animate-pulse h-8 w-24 bg-zenith-card rounded"></div>
               </div>
             </div>
           </div>
@@ -133,20 +132,20 @@ export function TwoTierHeader() {
       <CollegeHeader />
 
       {/* Main Navigation Header */}
-      <nav className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+      <nav className="bg-zenith-section/90 backdrop-blur-md border-b border-zenith-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Left Side - Menu Button */}
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors lg:hidden"
+                className="p-2 rounded-lg hover:bg-zenith-hover transition-colors lg:hidden"
                 aria-label="Toggle menu"
               >
                 {showMobileMenu ? (
-                  <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                  <X className="w-6 h-6 text-zenith-secondary" />
                 ) : (
-                  <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                  <Menu className="w-6 h-6 text-zenith-secondary" />
                 )}
               </button>
             </div>
@@ -163,8 +162,8 @@ export function TwoTierHeader() {
                     href={item.href}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                        : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-zenith-accent text-white"
+                        : "text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-card"
                     }`}
                   >
                     <Icon size={16} />
@@ -177,22 +176,13 @@ export function TwoTierHeader() {
             {/* Right Side - Actions */}
             <div className="flex items-center space-x-4">
               {/* Theme Toggle */}
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                ) : (
-                  <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                )}
-              </button>
+              <ThemeToggle />
 
               {/* User Menu */}
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-zenith-card transition-colors"
                 >
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">
@@ -200,33 +190,33 @@ export function TwoTierHeader() {
                     </span>
                   </div>
                   <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-zenith-primary">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-zenith-muted">
                       {user.role}
                     </p>
                   </div>
                   <ChevronDown
                     size={16}
-                    className="text-gray-500 dark:text-gray-400 hidden md:block"
+                    className="text-zenith-muted hidden md:block"
                   />
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+                  <div className="absolute right-0 mt-2 w-48 bg-zenith-card rounded-lg shadow-lg border border-zenith-border py-2">
                     <Link
                       href="/profile"
-                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-zenith-secondary hover:bg-zenith-hover"
                       onClick={() => setShowUserMenu(false)}
                     >
                       <User size={16} />
                       <span>Profile</span>
                     </Link>
-                    <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                    <hr className="my-2 border-zenith-border" />
                     <button
                       onClick={handleLogout}
-                      className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-red-500 hover:bg-zenith-hover w-full text-left"
                     >
                       <LogOut size={16} />
                       <span>Logout</span>
@@ -240,7 +230,7 @@ export function TwoTierHeader() {
 
         {/* Mobile Navigation */}
         {showMobileMenu && (
-          <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <div className="lg:hidden border-t border-zenith-border bg-zenith-section">
             <div className="px-4 py-4 space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
@@ -253,8 +243,8 @@ export function TwoTierHeader() {
                     onClick={() => setShowMobileMenu(false)}
                     className={`flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                        : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-zenith-accent text-white"
+                        : "text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-card"
                     }`}
                   >
                     <Icon size={18} />

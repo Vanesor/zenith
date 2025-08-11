@@ -83,7 +83,7 @@ export default function AssignmentsPage() {
       case "pending":
         return <Clock className="w-5 h-5 text-orange-500" />;
       case "submitted":
-        return <CheckCircle className="w-5 h-5 text-blue-500" />;
+        return <CheckCircle className="w-5 h-5 text-zenith-primary" />;
       case "graded":
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       default:
@@ -102,7 +102,7 @@ export default function AssignmentsPage() {
       case "overdue":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-zenith-section text-zenith-secondary";
     }
   };
 
@@ -239,7 +239,7 @@ export default function AssignmentsPage() {
                   {assignments.length}
                 </p>
               </div>
-              <FileText className="w-8 h-8 text-blue-600" />
+              <FileText className="w-8 h-8 text-zenith-primary" />
             </div>
           </div>
           <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
@@ -265,7 +265,7 @@ export default function AssignmentsPage() {
                   {assignments.filter((a) => a.status === "submitted").length}
                 </p>
               </div>
-              <CheckCircle className="w-8 h-8 text-blue-600" />
+              <CheckCircle className="w-8 h-8 text-zenith-primary" />
             </div>
           </div>
           <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
@@ -295,7 +295,7 @@ export default function AssignmentsPage() {
                   placeholder="Search assignments..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary bg-zenith-card text-zenith-primary"
                 />
               </div>
             </div>
@@ -313,7 +313,7 @@ export default function AssignmentsPage() {
                   onClick={() => setFilter(filterOption.key as typeof filter)}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     filter === filterOption.key
-                      ? "bg-blue-600 text-white"
+                      ? "bg-zenith-primary text-white"
                       : "bg-zenith-hover text-zenith-secondary hover:bg-zenith-border"
                   }`}
                 >
@@ -349,7 +349,7 @@ export default function AssignmentsPage() {
             </div>
           ) : filteredAssignments.length === 0 ? (
             <div className="bg-zenith-card rounded-xl shadow-lg p-12 text-center">
-              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <FileText className="w-16 h-16 text-zenith-muted mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                 No assignments found
               </h3>
@@ -458,7 +458,7 @@ export default function AssignmentsPage() {
                         <button 
                           onClick={() => handleStartAssignment(assignment.id)}
                           disabled={startingAssignment === assignment.id}
-                          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                          className="flex items-center px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
                         >
                           {startingAssignment === assignment.id ? (
                             <Loader2 size={16} className="mr-2 animate-spin" />

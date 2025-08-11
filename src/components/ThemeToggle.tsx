@@ -4,6 +4,8 @@ import React from "react";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
+// This is the old fixed-position ThemeToggle - Use ui/ThemeToggle instead
+// Keeping for backwards compatibility
 export function ThemeToggle() {
   const { theme, toggleTheme, isLoaded } = useTheme();
 
@@ -15,7 +17,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed top-4 right-4 z-[60] p-3 rounded-full bg-zenith-card border border-zenith backdrop-blur-md hover:bg-zenith-section transition-all duration-300 shadow-lg hover:shadow-xl group"
+      className="fixed top-4 right-4 z-[60] p-3 rounded-full bg-zenith-card border border-zenith-border backdrop-blur-md hover:bg-zenith-section transition-all duration-300 shadow-lg hover:shadow-xl group"
       aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
     >
       <div className="relative w-5 h-5">

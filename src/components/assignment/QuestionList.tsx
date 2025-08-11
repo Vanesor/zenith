@@ -113,7 +113,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
       case 'integer':
         return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        return 'bg-zenith-section text-zenith-primary dark:bg-gray-900/20 dark:text-zenith-muted';
     }
   };
 
@@ -126,7 +126,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
       case 'hard':
         return 'text-red-600 dark:text-red-400';
       default:
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-zenith-secondary dark:text-zenith-muted';
     }
   };
 
@@ -141,11 +141,11 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
   if (questions.length === 0) {
     return (
       <div className={`text-center py-12 ${className}`}>
-        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <FileText className="w-12 h-12 text-zenith-muted mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-zenith-primary dark:text-white mb-2">
           No questions added yet
         </h3>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-zenith-secondary dark:text-zenith-muted">
           Add questions to your assignment to get started.
         </p>
       </div>
@@ -155,13 +155,13 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
   return (
     <div className={className}>
       {/* Summary Stats */}
-      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+      <div className="mb-6 p-4 bg-zenith-section dark:bg-gray-800/50 rounded-xl">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-2xl font-bold text-zenith-primary dark:text-blue-400">
               {questions.length}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-zenith-secondary dark:text-zenith-muted">
               Questions
             </div>
           </div>
@@ -169,7 +169,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {getTotalPoints()}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-zenith-secondary dark:text-zenith-muted">
               Total Points
             </div>
           </div>
@@ -177,7 +177,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {getTotalTime()}m
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-zenith-secondary dark:text-zenith-muted">
               Total Time
             </div>
           </div>
@@ -189,14 +189,14 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
         {questions.map((question, index) => (
           <div
             key={question.id}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            className="bg-zenith-card dark:bg-gray-800 rounded-xl border border-zenith-border dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
           >
             {/* Question Header */}
             <div className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3 mb-2">
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <span className="text-sm font-medium text-zenith-muted dark:text-zenith-muted">
                       #{index + 1}
                     </span>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getQuestionTypeColor(question.type)}`}>
@@ -209,11 +209,11 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                     )}
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 truncate">
+                  <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-2 truncate">
                     {question.title}
                   </h3>
                   
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center space-x-4 text-sm text-zenith-secondary dark:text-zenith-muted">
                     <span className="flex items-center">
                       <span className="font-medium">{question.points}</span> points
                     </span>
@@ -228,7 +228,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                         {question.tags.slice(0, 2).map((tag, tagIndex) => (
                           <span
                             key={tagIndex}
-                            className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs"
+                            className="px-2 py-1 bg-zenith-section dark:bg-gray-700 rounded text-xs"
                           >
                             {tag}
                           </span>
@@ -245,28 +245,28 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                 <div className="flex items-center space-x-2 ml-4">
                   <button
                     onClick={() => setPreviewQuestion(question)}
-                    className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                    className="p-2 text-zenith-muted hover:text-zenith-primary dark:text-zenith-muted dark:hover:text-blue-400 transition-colors"
                     title="Preview question"
                   >
                     <Eye className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onEditQuestion(index)}
-                    className="p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors"
+                    className="p-2 text-zenith-muted hover:text-green-600 dark:text-zenith-muted dark:hover:text-green-400 transition-colors"
                     title="Edit question"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteClick(index)}
-                    className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                    className="p-2 text-zenith-muted hover:text-red-600 dark:text-zenith-muted dark:hover:text-red-400 transition-colors"
                     title="Delete question"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => toggleExpanded(index)}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                    className="p-2 text-zenith-muted hover:text-zenith-secondary dark:text-zenith-muted dark:hover:text-gray-300 transition-colors"
                     title={expandedQuestions.has(index) ? "Collapse" : "Expand"}
                   >
                     {expandedQuestions.has(index) ? (
@@ -281,7 +281,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
 
             {/* Expanded Content */}
             {expandedQuestions.has(index) && (
-              <div className="border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
+              <div className="border-t border-gray-100 dark:border-gray-700 bg-zenith-section dark:bg-gray-800/50 p-4">
                 <div className="prose prose-sm dark:prose-invert max-w-none">
                   <div
                     dangerouslySetInnerHTML={{
@@ -293,7 +293,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                 {/* Show options for multiple choice, multi-select, and true/false */}
                 {(question.type === 'multiple-choice' || question.type === 'multi-select' || question.type === 'true-false') && question.options && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                       Options:
                     </h4>
                     <div className="space-y-2">
@@ -308,7 +308,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                             className={`p-2 rounded-lg text-sm ${
                               isCorrect
                                 ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800'
-                                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                : 'bg-zenith-card dark:bg-gray-700 text-zenith-secondary dark:text-gray-300'
                             }`}
                           >
                             <span className="font-medium mr-2">
@@ -329,14 +329,14 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                 {question.type === 'integer' && (
                   <div className="mt-4 space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                         Correct Answer: 
                         <span className="ml-2 font-normal text-green-600 dark:text-green-400">
                           {typeof question.correctAnswer === 'number' ? question.correctAnswer : 'N/A'}
                         </span>
                       </h4>
                       {(question.minValue !== undefined || question.maxValue !== undefined || question.stepValue) && (
-                        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="mt-2 text-sm text-zenith-secondary dark:text-zenith-muted">
                           <ul className="list-disc list-inside">
                             {question.minValue !== undefined && question.maxValue !== undefined && (
                               <li>Range: {question.minValue} to {question.maxValue}</li>
@@ -362,7 +362,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                   <div className="mt-4 space-y-4">
                     {question.language && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                           Language: <span className="font-normal">{question.language}</span>
                         </h4>
                       </div>
@@ -370,7 +370,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                     
                     {question.starterCode && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                           Starter Code:
                         </h4>
                         <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">
@@ -381,26 +381,26 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
 
                     {question.testCases && question.testCases.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <h4 className="text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                           Test Cases:
                         </h4>
                         <div className="space-y-2">
                           {question.testCases.slice(0, 3).map((testCase, testIndex) => (
-                            <div key={testIndex} className="bg-white dark:bg-gray-700 p-3 rounded-lg">
+                            <div key={testIndex} className="bg-zenith-card dark:bg-gray-700 p-3 rounded-lg">
                               <div className="grid grid-cols-2 gap-4 text-xs">
                                 <div>
-                                  <span className="font-medium text-gray-500 dark:text-gray-400">Input:</span>
-                                  <pre className="mt-1 text-gray-800 dark:text-gray-200">{testCase.input}</pre>
+                                  <span className="font-medium text-zenith-muted dark:text-zenith-muted">Input:</span>
+                                  <pre className="mt-1 text-zenith-primary dark:text-gray-200">{testCase.input}</pre>
                                 </div>
                                 <div>
-                                  <span className="font-medium text-gray-500 dark:text-gray-400">Expected:</span>
-                                  <pre className="mt-1 text-gray-800 dark:text-gray-200">{testCase.output}</pre>
+                                  <span className="font-medium text-zenith-muted dark:text-zenith-muted">Expected:</span>
+                                  <pre className="mt-1 text-zenith-primary dark:text-gray-200">{testCase.output}</pre>
                                 </div>
                               </div>
                             </div>
                           ))}
                           {question.testCases.length > 3 && (
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-sm text-zenith-muted dark:text-zenith-muted">
                               +{question.testCases.length - 3} more test cases
                             </div>
                           )}

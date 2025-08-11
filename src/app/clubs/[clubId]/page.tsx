@@ -74,7 +74,7 @@ const getIconComponent = (iconName: string) => {
 };
 const getClubTextColor = (clubName: string) => {
   const clubColors: Record<string, string> = {
-    'Ascend': 'text-blue-500',    // Blue for ASCEND
+    'Ascend': 'text-zenith-primary',    // Blue for ASCEND
     'Aster': 'text-pink-500',     // Pink for ASTER  
     'Achievers': 'text-purple-500', // Purple for ACHIEVERS
     'Altogether': 'text-green-500', // Green for ALTOGETHER
@@ -187,7 +187,7 @@ export default function ClubPage() {
           <div className={`bg-gradient-to-r ${club.color} p-8 text-white`}>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
               <div className="flex items-center space-x-6 mb-4 md:mb-0">
-                <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
+                <div className="w-20 h-20 bg-zenith-card/20 rounded-2xl flex items-center justify-center">
                   <ClubLogo 
                     clubId={club.id}
                     clubName={club.name}
@@ -207,15 +207,15 @@ export default function ClubPage() {
                   onClick={handleJoinClub}
                   className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                     isJoined
-                      ? "bg-white/20 text-white border border-white/30 hover:bg-white/30"
-                      : "bg-white text-gray-900 hover:bg-gray-100"
+                      ? "bg-zenith-card/20 text-white border border-white/30 hover:bg-zenith-card/30"
+                      : "bg-zenith-card text-zenith-primary hover:bg-zenith-section"
                   }`}
                 >
                   {isJoined ? "Joined" : "Join Club"}
                 </button>
                 <Link
                   href={`/clubs/${clubId}/discussions`}
-                  className="px-6 py-3 bg-white/20 text-white rounded-lg border border-white/30 hover:bg-white/30 transition-all inline-flex items-center"
+                  className="px-6 py-3 bg-zenith-card/20 text-white rounded-lg border border-white/30 hover:bg-zenith-card/30 transition-all inline-flex items-center"
                 >
                   <MessageSquare size={20} className="mr-2" />
                   Discussions
@@ -228,7 +228,7 @@ export default function ClubPage() {
           <div className="p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <Users className="w-8 h-8 text-zenith-primary mx-auto mb-2" />
                 <p className="text-2xl font-bold text-zenith-primary">
                   {club.memberCount}
                 </p>
@@ -290,7 +290,7 @@ export default function ClubPage() {
                   posts.map((post) => (
                     <div
                       key={post.id}
-                      className="p-4 border border-zenith-border rounded-lg hover:border-blue-300 transition-colors"
+                      className="p-4 border border-zenith-border rounded-lg hover:border-zenith-primary transition-colors"
                     >
                       <h3 className="font-semibold text-zenith-primary mb-2">
                         {post.title}
@@ -350,7 +350,7 @@ export default function ClubPage() {
                     name={club.leadership.coCoordinator?.name}
                     size="sm"
                   />
-                  <Shield className="w-5 h-5 text-blue-500" />
+                  <Shield className="w-5 h-5 text-zenith-primary" />
                   <div>
                     <p className="font-medium text-zenith-primary">
                       {club.leadership.coCoordinator?.name || "Not assigned"}
@@ -403,7 +403,7 @@ export default function ClubPage() {
                   events.map((event) => (
                     <div
                       key={event.id}
-                      className="border-l-4 border-blue-500 pl-4"
+                      className="border-l-4 border-zenith-primary pl-4"
                     >
                       <h3 className="font-medium text-zenith-primary text-sm">
                         {event.title}
@@ -432,7 +432,7 @@ export default function ClubPage() {
               </h2>
               <div className="space-y-3">
                 <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
-                  <Calendar size={16} className="text-blue-600" />
+                  <Calendar size={16} className="text-zenith-primary" />
                   <span className="text-sm text-zenith-primary">
                     View Events
                   </span>
@@ -450,7 +450,7 @@ export default function ClubPage() {
                   </span>
                 </button>
                 <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
-                  <Settings size={16} className="text-gray-600" />
+                  <Settings size={16} className="text-zenith-secondary" />
                   <span className="text-sm text-zenith-primary">
                     Settings
                   </span>

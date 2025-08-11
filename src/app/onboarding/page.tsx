@@ -107,7 +107,7 @@ export default function OnboardingPage() {
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-zenith-primary"></div>
       </div>
     );
   }
@@ -123,14 +123,14 @@ export default function OnboardingPage() {
         className="w-full max-w-2xl"
       >
         {/* Onboarding Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-zenith-card dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-zenith-border dark:border-gray-700">
           {/* Logo */}
           <div className="text-center mb-8">
             <ZenithLogo size="lg" className="justify-center mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-zenith-primary dark:text-white">
               Complete Your Profile
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-zenith-secondary dark:text-zenith-muted mt-2">
               Just a few more details to get you started
             </p>
           </div>
@@ -149,13 +149,13 @@ export default function OnboardingPage() {
               <div>
                 <label
                   htmlFor="firstName"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
                 >
                   First Name
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <User className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   </div>
                   <input
                     id="firstName"
@@ -164,7 +164,7 @@ export default function OnboardingPage() {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="First name"
                   />
                 </div>
@@ -173,7 +173,7 @@ export default function OnboardingPage() {
               <div>
                 <label
                   htmlFor="lastName"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
                 >
                   Last Name
                 </label>
@@ -184,7 +184,7 @@ export default function OnboardingPage() {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   required
-                  className="block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full px-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Last name"
                 />
               </div>
@@ -195,13 +195,13 @@ export default function OnboardingPage() {
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
                 >
                   Phone Number
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Phone className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   </div>
                   <input
                     id="phone"
@@ -209,7 +209,7 @@ export default function OnboardingPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Your phone number"
                   />
                 </div>
@@ -218,13 +218,13 @@ export default function OnboardingPage() {
               <div>
                 <label
                   htmlFor="dateOfBirth"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
                 >
                   Date of Birth
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Calendar className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   </div>
                   <input
                     id="dateOfBirth"
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
                     type="date"
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
 
             {/* Interests Section */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg font-medium text-zenith-primary dark:text-white mb-4">
                 Select Your Interests
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -250,15 +250,15 @@ export default function OnboardingPage() {
                     onClick={() => handleInterestToggle(interest.id)}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       formData.interests.includes(interest.id)
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-300 dark:border-gray-600"
+                        ? "border-zenith-primary bg-blue-50 dark:bg-blue-900/20"
+                        : "border-zenith-border dark:border-gray-600"
                     }`}
                   >
                     <div className="flex items-start">
                       <div
                         className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                           formData.interests.includes(interest.id)
-                            ? "border-blue-500 bg-blue-500"
+                            ? "border-zenith-primary bg-zenith-primary"
                             : "border-gray-400 dark:border-gray-500"
                         }`}
                       >
@@ -267,10 +267,10 @@ export default function OnboardingPage() {
                         )}
                       </div>
                       <div className="ml-3">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
+                        <h4 className="font-medium text-zenith-primary dark:text-white">
                           {interest.name}
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                           {interest.description}
                         </p>
                       </div>
@@ -289,24 +289,24 @@ export default function OnboardingPage() {
                   type="checkbox"
                   checked={formData.agreeToTerms}
                   onChange={handleInputChange}
-                  className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  className="focus:ring-zenith-primary h-4 w-4 text-zenith-primary border-zenith-border rounded"
                 />
               </div>
               <label
                 htmlFor="agreeToTerms"
-                className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                className="ml-2 block text-sm text-zenith-secondary dark:text-gray-300"
               >
                 I agree to the{" "}
                 <a
                   href="/terms"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                  className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300"
                 >
                   Terms and Conditions
                 </a>{" "}
                 and{" "}
                 <a
                   href="/privacy"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                  className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300"
                 >
                   Privacy Policy
                 </a>

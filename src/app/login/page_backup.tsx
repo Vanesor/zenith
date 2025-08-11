@@ -191,7 +191,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  <Lock className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                 </div>
                 <input
                   id="password"
@@ -199,7 +199,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-10 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter your password"
                 />
                 <button
@@ -208,9 +208,9 @@ export default function LoginPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <EyeOff className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Eye className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
                   )}
                 </button>
               </div>
@@ -225,18 +225,18 @@ export default function LoginPage() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-zenith-primary focus:ring-zenith-primary border-zenith-border rounded"
                     />
                     <label
                       htmlFor="remember-me"
-                      className="ml-2 block text-sm text-gray-700"
+                      className="ml-2 block text-sm text-zenith-secondary"
                     >
                       Remember me
                     </label>
                   </div>
                   <Link
                     href="/forgot-password"
-                    className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                    className="text-sm text-zenith-primary hover:text-zenith-primary/90 transition-colors"
                   >
                     Forgot password?
                   </Link>
@@ -246,29 +246,29 @@ export default function LoginPage() {
               <>
                 {/* 2FA Verification */}
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h2 className="text-xl font-semibold text-zenith-primary dark:text-white mb-4">
                     Two-Factor Authentication
                   </h2>
                   
                   {twoFactorMethod === 'email_otp' ? (
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-4">
                         Enter the 6-digit verification code sent to your email.
                       </p>
                       
-                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 px-4 py-3 rounded-lg mb-6">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-zenith-primary dark:text-blue-400 px-4 py-3 rounded-lg mb-6">
                         A verification code has been sent to your email address.
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-4">
                       Enter the 6-digit verification code from your authentication app.
                     </p>
                   )}
                   
                   <label
                     htmlFor="twoFactorCode"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
                   >
                     Verification Code
                   </label>
@@ -279,7 +279,7 @@ export default function LoginPage() {
                       value={twoFactorCode}
                       onChange={(e) => setTwoFactorCode(e.target.value)}
                       autoComplete="off"
-                      className="block w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center tracking-widest text-xl font-mono"
+                      className="block w-full py-3 px-4 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white text-center tracking-widest text-xl font-mono"
                       placeholder="000000"
                       maxLength={6}
                       pattern="[0-9]*"
@@ -316,7 +316,7 @@ export default function LoginPage() {
                         }
                       }}
                       disabled={isResendingOtp}
-                      className="mt-3 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
+                      className="mt-3 text-sm text-zenith-primary hover:text-zenith-primary/90 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
                     >
                       {isResendingOtp ? "Sending..." : "Resend verification code"}
                     </button>
@@ -331,11 +331,11 @@ export default function LoginPage() {
                         type="checkbox"
                         checked={trustDevice}
                         onChange={(e) => setTrustDevice(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-zenith-primary focus:ring-zenith-primary border-zenith-border rounded"
                       />
                       <label
                         htmlFor="trust-device"
-                        className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                        className="ml-2 block text-sm text-zenith-secondary dark:text-gray-300"
                       >
                         Remember this device (won't ask for 2FA on this device for 30 days)
                       </label>
@@ -350,7 +350,7 @@ export default function LoginPage() {
                         setUserId(null);
                         setTwoFactorCode("");
                       }}
-                      className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                      className="text-sm text-zenith-primary hover:text-zenith-primary/90 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
                     >
                       ← Back to login
                     </button>
@@ -398,10 +398,10 @@ export default function LoginPage() {
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-zenith" />
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                <div className="w-full border-t border-zenith-border dark:border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                <span className="px-2 bg-zenith-card dark:bg-gray-800 text-zenith-muted dark:text-zenith-muted">
                   Or continue with
                 </span>
               </div>
@@ -418,11 +418,11 @@ export default function LoginPage() {
                   signIn('google');
                 }}
                 disabled={oauthLoading === 'google'}
-                className="flex items-center justify-center w-full py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                className="flex items-center justify-center w-full py-2.5 px-4 border border-zenith-border dark:border-gray-600 rounded-lg shadow-sm bg-zenith-card dark:bg-gray-700 hover:bg-zenith-section dark:hover:bg-zenith-secondary transition-colors disabled:opacity-50"
               >
                 {oauthLoading === 'google' ? (
                   <svg
-                    className="animate-spin h-5 w-5 text-gray-500 dark:text-gray-400"
+                    className="animate-spin h-5 w-5 text-zenith-muted dark:text-zenith-muted"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -472,11 +472,11 @@ export default function LoginPage() {
                   signIn('github');
                 }}
                 disabled={oauthLoading === 'github'}
-                className="flex items-center justify-center w-full py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                className="flex items-center justify-center w-full py-2.5 px-4 border border-zenith-border dark:border-gray-600 rounded-lg shadow-sm bg-zenith-card dark:bg-gray-700 hover:bg-zenith-section dark:hover:bg-zenith-secondary transition-colors disabled:opacity-50"
               >
                 {oauthLoading === 'github' ? (
                   <svg
-                    className="animate-spin h-5 w-5 text-gray-500 dark:text-gray-400"
+                    className="animate-spin h-5 w-5 text-zenith-muted dark:text-zenith-muted"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -511,7 +511,7 @@ export default function LoginPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                <div className="w-full border-t border-zenith-border dark:border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-zenith-card text-zenith-muted">

@@ -139,12 +139,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
     return (
       <div
         className={`flex-1 flex items-center justify-center ${
-          isDarkMode ? "bg-gray-900" : "bg-gray-50"
+          isDarkMode ? "bg-gray-900" : "bg-zenith-section"
         }`}
       >
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
+          <p className={isDarkMode ? "text-zenith-muted" : "text-zenith-secondary"}>
             Loading messages...
           </p>
         </div>
@@ -157,7 +157,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
   return (
     <div
       className={`flex flex-col h-full ${
-        isDarkMode ? "bg-gray-900" : "bg-gray-50"
+        isDarkMode ? "bg-gray-900" : "bg-zenith-section"
       }`}
     >
       {/* Chat Header */}
@@ -165,19 +165,19 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         className={`p-4 border-b ${
           isDarkMode
             ? "bg-gray-800 border-gray-700"
-            : "bg-white border-gray-200"
+            : "bg-zenith-card border-zenith-border"
         }`}
       >
         <h2
           className={`text-lg font-semibold ${
-            isDarkMode ? "text-white" : "text-gray-900"
+            isDarkMode ? "text-white" : "text-zenith-primary"
           }`}
         >
           Chat Room
         </h2>
         <p
           className={`text-sm ${
-            isDarkMode ? "text-gray-400" : "text-gray-600"
+            isDarkMode ? "text-zenith-muted" : "text-zenith-secondary"
           }`}
         >
           {messages.length} messages
@@ -200,7 +200,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
                       isDarkMode
                         ? "bg-gray-700 text-gray-300"
-                        : "bg-gray-200 text-gray-600"
+                        : "bg-zenith-section text-zenith-secondary"
                     }`}
                   >
                     {messageDate}
@@ -212,7 +212,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
               <div className="flex gap-3 group">
                 <div
                   className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                    isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                    isDarkMode ? "bg-gray-700" : "bg-zenith-section"
                   }`}
                 >
                   {message.author_avatar ? (
@@ -233,7 +233,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                   <div className="flex items-center gap-2 mb-1">
                     <span
                       className={`font-medium text-sm ${
-                        isDarkMode ? "text-white" : "text-gray-900"
+                        isDarkMode ? "text-white" : "text-zenith-primary"
                       }`}
                     >
                       {message.author_name}
@@ -245,7 +245,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                     />
                     <span
                       className={`text-xs ${
-                        isDarkMode ? "text-gray-500" : "text-gray-500"
+                        isDarkMode ? "text-zenith-muted" : "text-zenith-muted"
                       }`}
                     >
                       {formatTime(message.created_at)}
@@ -258,10 +258,10 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                   <div
                     className={`p-3 rounded-lg ${
                       message.user_id === currentUserId
-                        ? "bg-blue-600 text-white ml-auto max-w-sm"
+                        ? "bg-zenith-primary text-white ml-auto max-w-sm"
                         : isDarkMode
                         ? "bg-gray-700 text-gray-100"
-                        : "bg-white text-gray-900 border border-gray-200"
+                        : "bg-zenith-card text-zenith-primary border border-zenith-border"
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap break-words">
@@ -280,19 +280,19 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
           <div className="flex flex-col items-center justify-center h-full text-center py-12">
             <div
               className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                isDarkMode ? "bg-gray-800" : "bg-gray-200"
+                isDarkMode ? "bg-gray-800" : "bg-zenith-section"
               }`}
             >
-              <Send className="w-8 h-8 text-gray-400" />
+              <Send className="w-8 h-8 text-zenith-muted" />
             </div>
             <p
               className={`text-lg font-medium mb-2 ${
-                isDarkMode ? "text-gray-300" : "text-gray-700"
+                isDarkMode ? "text-gray-300" : "text-zenith-secondary"
               }`}
             >
               No messages yet
             </p>
-            <p className={isDarkMode ? "text-gray-500" : "text-gray-500"}>
+            <p className={isDarkMode ? "text-zenith-muted" : "text-zenith-muted"}>
               Be the first to send a message!
             </p>
           </div>
@@ -308,7 +308,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         className={`p-4 border-t ${
           isDarkMode
             ? "bg-gray-800 border-gray-700"
-            : "bg-white border-gray-200"
+            : "bg-zenith-card border-zenith-border"
         }`}
       >
         <div className="flex gap-2">
@@ -319,28 +319,28 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               rows={1}
-              className={`w-full px-4 py-2 pr-12 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-4 py-2 pr-12 border rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent ${
                 isDarkMode
                   ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                  : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                  : "bg-zenith-card border-zenith-border text-zenith-primary placeholder-gray-500"
               }`}
               style={{ maxHeight: "120px" }}
             />
             <div className="absolute right-2 top-2 flex gap-1">
               <button
-                className={`p-1 rounded hover:bg-opacity-20 hover:bg-gray-500 ${
+                className={`p-1 rounded hover:bg-opacity-20 hover:bg-zenith-section0 ${
                   isDarkMode
-                    ? "text-gray-400 hover:text-gray-300"
-                    : "text-gray-600 hover:text-gray-700"
+                    ? "text-zenith-muted hover:text-gray-300"
+                    : "text-zenith-secondary hover:text-zenith-secondary"
                 }`}
               >
                 <Smile className="w-4 h-4" />
               </button>
               <button
-                className={`p-1 rounded hover:bg-opacity-20 hover:bg-gray-500 ${
+                className={`p-1 rounded hover:bg-opacity-20 hover:bg-zenith-section0 ${
                   isDarkMode
-                    ? "text-gray-400 hover:text-gray-300"
-                    : "text-gray-600 hover:text-gray-700"
+                    ? "text-zenith-muted hover:text-gray-300"
+                    : "text-zenith-secondary hover:text-zenith-secondary"
                 }`}
               >
                 <Paperclip className="w-4 h-4" />
@@ -350,7 +350,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim() || sending}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
+            className="px-4 py-2 bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
           >
             {sending ? "..." : <Send className="w-4 h-4" />}
           </button>

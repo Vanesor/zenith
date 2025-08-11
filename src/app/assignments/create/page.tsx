@@ -944,7 +944,7 @@ export default function CreateAssignment() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
       </div>
     );
@@ -956,7 +956,7 @@ export default function CreateAssignment() {
 
   if (createdAssignmentId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 py-8">
+      <div className="min-h-screen bg-zenith-main transition-colors duration-300 py-8">
         <div className="container mx-auto px-4">
           <AssignmentSuccess
             assignmentId={createdAssignmentId}
@@ -971,22 +971,22 @@ export default function CreateAssignment() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 py-8">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => router.push('/assignments')}
-            className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mb-4 transition-colors"
+            className="flex items-center text-zenith-accent hover:text-zenith-brand mb-4 transition-colors focus-ring"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Assignments
           </button>
           
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-zenith-primary">
             Create New Assignment
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-zenith-secondary mt-2">
             Design and configure your assignment step by step
           </p>
         </div>
@@ -1019,34 +1019,34 @@ export default function CreateAssignment() {
         <div className="space-y-6">
           {/* Basic Information Stage */}
           {currentStage === 'basic' && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+            <div className="bg-zenith-card border border-zenith-border rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-semibold text-zenith-primary mb-6">
                 Basic Information
               </h2>
               
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Assignment Title *
                     </label>
                     <input
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                       placeholder="Enter assignment title..."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Assignment Type
                     </label>
                     <select
                       value={formData.assignmentType}
                       onChange={(e) => setFormData(prev => ({ ...prev, assignmentType: e.target.value as any }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                     >
                       <option value="mixed">Mixed (All Types)</option>
                       <option value="objective">Objective (MCQ/True-False)</option>
@@ -1057,7 +1057,7 @@ export default function CreateAssignment() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
                     Description *
                   </label>
                   <MarkdownEditor
@@ -1069,7 +1069,7 @@ export default function CreateAssignment() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Target Audience
                     </label>
                     <select
@@ -1087,7 +1087,7 @@ export default function CreateAssignment() {
                           setFormData(prev => ({ ...prev, targetAudience: audience }));
                         }
                       }}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                     >
                       <option value="club">My Club Only</option>
                       <option value="all_clubs">All Clubs</option>
@@ -1097,13 +1097,13 @@ export default function CreateAssignment() {
 
                   {formData.targetAudience === 'club' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary mb-2">
                         Club *
                       </label>
                       <select
                         value={user?.club_id || formData.clubId}
                         disabled={true} // Disabled because this is "My Club" option
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                        className="w-full px-4 py-3 border border-zenith-border rounded-lg bg-zenith-card text-zenith-secondary"
                       >
                         {user?.club_id ? (
                           <option value={user.club_id}>
@@ -1113,7 +1113,7 @@ export default function CreateAssignment() {
                           <option value="">You're not assigned to a club</option>
                         )}
                       </select>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs text-zenith-muted mt-1">
                         Assignment will be created for your current club
                       </p>
                     </div>
@@ -1121,10 +1121,10 @@ export default function CreateAssignment() {
 
                   {formData.targetAudience === 'specific_clubs' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary mb-2">
                         Select Clubs * (At least one required)
                       </label>
-                      <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-3">
+                      <div className="space-y-2 max-h-32 overflow-y-auto border border-zenith-border rounded-lg p-3">
                         {clubs.map(club => (
                           <label key={club.id} className="flex items-center">
                             <input
@@ -1143,9 +1143,9 @@ export default function CreateAssignment() {
                                   }));
                                 }
                               }}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3"
+                              className="w-4 h-4 text-zenith-brand border-zenith-border rounded focus:ring-zenith-brand mr-3"
                             />
-                            <span className="text-gray-700 dark:text-gray-300">{club.name}</span>
+                            <span className="text-zenith-secondary">{club.name}</span>
                           </label>
                         ))}
                       </div>
@@ -1154,21 +1154,21 @@ export default function CreateAssignment() {
                           Please select at least one club
                         </p>
                       )}
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs text-zenith-muted dark:text-zenith-muted mt-1">
                         Assignment will be available to selected clubs: {formData.targetClubs.length} selected
                       </p>
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Due Date *
                     </label>
                     <input
                       type="datetime-local"
                       value={formData.dueDate}
                       onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                       min={new Date().toISOString().slice(0, 16)}
                     />
                   </div>
@@ -1179,48 +1179,48 @@ export default function CreateAssignment() {
 
           {/* Test Settings Stage */}
           {currentStage === 'settings' && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+            <div className="bg-zenith-card border border-zenith-border rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-semibold text-zenith-primary mb-6">
                 Test Settings
               </h2>
               
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Time Limit (minutes) *
                     </label>
                     <input
                       type="number"
                       value={formData.timeLimit}
                       onChange={(e) => setFormData(prev => ({ ...prev, timeLimit: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                       min="1"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Max Attempts
                     </label>
                     <input
                       type="number"
                       value={formData.maxAttempts}
                       onChange={(e) => setFormData(prev => ({ ...prev, maxAttempts: parseInt(e.target.value) || 1 }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                       min="1"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Passing Score (%)
                     </label>
                     <input
                       type="number"
                       value={formData.passingScore}
                       onChange={(e) => setFormData(prev => ({ ...prev, passingScore: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                       min="0"
                       max="100"
                     />
@@ -1229,7 +1229,7 @@ export default function CreateAssignment() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">
                       Navigation & Behavior
                     </h3>
                     <div className="space-y-4">
@@ -1238,9 +1238,9 @@ export default function CreateAssignment() {
                           type="checkbox"
                           checked={formData.allowNavigation}
                           onChange={(e) => setFormData(prev => ({ ...prev, allowNavigation: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                         />
-                        <span className="ml-3 text-gray-700 dark:text-gray-300">
+                        <span className="ml-3 text-zenith-secondary">
                           Allow navigation between questions
                         </span>
                       </label>
@@ -1250,9 +1250,9 @@ export default function CreateAssignment() {
                           type="checkbox"
                           checked={formData.shuffleQuestions}
                           onChange={(e) => setFormData(prev => ({ ...prev, shuffleQuestions: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                         />
-                        <span className="ml-3 text-gray-700 dark:text-gray-300">
+                        <span className="ml-3 text-zenith-secondary">
                           Shuffle question order
                         </span>
                       </label>
@@ -1262,9 +1262,9 @@ export default function CreateAssignment() {
                           type="checkbox"
                           checked={formData.shuffleOptions}
                           onChange={(e) => setFormData(prev => ({ ...prev, shuffleOptions: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                         />
-                        <span className="ml-3 text-gray-700 dark:text-gray-300">
+                        <span className="ml-3 text-zenith-secondary">
                           Shuffle answer options
                         </span>
                       </label>
@@ -1274,9 +1274,9 @@ export default function CreateAssignment() {
                           type="checkbox"
                           checked={formData.allowCalculator}
                           onChange={(e) => setFormData(prev => ({ ...prev, allowCalculator: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                         />
-                        <span className="ml-3 text-gray-700 dark:text-gray-300">
+                        <span className="ml-3 text-zenith-secondary">
                           Allow calculator access
                         </span>
                       </label>
@@ -1284,7 +1284,7 @@ export default function CreateAssignment() {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">
                       Security & Proctoring
                     </h3>
                     <div className="space-y-4">
@@ -1293,9 +1293,9 @@ export default function CreateAssignment() {
                           type="checkbox"
                           checked={formData.isProctored}
                           onChange={(e) => setFormData(prev => ({ ...prev, isProctored: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                         />
-                        <span className="ml-3 text-gray-700 dark:text-gray-300">
+                        <span className="ml-3 text-zenith-secondary">
                           Enable proctoring features
                         </span>
                       </label>
@@ -1307,9 +1307,9 @@ export default function CreateAssignment() {
                               type="checkbox"
                               checked={formData.requireCamera}
                               onChange={(e) => setFormData(prev => ({ ...prev, requireCamera: e.target.checked }))}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                             />
-                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                            <span className="ml-3 text-zenith-secondary">
                               Require camera access for identity verification
                             </span>
                           </label>
@@ -1319,9 +1319,9 @@ export default function CreateAssignment() {
                               type="checkbox"
                               checked={formData.requireMicrophone}
                               onChange={(e) => setFormData(prev => ({ ...prev, requireMicrophone: e.target.checked }))}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                             />
-                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                            <span className="ml-3 text-zenith-secondary">
                               Require microphone access for audio monitoring
                             </span>
                           </label>
@@ -1331,9 +1331,9 @@ export default function CreateAssignment() {
                               type="checkbox"
                               checked={formData.requireFaceVerification}
                               onChange={(e) => setFormData(prev => ({ ...prev, requireFaceVerification: e.target.checked }))}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                             />
-                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                            <span className="ml-3 text-zenith-secondary">
                               Require face verification before starting
                             </span>
                           </label>
@@ -1343,9 +1343,9 @@ export default function CreateAssignment() {
                               type="checkbox"
                               checked={formData.requireFullscreen}
                               onChange={(e) => setFormData(prev => ({ ...prev, requireFullscreen: e.target.checked }))}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                             />
-                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                            <span className="ml-3 text-zenith-secondary">
                               Force fullscreen mode during test
                             </span>
                           </label>
@@ -1355,15 +1355,15 @@ export default function CreateAssignment() {
                               type="checkbox"
                               checked={formData.autoSubmitOnViolation}
                               onChange={(e) => setFormData(prev => ({ ...prev, autoSubmitOnViolation: e.target.checked }))}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                             />
-                            <span className="ml-3 text-gray-700 dark:text-gray-300">
+                            <span className="ml-3 text-zenith-secondary">
                               Auto-submit test after maximum violations
                             </span>
                           </label>
 
                           <div className="flex items-center space-x-3">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label className="text-sm font-medium text-zenith-secondary">
                               Maximum violations allowed:
                             </label>
                             <input
@@ -1372,7 +1372,7 @@ export default function CreateAssignment() {
                               max="10"
                               value={formData.maxViolations}
                               onChange={(e) => setFormData(prev => ({ ...prev, maxViolations: parseInt(e.target.value) }))}
-                              className="w-20 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              className="w-20 px-3 py-1 border border-zenith-border rounded-md focus:ring-zenith-primary focus:border-zenith-primary dark:bg-gray-700 dark:text-white"
                             />
                           </div>
                         </div>
@@ -1383,9 +1383,9 @@ export default function CreateAssignment() {
                           type="checkbox"
                           checked={formData.showResults}
                           onChange={(e) => setFormData(prev => ({ ...prev, showResults: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                         />
-                        <span className="ml-3 text-gray-700 dark:text-gray-300">
+                        <span className="ml-3 text-zenith-secondary">
                           Show results after submission
                         </span>
                       </label>
@@ -1395,9 +1395,9 @@ export default function CreateAssignment() {
                           type="checkbox"
                           checked={formData.allowReview}
                           onChange={(e) => setFormData(prev => ({ ...prev, allowReview: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary"
                         />
-                        <span className="ml-3 text-gray-700 dark:text-gray-300">
+                        <span className="ml-3 text-zenith-secondary">
                           Allow answer review after submission
                         </span>
                       </label>
@@ -1406,7 +1406,7 @@ export default function CreateAssignment() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
                     Instructions for Students
                   </label>
                   <MarkdownEditor
@@ -1421,27 +1421,27 @@ export default function CreateAssignment() {
 
           {/* Marks & Time Stage */}
           {currentStage === 'scoring' && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+            <div className="bg-zenith-card border border-zenith-border rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-semibold text-zenith-primary mb-6">
                 Marks & Time Distribution
               </h2>
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl">
                   <div className="flex items-center mb-3">
-                    <Target className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-2" />
+                    <Target className="w-6 h-6 text-zenith-primary dark:text-blue-400 mr-2" />
                     <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300">
                       Total Points
                     </h3>
                   </div>
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  <div className="text-3xl font-bold text-zenith-primary dark:text-blue-400 mb-2">
                     {questions.reduce((total, q) => total + q.points, 0)} / {formData.maxPoints}
                   </div>
                   <input
                     type="number"
                     value={formData.maxPoints}
                     onChange={(e) => setFormData(prev => ({ ...prev, maxPoints: parseInt(e.target.value) || 0 }))}
-                    className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 border border-zenith-brand/30 rounded-lg bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
                     min="1"
                   />
                 </div>
@@ -1499,14 +1499,14 @@ export default function CreateAssignment() {
           {currentStage === 'questions' && (
             <div className="space-y-6">
               {/* Add Question Form */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+              <div className="bg-zenith-card border border-zenith-border rounded-xl shadow-lg p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <h2 className="text-2xl font-semibold text-zenith-primary">
                     {editingQuestionIndex !== null ? 'Edit Question' : 'Add New Question'}
                   </h2>
                   <button
                     onClick={addSampleQuestion}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="px-4 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg text-sm font-medium transition-colors"
                   >
                     {questions.length === 0 ? 'Add Sample Question' : 'Add Another Sample'}
                   </button>
@@ -1516,7 +1516,7 @@ export default function CreateAssignment() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {formData.assignmentType === 'mixed' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary mb-2">
                           Question Type
                         </label>
                         <select
@@ -1528,7 +1528,7 @@ export default function CreateAssignment() {
                             correctAnswer: e.target.value === 'multiple-choice' ? 0 : 
                                          e.target.value === 'multi-select' ? [] : undefined
                           }))}
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                         >
                           <option value="multiple-choice">Multiple Choice</option>
                           <option value="multi-select">Multi-Select</option>
@@ -1543,46 +1543,46 @@ export default function CreateAssignment() {
 
                     {formData.assignmentType !== 'mixed' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary mb-2">
                           Question Type
                         </label>
-                        <div className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <div className="w-full px-4 py-3 border border-zenith-border rounded-lg bg-zenith-section dark:bg-gray-700 text-zenith-primary dark:text-white">
                           {formData.assignmentType === 'objective' ? 'Multiple Choice / True-False' :
                            formData.assignmentType === 'coding' ? 'Coding Challenge' :
                            formData.assignmentType === 'essay' ? 'Essay / Subjective' : 'Mixed'}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-zenith-muted dark:text-zenith-muted mt-1">
                           Question type is fixed based on assignment type selected in Basic Info
                         </p>
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary mb-2">
                         Points
                       </label>
                       <input
                         type="number"
                         value={currentQuestion.points}
                         onChange={(e) => setCurrentQuestion(prev => ({ ...prev, points: parseInt(e.target.value) || 1 }))}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                         min="1"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-zenith-secondary mb-2">
                         Time Allocation (seconds)
                       </label>
                       <input
                         type="number"
                         value={currentQuestion.timeAllocation || 0}
                         onChange={(e) => setCurrentQuestion(prev => ({ ...prev, timeAllocation: parseInt(e.target.value) || 0 }))}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                         min="0"
                         max={formData.timeLimit * 60}
                       />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs text-zenith-muted dark:text-zenith-muted mt-1">
                         Optional: Time in seconds (e.g., 120 = 2 minutes). Leave 0 for no specific time limit for this question.
                         Maximum allowed: {formData.timeLimit * 60} seconds ({formData.timeLimit} minutes).
                       </p>
@@ -1590,20 +1590,20 @@ export default function CreateAssignment() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Question Title *
                     </label>
                     <input
                       type="text"
                       value={currentQuestion.title}
                       onChange={(e) => setCurrentQuestion(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                       placeholder="Enter question title..."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-zenith-secondary mb-2">
                       Question Description *
                     </label>
                     <MarkdownEditor
@@ -1617,13 +1617,13 @@ export default function CreateAssignment() {
                   {currentQuestion.type === 'multiple-choice' && (
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium text-zenith-secondary">
                           Answer Options
                         </label>
                         <button
                           type="button"
                           onClick={addOption}
-                          className="flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                          className="flex items-center px-3 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg font-medium"
                         >
                           <Plus className="w-4 h-4 mr-1" />
                           Add Option
@@ -1638,17 +1638,17 @@ export default function CreateAssignment() {
                               name="correct-answer"
                               checked={currentQuestion.correctAnswer === index}
                               onChange={() => setCurrentQuestion(prev => ({ ...prev, correctAnswer: index }))}
-                              className="w-4 h-4 text-blue-600"
+                              className="w-4 h-4 text-zenith-primary"
                             />
                             <div className="flex-1 flex items-center space-x-2">
-                              <span className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
+                              <span className="w-6 h-6 bg-zenith-section dark:bg-zenith-secondary rounded-full flex items-center justify-center text-sm font-medium">
                                 {String.fromCharCode(65 + index)}
                               </span>
                               <input
                                 type="text"
                                 value={option}
                                 onChange={(e) => handleOptionChange(index, e.target.value)}
-                                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="flex-1 px-3 py-2 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                                 placeholder={`Option ${String.fromCharCode(65 + index)}`}
                               />
                               {(currentQuestion.options?.length || 0) > 2 && (
@@ -1671,13 +1671,13 @@ export default function CreateAssignment() {
                   {currentQuestion.type === 'multi-select' && (
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-medium text-zenith-secondary">
                           Answer Options (Select Multiple Correct Answers)
                         </label>
                         <button
                           type="button"
                           onClick={addOption}
-                          className="flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                          className="flex items-center px-3 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg font-medium"
                         >
                           <Plus className="w-4 h-4 mr-1" />
                           Add Option
@@ -1704,17 +1704,17 @@ export default function CreateAssignment() {
                                   }));
                                 }
                               }}
-                              className="w-4 h-4 text-blue-600 rounded"
+                              className="w-4 h-4 text-zenith-primary rounded"
                             />
                             <div className="flex-1 flex items-center space-x-2">
-                              <span className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
+                              <span className="w-6 h-6 bg-zenith-section dark:bg-zenith-secondary rounded-full flex items-center justify-center text-sm font-medium">
                                 {String.fromCharCode(65 + index)}
                               </span>
                               <input
                                 type="text"
                                 value={option}
                                 onChange={(e) => handleOptionChange(index, e.target.value)}
-                                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="flex-1 px-3 py-2 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                                 placeholder={`Option ${String.fromCharCode(65 + index)}`}
                               />
                               {(currentQuestion.options?.length || 0) > 2 && (
@@ -1743,7 +1743,7 @@ export default function CreateAssignment() {
                   {currentQuestion.type === 'integer' && (
                     <div className="col-span-1 lg:col-span-2">
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary mb-2">
                           Correct Answer (Integer)
                         </label>
                         <input
@@ -1753,13 +1753,13 @@ export default function CreateAssignment() {
                             ...prev,
                             correctAnswer: parseInt(e.target.value) || 0
                           }))}
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                         />
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-zenith-secondary mb-2">
                             Minimum Value (Optional)
                           </label>
                           <input
@@ -1769,13 +1769,13 @@ export default function CreateAssignment() {
                               ...prev,
                               minValue: e.target.value ? parseInt(e.target.value) : undefined
                             }))}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                             placeholder="Minimum"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-zenith-secondary mb-2">
                             Maximum Value (Optional)
                           </label>
                           <input
@@ -1785,13 +1785,13 @@ export default function CreateAssignment() {
                               ...prev,
                               maxValue: e.target.value ? parseInt(e.target.value) : undefined
                             }))}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                             placeholder="Maximum"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-zenith-secondary mb-2">
                             Step Size (Optional)
                           </label>
                           <input
@@ -1801,14 +1801,14 @@ export default function CreateAssignment() {
                               ...prev,
                               stepValue: e.target.value ? parseInt(e.target.value) : undefined
                             }))}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                             placeholder="Step"
                             min="1"
                           />
                         </div>
                       </div>
                       
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-3">
+                      <p className="text-sm text-zenith-muted dark:text-zenith-muted mt-1 mb-3">
                         For integer questions, students will enter a number as their answer. You can optionally set min/max bounds and step size.
                       </p>
                     </div>
@@ -1817,7 +1817,7 @@ export default function CreateAssignment() {
                   {/* True/False */}
                   {currentQuestion.type === 'true-false' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      <label className="block text-sm font-medium text-zenith-secondary mb-3">
                         Correct Answer
                       </label>
                       <div className="flex space-x-6">
@@ -1851,7 +1851,7 @@ export default function CreateAssignment() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Language Selection Strategy */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-zenith-secondary mb-2">
                             Language Selection
                           </label>
                           <select
@@ -1885,7 +1885,7 @@ export default function CreateAssignment() {
                                 }));
                               }
                             }}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                           >
                             <option value="fixed">Fixed Language - Students must use specific language</option>
                             <option value="multiple">Multiple Languages - Students choose from allowed languages</option>
@@ -1896,13 +1896,13 @@ export default function CreateAssignment() {
                         {/* Fixed Language Selection */}
                         {!currentQuestion.allowAnyLanguage && (!currentQuestion.allowedLanguages || currentQuestion.allowedLanguages.length === 0) && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-zenith-secondary mb-2">
                               Required Language
                             </label>
                             <select
                               value={currentQuestion.language || 'python'}
                               onChange={(e) => setCurrentQuestion(prev => ({ ...prev, language: e.target.value }))}
-                              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                             >
                               <option value="python">Python</option>
                               <option value="java">Java</option>
@@ -1921,7 +1921,7 @@ export default function CreateAssignment() {
                         {/* Multiple Languages Selection */}
                         {!currentQuestion.allowAnyLanguage && currentQuestion.allowedLanguages && currentQuestion.allowedLanguages.length > 0 && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label className="block text-sm font-medium text-zenith-secondary mb-2">
                               Allowed Languages
                             </label>
                             <div className="space-y-2 max-h-32 overflow-y-auto">
@@ -1944,9 +1944,9 @@ export default function CreateAssignment() {
                                         }));
                                       }
                                     }}
-                                    className="w-4 h-4 text-blue-600 rounded mr-2"
+                                    className="w-4 h-4 text-zenith-primary rounded mr-2"
                                   />
-                                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                                  <span className="text-sm text-zenith-secondary capitalize">
                                     {lang === 'cpp' ? 'C++' : lang === 'csharp' ? 'C#' : lang}
                                   </span>
                                 </label>
@@ -1966,31 +1966,31 @@ export default function CreateAssignment() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary mb-2">
                           Time Allocation (seconds)
                         </label>
                         <input
                           type="number"
                           value={currentQuestion.timeAllocation || 0}
                           onChange={(e) => setCurrentQuestion(prev => ({ ...prev, timeAllocation: parseInt(e.target.value) || 0 }))}
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary"
                           placeholder="Time in seconds"
                           min="0"
                           max={formData.timeLimit * 60}
                         />
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-zenith-muted dark:text-zenith-muted mt-1">
                           {(formData.timeLimit * 60)} seconds ({formData.timeLimit} minutes) available for the entire assignment.
                         </p>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-zenith-secondary mb-2">
                           Starter Code (Optional)
                         </label>
                         <textarea
                           value={currentQuestion.starterCode}
                           onChange={(e) => setCurrentQuestion(prev => ({ ...prev, starterCode: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                          className="w-full px-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary font-mono"
                           rows={6}
                           placeholder="// Provide starter code template for students..."
                         />
@@ -1998,7 +1998,7 @@ export default function CreateAssignment() {
 
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <label className="block text-sm font-medium text-zenith-secondary">
                             Test Cases
                           </label>
                           <button
@@ -2013,9 +2013,9 @@ export default function CreateAssignment() {
 
                         <div className="space-y-4">
                           {(currentQuestion.testCases || []).map((testCase, index) => (
-                            <div key={testCase.id} className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                            <div key={testCase.id} className="p-4 border border-zenith-border dark:border-gray-600 rounded-lg">
                               <div className="flex items-center justify-between mb-3">
-                                <h4 className="font-medium text-gray-900 dark:text-white">
+                                <h4 className="font-medium text-zenith-primary dark:text-white">
                                   Test Case {index + 1}
                                 </h4>
                                 <div className="flex items-center space-x-2">
@@ -2024,9 +2024,9 @@ export default function CreateAssignment() {
                                       type="checkbox"
                                       checked={testCase.isHidden}
                                       onChange={(e) => handleTestCaseChange(index, 'isHidden', e.target.checked)}
-                                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
+                                      className="w-4 h-4 text-zenith-primary border-zenith-border rounded focus:ring-zenith-primary mr-2"
                                     />
-                                    <span className="text-gray-700 dark:text-gray-300">Hidden</span>
+                                    <span className="text-zenith-secondary">Hidden</span>
                                   </label>
                                   <button
                                     type="button"
@@ -2039,24 +2039,24 @@ export default function CreateAssignment() {
                               </div>
                               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
                                     Input
                                   </label>
                                   <textarea
                                     value={testCase.input}
                                     onChange={(e) => handleTestCaseChange(index, 'input', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                                    className="w-full px-3 py-2 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary font-mono"
                                     rows={3}
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
                                     Expected Output
                                   </label>
                                   <textarea
                                     value={testCase.output}
                                     onChange={(e) => handleTestCaseChange(index, 'output', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                                    className="w-full px-3 py-2 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-brand bg-zenith-input text-zenith-primary font-mono"
                                     rows={3}
                                   />
                                 </div>
@@ -2068,7 +2068,7 @@ export default function CreateAssignment() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center justify-between pt-4 border-t border-zenith-border dark:border-gray-600">
                     {editingQuestionIndex !== null && (
                       <button
                         type="button"
@@ -2076,7 +2076,7 @@ export default function CreateAssignment() {
                           setEditingQuestionIndex(null);
                           resetCurrentQuestion();
                         }}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                        className="px-4 py-2 text-zenith-secondary hover:text-zenith-primary dark:text-zenith-muted dark:hover:text-gray-200"
                       >
                         Cancel
                       </button>
@@ -2086,7 +2086,7 @@ export default function CreateAssignment() {
                       <button
                         type="button"
                         onClick={() => setPreviewQuestion(currentQuestion)}
-                        className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium"
+                        className="flex items-center px-4 py-2 bg-zenith-secondary hover:bg-zenith-secondary/90 text-white rounded-lg font-medium"
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Preview
@@ -2117,17 +2117,17 @@ export default function CreateAssignment() {
           )}
 
           {/* Navigation */}
-          <div className="flex items-center justify-between pt-8">
+          <div className="flex items-center justify-between pt-8 border-t border-zenith-border">
             <button
               onClick={goToPreviousStage}
               disabled={currentStage === 'basic'}
-              className={`flex items-center px-6 py-3 rounded-xl font-medium transition-colors ${
+              className={`flex items-center px-8 py-4 rounded-xl font-semibold transition-all shadow-lg ${
                 currentStage === 'basic'
-                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-600 hover:bg-gray-700 text-white'
+                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-white dark:bg-gray-800 text-zenith-primary border-2 border-zenith-primary hover:bg-zenith-primary hover:text-white'
               }`}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-5 h-5 mr-2" />
               Previous
             </button>
 
@@ -2151,27 +2151,27 @@ export default function CreateAssignment() {
                       }
                     }
                   }}
-                  className={`flex items-center px-8 py-3 rounded-xl font-medium transition-colors ${
+                  className={`flex items-center px-10 py-4 rounded-xl font-semibold transition-all shadow-lg ${
                     canProceedToNext()
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-yellow-500 hover:bg-yellow-600 text-white cursor-pointer'
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white'
+                      : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white cursor-pointer'
                   }`}
                 >
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-5 h-5 mr-2" />
                   {canProceedToNext() ? 'Create Assignment' : 'Add Questions First'}
                 </button>
               ) : (
                 <button
                   onClick={goToNextStage}
                   disabled={!canProceedToNext()}
-                  className={`flex items-center px-6 py-3 rounded-xl font-medium transition-colors ${
+                  className={`flex items-center px-8 py-4 rounded-xl font-semibold transition-all shadow-lg ${
                     canProceedToNext()
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
+                      ? 'bg-gradient-to-r from-zenith-primary to-blue-600 hover:from-blue-600 hover:to-purple-600 text-white'
+                      : 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
                   }`}
                 >
                   Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="w-5 h-5 ml-2" />
                 </button>
               )}
             </div>
