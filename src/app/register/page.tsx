@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Eye, 
   EyeOff, 
@@ -13,16 +13,41 @@ import {
   ArrowLeft,
   Check,
   Phone,
-  Calendar
+  Calendar,
+  ChevronDown,
+  Search
 } from 'lucide-react';
 import { ZenithLogo } from '@/components/ZenithLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function RegisterPage() {
+  // Country codes with flags and names
+  const countries = [
+    { code: '+91', flag: '🇮🇳', name: 'India', iso: 'IN' },
+    { code: '+1', flag: '🇺🇸', name: 'United States', iso: 'US' },
+    { code: '+44', flag: '🇬🇧', name: 'United Kingdom', iso: 'GB' },
+    { code: '+61', flag: '🇦🇺', name: 'Australia', iso: 'AU' },
+    { code: '+81', flag: '🇯🇵', name: 'Japan', iso: 'JP' },
+    { code: '+86', flag: '🇨🇳', name: 'China', iso: 'CN' },
+    { code: '+49', flag: '🇩🇪', name: 'Germany', iso: 'DE' },
+    { code: '+33', flag: '🇫🇷', name: 'France', iso: 'FR' },
+    { code: '+39', flag: '🇮🇹', name: 'Italy', iso: 'IT' },
+    { code: '+34', flag: '🇪🇸', name: 'Spain', iso: 'ES' },
+    { code: '+7', flag: '🇷🇺', name: 'Russia', iso: 'RU' },
+    { code: '+55', flag: '🇧🇷', name: 'Brazil', iso: 'BR' },
+    { code: '+52', flag: '🇲🇽', name: 'Mexico', iso: 'MX' },
+    { code: '+27', flag: '🇿🇦', name: 'South Africa', iso: 'ZA' },
+    { code: '+82', flag: '🇰🇷', name: 'South Korea', iso: 'KR' },
+    { code: '+65', flag: '🇸🇬', name: 'Singapore', iso: 'SG' },
+    { code: '+971', flag: '🇦🇪', name: 'UAE', iso: 'AE' },
+    { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia', iso: 'SA' },
+  ];
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
+    countryCode: '+91',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -34,6 +59,9 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearchTerm, setCountrySearchTerm] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const clubInterests = [
@@ -43,8 +71,43 @@ export default function RegisterPage() {
     { id: 'altogether', name: 'Altogether (Holistic Growth)', description: 'Wellness & Life Skills' },
   ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  // Handle clicks outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCountryDropdownOpen(false);
+        setCountrySearchTerm('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter countries based on search term
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(countrySearchTerm.toLowerCase()) ||
+    country.code.includes(countrySearchTerm) ||
+    country.iso.toLowerCase().includes(countrySearchTerm.toLowerCase())
+  );
+
+  // Get selected country data
+  const selectedCountry = countries.find(country => country.code === formData.countryCode) || countries[0];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = 'checked' in e.target ? e.target.checked : false;
+    
+    // Special handling for phone number - only allow digits and limit to 10
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({
+        ...prev,
+        [name]: digitsOnly
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -58,6 +121,15 @@ export default function RegisterPage() {
         ? prev.interests.filter(id => id !== interestId)
         : [...prev.interests, interestId]
     }));
+  };
+
+  const handleCountrySelect = (countryCode: string) => {
+    setFormData(prev => ({
+      ...prev,
+      countryCode
+    }));
+    setIsCountryDropdownOpen(false);
+    setCountrySearchTerm('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,6 +148,16 @@ export default function RegisterPage() {
       setError('Email is required');
       setIsLoading(false);
       return;
+    }
+
+    // Phone validation - must be exactly 10 digits
+    if (formData.phone.trim()) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(formData.phone.trim())) {
+        setError('Phone number must be exactly 10 digits');
+        setIsLoading(false);
+        return;
+      }
     }
 
     // Email format validation
@@ -125,7 +207,7 @@ export default function RegisterPage() {
         password: formData.password,
         name: `${formData.firstName} ${formData.lastName}`.trim(),
         club_id: formData.interests.length > 0 ? formData.interests[0] : null,
-        phone: formData.phone,
+        phone: formData.phone.trim() ? `${formData.countryCode}${formData.phone}` : '',
         dateOfBirth: formData.dateOfBirth,
         interests: formData.interests
       };
@@ -260,20 +342,116 @@ export default function RegisterPage() {
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Phone Number
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <div className="flex">
+                  {/* Modern Country Code Dropdown */}
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                      className="flex items-center justify-between px-3 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors min-w-[100px]"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{selectedCountry.flag}</span>
+                        <span className="text-sm font-medium">{selectedCountry.code}</span>
+                      </div>
+                      <ChevronDown 
+                        className={`w-4 h-4 text-gray-400 transition-transform ${
+                          isCountryDropdownOpen ? 'rotate-180' : ''
+                        }`} 
+                      />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    <AnimatePresence>
+                      {isCountryDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-hidden"
+                        >
+                          {/* Search Input */}
+                          <div className="p-2 border-b border-gray-200 dark:border-gray-600">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <input
+                                type="text"
+                                placeholder="Search countries..."
+                                value={countrySearchTerm}
+                                onChange={(e) => setCountrySearchTerm(e.target.value)}
+                                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Country List */}
+                          <div className="max-h-40 overflow-y-auto">
+                            {filteredCountries.map((country) => (
+                              <button
+                                key={country.code}
+                                type="button"
+                                onClick={() => handleCountrySelect(country.code)}
+                                className={`w-full flex items-center space-x-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-left ${
+                                  formData.countryCode === country.code 
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
+                                    : 'text-gray-900 dark:text-white'
+                                }`}
+                              >
+                                <span className="text-lg">{country.flag}</span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium truncate">{country.name}</span>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">{country.code}</span>
+                                  </div>
+                                </div>
+                                {formData.countryCode === country.code && (
+                                  <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    placeholder="Your phone number"
-                  />
+                  
+                  {/* Phone Number Input */}
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    </div>
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      maxLength={10}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      placeholder="Enter 10-digit number"
+                    />
+                  </div>
                 </div>
+                {formData.phone && formData.phone.length !== 10 && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-sm text-red-500 mt-1"
+                  >
+                    Phone number must be exactly 10 digits
+                  </motion.p>
+                )}
+                {formData.phone && formData.phone.length === 10 && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-sm text-green-600 dark:text-green-400 mt-1 flex items-center"
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Complete: {selectedCountry.flag} {formData.countryCode} {formData.phone}
+                  </motion.p>
+                )}
               </div>
 
               <div>

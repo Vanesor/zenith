@@ -19,6 +19,7 @@ import {
 import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ClubLogo from "@/components/ClubLogo";
 
 // Icon mapping for clubs
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -315,8 +316,14 @@ export default function HomePage() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                          <IconComponent className="w-6 h-6 text-white" />
+                        <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                          <ClubLogo 
+                            clubId={club.id}
+                            clubName={club.name}
+                            size="lg"
+                            fallbackIcon={club.icon}
+                            className="text-white"
+                          />
                         </div>
                         <div>
                           <h3 className={`text-2xl font-bold ${getClubTextColor(club.name)}`}>{club.name}</h3>

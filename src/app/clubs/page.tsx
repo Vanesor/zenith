@@ -14,6 +14,7 @@ import {
   Star,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
+import ClubLogo from "@/components/ClubLogo";
 
 const clubs = [
   {
@@ -219,8 +220,14 @@ export default function ClubsPage() {
                 className={`bg-zenith-card rounded-2xl shadow-lg border-2 ${club.borderColor} p-8 hover:shadow-xl transition-all duration-300`}
               >
                 <div className="flex items-start justify-between mb-6">
-                  <div className={`p-4 rounded-xl ${club.bgColor}`}>
-                    <IconComponent className={`w-8 h-8 ${club.textColor}`} />
+                  <div className={`p-5 rounded-xl ${club.bgColor}`}>
+                    <ClubLogo 
+                      clubId={club.id}
+                      clubName={club.name}
+                      size="xl"
+                      fallbackIcon={club.icon.name}
+                      className={`${club.textColor}`}
+                    />
                   </div>
                   <div className="text-right">
                     <div className="flex items-center space-x-1">

@@ -20,6 +20,7 @@ import {
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
 import UserAvatar from "@/components/UserAvatar";
+import ClubLogo from "@/components/ClubLogo";
 
 interface ClubData {
   club: {
@@ -187,10 +188,15 @@ export default function ClubPage() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
               <div className="flex items-center space-x-6 mb-4 md:mb-0">
                 <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <Icon size={40} className="text-white" />
+                  <ClubLogo 
+                    clubId={club.id}
+                    clubName={club.name}
+                    size="xl"
+                    fallbackIcon={club.icon}
+                    className="text-white"
+                  />
                 </div>
                 <div>
-                  {/* clubs name should be of color as mention early */}
                   <h1 className={`text-4xl font-bold mb-2 ${getClubTextColor(club.name)}`}>{club.name}</h1>
                   <p className={`text-xl opacity-90 ${getClubTextColor(club.type)}`}>{club.type}</p>
                   <p className={`text-lg opacity-80 mt-2 ${getClubTextColor(club.description)}`}>{club.description}</p>

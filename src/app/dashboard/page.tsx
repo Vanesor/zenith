@@ -19,6 +19,7 @@ import {
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import ClubLogo from "@/components/ClubLogo";
 
 // Icon mapping for clubs
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -282,9 +283,15 @@ export default function DashboardPage() {
                           >
                             <div className="flex items-center space-x-3 mb-3">
                               <div
-                                className={`w-10 h-10 bg-gradient-to-r ${club.color} rounded-lg flex items-center justify-center`}
+                                className={`w-14 h-14 bg-gradient-to-r ${club.color} rounded-lg flex items-center justify-center`}
                               >
-                                <IconComponent className="text-white w-5 h-5" />
+                                <ClubLogo 
+                                  clubId={club.id}
+                                  clubName={club.name}
+                                  size="md"
+                                  fallbackIcon={club.icon}
+                                  className="text-white"
+                                />
                               </div>
                               <div>
                                 <h3 className="font-semibold text-zenith-primary">
