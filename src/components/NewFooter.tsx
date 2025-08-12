@@ -92,14 +92,6 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link 
-                  href="/discussions" 
-                  className="text-sm text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-blue-400 transition-colors"
-                >
-                  Discussions
-                </Link>
-              </li>
-              <li>
-                <Link 
                   href="/members" 
                   className="text-sm text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-blue-400 transition-colors"
                 >

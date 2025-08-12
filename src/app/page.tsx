@@ -97,7 +97,6 @@ interface HomeData {
   stats: HomeStats;
   clubs: Club[];
   upcomingEvents: Event[];
-  recentPosts: Post[];
 }
 
 export default function HomePage() {
@@ -156,7 +155,7 @@ export default function HomePage() {
     );
   }
 
-  const { stats, clubs, upcomingEvents, recentPosts } = homeData;
+  const { stats, clubs, upcomingEvents } = homeData;
 
   return (
     <div className="min-h-screen bg-zenith-main transition-colors duration-300">
@@ -439,80 +438,6 @@ export default function HomePage() {
               className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold text-lg"
             >
               View All Events
-              <ChevronRight className="ml-2 w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Recent Posts Preview */}
-      <section className="py-20 bg-zenith-main">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-zenith-brand mb-4">
-              Recent Discussions
-            </h2>
-            <p className="text-xl text-zenith-secondary">
-              Join the conversation with fellow students
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {recentPosts.map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                className="bg-zenith-card rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${post.club_color} text-white`}
-                  >
-                    {post.club_name}
-                  </div>
-                  <div className="text-sm text-zenith-muted">
-                    {new Date(post.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-zenith-primary mb-3">
-                  {post.title}
-                </h3>
-                <p className="text-zenith-secondary mb-4 line-clamp-3">
-                  {post.content}
-                </p>
-                <div className="flex justify-between items-center text-sm text-zenith-muted">
-                  <span>By {post.author_name}</span>
-                  <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                </div>
-                {post.tags && post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {post.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 bg-zenith-section text-zenith-secondary text-xs rounded-full"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link
-              href="/forums"
-              className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold text-lg"
-            >
-              Join the Discussion
               <ChevronRight className="ml-2 w-5 h-5" />
             </Link>
           </div>

@@ -347,56 +347,6 @@ class EmailService {
     );
   }
   
-  async sendDiscussionNotification(
-    to: string, 
-    userName: string,
-    discussionTitle: string,
-    authorName: string,
-    clubName?: string,
-    discussionId?: string
-  ): Promise<boolean> {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #0d1829; padding: 20px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0;">ZENITH</h1>
-        </div>
-        <div style="padding: 20px; background-color: #f9f9f9; border-radius: 0 0 5px 5px;">
-          <h2 style="color: #4a5568;">New Discussion Thread</h2>
-          <p>Hello ${userName},</p>
-          <p>A new discussion has been started ${clubName ? `in ${clubName}` : ''}:</p>
-          
-          <div style="background-color: #f7fafc; border-left: 4px solid #4f46e5; padding: 15px; margin: 20px 0;">
-            <h3 style="margin: 0; color: #4a5568;">${discussionTitle}</h3>
-            <p style="margin: 10px 0 0 0;">Started by: ${authorName}</p>
-          </div>
-          
-          <p style="text-align: center; margin: 25px 0;">
-            <a 
-              href="${baseUrl}/discussions${discussionId ? `/${discussionId}` : ''}" 
-              style="background-color: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
-            >
-              Join the Discussion
-            </a>
-          </p>
-        </div>
-        <div style="text-align: center; padding: 10px; font-size: 12px; color: #777;">
-          &copy; ${new Date().getFullYear()} Zenith. All rights reserved.
-        </div>
-      </div>
-    `;
-    
-    return this.sendEmail(
-      {
-        to,
-        subject: `New Discussion: ${discussionTitle}`,
-        html
-      },
-      'discussion',
-      discussionId
-    );
-  }
 }
 
 // Create a singleton instance

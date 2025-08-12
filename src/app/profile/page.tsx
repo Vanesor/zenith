@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 interface UserProfile {
   firstName: string;
@@ -77,6 +78,11 @@ interface AssignmentSubmission {
 
 export default function ProfilePage() {
   const { user, isLoading, updateUser } = useAuth();
+  const { isAuthenticated } = useAuthGuard({ 
+    redirectReason: "Please sign in to view and edit your profile",
+    redirectOnClose: true,
+    redirectPath: "/login"
+  });
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
@@ -197,9 +203,7 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    } else if (user) {
+    if (user && isAuthenticated) {
       // Parse name field if it exists, otherwise use empty strings
       const nameParts = user.name ? user.name.split(' ') : ['', ''];
       const firstName = nameParts[0] || '';
@@ -229,7 +233,7 @@ export default function ProfilePage() {
       fetchSubmissions();
       fetchTwoFactorStatus();
     }
-  }, [user, isLoading, router]);
+  }, [user, isAuthenticated]);
   
   // Fetch 2FA status
   const fetchTwoFactorStatus = async () => {
@@ -687,6 +691,10 @@ export default function ProfilePage() {
   const handleAvatarDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
+
+  if (!isAuthenticated) {
+    return null; // The auth modal will be shown by useAuthGuard
+  }
 
   if (isLoading || !user || loadingProfile) {
     return (

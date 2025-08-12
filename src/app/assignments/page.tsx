@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import TokenManager from "@/lib/TokenManager";
 
 interface Assignment {
@@ -36,6 +37,11 @@ interface Assignment {
 
 export default function AssignmentsPage() {
   const { user, isLoading } = useAuth();
+  const { isAuthenticated } = useAuthGuard({ 
+    redirectReason: "Please sign in to view your assignments and tasks",
+    redirectOnClose: true,
+    redirectPath: "/login"
+  });
   const router = useRouter();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,14 +52,8 @@ export default function AssignmentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, isLoading, router]);
-
-  useEffect(() => {
     const fetchAssignments = async () => {
-      if (!user) return;
+      if (!user || !isAuthenticated) return;
 
       try {
         setLoading(true);
@@ -76,7 +76,7 @@ export default function AssignmentsPage() {
     };
 
     fetchAssignments();
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -185,6 +185,10 @@ export default function AssignmentsPage() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null; // The auth modal will be shown by useAuthGuard
   }
 
   if (loading) {

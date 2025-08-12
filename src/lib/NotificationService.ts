@@ -5,7 +5,6 @@ export interface NotificationPreferences {
   email: {
     assignments: boolean;
     events: boolean;
-    discussions: boolean;
     results: boolean;
   };
 }

@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Menu,
   X,
+  Code2,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -123,6 +124,7 @@ export function TwoTierHeader() {
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Assignments", href: "/assignments", icon: BookOpen },
+    { name: "Playground", href: "/playground", icon: Code2 },
     ...(isManager ? [{ name: "Club Management", href: "/club-management", icon: Settings }] : []),
   ];
 

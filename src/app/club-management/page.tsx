@@ -17,6 +17,7 @@ import {
   Eye
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useToast } from "@/contexts/ToastContext";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import ProfileModal from "@/components/ProfileModal";
@@ -63,6 +64,11 @@ interface ClubStats {
 
 export default function ClubManagementPage() {
   const { user, isLoading } = useAuth();
+  const { isAuthenticated } = useAuthGuard({ 
+    redirectReason: "Please sign in to access club management features",
+    redirectOnClose: true,
+    redirectPath: "/login"
+  });
   const { showToast } = useToast();
   const router = useRouter();
 
@@ -251,15 +257,16 @@ export default function ClubManagementPage() {
   useEffect(() => {
     console.log("Auth state:", { isLoading, user: user?.id, role: user?.role, isManager });
     
-    if (!isLoading && (!user || !isManager)) {
+    if (!isLoading && (!user || !isManager || !isAuthenticated)) {
       console.log("Redirecting to dashboard, user not manager:", { user: user?.id, role: user?.role, isManager });
+      if (!isAuthenticated) return; // Auth modal will be shown
       router.push("/dashboard");
     }
-  }, [user, isLoading, isManager, router]);
+  }, [user, isLoading, isManager, isAuthenticated, router]);
 
   useEffect(() => {
     const fetchClubData = async () => {
-      if (!user || !user.club_id) return;
+      if (!user || !user.club_id || !isAuthenticated) return;
 
       try {
         setLoading(true);
@@ -289,7 +296,7 @@ export default function ClubManagementPage() {
     };
 
     fetchClubData();
-  }, [user, showToast]);
+  }, [user, isAuthenticated, showToast]);
 
   const handleAddMember = async () => {
     if (!newMemberEmail.trim() || !user?.club_id) return;
@@ -457,6 +464,10 @@ export default function ClubManagementPage() {
       });
     }
   };
+
+  if (!isAuthenticated) {
+    return null; // The auth modal will be shown by useAuthGuard
+  }
 
   if (isLoading || loading) {
     return (

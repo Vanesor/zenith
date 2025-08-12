@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MessageSquare, Users, Hash, Plus, X, MoreVertical, Edit3, Trash2, Lock, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useToast } from "@/contexts/ToastContext";
 import { EnhancedChatRoom } from "@/components/chat/EnhancedChatRoom";
 import TokenManager from "@/lib/TokenManager";
@@ -22,6 +23,11 @@ interface ChatRoom {
 
 export default function ChatPage() {
   const { user, isLoading } = useAuth();
+  const { isAuthenticated } = useAuthGuard({ 
+    redirectReason: "Please sign in to access the chat system",
+    redirectOnClose: true,
+    redirectPath: "/login"
+  });
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,13 +77,8 @@ export default function ChatPage() {
     ].includes(user.role);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, isLoading, router]);
-
-  useEffect(() => {
     const fetchChatRooms = async () => {
+      if (!user || !isAuthenticated) return;
       if (!user) return;
 
       try {
@@ -113,7 +114,7 @@ export default function ChatPage() {
     };
 
     fetchChatRooms();
-  }, [user, showToast]);
+  }, [user, isAuthenticated, showToast]);
 
   // Close room menu when clicking outside
   useEffect(() => {
@@ -368,6 +369,10 @@ export default function ChatPage() {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null; // The auth modal will be shown by useAuthGuard
   }
 
   if (!user) {

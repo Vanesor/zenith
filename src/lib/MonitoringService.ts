@@ -300,7 +300,7 @@ export class MonitoringService {
     }
 
     if (!stats.cache?.connected) {
-      suggestions.push('Enable Redis caching for better performance');
+      suggestions.push('Consider implementing caching for better performance');
     }
 
     if (stats.api.requestsPerMinute > 100) {

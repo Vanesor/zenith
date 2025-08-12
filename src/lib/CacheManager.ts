@@ -1,45 +1,36 @@
-import Redis from 'ioredis';
-
-// Initialize Redis connection
-let redis: Redis | null = null;
-
-export function initializeRedis(): void {
-  try {
-    redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-      retryDelayOnFailover: 100,
-      enableReadyCheck: false,
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    });
-
-    redis.on('error', (error: Error) => {
-      console.error('Redis connection error:', error);
-    });
-
-    redis.on('connect', () => {
-      console.log('Redis connected successfully');
-    });
-
-    redis.on('disconnect', () => {
-      console.log('Redis disconnected');
-    });
-
-  } catch (error) {
-    console.error('Failed to initialize Redis:', error);
-  }
+// Simple in-memory cache implementation
+interface CacheItem {
+  data: unknown;
+  expires: number;
 }
 
-// Initialize Redis on module load
-initializeRedis();
+// In-memory cache store
+const cache = new Map<string, CacheItem>();
+
+// Cl}s every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, item] of cache.entries()) {
+    if (now > item.expires) {
+      cache.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
 
 export class CacheManager {
   // Get cached data
   static async get<T>(key: string): Promise<T | null> {
-    if (!redis) return null;
-    
     try {
-      const cached = await redis.get(key);
-      return cached ? JSON.parse(cached) : null;
+      const item = cache.get(key);
+      if (!item) return null;
+      
+      // Check if expired
+      if (Date.now() > item.expires) {
+        cache.delete(key);
+        return null;
+      }
+      
+      return item.data as T;
     } catch (error) {
       console.error('Cache get error:', error);
       return null;
@@ -48,10 +39,9 @@ export class CacheManager {
 
   // Set cached data with TTL
   static async set(key: string, data: unknown, ttlSeconds: number = 3600): Promise<boolean> {
-    if (!redis) return false;
-    
     try {
-      await redis.setex(key, ttlSeconds, JSON.stringify(data));
+      const expires = Date.now() + (ttlSeconds * 1000);
+      cache.set(key, { data, expires });
       return true;
     } catch (error) {
       console.error('Cache set error:', error);
@@ -61,11 +51,8 @@ export class CacheManager {
 
   // Delete cached data
   static async delete(key: string): Promise<boolean> {
-    if (!redis) return false;
-    
     try {
-      await redis.del(key);
-      return true;
+      return cache.delete(key);
     } catch (error) {
       console.error('Cache delete error:', error);
       return false;
@@ -74,11 +61,17 @@ export class CacheManager {
 
   // Check if key exists
   static async exists(key: string): Promise<boolean> {
-    if (!redis) return false;
-    
     try {
-      const exists = await redis.exists(key);
-      return exists === 1;
+      const item = cache.get(key);
+      if (!item) return false;
+      
+      // Check if expired
+      if (Date.now() > item.expires) {
+        cache.delete(key);
+        return false;
+      }
+      
+      return true;
     } catch (error) {
       console.error('Cache exists error:', error);
       return false;
@@ -87,10 +80,10 @@ export class CacheManager {
 
   // Set with no expiration
   static async setForever(key: string, data: unknown): Promise<boolean> {
-    if (!redis) return false;
-    
     try {
-      await redis.set(key, JSON.stringify(data));
+      // Set with very long expiration (100 years)
+      const expires = Date.now() + (100 * 365 * 24 * 60 * 60 * 1000);
+      cache.set(key, { data, expires });
       return true;
     } catch (error) {
       console.error('Cache setForever error:', error);
@@ -100,10 +93,11 @@ export class CacheManager {
 
   // Increment counter
   static async increment(key: string, by: number = 1): Promise<number | null> {
-    if (!redis) return null;
-    
     try {
-      return await redis.incrby(key, by);
+      const current = await this.get<number>(key) || 0;
+      const newValue = current + by;
+      await this.set(key, newValue, 3600);
+      return newValue;
     } catch (error) {
       console.error('Cache increment error:', error);
       return null;
@@ -112,11 +106,11 @@ export class CacheManager {
 
   // Get multiple keys
   static async getMultiple<T>(keys: string[]): Promise<(T | null)[]> {
-    if (!redis || keys.length === 0) return [];
+    if (keys.length === 0) return [];
     
     try {
-      const values = await redis.mget(...keys);
-      return values.map((value: string | null) => value ? JSON.parse(value) : null);
+      const promises = keys.map(key => this.get<T>(key));
+      return await Promise.all(promises);
     } catch (error) {
       console.error('Cache getMultiple error:', error);
       return new Array(keys.length).fill(null);
@@ -125,17 +119,12 @@ export class CacheManager {
 
   // Set multiple keys
   static async setMultiple(data: Record<string, unknown>, ttlSeconds: number = 3600): Promise<boolean> {
-    if (!redis) return false;
-    
     try {
-      const pipeline = redis.pipeline();
-      
-      for (const [key, value] of Object.entries(data)) {
-        pipeline.setex(key, ttlSeconds, JSON.stringify(value));
-      }
-      
-      await pipeline.exec();
-      return true;
+      const promises = Object.entries(data).map(([key, value]) => 
+        this.set(key, value, ttlSeconds)
+      );
+      const results = await Promise.all(promises);
+      return results.every(result => result);
     } catch (error) {
       console.error('Cache setMultiple error:', error);
       return false;
@@ -144,14 +133,18 @@ export class CacheManager {
 
   // Clear cache by pattern
   static async clearPattern(pattern: string): Promise<number> {
-    if (!redis) return 0;
-    
     try {
-      const keys = await redis.keys(pattern);
-      if (keys.length === 0) return 0;
+      let count = 0;
+      const regex = new RegExp(pattern.replace(/\*/g, '.*'));
       
-      await redis.del(...keys);
-      return keys.length;
+      for (const key of cache.keys()) {
+        if (regex.test(key)) {
+          cache.delete(key);
+          count++;
+        }
+      }
+      
+      return count;
     } catch (error) {
       console.error('Cache clearPattern error:', error);
       return 0;
@@ -164,19 +157,11 @@ export class CacheManager {
     usedMemory: string;
     totalKeys: number;
   } | null> {
-    if (!redis) return null;
-    
     try {
-      const info = await redis.info('memory');
-      const dbSize = await redis.dbsize();
-      
-      const usedMemoryMatch = info.match(/used_memory_human:(.+)/);
-      const usedMemory = usedMemoryMatch ? usedMemoryMatch[1].trim() : 'Unknown';
-      
       return {
-        connected: redis.status === 'ready',
-        usedMemory,
-        totalKeys: dbSize
+        connected: true,
+        usedMemory: `${cache.size} items (in-memory)`,
+        totalKeys: cache.size
       };
     } catch (error) {
       console.error('Cache getStats error:', error);
@@ -200,20 +185,3 @@ export const CacheKeys = {
   sessionCount: () => 'stats:active_sessions',
   apiCalls: (endpoint: string) => `api:${endpoint}:calls`,
 };
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  if (redis) {
-    console.log('Closing Redis connection...');
-    await redis.quit();
-    redis = null;
-  }
-});
-
-process.on('SIGTERM', async () => {
-  if (redis) {
-    console.log('Closing Redis connection...');
-    await redis.quit();
-    redis = null;
-  }
-});

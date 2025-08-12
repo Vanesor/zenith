@@ -34,9 +34,9 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   
   // Show header when:
   // 1. Not on excluded paths AND
-  // 2. Not on test-taking paths AND 
-  // 3. (User is authenticated OR still loading authentication)
-  const shouldShowHeader = !isExcludedPath && !shouldHideHeader && (user || isLoading);
+  // 2. Not on test-taking paths 
+  // (Always show header regardless of auth status - the header components handle auth state internally)
+  const shouldShowHeader = !isExcludedPath && !shouldHideHeader;
 
   // Calculate top margin based on header height (college banner + nav = ~112px)
   const topMargin = shouldShowHeader ? "mt-28" : "";

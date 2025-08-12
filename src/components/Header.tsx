@@ -93,16 +93,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               Assignments
             </Link>
             <Link
+              href="/playground"
+              className="text-zenith-secondary dark:text-gray-300 hover:text-zenith-primary dark:hover:text-blue-400 font-medium transition-colors"
+            >
+              Playground
+            </Link>
+            <Link
               href="/events"
               className="text-zenith-secondary dark:text-gray-300 hover:text-zenith-primary dark:hover:text-blue-400 font-medium transition-colors"
             >
               Events
-            </Link>
-            <Link
-              href="/discussions"
-              className="text-zenith-secondary dark:text-gray-300 hover:text-zenith-primary dark:hover:text-blue-400 font-medium transition-colors"
-            >
-              Discussions
             </Link>
           </nav>
 
