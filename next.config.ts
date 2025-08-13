@@ -1,7 +1,25 @@
 import type { NextConfig } from "next";
-import * as path from "path";
 
 const nextConfig: NextConfig = {
+  // Enable experimental features for better performance
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+    optimizePackageImports: ['lucide-react'],
+  },
+
+  // Compiler optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  // Image optimization
   images: {
     remotePatterns: [
       {
@@ -27,8 +45,52 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
   },
-  /* config options here */
+
+  // Performance optimizations
+  poweredByHeader: false,
+  compress: true,
+  
+  // Bundle analyzer (only in development)
+  ...(process.env.ANALYZE === 'true' ? {
+    bundleAnalyzer: {
+      enabled: true,
+      openAnalyzer: true,
+    }
+  } : {}),
+
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Optimize bundle splitting
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+          },
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: 'react',
+            priority: 20,
+            chunks: 'all',
+          },
+        },
+      };
+    }
+
+    return config;
+  },
 };
 
 export default nextConfig;
