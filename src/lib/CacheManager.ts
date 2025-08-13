@@ -1,47 +1,153 @@
-// Simple in-memory cache implementation
+// Enhanced Cache Manager with LRU eviction and better performance
 interface CacheItem {
   data: unknown;
   expires: number;
+  lastAccessed: number;
+  accessCount: number;
+  size: number;
 }
 
-// In-memory cache store
-const cache = new Map<string, CacheItem>();
+interface CacheStats {
+  totalItems: number;
+  totalSize: number;
+  hitCount: number;
+  missCount: number;
+  evictionCount: number;
+  hitRate: number;
+}
 
-// Cl}s every 5 minutes
+// Enhanced in-memory cache store with LRU capability
+const cache = new Map<string, CacheItem>();
+const cacheMetrics = {
+  hitCount: 0,
+  missCount: 0,
+  evictionCount: 0,
+  maxSize: 50 * 1024 * 1024, // 50MB max cache size
+  currentSize: 0
+};
+
+// Cache cleanup with LRU eviction - runs every minute instead of 5 minutes
 setInterval(() => {
+  cleanupExpired();
+  enforceSizeLimit();
+}, 60 * 1000); // Every minute for better performance
+
+function calculateSize(data: unknown): number {
+  try {
+    return JSON.stringify(data).length * 2; // Rough estimate in bytes (UTF-16)
+  } catch {
+    return 1000; // Default size for non-serializable data
+  }
+}
+
+function cleanupExpired(): void {
   const now = Date.now();
+  let cleanedCount = 0;
+  
   for (const [key, item] of cache.entries()) {
     if (now > item.expires) {
+      cacheMetrics.currentSize -= item.size;
       cache.delete(key);
+      cleanedCount++;
+      cacheMetrics.evictionCount++;
     }
   }
-}, 5 * 60 * 1000);
+  
+  if (cleanedCount > 0) {
+    console.log(`Cache: Cleaned ${cleanedCount} expired items`);
+  }
+}
+
+function enforceSizeLimit(): void {
+  if (cacheMetrics.currentSize <= cacheMetrics.maxSize) return;
+  
+  // Convert to array and sort by LRU (least recently used first)
+  const entries = Array.from(cache.entries());
+  entries.sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
+  
+  let removedCount = 0;
+  for (const [key, item] of entries) {
+    if (cacheMetrics.currentSize <= cacheMetrics.maxSize * 0.8) break; // Keep 20% buffer
+    
+    cacheMetrics.currentSize -= item.size;
+    cache.delete(key);
+    removedCount++;
+    cacheMetrics.evictionCount++;
+  }
+  
+  if (removedCount > 0) {
+    console.log(`Cache: LRU evicted ${removedCount} items to maintain size limit`);
+  }
+}
 
 export class CacheManager {
-  // Get cached data
+  // Get cached data with LRU tracking
   static async get<T>(key: string): Promise<T | null> {
     try {
       const item = cache.get(key);
-      if (!item) return null;
-      
-      // Check if expired
-      if (Date.now() > item.expires) {
-        cache.delete(key);
+      if (!item) {
+        cacheMetrics.missCount++;
         return null;
       }
+      
+      // Check if expired
+      const now = Date.now();
+      if (now > item.expires) {
+        cacheMetrics.currentSize -= item.size;
+        cache.delete(key);
+        cacheMetrics.missCount++;
+        cacheMetrics.evictionCount++;
+        return null;
+      }
+      
+      // Update access tracking for LRU
+      item.lastAccessed = now;
+      item.accessCount++;
+      cacheMetrics.hitCount++;
       
       return item.data as T;
     } catch (error) {
       console.error('Cache get error:', error);
+      cacheMetrics.missCount++;
       return null;
     }
   }
 
-  // Set cached data with TTL
+  // Set cached data with size tracking
   static async set(key: string, data: unknown, ttlSeconds: number = 3600): Promise<boolean> {
     try {
-      const expires = Date.now() + (ttlSeconds * 1000);
-      cache.set(key, { data, expires });
+      const now = Date.now();
+      const expires = now + (ttlSeconds * 1000);
+      const size = calculateSize(data);
+      
+      // Remove existing item if present
+      const existingItem = cache.get(key);
+      if (existingItem) {
+        cacheMetrics.currentSize -= existingItem.size;
+      }
+      
+      // Check if adding this item would exceed size limit
+      if (cacheMetrics.currentSize + size > cacheMetrics.maxSize) {
+        enforceSizeLimit();
+      }
+      
+      // If still too large after cleanup, reject
+      if (cacheMetrics.currentSize + size > cacheMetrics.maxSize) {
+        console.warn(`Cache: Item too large to cache (${size} bytes), max: ${cacheMetrics.maxSize}`);
+        return false;
+      }
+      
+      const item: CacheItem = {
+        data,
+        expires,
+        lastAccessed: now,
+        accessCount: 1,
+        size
+      };
+      
+      cache.set(key, item);
+      cacheMetrics.currentSize += size;
+      
       return true;
     } catch (error) {
       console.error('Cache set error:', error);
@@ -83,7 +189,25 @@ export class CacheManager {
     try {
       // Set with very long expiration (100 years)
       const expires = Date.now() + (100 * 365 * 24 * 60 * 60 * 1000);
-      cache.set(key, { data, expires });
+      const size = calculateSize(data);
+      const now = Date.now();
+      
+      // Remove existing item if present
+      const existingItem = cache.get(key);
+      if (existingItem) {
+        cacheMetrics.currentSize -= existingItem.size;
+      }
+      
+      const item: CacheItem = {
+        data,
+        expires,
+        lastAccessed: now,
+        accessCount: 1,
+        size
+      };
+      
+      cache.set(key, item);
+      cacheMetrics.currentSize += size;
       return true;
     } catch (error) {
       console.error('Cache setForever error:', error);
@@ -152,20 +276,38 @@ export class CacheManager {
   }
 
   // Get cache statistics
-  static async getStats(): Promise<{
-    connected: boolean;
-    usedMemory: string;
-    totalKeys: number;
-  } | null> {
+  static async getStats(): Promise<CacheStats | null> {
     try {
+      const hitRate = cacheMetrics.hitCount + cacheMetrics.missCount > 0 
+        ? (cacheMetrics.hitCount / (cacheMetrics.hitCount + cacheMetrics.missCount)) * 100
+        : 0;
+        
       return {
-        connected: true,
-        usedMemory: `${cache.size} items (in-memory)`,
-        totalKeys: cache.size
+        totalItems: cache.size,
+        totalSize: cacheMetrics.currentSize,
+        hitCount: cacheMetrics.hitCount,
+        missCount: cacheMetrics.missCount,
+        evictionCount: cacheMetrics.evictionCount,
+        hitRate: Math.round(hitRate * 100) / 100
       };
     } catch (error) {
       console.error('Cache getStats error:', error);
       return null;
+    }
+  }
+
+  // Clear all cache
+  static async clear(): Promise<boolean> {
+    try {
+      cache.clear();
+      cacheMetrics.currentSize = 0;
+      cacheMetrics.hitCount = 0;
+      cacheMetrics.missCount = 0;
+      cacheMetrics.evictionCount = 0;
+      return true;
+    } catch (error) {
+      console.error('Cache clear error:', error);
+      return false;
     }
   }
 }

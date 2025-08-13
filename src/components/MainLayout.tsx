@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Header from "./Header";
+import { UnifiedHeader } from "./UnifiedHeader";
 import Sidebar from "./Sidebar";
 import { Footer } from "./NewFooter";
 
@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex flex-col">
       {/* Header */}
-      <Header onMenuClick={handleMenuClick} />
+      <UnifiedHeader />
       
       {/* Main Content Area */}
       <div className="flex flex-1">

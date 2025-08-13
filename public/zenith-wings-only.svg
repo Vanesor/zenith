@@ -1,0 +1,32 @@
+<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Golden Wings Only -->
+  <g transform="translate(60, 40)">
+    <!-- Left Wing -->
+    <path d="M-30,-15 Q-45,-25 -50,-10 Q-45,5 -35,0 Q-25,-5 -20,-10 Z" fill="url(#gold1)"/>
+    <path d="M-35,-5 Q-45,-15 -40,-5 Q-35,5 -25,0 Z" fill="url(#gold2)"/>
+    
+    <!-- Right Wing -->
+    <path d="M30,-15 Q45,-25 50,-10 Q45,5 35,0 Q25,-5 20,-10 Z" fill="url(#gold1)"/>
+    <path d="M35,-5 Q45,-15 40,-5 Q35,5 25,0 Z" fill="url(#gold2)"/>
+    
+    <!-- Center Orb -->
+    <circle cx="0" cy="-5" r="3" fill="url(#gold3)"/>
+  </g>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gold1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gold2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6347;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gold3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFF00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

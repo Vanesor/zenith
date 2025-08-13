@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { CollegeHeader } from "@/components/CollegeHeader";
+import { UnifiedHeader } from "@/components/UnifiedHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { signIn } from "next-auth/react";
 
@@ -111,12 +110,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-zenith-main transition-colors duration-300">
-      <ThemeToggle />
       
       {/* College Header */}
-      <CollegeHeader />
+      <UnifiedHeader showNavigation={true} />
       
-      <div className="flex items-center justify-center p-4 pt-8">
+      <div className="flex items-center justify-center p-4 pt-40">{/* Increased padding for college banner + nav */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

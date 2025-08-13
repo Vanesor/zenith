@@ -9,9 +9,12 @@ export interface SystemStats {
     responseTime: number;
   };
   cache: {
-    connected: boolean;
-    usedMemory: string;
-    totalKeys: number;
+    totalItems: number;
+    totalSize: number;
+    hitCount: number;
+    missCount: number;
+    evictionCount: number;
+    hitRate: number;
   } | null;
   sessions: {
     totalActiveSessions: number;
@@ -279,8 +282,10 @@ export class MonitoringService {
     }
 
     // Cache alerts
-    if (!stats.cache?.connected) {
+    if (!stats.cache) {
       alerts.push('🟡 Cache not available');
+    } else if (stats.cache.totalItems > 10000) {
+      alerts.push('🟡 High cache usage - consider cleanup');
     }
 
     return alerts;
@@ -299,8 +304,10 @@ export class MonitoringService {
       suggestions.push('Users have multiple sessions - consider session cleanup');
     }
 
-    if (!stats.cache?.connected) {
+    if (!stats.cache) {
       suggestions.push('Consider implementing caching for better performance');
+    } else if (stats.cache.hitRate < 50) {
+      suggestions.push('Low cache hit rate - consider optimizing cache strategy');
     }
 
     if (stats.api.requestsPerMinute > 100) {

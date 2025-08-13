@@ -21,40 +21,55 @@ export const Footer: React.FC = () => {
           {/* College Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-zenith-primary rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">GEC</span>
+              <div className="w-12 h-12 rounded-full overflow-hidden">
+                <img 
+                  src="/pallotti-logo.png"
+                  alt="St. Vincent Pallotti College Logo"
+                  className="w-full h-full object-cover" 
+                />
               </div>
               <div>
                 <h3 className="font-bold text-zenith-primary dark:text-white">
-                  Government Engineering College
+                  St. Vincent Pallotti College
                 </h3>
+                <p className="text-xs text-zenith-secondary dark:text-zenith-muted">
+                  of Engineering & Technology
+                </p>
               </div>
             </div>
             <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
-              Leading institution in technical education, fostering innovation and excellence 
-              in engineering and technology since 1995.
+              Established in 2004 by the Nagpur Pallottine Society. Accredited by NAAC with A grade.
+              Affiliated to Nagpur University and approved by AICTE, Government of India.
             </p>
             <div className="flex space-x-4">
               <Link 
-                href="#" 
+                href="https://www.facebook.com/stvincentngp/" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-zenith-muted hover:text-zenith-primary dark:hover:text-blue-400 transition-colors"
               >
                 <Facebook className="w-5 h-5" />
               </Link>
               <Link 
-                href="#" 
+                href="https://twitter.com/techpallottines" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-zenith-muted hover:text-zenith-primary dark:hover:text-blue-400 transition-colors"
               >
                 <Twitter className="w-5 h-5" />
               </Link>
               <Link 
-                href="#" 
+                href="https://www.instagram.com/svpcetnagpur" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-zenith-muted hover:text-zenith-primary dark:hover:text-blue-400 transition-colors"
               >
                 <Instagram className="w-5 h-5" />
               </Link>
               <Link 
-                href="#" 
+                href="https://www.linkedin.com/school/svpcet/" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-zenith-muted hover:text-zenith-primary dark:hover:text-blue-400 transition-colors"
               >
                 <Linkedin className="w-5 h-5" />
@@ -103,7 +118,13 @@ export const Footer: React.FC = () => {
 
           {/* Platform Info */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-zenith-primary dark:text-white">Zenith Platform</h4>
+            <h4 className="font-semibold text-zenith-primary dark:text-white">
+              ZENITH <span className="text-xs text-zenith-secondary dark:text-zenith-muted ml-1">Forum</span>
+            </h4>
+            <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-3">
+              Department of Computer Engineering's official student forum for academic collaboration, 
+              knowledge sharing, and community building.
+            </p>
             <ul className="space-y-2">
               <li>
                 <Link 
@@ -155,20 +176,20 @@ export const Footer: React.FC = () => {
               <div className="flex items-start space-x-3">
                 <MapPin className="w-4 h-4 text-zenith-muted mt-1 flex-shrink-0" />
                 <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
-                  123 Engineering Road,<br />
-                  Tech City, TC 12345
+                  Gavsi Manapur, Wardha Road,<br />
+                  Nagpur, Maharashtra - 441108
                 </p>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-zenith-muted flex-shrink-0" />
                 <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
-                  +1 (555) 123-4567
+                  +91 7743979315
                 </p>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-zenith-muted flex-shrink-0" />
                 <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
-                  info@gec.edu
+                  info@stvincentngp.edu.in
                 </p>
               </div>
             </div>
@@ -181,10 +202,12 @@ export const Footer: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
             <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
-              © 2025 Government Engineering College. All rights reserved.
+              © {new Date().getFullYear()} St. Vincent Pallotti College of Engineering & Technology. All rights reserved.
             </p>
             <p className="text-sm text-zenith-secondary dark:text-zenith-muted flex items-center">
-              Made with <Heart className="w-4 h-4 text-red-500 mx-1" /> by GEC Students
+              <span className="mr-1">Zenith Forum</span>
+              <Heart className="w-4 h-4 text-red-500 mx-1" />
+              <span className="ml-1">Department of Computer Engineering</span>
             </p>
           </div>
         </div>

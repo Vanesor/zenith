@@ -10,10 +10,10 @@ interface ZenithLogoProps {
 }
 
 const sizeMap = {
-  sm: { width: 40, height: 40, textSize: "text-lg" },
-  md: { width: 60, height: 60, textSize: "text-xl" },
-  lg: { width: 80, height: 80, textSize: "text-2xl" },
-  xl: { width: 120, height: 120, textSize: "text-4xl" },
+  sm: { width: 60, height: 60, textSize: "text-lg" },
+  md: { width: 80, height: 80, textSize: "text-xl" },
+  lg: { width: 120, height: 120, textSize: "text-2xl" },
+  xl: { width: 160, height: 160, textSize: "text-4xl" },
 };
 
 export function ZenithLogo({
@@ -27,21 +27,16 @@ export function ZenithLogo({
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="relative">
         <Image
-          src="/zenith-logo.svg"
+          src="/zenithlogo.png"
           alt="Zenith Logo"
           width={width}
           height={height}
-          className="drop-shadow-lg"
+          className="drop-shadow-lg object-contain"
           priority
         />
       </div>
       {showText && (
         <div className="flex flex-col">
-          <span
-            className={`font-bold text-zenith-brand ${textSize}`}
-          >
-            ZENITH
-          </span>
           {size === "xl" && (
             <span className="text-xs text-zenith-muted font-medium tracking-wider">
               DRIVEN BY PASSION, BUILT FOR EXCELLENCE
@@ -51,4 +46,12 @@ export function ZenithLogo({
       )}
     </div>
   );
+}
+
+// Logo-only version for headers
+export function ZenithLogoOnly({
+  size = "md",
+  className = "",
+}: Omit<ZenithLogoProps, "showText">) {
+  return <ZenithLogo size={size} className={className} showText={false} />;
 }

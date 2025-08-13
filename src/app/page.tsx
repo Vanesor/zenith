@@ -18,9 +18,8 @@ import {
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import ClubLogo from "@/components/ClubLogo";
-import { CollegeHeader } from "@/components/CollegeHeader";
+import { UnifiedHeader } from "@/components/UnifiedHeader";
 
 // Icon mapping for clubs
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -159,48 +158,16 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-zenith-main transition-colors duration-300">
-      <ThemeToggle />
       <ZenChatbot />
 
-      {/* College Header */}
-      <CollegeHeader />
+      {/* Unified Header */}
+      <UnifiedHeader showNavigation={true} />
 
-      {/* Navigation */}
-      <nav className="bg-zenith-section backdrop-blur-md border-b border-zenith sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <ZenithLogo size="md" />
-            <div className="flex items-center space-x-4">
-              {!isLoggedIn ? (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-zenith-secondary hover:text-zenith-accent px-3 py-2 text-sm font-medium transition-colors"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="bg-zenith-accent hover:bg-zenith-accent text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    Join Now
-                  </Link>
-                </>
-              ) : (
-                <Link
-                  href="/dashboard"
-                  className="bg-zenith-accent hover:bg-zenith-accent text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Dashboard
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Main Content with proper spacing for fixed header */}
+      <div className="pt-44">{/* Increased even more for college banner + nav bar */}
 
       {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <section className="py-8 px-4 sm:px-6 lg:px-8">{/* Further reduced since parent has more padding */}
         <div className="max-w-7xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -585,6 +552,8 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      </div> {/* End of main content with proper spacing */}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">

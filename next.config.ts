@@ -3,11 +3,13 @@ import * as path from "path";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      'localhost',
-      'qpulpytptbwwumicyzwr.supabase.co', // Add your Supabase project URL
-    ],
     remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
       {
         protocol: 'http',
         hostname: 'localhost',
@@ -18,6 +20,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.supabase.co',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'qpulpytptbwwumicyzwr.supabase.co',
+        pathname: '/**',
       },
     ],
   },

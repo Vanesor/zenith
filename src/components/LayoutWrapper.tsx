@@ -1,11 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { TwoTierHeader } from "@/components/TwoTierHeader";
+import { UnifiedHeader } from "@/components/UnifiedHeader";
+import { Footer } from "@/components/NewFooter";
 import { useAuth } from "@/contexts/AuthContext";
 import { SessionExpirationHandler } from "@/components/SessionExpirationHandler";
 
 const noHeaderPaths = ["/", "/login", "/register"];
+const noFooterPaths = ["/", "/login", "/register"]; // Pages with no footer or their own footer
 
 // Paths where the header should be hidden (like during tests/exams)
 const hideHeaderPaths = [
@@ -37,25 +39,35 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   // 2. Not on test-taking paths 
   // (Always show header regardless of auth status - the header components handle auth state internally)
   const shouldShowHeader = !isExcludedPath && !shouldHideHeader;
+  
+  // Don't show footer on special paths like login/register or during tests
+  const shouldShowFooter = !noFooterPaths.includes(pathname) && !shouldHideHeader;
 
-  // Calculate top margin based on header height (college banner + nav = ~112px)
-  const topMargin = shouldShowHeader ? "mt-28" : "";
+  // Calculate top padding based on reduced header height (college banner + nav)
+  const topPadding = shouldShowHeader ? "pt-40 md:pt-36" : "";
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       {shouldShowHeader && (
-        <div className="z-50 relative">
-          <TwoTierHeader />
-        </div>
+        <header className="z-50 fixed top-0 left-0 right-0 w-full">
+          <UnifiedHeader />
+        </header>
       )}
-      <div className={topMargin}>
-        {/* Only wrap with SessionExpirationHandler if authenticated */}
-        {user && !isExcludedPath ? (
-          <SessionExpirationHandler>{children}</SessionExpirationHandler>
-        ) : (
-          children
-        )}
-      </div>
-    </>
+      <main className={`${topPadding} flex-grow pb-8`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          {/* Only wrap with SessionExpirationHandler if authenticated */}
+          {user && !isExcludedPath ? (
+            <SessionExpirationHandler>{children}</SessionExpirationHandler>
+          ) : (
+            children
+          )}
+        </div>
+      </main>
+      
+      {/* Footer - show on appropriate pages */}
+      {shouldShowFooter && (
+        <Footer />
+      )}
+    </div>
   );
 }

@@ -198,6 +198,7 @@ export default function PlaygroundPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [executionHistory, setExecutionHistory] = useState<ExecutionResult[]>([]);
   const [editorZoom, setEditorZoom] = useState(14); // Font size for zoom
+  const [editorTheme, setEditorTheme] = useState('vs-dark'); // Monaco theme
   
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -356,11 +357,97 @@ export default function PlaygroundPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-zenith-main via-zenith-section to-zenith-main transition-all duration-300 ${
-      isFullscreen ? 'fixed inset-0 z-50' : 'pt-16'
-    }`}>
-      {/* Header */}
-      <div className="bg-zenith-card/90 backdrop-blur-md border-b border-zenith-border sticky top-0 z-40">
+    <>
+      {isFullscreen ? (
+        // Fullscreen Mode - Clean interface with just editor and minimal controls
+        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+          {/* Minimal header bar */}
+          <div className="bg-gray-900 border-b border-gray-700 p-2 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <select
+                value={selectedLanguage.id}
+                onChange={(e) => {
+                  const lang = SUPPORTED_LANGUAGES.find(l => l.id === e.target.value);
+                  if (lang) handleLanguageChange(lang);
+                }}
+                className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.id} value={lang.id}>
+                    {lang.icon} {lang.name}
+                  </option>
+                ))}
+              </select>
+              
+              <select
+                value={editorTheme}
+                onChange={e => setEditorTheme(e.target.value)}
+                className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="vs-dark">Dark</option>
+                <option value="vs-light">Light</option>
+                <option value="hc-black">High Contrast Black</option>
+                <option value="hc-light">High Contrast Light</option>
+                <option value="vs-dark-plus">Dark+</option>
+                <option value="monokai">Monokai</option>
+                <option value="github">GitHub</option>
+                <option value="solarized-dark">Solarized Dark</option>
+                <option value="solarized-light">Solarized Light</option>
+              </select>
+            </div>
+            
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={zoomOut}
+                className="p-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded transition-all"
+                title="Zoom out"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <button
+                onClick={zoomIn}
+                className="p-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded transition-all"
+                title="Zoom in"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <button
+                onClick={executeCode}
+                disabled={isExecuting || !user}
+                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded text-sm transition-all flex items-center space-x-1"
+              >
+                {isExecuting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                <span>Run</span>
+              </button>
+              <button
+                onClick={() => setIsFullscreen(false)}
+                className="p-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded transition-all"
+                title="Exit fullscreen"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Editor taking full remaining space */}
+          <div className="flex-1">
+            <PlaygroundCodeEditor
+              value={code}
+              onChange={setCode}
+              language={selectedLanguage.id}
+              theme={editorTheme}
+              fontSize={editorZoom}
+              readOnly={isExecuting}
+              showLineNumbers={true}
+              className="h-full"
+            />
+          </div>
+        </div>
+      ) : (
+        // Normal Mode
+        <div className="min-h-screen bg-gradient-to-br from-zenith-main via-zenith-section to-zenith-main transition-all duration-300 pt-16">
+          {/* Header */}
+          <div className="bg-zenith-card/90 backdrop-blur-md border-b border-zenith-border sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Title */}
@@ -404,6 +491,24 @@ export default function PlaygroundPage() {
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
+              {/* Monaco Theme Selector */}
+              <select
+                value={editorTheme}
+                onChange={e => setEditorTheme(e.target.value)}
+                className="ml-2 px-2 py-1 rounded bg-zenith-section text-zenith-primary border border-zenith-border text-xs"
+                title="Editor Theme"
+                style={{ minWidth: 120 }}
+              >
+                <option value="vs-dark">Dark</option>
+                <option value="vs-light">Light</option>
+                <option value="hc-black">High Contrast Black</option>
+                <option value="hc-light">High Contrast Light</option>
+                <option value="vs-dark-plus">Dark+</option>
+                <option value="monokai">Monokai</option>
+                <option value="github">GitHub</option>
+                <option value="solarized-dark">Solarized Dark</option>
+                <option value="solarized-light">Solarized Light</option>
+              </select>
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 className="p-2 text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover rounded-lg transition-all"
@@ -475,11 +580,12 @@ export default function PlaygroundPage() {
               <PlaygroundCodeEditor
                 value={code}
                 onChange={setCode}
-                language={selectedLanguage.id === 'cpp' ? 'cpp' : selectedLanguage.id}
-                theme="vs-dark"
-                readOnly={false}
+                language={selectedLanguage.id}
+                theme={editorTheme}
+                fontSize={editorZoom}
+                readOnly={isExecuting}
                 showLineNumbers={true}
-                className="h-full rounded-b-xl"
+                className="rounded-b-xl border border-zenith-border border-t-0 flex-1 bg-zenith-main"
               />
             </div>
           </div>
@@ -584,7 +690,8 @@ export default function PlaygroundPage() {
           </div>
         </div>
       </div>
-
-    </div>
+        </div>
+      )}
+    </>
   );
 }

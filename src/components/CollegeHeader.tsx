@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 interface CollegeHeaderProps {
   className?: string;
@@ -8,42 +9,43 @@ interface CollegeHeaderProps {
 
 export function CollegeHeader({ className = "" }: CollegeHeaderProps) {
   return (
-    <div className={`bg-gradient-to-r from-blue-800 to-blue-900 text-white ${className}`}>
+    <div className={`bg-zenith-card border-b border-gray-200 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-3">
-          {/* Left - College Logo and Name */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-zenith-card rounded-full flex items-center justify-center">
-                <span className="text-blue-800 font-bold text-sm">GOVT</span>
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-bold">Government Engineering College</h1>
-                <p className="text-xs text-blue-100">Excellence in Technical Education</p>
-              </div>
-              <div className="sm:hidden">
-                <h1 className="text-sm font-bold">Govt. Engineering College</h1>
-              </div>
-            </div>
-          </div>
-
-          {/* Center - College Name for mobile */}
-          <div className="flex-1 text-center sm:hidden">
-            <h1 className="text-sm font-bold truncate">Engineering College</h1>
+        <div className="flex items-center justify-between py-6">
+            {/* Left - College Logo */}
+            <div className="flex items-center">
+              <Image
+                src="/collegelogo.jpeg"
+                alt="St. Vincent Pallotti College Logo"
+                width={80}
+                height={80}
+                className="object-contain shadow-lg md:w-[100px] md:h-[100px]"
+                priority
+              />
+            </div>          {/* Center - College and Department Name */}
+          <div className="flex-1 text-center px-4 md:px-8">
+            <h1 className="text-lg md:text-2xl font-bold text-black mb-1">
+              St. Vincent Pallotti College of Engineering & Technology
+            </h1>
+            <p className="text-sm md:text-lg text-black font-semibold">
+              Department of Computer Engineering
+            </p>
+            <p className="text-xs md:text-sm text-gray-600 mt-1">
+              Nagpur - An Autonomous Institution
+            </p>
           </div>
 
           {/* Right - Zenith Platform Logo */}
-          <div className="flex items-center space-x-4">
-            <div className="hidden sm:block text-right">
-              <h2 className="text-sm font-semibold">Zenith Platform</h2>
-              <p className="text-xs text-blue-100">Student Management System</p>
-            </div>
-            <div className="w-12 h-12 bg-zenith-card rounded-full flex items-center justify-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Z</span>
-              </div>
-            </div>
-          </div>
+          {/* <div className="flex items-center">
+            <Image
+              src="/zenithlogo.png"
+              alt="Zenith Logo"
+              width={110}
+              height={90}
+              className="object-contain shadow-lg md:w-[140px] md:h-[110px]"
+              priority
+            />
+          </div> */}
         </div>
       </div>
     </div>
