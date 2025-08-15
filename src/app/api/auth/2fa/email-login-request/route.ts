@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import Database from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,33 +14,29 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    let userResult;
+    let user;
     
     if (userId) {
       // Get the user by ID
-      userResult = await Database.query(
-        "SELECT id, email, email_otp_enabled FROM users WHERE id = $1",
-        [userId]
-      );
+      user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
     } else {
       // Get the user by email
-      userResult = await Database.query(
-        "SELECT id, email, email_otp_enabled FROM users WHERE email = $1",
-        [email]
-      );
+      user = await prisma.user.findUnique({
+        where: { email }
+      });
     }
     
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
     
-    const user = userResult.rows[0];
-    
     // Check if email OTP is enabled for this user
-    if (!user.email_otp_enabled) {
+    if (!(user as any).email_otp_enabled) {
       return NextResponse.json(
         { error: "Email OTP not enabled for this user" },
         { status: 400 }

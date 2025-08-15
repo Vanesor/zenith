@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { Database } from "@/lib/database-consolidated";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";

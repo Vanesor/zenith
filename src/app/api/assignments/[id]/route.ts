@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { verifyAuth } from '@/lib/AuthMiddleware';
+import PrismaDB, { Database } from '@/lib/database-consolidated';
+import { FastAuth } from '@/lib/FastAuth';
 
 // Safe JSON parsing utility
-function safeJsonParse(jsonString: string, defaultValue: any) {
+function safeJsonParse(jsonString: string, defaultValue: unknown) {
   try {
     // Check if it's already a valid object/array
     if (typeof jsonString !== 'string') {
@@ -31,11 +32,6 @@ function isManagerRole(role: string): boolean {
   ].includes(role);
 }
 
-// Initialize PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://zenith_user:zenith_password@localhost:5432/zenith_db'
-});
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -54,60 +50,50 @@ export async function GET(
 
     const userId = authResult.user!.id;
 
+    // Use Prisma client directly to avoid type casting issues
+    const prisma = PrismaDB.getClient();
+
     // Get user details
-    const userQuery = 'SELECT id, email, name FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, [userId]);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true }
+    });
     
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const user = userResult.rows[0];
-
-    // Get assignment details
-    const assignmentQuery = `
-      SELECT 
-        id, title, description, time_limit, max_attempts, due_date,
-        allow_navigation, is_proctored, shuffle_questions, allow_calculator,
-        show_results, allow_review, instructions, max_points, passing_score,
-        is_published, created_at, updated_at
-      FROM assignments 
-      WHERE id = $1
-    `;
+    // Get assignment details with questions
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: {
+        questions: {
+          orderBy: { question_order: 'asc' },
+          include: {
+            question_options: true
+          }
+        }
+      }
+    });
     
-    const assignmentResult = await pool.query(assignmentQuery, [assignmentId]);
-    
-    if (assignmentResult.rows.length === 0) {
+    if (!assignment) {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
-
-    const assignment = assignmentResult.rows[0];
 
     // Check if user has access to this assignment (for now, allow all users)
     // In production, you might want to check if user is enrolled in the course, etc.
 
-    // Get assignment questions
-    const questionsQuery = `
-      SELECT 
-        id, type, title, description, options, correct_answer, points,
-        time_limit, code_language as language, starter_code, test_cases, question_order
-      FROM assignment_questions 
-      WHERE assignment_id = $1
-      ORDER BY question_order
-    `;
-    
-    const questionsResult = await pool.query(questionsQuery, [assignmentId]);
-    
-    const questions = questionsResult.rows.map(question => ({
+    // Transform assignment data
+    const questions = assignment.questions.map((question: any) => ({
       id: question.id,
-      type: question.type || 'multiple-choice',
+      type: question.type || question.question_type || 'multiple-choice',
       title: question.title || 'Untitled Question',
       description: question.description || question.question_text || '',
-      options: question.options ? (typeof question.options === 'string' ? safeJsonParse(question.options, []) : question.options) : undefined,
+      options: question.options ? (typeof question.options === 'string' ? safeJsonParse(question.options, []) : question.options) : question.question_options?.map((opt: any) => opt.option_text) || undefined,
       correctAnswer: question.correct_answer,
       points: question.points || question.marks || 1,
       timeLimit: question.time_limit,
-      language: question.language,
+      language: question.code_language,
       starterCode: question.starter_code,
       testCases: question.test_cases ? (typeof question.test_cases === 'string' ? safeJsonParse(question.test_cases, []) : question.test_cases) : undefined
     }));
@@ -162,9 +148,16 @@ export async function PUT(
     const token = authHeader.replace('Bearer ', '');
     const body = await request.json();
     
-    // Get user from token (simplified - in production, verify JWT properly)
+    // Get user from token using FastAuth's verification system
+    const decoded = FastAuth.verifyToken(token);
+    
+    if (!decoded || !decoded.userId) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    
+    // Get user details from database using the verified user ID
     const userQuery = 'SELECT id, email, name, role FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, ['550e8400-e29b-41d4-a716-446655440020']); // Replace with actual token verification
+    const userResult = await Database.query(userQuery, [decoded.userId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -190,7 +183,7 @@ export async function PUT(
       RETURNING *
     `;
     
-    const updateResult = await pool.query(updateQuery, [
+    const updateResult = await Database.query(updateQuery, [
       body.title,
       body.description,
       body.timeLimit,
@@ -243,7 +236,7 @@ export async function DELETE(
     const userId = authResult.user!.id;
     
     // Check if user has permission to delete the assignment (must be a club manager)
-    const userCheck = await pool.query(
+    const userCheck = await Database.query(
       "SELECT role, club_id FROM users WHERE id = $1",
       [userId]
     );
@@ -266,7 +259,7 @@ export async function DELETE(
     }
     
     // Check if the assignment exists and belongs to the user's club
-    const assignmentCheck = await pool.query(
+    const assignmentCheck = await Database.query(
       `SELECT a.*, a.start_date as "startDate" FROM assignments a 
        WHERE a.id = $1 AND (a.created_by = $2 OR a.club_id = $3)`,
       [assignmentId, userId, user.club_id]
@@ -282,7 +275,7 @@ export async function DELETE(
     const assignment = assignmentCheck.rows[0];
     
     // Check if the assignment has already started (has submissions)
-    const submissionsCheck = await pool.query(
+    const submissionsCheck = await Database.query(
       "SELECT COUNT(*) as submission_count FROM assignment_attempts WHERE assignment_id = $1",
       [assignmentId]
     );
@@ -300,22 +293,22 @@ export async function DELETE(
     }
 
     // Begin transaction
-    await pool.query('BEGIN');
+    await Database.query('BEGIN');
     
     // First delete all questions related to the assignment
-    await pool.query(
+    await Database.query(
       "DELETE FROM assignment_questions WHERE assignment_id = $1",
       [assignmentId]
     );
     
     // Then delete the assignment
-    const deleteResult = await pool.query(
+    const deleteResult = await Database.query(
       "DELETE FROM assignments WHERE id = $1 RETURNING id",
       [assignmentId]
     );
     
     // Commit transaction
-    await pool.query('COMMIT');
+    await Database.query('COMMIT');
     
     if (deleteResult.rows.length === 0) {
       // Should not happen due to our previous check, but just in case
@@ -330,7 +323,7 @@ export async function DELETE(
   } catch (error) {
     // Rollback transaction if there was an error
     try {
-      await pool.query('ROLLBACK');
+      await Database.query('ROLLBACK');
     } catch (rollbackError) {
       console.error("Error during rollback:", rollbackError);
     }

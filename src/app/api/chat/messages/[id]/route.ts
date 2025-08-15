@@ -1,29 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 import { createClient } from '@supabase/supabase-js';
+import { verifyAuth } from '@/lib/AuthMiddleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!
 );
 
 // PATCH /api/chat/messages/[id] - Update a message (for backward compatibility)
 // PUT /api/chat/messages/[id] - Update a message (enhanced version)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return PUT(request, { params });
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const messageId = params.id;
+    const resolvedParams = await params;
+    const messageId = resolvedParams.id;
     const { content, is_encrypted } = await request.json();
-    const userId = request.headers.get('x-user-id') || '1'; // Mock user ID
+    
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
 
     if (!content?.trim()) {
       return NextResponse.json(
@@ -83,11 +95,22 @@ export async function PUT(
 // DELETE /api/chat/messages/[id] - Delete a message
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const messageId = params.id;
-    const userId = request.headers.get('x-user-id') || '1'; // Mock user ID
+    const resolvedParams = await params;
+    const messageId = resolvedParams.id;
+    
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
 
     // Verify the message belongs to the user
     const { data: existingMessage, error: fetchError } = await supabase

@@ -1,11 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from "next/server";
+import PrismaDB from '@/lib/database-consolidated';
 import jwt from 'jsonwebtoken';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // Helper function to verify JWT token
 async function verifyToken(request: NextRequest) {
@@ -26,7 +21,7 @@ async function verifyToken(request: NextRequest) {
 // Add reaction to message
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
@@ -40,19 +35,19 @@ export async function POST(
       return NextResponse.json({ error: 'Emoji is required' }, { status: 400 });
     }
 
-    // Get current message
-    const { data: message, error: fetchError } = await supabase
-      .from('chat_messages')
-      .select('reactions')
-      .eq('id', params.id)
-      .single();
+    // Get current message using PrismaDB
+    const resolvedParams = await params;
+    const message = await PrismaDB.getClient().chatMessage.findUnique({
+      where: { id: resolvedParams.id },
+      select: { reactions: true }
+    });
 
-    if (fetchError) {
+    if (!message) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 });
     }
 
     // Update reactions
-    const currentReactions = message.reactions || {};
+    const currentReactions = (message.reactions as any) || {};
     if (!currentReactions[emoji]) {
       currentReactions[emoji] = [];
     }
@@ -68,15 +63,11 @@ export async function POST(
       currentReactions[emoji].push(user.userId);
     }
 
-    // Update message
-    const { error: updateError } = await supabase
-      .from('chat_messages')
-      .update({ reactions: currentReactions })
-      .eq('id', params.id);
-
-    if (updateError) {
-      return NextResponse.json({ error: 'Failed to update reaction' }, { status: 500 });
-    }
+    // Update message using PrismaDB
+    await PrismaDB.getClient().chatMessage.update({
+      where: { id: resolvedParams.id },
+      data: { reactions: currentReactions }
+    });
 
     return NextResponse.json({ success: true, reactions: currentReactions });
 

@@ -82,20 +82,25 @@ export default function EventsPage() {
           tags?: string[];
           status: string;
           price?: string;
-        }) => ({
-          ...event,
-          // Add any missing fields or transformations needed
-          clubIcon: getClubIcon(event.club),
-          clubColor: getClubColor(event.club),
-          bgColor: getBgColor(event.club),
-          borderColor: getBorderColor(event.club),
-          time: event.startTime || (event as any).event_time, // Type assertion to handle potential mismatch
-          event_date: (event as any).event_date, // Add event_date from database
-          event_time: (event as any).event_time, // Add event_time from database
-          tags: event.tags || [],
-          image: event.image || "/images/default-event.jpg",
-          price: event.price || "Free",
-        }));
+        }) => {
+          // Type assertion to handle API responses that might have different property names
+          const clubName = (event as any).club_name || event.club;
+          
+          return {
+            ...event,
+            // Add any missing fields or transformations needed
+            clubIcon: getClubIcon(clubName),
+            clubColor: getClubColor(clubName),
+            bgColor: getBgColor(clubName),
+            borderColor: getBorderColor(clubName),
+            time: event.startTime || (event as any).event_time, // Type assertion to handle potential mismatch
+            event_date: (event as any).event_date, // Add event_date from database
+            event_time: (event as any).event_time, // Add event_time from database
+            tags: event.tags || [],
+            image: event.image || "/images/default-event.jpg",
+            price: event.price || "Free",
+          };
+        });
         setEvents(transformedEvents);
       }
     } catch (error) {
@@ -110,8 +115,11 @@ export default function EventsPage() {
   }, [fetchEvents]);
 
   // Helper functions for club styling
-  const getClubIcon = (clubName: string) => {
-    switch (clubName?.toLowerCase()) {
+  const getClubIcon = (clubName: string | null | undefined) => {
+    // Handle null or undefined clubName
+    if (!clubName) return Users; // Default icon
+    
+    switch (clubName.toLowerCase()) {
       case "ascend":
         return Code;
       case "aster":
@@ -125,8 +133,10 @@ export default function EventsPage() {
     }
   };
 
-  const getClubColor = (clubName: string) => {
-    switch (clubName?.toLowerCase()) {
+  const getClubColor = (clubName: string | null | undefined) => {
+    if (!clubName) return "text-zenith-secondary dark:text-zenith-muted"; // Default color
+    
+    switch (clubName.toLowerCase()) {
       case "ascend":
         return "text-zenith-primary dark:text-blue-400";
       case "aster":
@@ -140,8 +150,10 @@ export default function EventsPage() {
     }
   };
 
-  const getBgColor = (clubName: string) => {
-    switch (clubName?.toLowerCase()) {
+  const getBgColor = (clubName: string | null | undefined) => {
+    if (!clubName) return "bg-zenith-section dark:bg-gray-900/20"; // Default bg
+    
+    switch (clubName.toLowerCase()) {
       case "ascend":
         return "bg-blue-50 dark:bg-blue-900/20";
       case "aster":
@@ -155,8 +167,10 @@ export default function EventsPage() {
     }
   };
 
-  const getBorderColor = (clubName: string) => {
-    switch (clubName?.toLowerCase()) {
+  const getBorderColor = (clubName: string | null | undefined) => {
+    if (!clubName) return "border-zenith-border dark:border-gray-800"; // Default border
+    
+    switch (clubName.toLowerCase()) {
       case "ascend":
         return "border-blue-200 dark:border-blue-800";
       case "aster":

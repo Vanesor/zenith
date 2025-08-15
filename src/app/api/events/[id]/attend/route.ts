@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
-
-
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // POST /api/events/[id]/attend - Join an event
@@ -26,7 +24,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     
     // Check if event exists
     const eventCheck = await Database.query(
-      `SELECT * FROM events WHERE id = $1`,
+      `SELECT id, max_attendees FROM events WHERE id = $1`,
       [eventId]
     );
     
@@ -92,7 +90,8 @@ export async function POST(request: NextRequest, { params }: Props) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(`Error joining event ${params.id}:`, error);
+    const { id: eventId } = await params;
+    console.error(`Error joining event ${eventId}:`, error);
     return NextResponse.json(
       { error: "Failed to join event" },
       { status: 500 }
@@ -118,7 +117,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     
     // Check if event exists
     const eventCheck = await Database.query(
-      `SELECT * FROM events WHERE id = $1`,
+      `SELECT id FROM events WHERE id = $1`,
       [eventId]
     );
     
@@ -130,7 +129,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     
     // Check if user is attending
     const attendCheck = await Database.query(
-      `SELECT * FROM event_attendees WHERE event_id = $1 AND user_id = $2`,
+      `SELECT id FROM event_attendees WHERE event_id = $1 AND user_id = $2`,
       [eventId, userId]
     );
     
@@ -167,7 +166,8 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(`Error leaving event ${params.id}:`, error);
+    const { id: eventId } = await params;
+    console.error(`Error leaving event ${eventId}:`, error);
     return NextResponse.json(
       { error: "Failed to leave event" },
       { status: 500 }

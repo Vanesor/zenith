@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!
 );
 
 // Helper function to verify JWT token
@@ -26,9 +26,10 @@ async function verifyToken(request: NextRequest) {
 // Upload file to chat room
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const user = await verifyToken(request);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -45,7 +46,7 @@ export async function POST(
     // Generate unique filename
     const fileExtension = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
-    const filePath = `chat-uploads/${params.id}/${fileName}`;
+    const filePath = `chat-uploads/${resolvedParams.id}/${fileName}`;
 
     // Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -66,7 +67,7 @@ export async function POST(
     const { data: messageData, error: messageError } = await supabase
       .from('chat_messages')
       .insert({
-        room_id: params.id,
+        room_id: resolvedParams.id,
         user_id: user.userId,
         message: file.name,
         message_type: messageType,

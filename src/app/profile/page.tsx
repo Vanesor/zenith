@@ -235,6 +235,27 @@ export default function ProfilePage() {
     }
   }, [user, isAuthenticated]);
   
+  // Auto-refresh QR code if it's missing after setup
+  useEffect(() => {
+    let retryTimer: NodeJS.Timeout;
+    
+    if (twoFactorState.inProgress && 
+        !twoFactorState.enabled && 
+        twoFactorState.tempSecret && 
+        !twoFactorState.qrCode && 
+        !twoFactorState.isLoading) {
+      
+      console.log('🔄 QR code missing, auto-refreshing in 2 seconds...');
+      retryTimer = setTimeout(() => {
+        handleRefreshQrCode();
+      }, 2000);
+    }
+    
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [twoFactorState.inProgress, twoFactorState.enabled, twoFactorState.tempSecret, twoFactorState.qrCode, twoFactorState.isLoading]);
+  
   // Fetch 2FA status
   const fetchTwoFactorStatus = async () => {
     if (!user) return;
@@ -292,6 +313,8 @@ export default function ProfilePage() {
       }));
       
       const token = localStorage.getItem('zenith-token');
+      console.log('🔍 Starting 2FA setup...');
+      
       const response = await fetch('/api/auth/2fa/setup', {
         method: 'POST',
         headers: {
@@ -300,8 +323,17 @@ export default function ProfilePage() {
         }
       });
 
+      console.log('🔍 2FA setup response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ 2FA setup data received:', {
+          hasQrCode: !!data.qrCode,
+          qrCodeLength: data.qrCode?.length || 0,
+          hasTempSecret: !!data.tempSecret,
+          recoveryCodesCount: data.recoveryCodes?.length || 0
+        });
+        
         setTwoFactorState(prevState => ({
           ...prevState,
           inProgress: true,
@@ -312,9 +344,16 @@ export default function ProfilePage() {
           isLoading: false,
           errorMessage: null
         }));
+        
+        // Log the QR code data for debugging
+        console.log('🔍 QR code set in state:', {
+          qrCodeExists: !!data.qrCode,
+          qrCodeStart: data.qrCode?.substring(0, 50),
+          qrCodeType: typeof data.qrCode
+        });
       } else {
         const errorData = await response.json();
-        console.error('Failed to setup 2FA:', errorData.error);
+        console.error('❌ Failed to setup 2FA:', errorData.error);
         setTwoFactorState(prevState => ({
           ...prevState,
           errorMessage: errorData.error || 'Failed to setup 2FA',
@@ -326,6 +365,63 @@ export default function ProfilePage() {
       setTwoFactorState(prevState => ({
         ...prevState,
         errorMessage: 'An unexpected error occurred while setting up 2FA',
+        isLoading: false
+      }));
+    }
+  };
+  
+  // Refresh QR code if it fails to load
+  const handleRefreshQrCode = async () => {
+    try {
+      setTwoFactorState(prevState => ({
+        ...prevState,
+        isLoading: true,
+        errorMessage: null
+      }));
+      
+      const token = localStorage.getItem('zenith-token');
+      console.log('🔄 Refreshing QR code...');
+      
+      const response = await fetch('/api/auth/2fa/refresh', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('🔄 QR refresh response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ QR code refreshed:', {
+          hasQrCode: !!data.qrCode,
+          qrCodeLength: data.qrCode?.length || 0,
+          refreshed: data.refreshed
+        });
+        
+        setTwoFactorState(prevState => ({
+          ...prevState,
+          qrCode: data.qrCode,
+          tempSecret: data.tempSecret,
+          recoveryCodes: data.recoveryCodes,
+          isLoading: false,
+          errorMessage: null
+        }));
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Failed to refresh QR code:', errorData.error);
+        setTwoFactorState(prevState => ({
+          ...prevState,
+          errorMessage: errorData.error || 'Failed to refresh QR code',
+          isLoading: false
+        }));
+      }
+    } catch (error) {
+      console.error('❌ Error refreshing QR code:', error);
+      setTwoFactorState(prevState => ({
+        ...prevState,
+        errorMessage: 'An unexpected error occurred while refreshing QR code',
         isLoading: false
       }));
     }
@@ -1706,13 +1802,39 @@ export default function ProfilePage() {
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-6 p-4">
                           {/* QR Code */}
                           <div className="flex-shrink-0">
-                            {twoFactorState.qrCode && (
-                              <div className="bg-zenith-card p-4 rounded-lg border border-zenith-border shadow-sm">
+                            <div className="bg-zenith-card p-4 rounded-lg border border-zenith-border shadow-sm h-48 w-48 flex items-center justify-center">
+                              {twoFactorState.qrCode ? (
                                 <img 
                                   src={twoFactorState.qrCode} 
                                   alt="2FA QR Code" 
-                                  className="h-48 w-48 object-contain"
+                                  className="h-full w-full object-contain"
                                 />
+                              ) : (
+                                <div className="text-center">
+                                  <p className="text-zenith-secondary text-sm">
+                                    {twoFactorState.isLoading ? 'Generating QR code...' : 'QR code unavailable'}
+                                  </p>
+                                  {!twoFactorState.isLoading && (
+                                    <button
+                                      onClick={handleRefreshQrCode}
+                                      className="mt-2 text-xs text-zenith-primary hover:text-zenith-primary/80 underline"
+                                    >
+                                      Try Again
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {/* Refresh button */}
+                            {twoFactorState.qrCode && (
+                              <div className="mt-2 text-center">
+                                <button
+                                  onClick={handleRefreshQrCode}
+                                  disabled={twoFactorState.isLoading}
+                                  className="text-xs text-zenith-secondary hover:text-zenith-primary underline disabled:opacity-50"
+                                >
+                                  {twoFactorState.isLoading ? 'Refreshing...' : 'Refresh QR Code'}
+                                </button>
                               </div>
                             )}
                           </div>

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: assignmentId } = params;
+    const { id: assignmentId } = await params;
     const searchParams = request.nextUrl.searchParams;
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
@@ -207,10 +207,10 @@ export async function GET(
 // Add endpoint for grading submissions (especially for subjective assignments)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: assignmentId } = params;
+    const { id: assignmentId } = await params;
     const authResult = await verifyAuth(request);
     
     if (!authResult.success) {

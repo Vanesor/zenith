@@ -7,9 +7,14 @@ import { Eye, EyeOff, Lock, ArrowLeft } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSession } from "next-auth/react";
+import { unstable_noStore as noStore } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
 
 export default function SetPasswordPage() {
-  const { data: session, status } = useSession();
+  noStore(); // Prevent static generation
+  const sessionData = useSession();
+  const { data: session, status } = sessionData || { data: null, status: 'loading' };
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

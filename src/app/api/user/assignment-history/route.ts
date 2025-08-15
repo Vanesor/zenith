@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Database from '@/lib/database';
+import { prisma } from '@/lib/database-consolidated';
 import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -19,45 +19,65 @@ export async function GET(request: NextRequest) {
 
     const userId = decoded.userId;
 
-    // Get user's assignment history with detailed information
-    const historyQuery = `
-      SELECT 
-        a.id,
-        a.title,
-        c.name as club_name,
-        aa.score,
-        aa.max_score,
-        aa.percentage,
-        aa.status,
-        aa.submitted_at,
-        aa.time_spent,
-        aa.attempt_number,
-        COUNT(aa2.id) as total_attempts
-      FROM assignments a
-      JOIN assignment_attempts aa ON a.id = aa.assignment_id
-      LEFT JOIN clubs c ON a.club_id = c.id
-      LEFT JOIN assignment_attempts aa2 ON a.id = aa2.assignment_id AND aa2.user_id = aa.user_id
-      WHERE aa.user_id = $1 
-        AND aa.status IN ('completed', 'submitted', 'graded')
-        AND aa.submitted_at IS NOT NULL
-      GROUP BY a.id, a.title, c.name, aa.id, aa.score, aa.max_score, aa.percentage, 
-               aa.status, aa.submitted_at, aa.time_spent, aa.attempt_number
-      ORDER BY aa.submitted_at DESC
-    `;
-    
-    const historyResult = await Database.query(historyQuery, [userId]);
-    
-    const assignments = historyResult.rows.map((row: any) => ({
-      id: row.id,
-      title: row.title,
-      club: row.club_name || 'General',
-      score: row.score || 0,
-      maxScore: row.max_score || 100,
-      percentage: row.percentage || 0,
-      status: row.status,
-      submittedAt: row.submitted_at.toISOString(),
-      attempts: row.total_attempts || 1,
-      timeSpent: row.time_spent || 0
+    // Get user's assignment history with detailed information using Prisma
+    const assignmentAttempts = await prisma.assignmentAttempt.findMany({
+      where: {
+        user_id: userId,
+        status: {
+          in: ['completed', 'submitted', 'graded']
+        },
+        submitted_at: {
+          not: null
+        }
+      },
+      include: {
+        assignment: {
+          include: {
+            club: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        submitted_at: 'desc'
+      }
+    });
+
+    // Get total attempts count for each assignment
+    const assignmentIds = assignmentAttempts.map(attempt => attempt.assignment_id);
+    const attemptsCount = await prisma.assignmentAttempt.groupBy({
+      by: ['assignment_id'],
+      where: {
+        assignment_id: {
+          in: assignmentIds
+        },
+        user_id: userId
+      },
+      _count: {
+        id: true
+      }
+    });
+
+    // Create a map for quick lookup
+    const attemptsMap = attemptsCount.reduce((acc, item) => {
+      acc[item.assignment_id] = item._count.id;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const assignments = assignmentAttempts.map((attempt) => ({
+      id: attempt.assignment.id,
+      title: attempt.assignment.title,
+      club: attempt.assignment.club?.name || 'General',
+      score: attempt.score || 0,
+      maxScore: attempt.max_score || 100,
+      percentage: attempt.percentage || 0,
+      status: attempt.status,
+      submittedAt: attempt.submitted_at?.toISOString(),
+      attempts: attemptsMap[attempt.assignment_id] || 1,
+      timeSpent: attempt.time_spent || 0
     }));
 
     return NextResponse.json({

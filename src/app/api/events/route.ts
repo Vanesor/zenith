@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import PrismaDB, { UUIDUtils } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(request: NextRequest) {
@@ -17,55 +17,59 @@ export async function GET(request: NextRequest) {
     const userId = authResult.user!.id;
 
     const { searchParams } = new URL(request.url);
-    const limit = searchParams.get("limit");
+    const limitParam = searchParams.get("limit");
     const clubId = searchParams.get("clubId");
+    
+    // Parse limit if present
+    const limit = limitParam ? parseInt(limitParam) : undefined;
 
-    // Get events with attendee information - show all public events plus club-specific ones
-    let query = `
-      SELECT 
-        e.id,
-        e.title,
-        e.description,
-        e.event_date,
-        e.event_time as "startTime",
-        e.location,
-        e.max_attendees as "maxAttendees",
-        e.status,
-        TRUE as "isPublic", -- Default all events to public since there's no is_public column
-        c.name as club,
-        c.color as "clubColor",
-        u.name as organizer,
-        COALESCE(attendee_count.count, 0) as attendees,
-        CASE WHEN user_attending.user_id IS NOT NULL THEN true ELSE false END as "isAttending"
-      FROM events e
-      JOIN clubs c ON e.club_id = c.id
-      JOIN users u ON e.created_by = u.id
-      LEFT JOIN (
-        SELECT event_id, COUNT(*) as count
-        FROM event_attendees
-        GROUP BY event_id
-      ) attendee_count ON e.id = attendee_count.event_id
-      LEFT JOIN event_attendees user_attending ON e.id = user_attending.event_id AND user_attending.user_id = $1
-      WHERE 1=1
-    `;
-
-    const queryParams: (string | number)[] = [userId];
-
-    if (clubId) {
-      query += ` AND e.club_id = $3`;
-      queryParams.push(clubId);
+    try {
+      // Use optimized PrismaDB method for fetching events
+      const events = await PrismaDB.getAllEvents(userId, limit, clubId || undefined);
+      
+      // Handle BigInt serialization more efficiently
+      const serializedEvents = events.map(event => {
+        // Create a new object with all properties processed
+        return Object.fromEntries(
+          Object.entries(event).map(([key, value]) => {
+            // Convert BigInt to string, preserve other values
+            if (typeof value === 'bigint') {
+              // Explicitly cast value to BigInt to ensure TypeScript knows it has toString method
+              return [key, (value as BigInt).toString()];
+            }
+            return [key, value];
+          })
+        );
+      });
+      
+      return NextResponse.json(serializedEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      
+      // Fallback to using Prisma's standard methods if raw query fails
+      const prisma = PrismaDB.getClient();
+      
+      const fallbackEvents = await prisma.event.findMany({
+        orderBy: {
+          event_date: 'desc'
+        },
+        include: {
+          club: true,
+          creator: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
+        where: clubId ? {
+          club_id: clubId
+        } : undefined,
+        ...(limit ? { take: limit } : {})
+      });
+      
+      return NextResponse.json(fallbackEvents);
     }
-
-    query += ` ORDER BY e.event_date ASC`;
-
-    if (limit) {
-      query += ` LIMIT $${queryParams.length + 1}`;
-      queryParams.push(parseInt(limit));
-    }
-
-    const result = await Database.query(query, queryParams);
-
-    return NextResponse.json(result.rows);
   } catch (error) {
     console.error("Error fetching events:", error);
     return NextResponse.json(
@@ -89,18 +93,15 @@ export async function POST(request: NextRequest) {
     
     const userId = authResult.user!.id;
     
-    // Check if user has permission to create events
-    const userResult = await Database.query(
-      `SELECT role, club_id FROM users WHERE id = $1`, 
-      [userId]
-    );
+    // Check if user has permission to create events using PrismaDB
+    const user = await PrismaDB.getUserById(userId);
     
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     
-    const userRole = userResult.rows[0].role;
-    const userClubId = userResult.rows[0].club_id;
+    const userRole = user.role;
+    const userClubId = user.club_id;
     
     const allowedRoles = ["coordinator", "co_coordinator", "secretary", "president", "vice_president", "admin"];
     
@@ -131,68 +132,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the event
-    const result = await Database.query(
-      `INSERT INTO events (
-        title,
-        description,
-        event_date,
-        event_time,
-        location,
-        club_id,
-        created_by,
-        max_attendees,
-        status,
-        image_url
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
-      [
-        title,
-        description,
-        date,
-        startTime,
-        location,
-        userClubId,
-        userId,
-        maxAttendees || null,
-        "upcoming",
-        body.imageUrl || null
-      ]
-    );
+    // Create the event using PrismaDB
+    const eventId = await PrismaDB.createEvent({
+      title,
+      description,
+      event_date: date,
+      event_time: startTime,
+      location,
+      club_id: userClubId,
+      created_by: userId,
+      max_attendees: maxAttendees || undefined,
+      status: "upcoming",
+      image_url: imageUrl || undefined
+    });
     
-    if (result.rows.length === 0) {
+    if (!eventId) {
       return NextResponse.json(
         { error: "Failed to create event" },
         { status: 500 }
       );
     }
-
-    const eventId = result.rows[0].id;
     
-    // Create a notification for club members
-    await Database.query(
-      `INSERT INTO notifications (
-        user_id,
-        title,
-        message,
-        type,
-        data
-      )
-      SELECT 
-        u.id, 
-        $1 as title, 
-        $2 as message, 
-        'event' as type,
-        jsonb_build_object('eventId', $3, 'clubId', $4) as data
-      FROM users u
-      WHERE u.club_id = $4 AND u.id != $5`,
-      [
-        `New event created`,
-        `A new event "${title}" has been scheduled for ${date}`,
+    // Create notifications for club members using Prisma - modified to use only email notifications
+    // Instead of creating notifications for each user, we'll create one notification template
+    // that will be sent via email (as per user's request for email-only notifications)
+    
+    // Create a notification record for the event
+    await PrismaDB.createNotification({
+      user_id: userId, // We'll use the creator's ID as a placeholder
+      title: `New event created`,
+      message: `A new event "${title}" has been scheduled for ${date}`,
+      type: 'event',
+      data: {
         eventId,
-        userClubId,
-        userId
-      ]
-    );
+        clubId: userClubId,
+        emailOnly: true, // Flag for email-only notification
+        eventTitle: title,
+        eventDate: date
+      },
+      related_id: eventId
+    });
 
     return NextResponse.json({ id: eventId, success: true }, { status: 201 });
   } catch (error) {

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 interface Props {
-  params: { clubId: string };
+  params: Promise<{ clubId: string }>;
 }
 
 // GET /api/clubs/[clubId]/management - Get club management data

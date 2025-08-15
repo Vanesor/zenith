@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!
 );
 
 // Helper function to verify JWT token
@@ -26,7 +26,7 @@ async function verifyToken(request: NextRequest) {
 // Send typing indicator
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
@@ -47,7 +47,7 @@ export async function POST(
 // Stop typing indicator
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);

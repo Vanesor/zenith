@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-import Database from "@/lib/database";
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import { prisma, Database } from '@/lib/database-consolidated';
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "your-refresh-secret-key";

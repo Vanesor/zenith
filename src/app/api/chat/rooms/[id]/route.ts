@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // PUT /api/chat/rooms/[id] - Update room name (managers only)
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   // In Next.js 13+, params needs to be accessed from context
-  const { id } = context.params;
+  const { id } = await context.params;
   console.log('PUT /api/chat/rooms/[id] called with ID:', id);
   try {
     // Use centralized authentication system
@@ -112,7 +112,7 @@ export async function PUT(
 // DELETE /api/chat/rooms/[id] - Delete room (managers only)
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   // In Next.js 13+, params needs to be accessed from context
   const { id } = await context.params;

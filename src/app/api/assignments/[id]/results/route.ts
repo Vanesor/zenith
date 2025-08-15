@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Database from '@/lib/database';
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from '@/lib/AuthMiddleware';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -7,7 +7,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
 
 // Helper function to safely parse JSON
-function safeJsonParse(jsonString: string, defaultValue: any = null) {
+function safeJsonParse(jsonString: string, defaultValue: unknown = null) {
   try {
     // Handle already parsed objects
     if (typeof jsonString === 'object' && jsonString !== null) {
@@ -185,7 +185,7 @@ export async function GET(
     // Process question results
     const questionResultsPromises = questions.map(async (question: any) => {
       // Find the user's response for this question
-      const response = responses.find((r: any) => r.question_id === question.id) || {
+      const response = responses.find((r: any) => (r as any).question_id === (question as any).id) || {
         selected_options: [],
         code_answer: null,
         essay_answer: null,
@@ -201,41 +201,41 @@ export async function GET(
       let testCaseResults: any[] = [];
       
       // Format answers based on question type
-      if (question.question_type === 'multiple-choice' || question.question_type === 'single_choice') {
-        userAnswer = response.selected_options;
-        correctAnswer = question.correct_answer ? 
-          (typeof question.correct_answer === 'string' ? 
-            safeJsonParse(question.correct_answer, []) : 
-            question.correct_answer) : 
+      if ((question as any).question_type === 'multiple-choice' || (question as any).question_type === 'single_choice') {
+        userAnswer = (response as any).selected_options;
+        correctAnswer = (question as any).correct_answer ? 
+          (typeof (question as any).correct_answer === 'string' ? 
+            safeJsonParse((question as any).correct_answer, []) : 
+            (question as any).correct_answer) : 
           [];
       } 
-      else if (question.question_type === 'multi-select' || question.question_type === 'multi_select') {
-        userAnswer = response.selected_options;
-        correctAnswer = question.correct_answer ? 
-          (typeof question.correct_answer === 'string' ? 
-            safeJsonParse(question.correct_answer, []) : 
-            question.correct_answer) : 
+      else if ((question as any).question_type === 'multi-select' || (question as any).question_type === 'multi_select') {
+        userAnswer = (response as any).selected_options;
+        correctAnswer = (question as any).correct_answer ? 
+          (typeof (question as any).correct_answer === 'string' ? 
+            safeJsonParse((question as any).correct_answer, []) : 
+            (question as any).correct_answer) : 
           [];
       }
-      else if (question.question_type === 'true-false') {
-        userAnswer = response.essay_answer === 'true';
-        correctAnswer = question.correct_answer === 'true';
+      else if ((question as any).question_type === 'true-false') {
+        userAnswer = (response as any).essay_answer === 'true';
+        correctAnswer = (question as any).correct_answer === 'true';
       }
-      else if (question.question_type === 'short-answer' || question.question_type === 'essay') {
-        userAnswer = response.essay_answer;
-        correctAnswer = question.correct_answer;
+      else if ((question as any).question_type === 'short-answer' || (question as any).question_type === 'essay') {
+        userAnswer = (response as any).essay_answer;
+        correctAnswer = (question as any).correct_answer;
       }
-      else if (question.question_type === 'coding') {
+      else if ((question as any).question_type === 'coding') {
         try {
-          const codeData = response.code_answer ? safeJsonParse(response.code_answer, { code: '', language: '' }) : { code: '', language: '' };
+          const codeData = (response as any).code_answer ? safeJsonParse((response as any).code_answer, { code: '', language: '' }) : { code: '', language: '' };
           userAnswer = codeData;
           correctAnswer = null; // No single correct answer for coding questions
           
-          // Initialize test case results array
-          let testCaseResults: any[] = [];
+          // Reset test case results for this question
+          testCaseResults.length = 0;
           
           // Get test results from code_results table if response has an ID
-          if (response.id) {
+          if ((response as any).id) {
             try {
               // Fetch test results from the code_results table
               const codeResultsQuery = await Database.query(
@@ -244,11 +244,11 @@ export async function GET(
                 FROM code_results 
                 WHERE response_id = $1 
                 ORDER BY test_case_index`,
-                [response.id]
+                [(response as any).id]
               );
               
               if (codeResultsQuery.rows.length > 0) {
-                testCaseResults = codeResultsQuery.rows;
+                testCaseResults.push(...codeResultsQuery.rows);
               }
             } catch (e) {
               console.error('Error fetching test results', e);
@@ -256,21 +256,21 @@ export async function GET(
           }
           
           // If no test results are available from database, but we have test cases, create placeholder results
-          if (testCaseResults.length === 0 && question.test_cases) {
+          if (testCaseResults.length === 0 && (question as any).test_cases) {
             try {
               // Use safe parsing for test cases
-              const testCases = typeof question.test_cases === 'string' 
-                ? safeJsonParse(question.test_cases, []) 
-                : question.test_cases;
+              const testCases = typeof (question as any).test_cases === 'string' 
+                ? safeJsonParse((question as any).test_cases, []) 
+                : (question as any).test_cases;
                 
               if (Array.isArray(testCases)) {
-                testCaseResults = testCases.map((testCase: any) => ({
+                testCaseResults.push(...testCases.map((testCase: any) => ({
                   id: testCase.id || Math.random().toString(36).substring(7),
                   input: testCase.input || "Unknown input",
                   expectedOutput: testCase.expectedOutput || "Unknown expected output",
                   actualOutput: "No result available",
                   passed: false
-                }));
+                })));
               } else {
                 testCaseResults = [];
                 console.error('Test cases are not in array format:', testCases);
@@ -294,23 +294,23 @@ export async function GET(
           console.error('Error processing coding question:', error);
         }
       }
-      else if (question.question_type === 'integer') {
-        userAnswer = response.essay_answer ? parseInt(response.essay_answer) : null;
-        correctAnswer = question.correct_answer ? parseInt(question.correct_answer) : null;
+      else if ((question as any).question_type === 'integer') {
+        userAnswer = (response as any).essay_answer ? parseInt((response as any).essay_answer) : null;
+        correctAnswer = (question as any).correct_answer ? parseInt((question as any).correct_answer) : null;
       }
 
       return {
-        id: question.id,
-        type: question.question_type.replace('_', '-'), // Normalize for frontend
-        title: question.title,
-        description: question.description,
+        id: (question as any).id,
+        type: (question as any).question_type.replace('_', '-'), // Normalize for frontend
+        title: (question as any).title,
+        description: (question as any).description,
         userAnswer,
-        correctAnswer: assignment.show_results ? correctAnswer : undefined,
-        isCorrect: response.is_correct,
-        pointsAwarded: response.score || 0,
-        maxPoints: question.marks || 0,
-        timeSpent: response.time_spent || 0,
-        options: question.options ? (typeof question.options === 'string' ? safeJsonParse(question.options, []) : question.options) : [],
+        correctAnswer: (assignment as any).show_results ? correctAnswer : undefined,
+        isCorrect: (response as any).is_correct,
+        pointsAwarded: (response as any).score || 0,
+        maxPoints: (question as any).marks || 0,
+        timeSpent: (response as any).time_spent || 0,
+        options: (question as any).options ? (typeof (question as any).options === 'string' ? safeJsonParse((question as any).options, []) : (question as any).options) : [],
         analysisContent,
         testCaseResults
       };
@@ -322,7 +322,7 @@ export async function GET(
     const totalScore = questionResults.reduce((sum: number, q: any) => sum + q.pointsAwarded, 0);
     const maxScore = questions.reduce((sum: number, q: any) => sum + (q.marks || 0), 0);
     const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-    const isPassing = percentage >= (assignment.passing_score || 60);
+    const isPassing = percentage >= ((assignment as any).passing_score || 60);
     
     // Get submission count
     const submissionCountResult = await Database.query(
@@ -334,7 +334,7 @@ export async function GET(
     const submissionCount = submissionCountResult.rows[0]?.count || 1;
     
     // Format violations if they exist
-    let violations: any[] = [];
+    let violations: unknown[] = [];
     if (submission.violation_count > 0) {
       const violationsResult = await Database.query(
         `SELECT violation_type, details, occurred_at

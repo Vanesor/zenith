@@ -103,18 +103,24 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
       try {
+        // Get token from localStorage
         const token = localStorage.getItem("zenith-token");
-        if (!token) {
-          logout();
-          router.push("/login");
-          return;
+        
+        // Even if no token in localStorage, we can still try the request
+        // as the AuthMiddleware will check for cookies
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        
+        // Add Authorization header if token exists
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
         }
 
         const response = await fetch("/api/dashboard", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers,
+          // Adding credentials: 'include' ensures cookies are sent with the request
+          credentials: 'include'
         });
         
         if (response.status === 401) {
@@ -223,7 +229,7 @@ export default function DashboardPage() {
                   {upcomingEvents.length}
                 </p>
               </div>
-              <Calendar className="w-8 h-8 text-green-600" />
+              <Calendar className="w-8 h-8 stat-events" />
             </div>
           </div>
 
@@ -237,7 +243,7 @@ export default function DashboardPage() {
                   {announcements.length}
                 </p>
               </div>
-              <Bell className="w-8 h-8 text-yellow-600" />
+              <Bell className="w-8 h-8 text-zenith-secondary" />
             </div>
           </div>
 
@@ -251,7 +257,7 @@ export default function DashboardPage() {
                   5
                 </p>
               </div>
-              <BookOpen className="w-8 h-8 text-purple-600" />
+              <BookOpen className="w-8 h-8 stat-posts" />
             </div>
           </div>
         </div>
@@ -430,7 +436,7 @@ export default function DashboardPage() {
                   href="/assignments"
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
                 >
-                  <BookOpen size={16} className="text-purple-600" />
+                  <BookOpen size={16} className="stat-posts" />
                   <span className="text-sm text-zenith-primary">
                     View Assignments
                   </span>
@@ -450,7 +456,7 @@ export default function DashboardPage() {
                   href="/notifications"
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
                 >
-                  <Bell size={16} className="text-orange-600" />
+                  <Bell size={16} className="text-zenith-secondary" />
                   <span className="text-sm text-zenith-primary">
                     Notifications
                   </span>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // GET /api/chat/rooms - Get all chat rooms or by club
@@ -17,34 +17,63 @@ export async function GET(request: NextRequest) {
     
     const userId = authResult.user!.id;
 
-    // Get user info to determine accessible rooms
-    const userQuery = `SELECT club_id, role FROM users WHERE id = $1`;
-    const userResult = await Database.query(userQuery, [userId]);
+    // Get user info to determine accessible rooms using Prisma
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { club_id: true, role: true }
+    });
     
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    const user = userResult.rows[0];
     const { searchParams } = new URL(request.url);
     const clubId = searchParams.get("club_id") || user.club_id;
 
-    const query = `
-      SELECT 
-        cr.*,
-        c.name as club_name,
-        u.name as creator_name,
-        array_length(cr.members, 1) as members_count
-      FROM chat_rooms cr
-      LEFT JOIN clubs c ON cr.club_id = c.id
-      LEFT JOIN users u ON cr.created_by = u.id
-      WHERE cr.type = 'public' OR cr.club_id = $1 OR cr.created_by = $2
-      ORDER BY cr.type DESC, cr.name
-    `;
+    // Use Prisma directly to avoid UUID casting issues
+    const rooms = await prisma.chatRoom.findMany({
+      where: {
+        OR: [
+          { type: "public" },
+          { club_id: clubId },
+          { created_by: userId }
+        ]
+      },
+      include: {
+        club: {
+          select: {
+            name: true
+          }
+        },
+        creator: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      orderBy: [
+        { type: 'desc' },
+        { name: 'asc' }
+      ]
+    });
 
-    const chatRooms = await Database.query(query, [clubId, userId]);
-
-    return NextResponse.json({ rooms: chatRooms.rows });
+    // Transform the data to match expected format
+    const transformedRooms = rooms.map(room => ({
+      id: room.id,
+      name: room.name,
+      description: room.description,
+      club_id: room.club_id,
+      type: room.type,
+      created_by: room.created_by,
+      created_at: room.created_at,
+      updated_at: room.updated_at,
+      members: room.members,
+      club_name: room.club?.name || null,
+      creator_name: room.creator?.name || null,
+      members_count: Array.isArray(room.members) ? room.members.length : 0
+    }));
+    
+    return NextResponse.json({ rooms: transformedRooms });
   } catch (error) {
     console.error("Error fetching chat rooms:", error);
     return NextResponse.json(
@@ -78,27 +107,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is a manager
-    const userQuery = `SELECT club_id, role FROM users WHERE id = $1`;
-    const userResult = await Database.query(userQuery, [userId]);
+    // Get user info using Prisma
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { club_id: true, role: true }
+    });
     
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    const user = userResult.rows[0];
     
     // Check for duplicate room names within the same club
-    const duplicateQuery = `
-      SELECT id FROM chat_rooms 
-      WHERE LOWER(name) = LOWER($1) AND club_id = $2
-    `;
-    const duplicateResult = await Database.query(duplicateQuery, [
-      name.trim(),
-      user.club_id,
-    ]);
+    const existingRoom = await prisma.chatRoom.findFirst({
+      where: {
+        name: {
+          equals: name.trim(),
+          mode: 'insensitive'
+        },
+        club_id: user.club_id
+      }
+    });
 
-    if (duplicateResult.rows.length > 0) {
+    if (existingRoom) {
       return NextResponse.json(
         { error: "A room with this name already exists in your club" },
         { status: 409 }
@@ -122,27 +152,50 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
 
-    const query = `
-      INSERT INTO chat_rooms (name, description, club_id, type, created_by)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *, 
-        (SELECT name FROM clubs WHERE id = $3) as club_name,
-        (SELECT name FROM users WHERE id = $5) as creator_name
-    `;
-
-    const result = await Database.query(query, [
-      name.trim(),
-      description?.trim() || "",
-      user.club_id,
-      type,
-      userId,
-    ]);
-
-    const newRoom = { ...result.rows[0], members_count: 0 };
+    // Create room using Prisma
+    const room = await prisma.chatRoom.create({
+      data: {
+        name: name.trim(),
+        description: description || '',
+        club_id: user.club_id,
+        type: type,
+        created_by: userId,
+        members: []
+      },
+      include: {
+        club: {
+          select: {
+            name: true
+          }
+        },
+        creator: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+    
+    // Transform to match expected format
+    const transformedRoom = {
+      id: room.id,
+      name: room.name,
+      description: room.description,
+      club_id: room.club_id,
+      type: room.type,
+      created_by: room.created_by,
+      created_at: room.created_at,
+      updated_at: room.updated_at,
+      members: room.members,
+      club_name: room.club?.name || null,
+      creator_name: room.creator?.name || null,
+      members_count: Array.isArray(room.members) ? room.members.length : 0
+    };
 
     return NextResponse.json({ 
       message: "Chat room created successfully",
-      room: newRoom 
+      room: transformedRoom 
     }, { status: 201 });
   } catch (error) {
     console.error("Error creating chat room:", error);

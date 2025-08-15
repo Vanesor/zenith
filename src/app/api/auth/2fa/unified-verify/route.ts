@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import Database from "@/lib/database";
-import { generateToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { Database } from "@/lib/database-consolidated";
+import FastAuth from "@/lib/FastAuth";
+import PrismaDB from "@/lib/database-consolidated";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { otp, userId, method } = body;
+    const { otp, userId, method, rememberMe = false, trustDevice = false } = body;
     
     if (!otp || !userId || !method) {
       return NextResponse.json(
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (method === "app") {
       // Get user's TOTP secret
       const userResult = await Database.query(
-        "SELECT totp_secret FROM users WHERE id = $1 AND totp_enabled = true",
+        "SELECT totp_secret FROM users WHERE id = $1::uuid AND totp_enabled = true",
         [userId]
       );
       
@@ -55,34 +55,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the user details to create a full session
-    const userResult = await Database.query(
-      "SELECT * FROM users WHERE id = $1",
-      [userId]
-    );
+    // Get the user details to create a full session using FastAuth system
+    const user = await PrismaDB.findUserById(userId);
 
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
 
-    const user = userResult.rows[0];
+    // Create session using FastAuth system (consistent with regular login)
+    const sessionExpiry = new Date();
+    sessionExpiry.setHours(sessionExpiry.getHours() + (rememberMe ? 168 : 24)); // 7 days or 24 hours
 
-    // Create a JWT token for the authenticated session
-    const token = generateToken({
-      id: user.id,
+    const sessionData = {
+      user_id: user.id,
+      token: `zenith_${Date.now()}_${Math.random().toString(36).substring(2)}`, // Generate session token
+      expires_at: sessionExpiry,
+      user_agent: request.headers.get('user-agent') || 'Zenith-Client',
+      ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1'
+    };
+
+    const session = await PrismaDB.createSession(sessionData);
+
+    // Generate JWT tokens using FastAuth
+    const tokenPayload = {
+      userId: user.id,
       email: user.email,
-      name: user.name,
       role: user.role,
-      club_id: user.club_id,
+      sessionId: session.id,
+    };
+
+    const accessToken = FastAuth.generateAccessToken(tokenPayload, rememberMe);
+    const refreshToken = FastAuth.generateRefreshToken({
+      userId: user.id,
+      sessionId: session.id,
     });
 
     // Create the response
     const response = NextResponse.json({
       success: true,
-      message: "Authentication successful",
+      token: accessToken, // Include token in response for localStorage
+      refreshToken: refreshToken, // Include refresh token too
+      message: "Two-factor authentication successful",
       user: {
         id: user.id,
         email: user.email,
@@ -92,20 +108,70 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Set the token in a cookie
-    response.cookies.set('zenith-session', token, {
+    // Set secure HTTP-only cookies (consistent with regular login)
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+
+    response.cookies.set('zenith-token', accessToken, {
+      ...cookieOptions,
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 : 24 * 60 * 60, // 7 days or 24 hours
     });
 
+    if (refreshToken) {
+      response.cookies.set('zenith-refresh-token', refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
+    }
+
+    if (session.id) {
+      response.cookies.set('zenith-session', session.id, {
+        ...cookieOptions,
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 : 24 * 60 * 60,
+      });
+    }
+    
+    // If user chose to trust this device, store it in the database
+    if (trustDevice) {
+      try {
+        const deviceId = `${Math.random().toString(36).substring(2)}${Date.now()}`;
+        const userAgent = request.headers.get('user-agent') || 'Unknown Device';
+        const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+        
+        // Use the correct schema column names (expires_at instead of trusted_until)
+        await Database.query(`
+          INSERT INTO trusted_devices 
+          (user_id, device_identifier, device_name, ip_address, browser)
+          VALUES ($1::uuid, $2, $3, $4, $5)
+        `, [
+          user.id,
+          deviceId,
+          userAgent,
+          ipAddress,
+          userAgent
+        ]);
+        
+        // Set a cookie to identify this trusted device
+        response.cookies.set('zenith-trusted-device', deviceId, {
+          ...cookieOptions,
+          maxAge: 30 * 24 * 60 * 60, // 30 days
+        });
+      } catch (error) {
+        console.error("Error storing trusted device:", error);
+        // Continue even if storing trusted device fails
+      }
+    }
+
     return response;
+
   } catch (error) {
-    console.error("Error in 2FA verification:", error);
+    console.error("2FA verification error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "An unexpected error occurred during verification" },
       { status: 500 }
     );
   }

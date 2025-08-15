@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { Database } from "@/lib/database-consolidated";
 
 // GET /api/users/badges?user_id=<userId>
 export async function GET(request: NextRequest) {
@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
     }
 
     const query = `
-      SELECT *
+      SELECT 
+        id, user_id, badge_name, badge_description, 
+        badge_icon, earned_at
       FROM user_badges
       WHERE user_id = $1
       ORDER BY earned_at DESC
@@ -36,29 +38,27 @@ export async function GET(request: NextRequest) {
 // POST /api/users/badges
 export async function POST(request: NextRequest) {
   try {
-    const { user_id, badge_type, badge_name, description, icon, color } =
+    const { user_id, badge_name, badge_description, badge_icon } =
       await request.json();
 
-    if (!user_id || !badge_type || !badge_name) {
+    if (!user_id || !badge_name) {
       return NextResponse.json(
-        { error: "user_id, badge_type, and badge_name are required" },
+        { error: "user_id and badge_name are required" },
         { status: 400 }
       );
     }
 
     const query = `
-      INSERT INTO user_badges (user_id, badge_type, badge_name, description, icon, color)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO user_badges (user_id, badge_name, badge_description, badge_icon)
+      VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
 
     const result = await Database.query(query, [
       user_id,
-      badge_type,
       badge_name,
-      description,
-      icon,
-      color,
+      badge_description || null,
+      badge_icon || null,
     ]);
 
     return NextResponse.json({ badge: result.rows[0] }, { status: 201 });

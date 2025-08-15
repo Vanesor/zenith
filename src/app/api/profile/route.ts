@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -46,44 +46,45 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user data from database with fallback for missing columns
-    let result;
+    // Get user data from database using Prisma client methods
+    let user;
     try {
-      console.log('🔍 Querying database for user with extended fields:', decoded.userId);
-      result = await Database.query(
-        `SELECT id, email, name, username, role, club_id, avatar, bio, created_at, 
-                phone, location, website, github, linkedin, twitter
-         FROM users WHERE id = $1`,
-        [decoded.userId]
-      );
-      console.log('✅ Extended query successful, rows found:', result.rows.length);
+      console.log('🔍 Querying database for user:', decoded.userId);
+      user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          username: true,
+          role: true,
+          club_id: true,
+          avatar: true,
+          bio: true,
+          created_at: true,
+          phone: true,
+          location: true,
+          website: true,
+          github: true,
+          linkedin: true,
+          twitter: true
+        }
+      });
+      console.log('✅ Prisma query successful, user found:', user ? 'Yes' : 'No');
     } catch (error) {
-      // If extended columns don't exist, fall back to basic query
-      console.log('❌ Extended query failed, falling back to basic query:', error instanceof Error ? error.message : String(error));
-      try {
-        result = await Database.query(
-          `SELECT id, email, name, username, role, club_id, avatar, bio, created_at
-           FROM users WHERE id = $1`,
-          [decoded.userId]
-        );
-        console.log('✅ Basic query successful, rows found:', result.rows.length);
-      } catch (basicError) {
-        console.log('❌ Even basic query failed:', basicError instanceof Error ? basicError.message : String(basicError));
-        return NextResponse.json(
-          { error: "Database connection error" },
-          { status: 500 }
-        );
-      }
+      console.log('❌ Prisma query failed:', error instanceof Error ? error.message : String(error));
+      return NextResponse.json(
+        { error: "Database connection error" },
+        { status: 500 }
+      );
     }
 
-    if (result.rows.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
-
-    const user = result.rows[0];
     
     // Split name into firstName and lastName for frontend compatibility
     const nameParts = (user.name || "").trim().split(/\s+/);
@@ -94,13 +95,14 @@ export async function GET(request: NextRequest) {
     let clubInfo = null;
     if (user.club_id) {
       try {
-        const clubResult = await Database.query(
-          "SELECT id, name, description FROM clubs WHERE id = $1",
-          [user.club_id]
-        );
-        if (clubResult.rows.length > 0) {
-          clubInfo = clubResult.rows[0];
-        }
+        clubInfo = await prisma.club.findUnique({
+          where: { id: user.club_id },
+          select: {
+            id: true,
+            name: true,
+            description: true
+          }
+        });
       } catch (clubError) {
         console.log('Warning: Could not fetch club info:', clubError);
       }
@@ -190,68 +192,57 @@ export async function PUT(request: NextRequest) {
     // Combine firstName and lastName back into name field for database
     const fullName = `${updateData.firstName || ""} ${updateData.lastName || ""}`.trim();
     
-    // Update user profile in database
-    let result;
+    // Update user profile in database using Prisma client methods
+    let user;
     try {
-      console.log('🔍 Attempting extended profile update for user:', decoded.userId);
-      result = await Database.query(
-        `UPDATE users 
-         SET name = $1, username = $2, bio = $3, avatar = $4, 
-             phone = $5, location = $6, website = $7, 
-             github = $8, linkedin = $9, twitter = $10
-         WHERE id = $11
-         RETURNING id, email, name, username, role, club_id, avatar, bio, created_at,
-                   phone, location, website, github, linkedin, twitter`,
-        [
-          fullName || updateData.name,
-          updateData.username || null,
-          updateData.bio || null,
-          updateData.avatar || null,
-          updateData.phone || null,
-          updateData.location || null,
-          updateData.website || null,
-          updateData.github || null,
-          updateData.linkedin || null,
-          updateData.twitter || null,
-          decoded.userId
-        ]
-      );
-      console.log('✅ Extended update successful');
+      console.log('🔍 Attempting profile update for user:', decoded.userId);
+      user = await prisma.user.update({
+        where: { id: decoded.userId },
+        data: {
+          name: fullName || updateData.name,
+          username: updateData.username || null,
+          bio: updateData.bio || null,
+          avatar: updateData.avatar || null,
+          phone: updateData.phone || null,
+          location: updateData.location || null,
+          website: updateData.website || null,
+          github: updateData.github || null,
+          linkedin: updateData.linkedin || null,
+          twitter: updateData.twitter || null
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          username: true,
+          role: true,
+          club_id: true,
+          avatar: true,
+          bio: true,
+          created_at: true,
+          phone: true,
+          location: true,
+          website: true,
+          github: true,
+          linkedin: true,
+          twitter: true
+        }
+      });
+      console.log('✅ Profile update successful');
     } catch (error) {
-      // If extended columns don't exist, fall back to basic update
-      console.log('❌ Extended update failed, falling back to basic update:', error instanceof Error ? error.message : String(error));
-      try {
-        result = await Database.query(
-          `UPDATE users 
-           SET name = $1, username = $2, bio = $3, avatar = $4
-           WHERE id = $5
-           RETURNING id, email, name, username, role, club_id, avatar, bio, created_at`,
-          [
-            fullName || updateData.name,
-            updateData.username || null,
-            updateData.bio || null,
-            updateData.avatar || null,
-            decoded.userId
-          ]
-        );
-        console.log('✅ Basic update successful');
-      } catch (basicError) {
-        console.log('❌ Even basic update failed:', basicError instanceof Error ? basicError.message : String(basicError));
-        return NextResponse.json(
-          { error: "Failed to update profile" },
-          { status: 500 }
-        );
-      }
+      console.log('❌ Profile update failed:', error instanceof Error ? error.message : String(error));
+      return NextResponse.json(
+        { error: "Failed to update profile" },
+        { status: 500 }
+      );
     }
 
-    if (result.rows.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: "Failed to update profile" },
         { status: 400 }
       );
     }
-
-    const user = result.rows[0];
     
     // Return updated profile data
     const nameParts = (user.name || "").trim().split(/\s+/);

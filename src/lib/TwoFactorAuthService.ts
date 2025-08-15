@@ -1,6 +1,6 @@
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
-import Database from './database';
+import { prisma, Database } from './database-consolidated';
 import crypto from 'crypto';
 import { HashAlgorithms } from 'otplib/core';
 import emailService from './EmailService';
@@ -36,14 +36,13 @@ export class TwoFactorAuthService {
     const secret = authenticator.generateSecret(); // 32 characters by default
     
     // Store secret temporarily (will be verified later)
-    await Database.query(
-      `UPDATE users 
-       SET 
-        totp_temp_secret = $1, 
-        totp_temp_secret_created_at = NOW()
-       WHERE id = $2`,
-      [secret, userId]
-    );
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        totp_temp_secret: secret,
+        totp_temp_secret_created_at: new Date()
+      }
+    });
     
     return secret;
   }
@@ -64,14 +63,13 @@ export class TwoFactorAuthService {
       })
     );
     
-    // Store hashed codes in the database
-    await Database.query(
-      `UPDATE users 
-       SET 
-        totp_recovery_codes = $1
-       WHERE id = $2`,
-      [JSON.stringify(hashedCodes), userId]
-    );
+    // Store hashed codes in the database using Prisma
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        totp_recovery_codes: JSON.stringify(hashedCodes) as any
+      }
+    });
     
     // Return the original unhashed codes to the user (they need to save these)
     return codes;
@@ -79,14 +77,17 @@ export class TwoFactorAuthService {
 
   // Generate QR code for TOTP setup
   static async generateQrCode(secret: string, email: string): Promise<string> {
+    console.log('🔍 Generating QR code for:', email);
     const otpauth = authenticator.keyuri(email, this.issuer, secret);
+    console.log('✅ OTP URI:', otpauth);
     
     try {
       // Generate QR code as data URL
       const qrCodeDataUrl = await QRCode.toDataURL(otpauth);
+      console.log('✅ QR code generated, length:', qrCodeDataUrl.length);
       return qrCodeDataUrl;
     } catch (error) {
-      console.error('Error generating QR code:', error);
+      console.error('❌ QR code generation failed:', error);
       throw new Error('Failed to generate QR code');
     }
   }
@@ -104,21 +105,30 @@ export class TwoFactorAuthService {
   // Finalize and enable 2FA for a user
   static async enable2FA(userId: string): Promise<boolean> {
     try {
-      // Move temporary secret to permanent secret
-      const result = await Database.query(
-        `UPDATE users 
-         SET 
-          totp_secret = totp_temp_secret,
-          totp_temp_secret = NULL,
-          totp_temp_secret_created_at = NULL,
-          totp_enabled = true,
-          totp_enabled_at = NOW()
-         WHERE id = $1 AND totp_temp_secret IS NOT NULL
-         RETURNING id`,
-        [userId]
-      );
+      // Get the temp secret first
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { totp_temp_secret: true }
+      });
       
-      return result.rows.length > 0;
+      if (!user?.totp_temp_secret) {
+        return false;
+      }
+      
+      // Move temporary secret to permanent secret
+      const result = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          totp_secret: user.totp_temp_secret,
+          totp_temp_secret: null,
+          totp_temp_secret_created_at: null,
+          totp_enabled: true,
+          totp_enabled_at: new Date()
+        },
+        select: { id: true }
+      });
+      
+      return !!result;
     } catch (error) {
       console.error('Error enabling 2FA:', error);
       return false;
@@ -191,22 +201,21 @@ export class TwoFactorAuthService {
   // Get user's 2FA status
   static async get2FAStatus(userId: string, deviceId?: string): Promise<TwoFactorAuthStatus> {
     try {
-      const result = await Database.query(
-        `SELECT 
-          totp_enabled, 
-          totp_temp_secret,
-          totp_secret,
-          email_otp_enabled
-         FROM users 
-         WHERE id = $1`,
-        [userId]
-      );
+      const result = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          totp_enabled: true,
+          totp_temp_secret: true,
+          totp_secret: true,
+          email_otp_enabled: true
+        }
+      });
       
-      if (result.rows.length === 0) {
+      if (!result) {
         return { enabled: false };
       }
       
-      const { totp_enabled, totp_temp_secret, totp_secret, email_otp_enabled } = result.rows[0];
+      const { totp_enabled, totp_temp_secret, totp_secret, email_otp_enabled } = result;
       
       // Check if this is a trusted device
       let trustedDevice = false;

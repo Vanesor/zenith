@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import FastAuth from "@/lib/FastAuth";
+import { RateLimiter } from "@/lib/RateLimiter";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const SALT_ROUNDS = 12; // Strong security setting
-
-function generateToken(payload: {
-  userId: string;
-  email: string;
-  role: string;
-}): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "3h" }); // 3-hour access token
-}
+const registrationLimiter = RateLimiter.createAuthLimiter();
 
 // Password validation function
 function validatePassword(password: string): { isValid: boolean; message?: string } {
@@ -42,46 +32,52 @@ function validatePassword(password: string): { isValid: boolean; message?: strin
   return { isValid: true };
 }
 
+/**
+ * HIGH-PERFORMANCE REGISTRATION ENDPOINT
+ * Uses consolidated database with performance indexes
+ */
 export async function POST(request: NextRequest) {
   try {
-    const requestBody = await request.json();
+    // 1. Rate limiting protection
+    const rateLimitResponse = await registrationLimiter.middleware(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
+    // 2. Parse and validate request body
+    const { name, email, password } = await request.json();
     console.log('Registration request received:', { 
-      ...requestBody, 
+      name, 
+      email, 
       password: '[HIDDEN]' 
     });
 
-    const { email, password, name, club_id, phone, dateOfBirth, interests } = requestBody;
-
-    // Validation
-    if (!email || !password || !name) {
-      console.log('Validation failed: Missing required fields', { email: !!email, password: !!password, name: !!name });
+    // 3. Basic validation
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Email, password, and name are required" },
+        { error: "Name, email, and password are required" },
         { status: 400 }
       );
     }
 
-    // Trim whitespace from required fields
-    const trimmedEmail = email.trim();
-    const trimmedName = name.trim();
-
-    if (!trimmedEmail || !trimmedName) {
+    // 4. Validate name
+    if (name.length < 2 || name.length > 50) {
       return NextResponse.json(
-        { error: "Email and name cannot be empty" },
+        { error: "Name must be between 2 and 50 characters" },
         { status: 400 }
       );
     }
 
-    // Validate email format
+    // 5. Validate email format
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(trimmedEmail)) {
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: "Invalid email format" },
         { status: 400 }
       );
     }
 
-    // Validate password strength
+    // 6. Validate password strength
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return NextResponse.json(
@@ -90,99 +86,71 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if club_id is valid if provided
-    if (club_id) {
-      const clubResult = await Database.query(
-        "SELECT id FROM clubs WHERE id = $1",
-        [club_id]
-      );
-      if (clubResult.rows.length === 0) {
-        return NextResponse.json(
-          { error: "Invalid club selected" },
-          { status: 400 }
-        );
-      }
-    }
+    console.log('Validation passed, attempting registration...');
 
-    // Check if user already exists
-    const existingUserResult = await Database.query(
-      "SELECT id FROM users WHERE email = $1",
-      [trimmedEmail]
-    );
+    // 7. Register user with optimized FastAuth
+    const registrationResult = await FastAuth.registerUser({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password: password,
+    });
 
-    if (existingUserResult.rows.length > 0) {
+    if (!registrationResult.success) {
+      console.error('Registration failed:', registrationResult.error);
       return NextResponse.json(
-        { error: "User with this email already exists" },
+        { error: registrationResult.error || "Registration failed" },
         { status: 400 }
       );
     }
 
-    // Hash password with secure salt rounds
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    console.log('Registration successful for user:', registrationResult.user.email);
 
-    // Determine user type based on email domain
-    const isCollegeStudent = trimmedEmail.endsWith("@stvincentngp.edu.in");
-
-    console.log('Creating user:', { email: trimmedEmail, name: trimmedName, club_id, isCollegeStudent });
-
-    // Insert new user with single club membership
-    const result = await Database.query(
-      `INSERT INTO users (email, password_hash, name, role, club_id) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, email, name, role, club_id`,
-      [trimmedEmail, hashedPassword, trimmedName, "student", club_id || null]
-    );
-
-    if (result.rows.length === 0) {
-      console.log('Failed to create user: No rows returned');
-      return NextResponse.json(
-        { error: "Failed to create user" },
-        { status: 500 }
-      );
-    }
-
-    const newUser = result.rows[0];
-    console.log('User created successfully:', { id: newUser.id, email: newUser.email, name: newUser.name });
-
-    // Generate JWT token
-    const token = generateToken({
-      userId: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    });
-
-    // Return user data and token
-    const userData = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      role: newUser.role,
-      club_id: newUser.club_id,
-      isCollegeStudent,
-    };
-
+    // 8. Create response with secure cookies
     const response = NextResponse.json({
       success: true,
-      user: userData,
-      token,
-      message: isCollegeStudent
-        ? "College student account created successfully!"
-        : "External user account created successfully!",
+      user: {
+        id: registrationResult.user.id,
+        email: registrationResult.user.email,
+        name: registrationResult.user.name,
+        role: registrationResult.user.role,
+        verified: registrationResult.user.verified || false,
+      },
+      message: "Registration successful! Please check your email for verification."
     });
 
-    // Set HTTP-only cookie
-    response.cookies.set("token", token, {
+    // 9. Set secure HTTP-only cookies
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 86400, // 24 hours
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+
+    response.cookies.set('zenith-token', registrationResult.token!, {
+      ...cookieOptions,
+      maxAge: 24 * 60 * 60, // 24 hours
     });
+
+    if (registrationResult.refreshToken) {
+      response.cookies.set('zenith-refresh-token', registrationResult.refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
+    }
+
+    if (registrationResult.sessionId) {
+      response.cookies.set('zenith-session', registrationResult.sessionId, {
+        ...cookieOptions,
+        maxAge: 24 * 60 * 60, // 24 hours
+      });
+    }
 
     return response;
+
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "An unexpected error occurred during registration" },
       { status: 500 }
     );
   }

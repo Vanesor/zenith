@@ -1,5 +1,5 @@
 import emailService from './EmailService';
-import Database from './database';
+import { Database } from './database-consolidated';
 
 /**
  * EmailNotificationService replaces in-app notifications with email-only notifications

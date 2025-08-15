@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
+import { Database } from "@/lib/database-consolidated";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // POST /api/events/[id]/register
 export async function POST(request: NextRequest, { params }: Props) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { user_id, registration_data } = await request.json();
 
     if (!user_id) {
@@ -19,13 +20,14 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Check if already registered
-    const existingQuery = `
-      SELECT id FROM event_registrations 
-      WHERE event_id = $1 AND user_id = $2
-    `;
-    const existingResult = await Database.query(existingQuery, [id, user_id]);
+    const existingRegistration = await prisma.eventRegistration.findFirst({
+      where: {
+        event_id: id,
+        user_id: user_id
+      }
+    });
 
-    if (existingResult.rows.length > 0) {
+    if (existingRegistration) {
       return NextResponse.json(
         { error: "User already registered for this event" },
         { status: 409 }
@@ -33,30 +35,23 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Register user
-    const registerQuery = `
-      INSERT INTO event_registrations (event_id, user_id, registration_data)
-      VALUES ($1, $2, $3)
-      RETURNING *
-    `;
-
-    const result = await Database.query(registerQuery, [
-      id,
-      user_id,
-      registration_data || {},
-    ]);
+    const registration = await prisma.eventRegistration.create({
+      data: {
+        event_id: id,
+        user_id: user_id,
+      }
+    });
 
     // Get user info for response
-    const userQuery = `
-      SELECT u.name, u.avatar, u.role
-      FROM users u
-      WHERE u.id = $1
-    `;
-    const userResult = await Database.query(userQuery, [user_id]);
+    const user = await prisma.user.findUnique({
+      where: { id: user_id },
+      select: { name: true, avatar: true, role: true }
+    });
 
     return NextResponse.json(
       {
-        registration: result.rows[0],
-        user: userResult.rows[0],
+        registration,
+        user,
       },
       { status: 201 }
     );
@@ -72,7 +67,7 @@ export async function POST(request: NextRequest, { params }: Props) {
 // DELETE /api/events/[id]/register
 export async function DELETE(request: NextRequest, { params }: Props) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("user_id");
 
@@ -83,12 +78,14 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       );
     }
 
-    const result = await Database.query(
-      "DELETE FROM event_registrations WHERE event_id = $1 AND user_id = $2 RETURNING id",
-      [id, userId]
-    );
+    const deletedRegistration = await prisma.eventRegistration.deleteMany({
+      where: {
+        event_id: id,
+        user_id: userId
+      }
+    });
 
-    if (result.rows.length === 0) {
+    if (deletedRegistration.count === 0) {
       return NextResponse.json(
         { error: "Registration not found" },
         { status: 404 }
@@ -110,27 +107,19 @@ export async function DELETE(request: NextRequest, { params }: Props) {
 // GET /api/events/[id]/register - Get registrations for event
 export async function GET(request: NextRequest, { params }: Props) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const query = `
-      SELECT 
-        er.*,
-        u.name as user_name,
-        u.avatar as user_avatar,
-        u.role as user_role
-      FROM event_registrations er
-      JOIN users u ON er.user_id = u.id
-      WHERE er.event_id = $1
-      ORDER BY er.registered_at DESC
-      LIMIT $2 OFFSET $3
-    `;
+    const registrations = await prisma.eventRegistration.findMany({
+      where: { event_id: id },
+      orderBy: { id: 'desc' },
+      take: limit,
+      skip: offset
+    });
 
-    const registrations = await Database.query(query, [id, limit, offset]);
-
-    return NextResponse.json({ registrations: registrations.rows });
+    return NextResponse.json({ registrations });
   } catch (error) {
     console.error("Error fetching event registrations:", error);
     return NextResponse.json(

@@ -45,7 +45,7 @@ export default function LoginPage() {
     }
   }, [user, authLoading, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -53,14 +53,20 @@ export default function LoginPage() {
     try {
       // If 2FA is required and we're submitting the form again, it means we're submitting the 2FA code
       if (requiresTwoFactor && userId) {
-        const response = await fetch("/api/auth/verify-2fa", {
+        // Determine the 2FA method correctly
+        const verifyMethod = twoFactorMethod === 'email_otp' ? 'email' : 'app';
+        console.log('Verifying 2FA with method:', verifyMethod, 'rememberMe:', rememberMe, 'trustDevice:', trustDevice);
+        
+        const response = await fetch("/api/auth/2fa/unified-verify", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ 
             userId: userId,
-            code: twoFactorCode,
+            otp: twoFactorCode,
+            method: verifyMethod,
+            rememberMe: rememberMe,
             trustDevice: trustDevice
           }),
         });
@@ -324,6 +330,54 @@ export default function LoginPage() {
                       {isResendingOtp ? "Sending..." : "Resend verification code"}
                     </button>
                   )}
+                  
+                  {/* Option to switch 2FA methods */}
+                  <div className="mt-4 text-center">
+                    {twoFactorMethod === '2fa_app' ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          // Request email OTP
+                          setIsResendingOtp(true);
+                          try {
+                            const response = await fetch("/api/auth/2fa/email-login-request", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ userId }),
+                            });
+                            
+                            if (response.ok) {
+                              setTwoFactorMethod('email_otp');
+                              setTwoFactorCode('');
+                              setError("");
+                            } else {
+                              const data = await response.json();
+                              setError(data.error || "Failed to send email code");
+                            }
+                          } catch (err) {
+                            setError("Network error. Please try again.");
+                          } finally {
+                            setIsResendingOtp(false);
+                          }
+                        }}
+                        disabled={isResendingOtp}
+                        className="text-sm text-zenith-primary hover:text-zenith-primary/90 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors disabled:opacity-50"
+                      >
+                        Use email verification instead
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTwoFactorMethod('2fa_app');
+                          setTwoFactorCode('');
+                        }}
+                        className="text-sm text-zenith-primary hover:text-zenith-primary/90 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                      >
+                        Use authenticator app instead
+                      </button>
+                    )}
+                  </div>
                   
                   {/* Trust device option for 2FA */}
                   <div className="mt-6">

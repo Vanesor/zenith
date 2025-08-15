@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 
 export async function POST(request: NextRequest) {
   try {

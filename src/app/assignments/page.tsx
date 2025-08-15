@@ -23,8 +23,8 @@ interface Assignment {
   id: string;
   title: string;
   description: string;
-  club: string;
-  assignedBy: string;
+  club: string | { id: string; name: string } | null;
+  assignedBy: string | { id: string; name: string } | null;
   dueDate: string;
   submittedAt?: string;
   status: "pending" | "submitted" | "graded" | "overdue";
@@ -33,6 +33,14 @@ interface Assignment {
   instructions: string;
   feedback?: string;
   created_at: string;
+  creator?: { id: string; name: string } | null;
+  submissions?: Array<{
+    id: string;
+    submitted_at: string;
+    grade: number | null;
+    feedback: string | null;
+    status: string;
+  }>;
 }
 
 export default function AssignmentsPage() {
@@ -62,7 +70,35 @@ export default function AssignmentsPage() {
 
         if (response.ok) {
           const data = await response.json();
-          setAssignments(data);
+          
+          // Transform the data to match our interface
+          const transformedAssignments = data.map((assignment: any) => ({
+            id: assignment.id,
+            title: assignment.title,
+            description: assignment.description,
+            club: assignment.club || assignment.club_id,
+            assignedBy: assignment.creator || assignment.created_by,
+            creator: assignment.creator,
+            dueDate: assignment.due_date || assignment.dueDate,
+            status: assignment.submissions && assignment.submissions.length > 0 
+              ? (assignment.submissions[0].grade !== null ? "graded" : "submitted") 
+              : "pending",
+            grade: assignment.submissions && assignment.submissions.length > 0 
+              ? assignment.submissions[0].grade?.toString() 
+              : undefined,
+            maxPoints: assignment.max_points || assignment.maxPoints || 100,
+            instructions: assignment.instructions || "",
+            feedback: assignment.submissions && assignment.submissions.length > 0 
+              ? assignment.submissions[0].feedback 
+              : undefined,
+            created_at: assignment.created_at,
+            submissions: assignment.submissions,
+            submittedAt: assignment.submissions && assignment.submissions.length > 0 
+              ? assignment.submissions[0].submitted_at 
+              : undefined
+          }));
+          
+          setAssignments(transformedAssignments);
         } else {
           console.error("Failed to fetch assignments");
           setAssignments([]);
@@ -166,10 +202,15 @@ export default function AssignmentsPage() {
       filter === "all" ||
       (filter === "overdue" && assignment.status === "overdue") ||
       (filter !== "overdue" && assignment.status === filter);
+    
+    const clubName = typeof assignment.club === 'object' && assignment.club?.name 
+      ? assignment.club.name 
+      : (typeof assignment.club === 'string' ? assignment.club : '');
+    
     const matchesSearch =
       assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       assignment.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.club.toLowerCase().includes(searchTerm.toLowerCase());
+      clubName.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesFilter && matchesSearch;
   });
@@ -394,7 +435,9 @@ export default function AssignmentsPage() {
                               assignment.status.slice(1)}
                           </span>
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                            {assignment.club}
+                            {typeof assignment.club === 'object' && assignment.club?.name 
+                              ? assignment.club.name 
+                              : (typeof assignment.club === 'string' ? assignment.club : 'No Club')}
                           </span>
                         </div>
                         <p className="text-zenith-muted mb-4">
@@ -403,7 +446,11 @@ export default function AssignmentsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-zenith-muted">
                           <div className="flex items-center">
                             <User size={16} className="mr-2" />
-                            Assigned by {assignment.assignedBy}
+                            Assigned by {typeof assignment.creator === 'object' && assignment.creator?.name 
+                              ? assignment.creator.name 
+                              : (typeof assignment.assignedBy === 'object' && assignment.assignedBy?.name 
+                                ? assignment.assignedBy.name 
+                                : (typeof assignment.assignedBy === 'string' ? assignment.assignedBy : 'Unknown'))}
                           </div>
                           <div className="flex items-center">
                             <Calendar size={16} className="mr-2" />

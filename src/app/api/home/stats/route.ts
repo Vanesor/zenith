@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { Database } from "@/lib/database-consolidated";
+import { prisma } from "@/lib/database-consolidated";
 
 // GET /api/home/stats - Get dashboard statistics
 export async function GET() {
   try {
-    // Get overall statistics
-    const [clubsResult, usersResult, eventsResult, postsResult] =
-      await Promise.all([
-        Database.query("SELECT COUNT(*) as count FROM clubs"),
-        Database.query("SELECT COUNT(*) as count FROM users"),
-        Database.query(
-          "SELECT COUNT(*) as count FROM events WHERE event_date >= CURRENT_DATE"
-        ),
-        Database.query("SELECT COUNT(*) as count FROM posts"),
-      ]);
+    // Get overall statistics in a single optimized query
+    const statsQuery = `
+      SELECT 
+        (SELECT COUNT(*) FROM clubs) as total_clubs,
+        (SELECT COUNT(*) FROM users) as total_users,
+        (SELECT COUNT(*) FROM events WHERE event_date >= CURRENT_DATE) as upcoming_events,
+        (SELECT COUNT(*) FROM posts) as total_posts
+    `;
+    const statsResult = await Database.query(statsQuery);
 
     // Get club statistics with member counts
     const clubStatsResult = await Database.query(`
@@ -24,8 +24,8 @@ export async function GET() {
         c.description,
         c.color,
         c.icon,
-        COUNT(u.id) as member_count,
-        COUNT(CASE WHEN e.event_date >= CURRENT_DATE THEN 1 END) as upcoming_events
+        COUNT(u.id)::INTEGER as member_count,
+        COUNT(CASE WHEN e.event_date >= CURRENT_DATE THEN 1 END)::INTEGER as upcoming_events
       FROM clubs c
       LEFT JOIN users u ON c.id = u.club_id
       LEFT JOIN events e ON c.id = e.club_id
@@ -68,10 +68,10 @@ export async function GET() {
     `);
 
     const stats = {
-      totalClubs: parseInt(clubsResult.rows[0].count),
-      totalMembers: parseInt(usersResult.rows[0].count),
-      upcomingEvents: parseInt(eventsResult.rows[0].count),
-      totalPosts: parseInt(postsResult.rows[0].count),
+      totalClubs: parseInt(statsResult.rows[0].total_clubs),
+      totalMembers: parseInt(statsResult.rows[0].total_users),
+      upcomingEvents: parseInt(statsResult.rows[0].upcoming_events),
+      totalPosts: parseInt(statsResult.rows[0].total_posts),
     };
 
     return NextResponse.json({

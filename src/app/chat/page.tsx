@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MessageSquare, Users, Hash, Plus, X, MoreVertical, Edit3, Trash2, Lock, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,9 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useToast } from "@/contexts/ToastContext";
 import { EnhancedChatRoom } from "@/components/chat/EnhancedChatRoom";
 import TokenManager from "@/lib/TokenManager";
+import { unstable_noStore as noStore } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
 
 interface ChatRoom {
   id: string;
@@ -22,6 +25,7 @@ interface ChatRoom {
 }
 
 export default function ChatPage() {
+  noStore(); // Prevent static generation
   const { user, isLoading } = useAuth();
   const { isAuthenticated } = useAuthGuard({ 
     redirectReason: "Please sign in to access the chat system",

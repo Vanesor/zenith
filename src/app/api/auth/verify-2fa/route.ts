@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import jwt from "jsonwebtoken";
-import Database from "@/lib/database";
-import { SessionManager } from "@/lib/SessionManager";
+import { Database } from "@/lib/database-consolidated";
+import FastAuth from "@/lib/FastAuth";
+import PrismaDB from "@/lib/database-consolidated";
 
 export async function POST(req: NextRequest) {
   try {
     const { userId, code, trustDevice = false } = await req.json();
+    
+    console.log('2FA Verification attempt:', { userId, code: code ? '[HIDDEN]' : null, trustDevice });
     
     if (!userId || !code) {
       return NextResponse.json(
@@ -16,45 +17,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find the user
-    const user = await Database.getUserById(userId);
+    // Find the user using the consolidated database
+    const user = await PrismaDB.findUserById(userId);
+    console.log('User found:', user ? { id: user.id, email: user.email } : null);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if 2FA is enabled for this user
-    const twoFAStatus = await TwoFactorAuthService.get2FAStatus(userId);
-
-    if (!twoFAStatus.enabled) {
-      return NextResponse.json(
-        { error: "Two-factor authentication is not enabled for this user" },
-        { status: 400 }
-      );
-    }
-
-    // The secret should be available in the 2FA status object
-    if (!twoFAStatus.secret) {
-      return NextResponse.json(
-        { error: "Two-factor authentication is not properly set up" },
-        { status: 400 }
-      );
-    }
-    
-    const userTwoFASecret = twoFAStatus.secret;
-    
-    if (!userTwoFASecret) {
-      return NextResponse.json(
-        { error: "Two-factor authentication setup is incomplete" },
-        { status: 400 }
-      );
-    }
-
     // Check which 2FA method is enabled
     const methodResult = await Database.query(
-      "SELECT totp_enabled, email_otp_enabled FROM users WHERE id = $1",
+      "SELECT totp_enabled, email_otp_enabled, totp_secret FROM users WHERE id = $1::uuid",
       [userId]
     );
+    
+    console.log('2FA method check:', methodResult.rows[0] ? 
+      { 
+        totp_enabled: methodResult.rows[0].totp_enabled, 
+        email_otp_enabled: methodResult.rows[0].email_otp_enabled,
+        has_totp_secret: !!methodResult.rows[0].totp_secret 
+      } : null);
     
     if (methodResult.rows.length === 0) {
       return NextResponse.json(
@@ -63,14 +45,24 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const { totp_enabled, email_otp_enabled } = methodResult.rows[0];
+    const { totp_enabled, email_otp_enabled, totp_secret } = methodResult.rows[0];
+    
+    if (!totp_enabled && !email_otp_enabled) {
+      return NextResponse.json(
+        { error: "Two-factor authentication is not enabled for this user" },
+        { status: 400 }
+      );
+    }
+    
     let isValid = false;
     
     // Verify based on the enabled method
-    if (totp_enabled) {
+    if (totp_enabled && totp_secret) {
       // Verify the TOTP code
+      console.log('Attempting TOTP verification');
       try {
-        isValid = TwoFactorAuthService.verifyToken(code, userTwoFASecret);
+        isValid = TwoFactorAuthService.verifyToken(code, totp_secret);
+        console.log('TOTP verification result:', isValid);
       } catch (verifyError) {
         console.error("Error verifying 2FA token:", verifyError);
         return NextResponse.json(
@@ -80,8 +72,10 @@ export async function POST(req: NextRequest) {
       }
     } else if (email_otp_enabled) {
       // Verify email OTP
+      console.log('Attempting email OTP verification');
       try {
         isValid = await TwoFactorAuthService.verifyEmailOTP(userId, code);
+        console.log('Email OTP verification result:', isValid);
       } catch (verifyError) {
         console.error("Error verifying email OTP:", verifyError);
         return NextResponse.json(
@@ -92,81 +86,83 @@ export async function POST(req: NextRequest) {
     }
     
     if (!isValid) {
+      console.log('2FA verification failed - invalid code');
       return NextResponse.json(
         { error: "Invalid verification code" },
         { status: 400 }
       );
     }
 
-    // Get device info for session tracking
-    const userAgent = req.headers.get('user-agent') || 'Unknown';
-    const forwardedFor = req.headers.get('x-forwarded-for');
-    const realIp = req.headers.get('x-real-ip');
-    const ipAddress = forwardedFor?.split(',')[0] || realIp || 'unknown';
+    console.log('2FA verification successful, creating session...');
 
-    // Create session
-    const sessionId = await SessionManager.createSession(
-      user.id,
-      userAgent,
-      ipAddress
-    );
+    // Create session using FastAuth system (consistent with regular login)
+    const sessionExpiry = new Date();
+    sessionExpiry.setHours(sessionExpiry.getHours() + (trustDevice ? 168 : 24)); // 7 days or 24 hours
 
-    // Generate JWT token
-    const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        sessionId: sessionId
-      },
-      JWT_SECRET,
-      {
-        expiresIn: "15m", // Short-lived access token
-      }
-    );
-
-    // Generate refresh token
-    const REFRESH_SECRET = process.env.REFRESH_SECRET || "your-refresh-secret-key";
-    const refreshToken = jwt.sign(
-      { userId: user.id, sessionId: sessionId, type: 'refresh' },
-      REFRESH_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    // Get additional user details with a fresh query to ensure we have all fields
-    const userDetailsResult = await Database.query(
-      "SELECT id, email, name, role, avatar FROM users WHERE id = $1",
-      [userId]
-    );
-    
-    const userDetails = userDetailsResult.rows[0];
-    
-    // Prepare user data
-    const userData = {
-      id: userDetails.id,
-      email: userDetails.email,
-      name: userDetails.name,
-      role: userDetails.role,
-      avatar: userDetails.avatar
+    const sessionData = {
+      user_id: user.id,
+      token: `zenith_${Date.now()}_${Math.random().toString(36).substring(2)}`, // Generate session token
+      expires_at: sessionExpiry,
+      user_agent: req.headers.get('user-agent') || 'Zenith-Client',
+      ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1'
     };
 
-    // Create a response with appropriate cookies
-    const response = NextResponse.json({
-      success: true,
-      token,
-      refreshToken,
-      user: userData,
+    const session = await PrismaDB.createSession(sessionData);
+
+    // Generate JWT tokens using FastAuth
+    const tokenPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      sessionId: session.id,
+    };
+
+    const accessToken = FastAuth.generateAccessToken(tokenPayload);
+    const refreshToken = FastAuth.generateRefreshToken({
+      userId: user.id,
+      sessionId: session.id,
     });
 
-    // Set secure HTTP-only cookie for additional security
-    response.cookies.set('zenith-session', sessionId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+    // Create the response
+    const response = NextResponse.json({
+      success: true,
+      token: accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        club_id: user.club_id,
+      }
     });
     
+    // Set secure HTTP-only cookies (consistent with regular login)
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+
+    response.cookies.set('zenith-token', accessToken, {
+      ...cookieOptions,
+      maxAge: trustDevice ? 7 * 24 * 60 * 60 : 24 * 60 * 60, // 7 days or 24 hours
+    });
+
+    if (refreshToken) {
+      response.cookies.set('zenith-refresh-token', refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
+    }
+
+    if (session.id) {
+      response.cookies.set('zenith-session', session.id, {
+        ...cookieOptions,
+        maxAge: trustDevice ? 7 * 24 * 60 * 60 : 24 * 60 * 60,
+      });
+    }
+
     // If user wants to trust this device, register it
     if (trustDevice) {
       try {
@@ -189,7 +185,7 @@ export async function POST(req: NextRequest) {
           response.cookies.set('zenith-trusted-device', deviceId, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax' as const,
             maxAge: 30 * 24 * 60 * 60, // 30 days
             path: '/'
           });

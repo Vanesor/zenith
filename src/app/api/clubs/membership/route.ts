@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/AuthMiddleware";
-import { Database } from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-fallback-secret";
 
 
 // Helper function to get user from token

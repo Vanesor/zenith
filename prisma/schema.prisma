@@ -1,0 +1,1056 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+}
+
+model Committee {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String            @unique @db.VarChar(255)
+  description       String?
+  hierarchy_level   Int               @default(1)
+  is_active         Boolean?          @default(true)
+  created_at        DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?         @default(now()) @updatedAt @db.Timestamptz(6)
+  committee_members CommitteeMember[]
+  committee_roles   CommitteeRole[]
+
+  @@map("committees")
+}
+
+model CommitteeRole {
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  committee_id String            @db.Uuid
+  name         String            @db.VarChar(255)
+  description  String?
+  hierarchy    Int               @default(1)
+  permissions  String[]          @default([])
+  created_at   DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime?         @default(now()) @db.Timestamptz(6)
+  members      CommitteeMember[]
+  committee    Committee         @relation(fields: [committee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([committee_id, name])
+  @@index([committee_id], map: "idx_committee_roles_committee_id")
+  @@map("committee_roles")
+}
+
+model CommitteeMember {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  committee_id String        @db.Uuid
+  role_id      String        @db.Uuid
+  user_id      String        @db.Uuid
+  status       String?       @default("active") @db.VarChar(50)
+  joined_at    DateTime?     @default(now()) @db.Timestamptz(6)
+  term_start   DateTime?     @db.Timestamptz(6)
+  term_end     DateTime?     @db.Timestamptz(6)
+  achievements Json?
+  created_at   DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime?     @default(now()) @db.Timestamptz(6)
+  committee    Committee     @relation(fields: [committee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role         CommitteeRole @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([committee_id, role_id, user_id])
+  @@index([committee_id], map: "idx_committee_members_committee_id")
+  @@index([role_id], map: "idx_committee_members_role_id")
+  @@index([status], map: "idx_committee_members_status")
+  @@index([user_id], map: "idx_committee_members_user_id")
+  @@map("committee_members")
+}
+
+model User {
+  id                                  String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                               String                   @unique @db.VarChar(255)
+  password_hash                       String                   @db.VarChar(255)
+  name                                String                   @db.VarChar(255)
+  username                            String?                  @db.VarChar(255)
+  avatar                              String?
+  role                                String                   @default("student") @db.VarChar(50)
+  club_id                             String?                  @db.VarChar(50)
+  bio                                 String?
+  social_links                        Json?                    @default("{}")
+  preferences                         Json?                    @default("{}")
+  created_at                          DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at                          DateTime?                @default(now()) @updatedAt @db.Timestamptz(6)
+  profile_image_url                   String?
+  profile_images                      Json?                    @default("[]")
+  verification_photo_url              String?
+  phone_number                        String?                  @db.VarChar(20)
+  date_of_birth                       DateTime?                @db.Date
+  address                             String?
+  emergency_contact                   Json?                    @default("{}")
+  phone                               String?                  @db.VarChar(50)
+  location                            String?                  @db.VarChar(255)
+  website                             String?                  @db.VarChar(255)
+  github                              String?                  @db.VarChar(255)
+  linkedin                            String?                  @db.VarChar(255)
+  twitter                             String?                  @db.VarChar(255)
+  email_verified                      Boolean?                 @default(false)
+  email_verification_token            String?                  @db.VarChar(255)
+  email_verification_token_expires_at DateTime?                @db.Timestamp(6)
+  password_reset_token                String?                  @db.VarChar(255)
+  password_reset_token_expires_at     DateTime?                @db.Timestamp(6)
+  oauth_provider                      String?                  @db.VarChar(50)
+  oauth_id                            String?                  @db.VarChar(255)
+  oauth_data                          Json?
+  has_password                        Boolean?                 @default(true)
+  totp_secret                         String?                  @db.VarChar(255)
+  totp_temp_secret                    String?                  @db.VarChar(255)
+  totp_temp_secret_created_at         DateTime?                @db.Timestamp(6)
+  totp_enabled                        Boolean?                 @default(false)
+  totp_enabled_at                     DateTime?                @db.Timestamp(6)
+  totp_recovery_codes                 Json?
+  notification_preferences            Json?                    @default("{\"email\": {\"events\": true, \"results\": true, \"assignments\": true, \"discussions\": true}}")
+  email_otp_enabled                   Boolean?                 @default(false)
+  email_otp_verified                  Boolean?                 @default(false)
+  email_otp_secret                    String?                  @db.VarChar
+  email_otp_backup_codes              Json?                    @default("[]")
+  email_otp_last_used                 DateTime?                @db.Timestamptz(6)
+  email_otp_created_at                DateTime?                @db.Timestamptz(6)
+  email_otp                           String?                  @db.Char(64)
+  email_otp_expires_at                DateTime?                @db.Timestamptz(6)
+  last_activity                       DateTime?                @default(now()) @db.Timestamptz(6)
+  ai_generations                      AiAssignmentGeneration[]
+  assignment_attempts                 AssignmentAttempt[]
+  assignment_audit_logs               AssignmentAuditLog[]
+  assignment_submissions              AssignmentSubmission[]
+  template_creations                  AssignmentTemplate[]
+  created_assignments                 Assignment[]             @relation("AssignmentCreator")
+  chat_invitations_sent               ChatInvitation[]         @relation("InvitationInviter")
+  sent_messages                       ChatMessage[]            @relation("MessageSender")
+  chat_messages                       ChatMessage[]
+  room_memberships                    ChatRoomMember[]         @relation("RoomMemberships")
+  created_rooms                       ChatRoom[]
+  co_coordinated_club                 Club[]                   @relation("ClubCoCoordinator")
+  coordinated_club                    Club[]                   @relation("ClubCoordinator")
+  media_club                          Club[]                   @relation("ClubMedia")
+  secretary_club                      Club[]                   @relation("ClubSecretary")
+  comments                            comments[]
+  discussion_replies                  discussion_replies[]
+  discussions                         discussions[]
+  event_attendees                     event_attendees[]
+  created_events                      Event[]
+  likes                               likes[]
+  media_files                         media_files[]
+  posts_posts_author_idTousers        Post[]                   @relation("posts_author_idTousers")
+  posts_posts_edited_byTousers        Post[]                   @relation("posts_edited_byTousers")
+  proctoring_sessions                 proctoring_sessions[]
+  security_events                     SecurityEvent[]
+  sessions                            Session[]
+  trusted_devices                     TrustedDevice[]
+  club                                Club?                    @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([club_id], map: "idx_users_club_id")
+  @@index([created_at], map: "idx_users_created_at")
+  @@index([email], map: "idx_users_email")
+  @@index([email_verified], map: "idx_users_email_verified")
+  @@index([last_activity], map: "idx_users_last_activity")
+  @@index([role], map: "idx_users_role")
+  @@index([updated_at(sort: Desc)], map: "idx_users_updated_at")
+  @@map("users")
+}
+
+model Club {
+  id                String        @id @db.VarChar(50)
+  name              String        @db.VarChar(255)
+  type              String        @db.VarChar(255)
+  description       String
+  long_description  String?
+  icon              String        @db.VarChar(100)
+  color             String        @db.VarChar(100)
+  coordinator_id    String?       @db.Uuid
+  co_coordinator_id String?       @db.Uuid
+  secretary_id      String?       @db.Uuid
+  media_id          String?       @db.Uuid
+  guidelines        String?
+  meeting_schedule  Json?         @default("{}")
+  created_at        DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?     @default(now()) @updatedAt @db.Timestamptz(6)
+  logo_url          String?
+  banner_image_url  String?
+  club_images       Json?         @default("[]")
+  member_count      Int?          @default(0)
+  assignments       Assignment[]
+  chat_rooms        ChatRoom[]
+  co_coordinator    User?         @relation("ClubCoCoordinator", fields: [co_coordinator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_co_coordinator")
+  coordinator       User?         @relation("ClubCoordinator", fields: [coordinator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_coordinator")
+  media             User?         @relation("ClubMedia", fields: [media_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_media")
+  secretary         User?         @relation("ClubSecretary", fields: [secretary_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_secretary")
+  discussions       discussions[]
+  events            Event[]
+  posts             Post[]
+  members           User[]
+
+  @@index([created_at], map: "idx_clubs_created_at")
+  @@index([name], map: "idx_clubs_name")
+  @@index([type], map: "idx_clubs_type")
+  @@index([updated_at(sort: Desc)], map: "idx_clubs_updated")
+  @@map("clubs")
+}
+
+model Session {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String?   @db.Uuid
+  token             String    @unique @db.VarChar(255)
+  expires_at        DateTime  @db.Timestamptz(6)
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  last_active_at    DateTime? @default(now()) @db.Timestamptz(6)
+  user_agent        String?
+  ip_address        String?   @db.VarChar(45)
+  device_info       Json?     @default("{}")
+  is_trusted        Boolean?  @default(false)
+  requires_2fa      Boolean?  @default(true)
+  has_completed_2fa Boolean?  @default(false)
+  user              User?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "idx_sessions_expires")
+  @@index([expires_at], map: "idx_sessions_expires_at")
+  @@index([last_active_at], map: "idx_sessions_last_active")
+  @@index([token], map: "idx_sessions_token")
+  @@index([user_id, created_at(sort: Desc)], map: "idx_sessions_user")
+  @@index([user_id], map: "idx_sessions_user_id")
+  @@map("sessions")
+}
+
+model Assignment {
+  id                        String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title                     String                   @db.VarChar(255)
+  description               String
+  club_id                   String?                  @db.VarChar(50)
+  created_by                String?                  @db.Uuid
+  due_date                  DateTime                 @db.Timestamptz(6)
+  max_points                Int?                     @default(100)
+  instructions              String?
+  status                    String?                  @default("active") @db.VarChar(50)
+  created_at                DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime?                @default(now()) @updatedAt @db.Timestamptz(6)
+  assignment_type           String?                  @default("regular") @db.VarChar
+  target_audience           String?                  @default("club") @db.VarChar
+  target_clubs              String[]                 @default([]) @db.VarChar
+  time_limit                Int?
+  allow_navigation          Boolean?                 @default(true)
+  passing_score             Int?                     @default(60)
+  is_proctored              Boolean?                 @default(false)
+  shuffle_questions         Boolean?                 @default(false)
+  allow_calculator          Boolean?                 @default(true)
+  show_results              Boolean?                 @default(true)
+  allow_review              Boolean?                 @default(true)
+  shuffle_options           Boolean?                 @default(false)
+  max_attempts              Int?                     @default(1)
+  is_published              Boolean?                 @default(false)
+  coding_instructions       String?                  @default("Write your code solution. Make sure to test your code thoroughly before submitting.")
+  objective_instructions    String?                  @default("Choose the correct answer(s) for each question. For multi-select questions, you may choose multiple options.")
+  mixed_instructions        String?                  @default("This assignment contains different types of questions. Read each question carefully and provide appropriate answers.")
+  essay_instructions        String?                  @default("Provide detailed written responses to the essay questions. Ensure your answers are well-structured and comprehensive.")
+  require_fullscreen        Boolean?                 @default(false)
+  auto_submit_on_violation  Boolean?                 @default(false)
+  max_violations            Int?                     @default(3)
+  code_editor_settings      Json?                    @default("{\"theme\": \"vs-dark\", \"autoSave\": true, \"fontSize\": 14, \"wordWrap\": true, \"autoSaveInterval\": 30000}")
+  require_camera            Boolean?                 @default(false)
+  require_microphone        Boolean?                 @default(false)
+  require_face_verification Boolean?                 @default(false)
+  proctoring_settings       Json?                    @default("{}")
+  start_date                DateTime?                @db.Timestamptz(6)
+  start_time                DateTime?                @db.Timestamptz(6)
+  ai_generations            AiAssignmentGeneration[]
+  attempts                  AssignmentAttempt[]
+  audit_logs                AssignmentAuditLog[]
+  questions                 AssignmentQuestion[]
+  submissions               AssignmentSubmission[]
+  club                      Club?                    @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  creator                   User?                    @relation("AssignmentCreator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  proctoring_sessions       proctoring_sessions[]
+
+  @@index([club_id, due_date], map: "idx_assignments_club_due")
+  @@index([club_id], map: "idx_assignments_club_id")
+  @@index([created_by, due_date], map: "idx_assignments_created_by")
+  @@index([due_date], map: "idx_assignments_due_date")
+  @@index([is_published], map: "idx_assignments_is_published")
+  @@index([is_published], map: "idx_assignments_published")
+  @@index([status], map: "idx_assignments_status")
+  @@index([assignment_type], map: "idx_assignments_type")
+  @@map("assignments")
+}
+
+model AssignmentQuestion {
+  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  assignment_id      String             @db.Uuid
+  question_text      String
+  question_type      String             @db.VarChar
+  marks              Int                @default(1)
+  time_limit         Int?
+  code_language      String?            @db.VarChar
+  code_template      String?
+  test_cases         Json?
+  expected_output    String?
+  solution           String?
+  ordering           Int                @default(0)
+  created_at         DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?          @default(now()) @db.Timestamptz(6)
+  type               String?            @db.VarChar
+  title              String?            @db.VarChar
+  description        String?
+  options            Json?
+  correct_answer     Json?
+  points             Int?               @default(1)
+  question_order     Int?               @default(0)
+  starter_code       String?
+  integer_min        Decimal?           @db.Decimal
+  integer_max        Decimal?           @db.Decimal
+  integer_step       Decimal?           @default(1) @db.Decimal
+  explanation        String?
+  allowed_languages  Json?              @default("[]")
+  allow_any_language Boolean?           @default(false)
+  question_image_url String?
+  question_image_alt String?
+  question_images    Json?              @default("[]")
+  answer_images      Json?              @default("[]")
+  assignment         Assignment         @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_assignment")
+  question_media     question_media[]
+  question_options   question_options[]
+  responses          QuestionResponse[]
+
+  @@index([assignment_id], map: "idx_assignment_questions_assignment_id")
+  @@index([correct_answer], map: "idx_assignment_questions_correct_answer_jsonb", type: Gin)
+  @@index([code_language, allow_any_language], map: "idx_assignment_questions_language_settings")
+  @@index([assignment_id, question_order], map: "idx_questions_assignment_order")
+  @@index([question_type], map: "idx_questions_type")
+  @@map("assignment_questions")
+}
+
+model AssignmentSubmission {
+  id                    String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  assignment_id         String?                 @db.Uuid
+  user_id               String?                 @db.Uuid
+  submission_text       String?
+  file_url              String?
+  submitted_at          DateTime?               @default(now()) @db.Timestamptz(6)
+  status                String?                 @default("submitted") @db.VarChar(50)
+  grade                 Int?
+  feedback              String?
+  started_at            DateTime?               @db.Timestamptz(6)
+  completed_at          DateTime?               @db.Timestamptz(6)
+  violation_count       Int?                    @default(0)
+  time_spent            Int?
+  auto_submitted        Boolean?                @default(false)
+  ip_address            String?                 @db.VarChar
+  user_agent            String?
+  total_score           Int?                    @default(0)
+  assignment            Assignment?             @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                  User?                   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assignment_violations assignment_violations[]
+  responses             QuestionResponse[]
+
+  @@unique([assignment_id, user_id])
+  @@index([user_id, submitted_at(sort: Desc)], map: "idx_assignment_submissions_user_submitted")
+  @@index([assignment_id, status], map: "idx_submissions_assignment_status")
+  @@index([status, submitted_at(sort: Desc)], map: "idx_submissions_status_submitted")
+  @@index([user_id, submitted_at(sort: Desc)], map: "idx_submissions_user_submitted")
+  @@map("assignment_submissions")
+}
+
+model AssignmentAttempt {
+  id                String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  assignment_id     String               @db.Uuid
+  user_id           String               @db.Uuid
+  attempt_number    Int                  @default(1)
+  start_time        DateTime?            @default(now()) @db.Timestamptz(6)
+  end_time          DateTime?            @db.Timestamptz(6)
+  time_spent        Int?                 @default(0)
+  score             Int?                 @default(0)
+  max_score         Int?                 @default(0)
+  percentage        Decimal?             @default(0) @db.Decimal(5, 2)
+  is_passing        Boolean?             @default(false)
+  answers           Json?                @default("{}")
+  graded_answers    Json?                @default("{}")
+  violations        Json?                @default("[]")
+  status            String?              @default("in_progress") @db.VarChar
+  submitted_at      DateTime?            @db.Timestamptz(6)
+  created_at        DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?            @default(now()) @db.Timestamptz(6)
+  is_fullscreen     Boolean?             @default(false)
+  auto_save_data    Json?                @default("{}")
+  window_violations Int?                 @default(0)
+  last_auto_save    DateTime?            @db.Timestamptz(6)
+  browser_info      Json?                @default("{}")
+  assignment        Assignment           @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user              User                 @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  audit_logs        AssignmentAuditLog[]
+
+  @@index([assignment_id], map: "idx_assignment_attempts_assignment_id")
+  @@index([assignment_id, user_id], map: "idx_assignment_attempts_assignment_user")
+  @@index([assignment_id, user_id, last_auto_save], map: "idx_assignment_attempts_auto_save")
+  @@index([status], map: "idx_assignment_attempts_status")
+  @@index([submitted_at], map: "idx_assignment_attempts_submitted_at")
+  @@index([user_id], map: "idx_assignment_attempts_user_id")
+  @@index([user_id, status, submitted_at(sort: Desc)], map: "idx_assignment_attempts_user_status")
+  @@index([assignment_id, window_violations], map: "idx_assignment_attempts_violations")
+  @@index([assignment_id, status], map: "idx_attempts_assignment_status")
+  @@index([user_id, assignment_id, attempt_number], map: "idx_attempts_user_assignment")
+  @@map("assignment_attempts")
+}
+
+model ChatRoom {
+  id                 String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name               String           @db.VarChar(255)
+  description        String?
+  club_id            String?          @db.VarChar(50)
+  type               String?          @default("public") @db.VarChar(50)
+  created_by         String?          @db.Uuid
+  members            String[]         @default([]) @db.Uuid
+  created_at         DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?        @default(now()) @db.Timestamptz(6)
+  room_type          String?          @default("public") @db.VarChar(20)
+  encryption_enabled Boolean?         @default(false)
+  cover_image_url    String?
+  room_images        Json?            @default("[]")
+  room_settings      Json?            @default("{}")
+  invitations        ChatInvitation[]
+  messages           ChatMessage[]
+  room_members       ChatRoomMember[]
+  club               Club?            @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  creator            User?            @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([club_id], map: "idx_chat_rooms_club_id")
+  @@index([created_by], map: "idx_chat_rooms_created_by")
+  @@index([type], map: "idx_chat_rooms_type")
+  @@index([updated_at(sort: Desc)], map: "idx_chat_rooms_updated")
+  @@map("chat_rooms")
+}
+
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model ChatMessage {
+  id                                                        String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  room_id                                                   String?            @db.Uuid
+  user_id                                                   String?            @db.Uuid
+  message                                                   String
+  message_type                                              String?            @default("text") @db.VarChar(50)
+  file_url                                                  String?
+  created_at                                                DateTime?          @default(now()) @db.Timestamptz(6)
+  reply_to_message_id                                       String?            @db.Uuid
+  is_edited                                                 Boolean?           @default(false)
+  reply_to                                                  String?            @db.Uuid
+  sender_id                                                 String?            @db.Uuid
+  content                                                   String?
+  is_encrypted                                              Boolean?           @default(false)
+  updated_at                                                DateTime?          @db.Timestamptz(6)
+  attachments                                               Json?              @default("[]")
+  message_images                                            Json?              @default("[]")
+  reactions                                                 Json?              @default("{}")
+  thread_id                                                 String?            @db.Uuid
+  chat_attachments                                          chat_attachments[]
+  chat_messages_chat_messages_reply_toTochat_messages       ChatMessage?       @relation("chat_messages_reply_toTochat_messages", fields: [reply_to], references: [id], onUpdate: NoAction)
+  other_chat_messages_chat_messages_reply_toTochat_messages ChatMessage[]      @relation("chat_messages_reply_toTochat_messages")
+  reply_to_message                                          ChatMessage?       @relation("MessageReply", fields: [reply_to_message_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies                                                   ChatMessage[]      @relation("MessageReply")
+  room                                                      ChatRoom?          @relation(fields: [room_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sender                                                    User?              @relation("MessageSender", fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                                                      User?              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  parent_thread                                             ChatMessage?       @relation("ThreadMessages", fields: [thread_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_chat_messages_thread")
+  thread_messages                                           ChatMessage[]      @relation("ThreadMessages")
+
+  @@index([created_at], map: "idx_chat_messages_created_at")
+  @@index([is_encrypted], map: "idx_chat_messages_encrypted")
+  @@index([reply_to], map: "idx_chat_messages_reply_to")
+  @@index([room_id], map: "idx_chat_messages_room_id")
+  @@index([room_id, created_at(sort: Desc)], map: "idx_chat_messages_room_time")
+  @@index([sender_id], map: "idx_chat_messages_sender_id")
+  @@index([message_type], map: "idx_chat_messages_type")
+  @@index([user_id], map: "idx_chat_messages_user_id")
+  @@index([user_id, created_at(sort: Desc)], map: "idx_chat_messages_user_time")
+  @@map("chat_messages")
+}
+
+model ChatRoomMember {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chat_room_id String?   @db.Uuid
+  user_id      String?   @db.Uuid
+  joined_at    DateTime? @default(now()) @db.Timestamptz(6)
+  role         String?   @default("member") @db.VarChar(20)
+  user_email   String?   @db.VarChar(255)
+  chat_room    ChatRoom? @relation(fields: [chat_room_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user         User?     @relation("RoomMemberships", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([chat_room_id, user_id])
+  @@index([chat_room_id], map: "idx_chat_room_members_chat_room_id")
+  @@index([chat_room_id, joined_at], map: "idx_chat_room_members_room")
+  @@index([chat_room_id], map: "idx_chat_room_members_room_id")
+  @@index([user_id, joined_at(sort: Desc)], map: "idx_chat_room_members_user")
+  @@index([user_id], map: "idx_chat_room_members_user_id")
+  @@map("chat_room_members")
+}
+
+model Event {
+  id               String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title            String            @db.VarChar(255)
+  description      String
+  club_id          String?           @db.VarChar(50)
+  created_by       String?           @db.Uuid
+  event_date       DateTime          @db.Date
+  event_time       DateTime          @db.Time(6)
+  location         String            @db.VarChar(255)
+  max_attendees    Int?
+  status           String?           @default("upcoming") @db.VarChar(50)
+  image_url        String?
+  created_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  event_images     Json?             @default("[]")
+  banner_image_url String?
+  gallery_images   Json?             @default("[]")
+  event_attendees  event_attendees[]
+  club             Club?             @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  creator          User?             @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([club_id, event_date], map: "idx_events_club_date")
+  @@index([club_id], map: "idx_events_club_id")
+  @@index([created_by, event_date(sort: Desc)], map: "idx_events_created_by")
+  @@index([event_date], map: "idx_events_date")
+  @@index([event_date], map: "idx_events_event_date")
+  @@index([status], map: "idx_events_status")
+  @@index([status, event_date], map: "idx_events_status_date")
+  @@map("events")
+}
+
+model Post {
+  id                           String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title                        String                   @db.VarChar(255)
+  content                      String
+  author_id                    String?                  @db.Uuid
+  club_id                      String?                  @db.VarChar(50)
+  category                     String?                  @db.VarChar(100)
+  tags                         String[]                 @default([])
+  image_url                    String?
+  is_pinned                    Boolean?                 @default(false)
+  is_locked                    Boolean?                 @default(false)
+  created_at                   DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at                   DateTime?                @default(now()) @db.Timestamptz(6)
+  edited                       Boolean?                 @default(false)
+  edited_by                    String?                  @db.Uuid
+  is_announcement              Boolean?                 @default(false)
+  view_count                   Int?                     @default(0)
+  likes_count                  Int?                     @default(0)
+  comments_count               Int?                     @default(0)
+  post_images                  Json?                    @default("[]")
+  featured_image_url           String?
+  attachments                  Json?                    @default("[]")
+  search_vector                Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english'::regconfig, (((title)::text || ' '::text) || content))"))
+  comments                     comments[]
+  likes                        likes[]
+  users_posts_author_idTousers User?                    @relation("posts_author_idTousers", fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  club                         Club?                    @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_posts_edited_byTousers User?                    @relation("posts_edited_byTousers", fields: [edited_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([author_id, created_at(sort: Desc)], map: "idx_posts_author_created")
+  @@index([author_id], map: "idx_posts_author_id")
+  @@index([club_id, created_at(sort: Desc)], map: "idx_posts_club_created")
+  @@index([club_id], map: "idx_posts_club_id")
+  @@index([created_at], map: "idx_posts_created_at")
+  @@index([is_pinned], map: "idx_posts_is_pinned")
+  @@index([search_vector], map: "idx_posts_search", type: Gin)
+  @@index([tags], map: "idx_posts_tags", type: Gin)
+  @@map("posts")
+}
+
+model Announcement {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title      String    @db.VarChar(255)
+  content    String
+  author_id  String?   @db.Uuid
+  club_id    String?   @db.VarChar(50)
+  priority   String?   @default("normal") @db.VarChar(50)
+  expires_at DateTime? @db.Timestamptz(6)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@map("announcements")
+}
+
+model AssignmentAuditLog {
+  id            String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  assignment_id String             @db.Uuid
+  user_id       String             @db.Uuid
+  attempt_id    String?            @db.Uuid
+  action        String             @db.VarChar
+  details       Json?              @default("{}")
+  created_at    DateTime?          @default(now()) @db.Timestamptz(6)
+  assignment    Assignment         @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  attempt       AssignmentAttempt? @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user          User               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([assignment_id], map: "idx_assignment_audit_log_assignment")
+  @@map("assignment_audit_log")
+}
+
+model AssignmentTemplate {
+  id                  String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                String                   @db.VarChar
+  description         String?
+  template_file_url   String
+  template_type       String                   @db.VarChar
+  category            String?                  @db.VarChar
+  subject             String?                  @db.VarChar
+  difficulty_level    String?                  @db.VarChar
+  estimated_questions Int?
+  created_by          String?                  @db.Uuid
+  is_active           Boolean?                 @default(true)
+  usage_count         Int?                     @default(0)
+  metadata            Json?                    @default("{}")
+  created_at          DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?                @default(now()) @db.Timestamptz(6)
+  ai_generations      AiAssignmentGeneration[]
+  creator             User?                    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_assignment_templates_created_by")
+
+  @@index([category], map: "idx_assignment_templates_category")
+  @@index([created_by], map: "idx_assignment_templates_created_by")
+  @@index([difficulty_level], map: "idx_assignment_templates_difficulty")
+  @@index([subject], map: "idx_assignment_templates_subject")
+  @@map("assignment_templates")
+}
+
+model AiAssignmentGeneration {
+  id                      String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  template_id             String?             @db.Uuid
+  generated_assignment_id String?             @db.Uuid
+  source_file_url         String
+  generation_prompt       String?
+  ai_model_used           String?             @db.VarChar
+  generation_status       String?             @default("pending") @db.VarChar
+  questions_extracted     Int?                @default(0)
+  questions_created       Int?                @default(0)
+  processing_log          Json?               @default("[]")
+  error_details           String?
+  generated_by            String?             @db.Uuid
+  created_at              DateTime?           @default(now()) @db.Timestamptz(6)
+  completed_at            DateTime?           @db.Timestamptz(6)
+  assignment              Assignment?         @relation(fields: [generated_assignment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ai_generations_assignment")
+  template                AssignmentTemplate? @relation(fields: [template_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ai_generations_template")
+  user                    User?               @relation(fields: [generated_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ai_generations_user")
+
+  @@index([generated_assignment_id], map: "idx_ai_generations_assignment_id")
+  @@index([created_at], map: "idx_ai_generations_created_at")
+  @@index([generation_status], map: "idx_ai_generations_status")
+  @@index([template_id], map: "idx_ai_generations_template_id")
+  @@map("ai_assignment_generations")
+}
+
+model ChatInvitation {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  room_id          String    @db.Uuid
+  inviter_id       String    @db.Uuid
+  invitee_email    String    @db.VarChar(255)
+  invitation_token String    @unique @db.VarChar(100)
+  message          String?
+  status           String?   @default("pending") @db.VarChar(20)
+  expires_at       DateTime  @db.Timestamptz(6)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  accepted_at      DateTime? @db.Timestamptz(6)
+  inviter          User      @relation("InvitationInviter", fields: [inviter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  room             ChatRoom  @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([invitee_email], map: "idx_chat_invitations_email")
+  @@index([invitation_token], map: "idx_chat_invitations_token")
+  @@map("chat_invitations")
+}
+
+model EventRegistration {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  event_id          String?   @db.Uuid
+  user_id           String?   @db.Uuid
+  status            String?   @default("registered") @db.VarChar(50)
+  registration_data Json?
+  registered_at     DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([event_id, user_id])
+  @@index([event_id], map: "idx_event_registrations_event_id")
+  @@index([user_id], map: "idx_event_registrations_user_id")
+  @@map("event_registrations")
+}
+
+model QuestionResponse {
+  id                 String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  submission_id      String               @db.Uuid
+  question_id        String               @db.Uuid
+  selected_options   String[]             @db.Uuid
+  code_answer        String?
+  essay_answer       String?
+  is_correct         Boolean?
+  score              Int?                 @default(0)
+  time_spent         Int?
+  feedback           String?
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  selected_language  String?              @db.VarChar
+  last_auto_save     DateTime?            @db.Timestamptz(6)
+  attempt_history    Json?                @default("[]")
+  code_results       code_results[]
+  coding_submissions coding_submissions[]
+  question           AssignmentQuestion   @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_question")
+  submission         AssignmentSubmission @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_submission")
+
+  @@index([question_id], map: "idx_question_responses_question_id")
+  @@index([submission_id], map: "idx_question_responses_submission_id")
+  @@index([question_id, is_correct], map: "idx_responses_question_correct")
+  @@index([submission_id], map: "idx_responses_submission")
+  @@map("question_responses")
+}
+
+model TrustedDevice {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id           String    @db.Uuid
+  device_identifier String    @db.VarChar
+  device_name       String    @db.VarChar
+  device_type       String?   @db.VarChar
+  browser           String?   @db.VarChar
+  os                String?   @db.VarChar
+  ip_address        String?   @db.VarChar
+  last_used         DateTime? @default(now()) @db.Timestamptz(6)
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  expires_at        DateTime? @default(dbgenerated("(CURRENT_TIMESTAMP + '30 days'::interval)")) @db.Timestamptz(6)
+  trust_level       String?   @default("login_only") @db.VarChar
+  user              User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, device_identifier])
+  @@index([expires_at], map: "idx_trusted_devices_expires")
+  @@index([user_id, last_used(sort: Desc)], map: "idx_trusted_devices_user")
+  @@index([user_id], map: "idx_trusted_devices_user_id")
+  @@map("trusted_devices")
+}
+
+model SecurityEvent {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id     String    @db.Uuid
+  event_type  String    @db.VarChar
+  ip_address  String?   @db.VarChar
+  device_info Json?     @default("{}")
+  event_data  Json?     @default("{}")
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_security_events_created_at")
+  @@index([event_type], map: "idx_security_events_event_type")
+  @@index([event_type, created_at(sort: Desc)], map: "idx_security_events_type")
+  @@index([user_id, created_at(sort: Desc)], map: "idx_security_events_user")
+  @@index([user_id], map: "idx_security_events_user_id")
+  @@map("security_events")
+}
+
+model assignment_violations {
+  id                     String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  submission_id          String               @db.Uuid
+  violation_type         String               @db.VarChar
+  occurred_at            DateTime?            @default(now()) @db.Timestamptz(6)
+  details                Json?
+  assignment_submissions AssignmentSubmission @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_submission")
+
+  @@index([submission_id], map: "idx_assignment_violations_submission_id")
+}
+
+model chat_attachments {
+  id                String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  message_id        String?      @db.Uuid
+  room_id           String       @db.Uuid
+  filename          String       @db.VarChar(500)
+  original_filename String       @db.VarChar(500)
+  file_path         String       @db.VarChar(1000)
+  file_type         String       @db.VarChar(50)
+  file_size         Int
+  mime_type         String?      @db.VarChar(100)
+  encryption_key    String?
+  created_at        DateTime?    @default(now()) @db.Timestamptz(6)
+  chat_messages     ChatMessage? @relation(fields: [message_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([message_id], map: "idx_chat_attachments_message_id")
+  @@index([room_id], map: "idx_chat_attachments_room_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model club_members {
+  id        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id   String    @db.Uuid
+  club_id   String    @db.Uuid
+  is_leader Boolean?  @default(false)
+  joined_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, club_id])
+  @@index([club_id], map: "idx_club_members_club_id")
+  @@index([user_id], map: "idx_club_members_user_id")
+}
+
+model code_results {
+  id                 String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  response_id        String           @db.Uuid
+  test_case_index    Int?
+  passed             Boolean?
+  stdout             String?
+  stderr             String?
+  execution_time     Int?
+  memory_used        Int?
+  created_at         DateTime?        @default(now()) @db.Timestamptz(6)
+  question_responses QuestionResponse @relation(fields: [response_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_response")
+
+  @@index([response_id], map: "idx_code_results_response_id")
+}
+
+model coding_submissions {
+  id                   String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  question_response_id String           @db.Uuid
+  language             String           @db.VarChar
+  code                 String
+  is_final             Boolean?         @default(false)
+  execution_result     Json?            @default("{}")
+  created_at           DateTime?        @default(now()) @db.Timestamptz(6)
+  question_responses   QuestionResponse @relation(fields: [question_response_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([language], map: "idx_coding_submissions_language")
+  @@index([question_response_id], map: "idx_coding_submissions_question_response")
+}
+
+model comments {
+  id             String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  post_id        String?    @db.Uuid
+  author_id      String?    @db.Uuid
+  content        String
+  parent_id      String?    @db.Uuid
+  created_at     DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?  @default(now()) @db.Timestamptz(6)
+  likes_count    Int?       @default(0)
+  users          User?      @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  comments       comments?  @relation("commentsTocomments", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_comments comments[] @relation("commentsTocomments")
+  posts          Post?      @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([author_id, created_at(sort: Desc)], map: "idx_comments_author_created")
+  @@index([author_id], map: "idx_comments_author_id")
+  @@index([created_at], map: "idx_comments_created_at")
+  @@index([parent_id], map: "idx_comments_parent_id")
+  @@index([post_id, created_at], map: "idx_comments_post_created")
+  @@index([post_id], map: "idx_comments_post_id")
+}
+
+model discussion_replies {
+  id                       String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  discussion_id            String?              @db.Uuid
+  author_id                String?              @db.Uuid
+  content                  String
+  parent_id                String?              @db.Uuid
+  likes_count              Int?                 @default(0)
+  created_at               DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime?            @default(now()) @db.Timestamptz(6)
+  users                    User?                @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  discussions              discussions?         @relation(fields: [discussion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discussion_replies       discussion_replies?  @relation("discussion_repliesTodiscussion_replies", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  other_discussion_replies discussion_replies[] @relation("discussion_repliesTodiscussion_replies")
+
+  @@index([author_id, created_at(sort: Desc)], map: "idx_discussion_replies_author")
+  @@index([discussion_id, created_at], map: "idx_discussion_replies_discussion")
+  @@index([discussion_id], map: "idx_discussion_replies_discussion_id")
+}
+
+model discussions {
+  id                 String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title              String               @db.VarChar(255)
+  description        String?
+  author_id          String?              @db.Uuid
+  club_id            String?              @db.VarChar(50)
+  tags               String[]             @default([])
+  is_locked          Boolean?             @default(false)
+  is_pinned          Boolean?             @default(false)
+  views_count        Int?                 @default(0)
+  replies_count      Int?                 @default(0)
+  last_activity      DateTime?            @default(now()) @db.Timestamptz(6)
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  discussion_replies discussion_replies[]
+  users              User?                @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clubs              Club?                @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([author_id, created_at(sort: Desc)], map: "idx_discussions_author")
+  @@index([club_id, last_activity(sort: Desc)], map: "idx_discussions_club_activity")
+  @@index([club_id], map: "idx_discussions_club_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model email_logs {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  recipient       String    @db.VarChar
+  subject         String    @db.VarChar
+  content_preview String?
+  status          String?   @default("sent") @db.VarChar
+  message_id      String?   @db.VarChar
+  category        String?   @db.VarChar
+  related_id      String?   @db.Uuid
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  sent_at         DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([category], map: "idx_email_logs_category")
+  @@index([created_at], map: "idx_email_logs_created_at")
+  @@index([recipient], map: "idx_email_logs_recipient")
+}
+
+model event_attendees {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  event_id          String?   @db.Uuid
+  user_id           String?   @db.Uuid
+  registered_at     DateTime? @default(now()) @db.Timestamptz(6)
+  attendance_status String?   @default("registered") @db.VarChar(50)
+  events            Event?    @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             User?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([event_id, user_id])
+  @@unique([event_id, user_id], map: "idx_event_attendees_unique")
+  @@index([event_id, registered_at], map: "idx_event_attendees_event")
+  @@index([attendance_status], map: "idx_event_attendees_status")
+  @@index([user_id, registered_at(sort: Desc)], map: "idx_event_attendees_user")
+}
+
+model likes {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  post_id    String?   @db.Uuid
+  user_id    String?   @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  posts      Post?     @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      User?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([post_id, user_id])
+  @@index([created_at], map: "idx_likes_created_at")
+  @@index([post_id], map: "idx_likes_post_id")
+  @@index([user_id], map: "idx_likes_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model media_files {
+  id                  String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  filename            String           @db.VarChar
+  original_filename   String           @db.VarChar
+  file_size           Int
+  mime_type           String           @db.VarChar
+  file_url            String
+  thumbnail_url       String?
+  alt_text            String?
+  description         String?
+  uploaded_by         String?          @db.Uuid
+  upload_context      String?          @db.VarChar
+  upload_reference_id String?          @db.Uuid
+  is_public           Boolean?         @default(true)
+  metadata            Json?            @default("{}")
+  created_at          DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?        @default(now()) @db.Timestamptz(6)
+  users               User?            @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_media_files_uploaded_by")
+  question_media      question_media[]
+
+  @@index([upload_context, upload_reference_id], map: "idx_media_files_context")
+  @@index([created_at], map: "idx_media_files_created_at")
+  @@index([upload_context], map: "idx_media_files_upload_context")
+  @@index([upload_reference_id], map: "idx_media_files_upload_reference_id")
+  @@index([uploaded_by], map: "idx_media_files_uploaded_by")
+  @@index([uploaded_by, created_at(sort: Desc)], map: "idx_media_files_uploader")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model messages {
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  chat_room_id   String    @db.Uuid
+  user_id        String    @db.Uuid
+  content        String
+  attachment_url String?
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model notifications {
+  id              Int       @id @default(autoincrement())
+  user_id         String    @db.Uuid
+  type            String    @db.VarChar(50)
+  title           String?
+  message         String
+  link            String?
+  read            Boolean?  @default(false)
+  delivery_method String?   @default("in-app") @db.VarChar(20)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  sent_by         String?   @db.VarChar(255)
+  club_id         String?   @db.VarChar(255)
+  email_sent      Boolean?  @default(false)
+  email_sent_at   DateTime? @db.Timestamp(6)
+  related_id      String?   @db.Uuid
+  metadata        Json?     @default("{}")
+
+  @@index([club_id], map: "idx_notifications_club_id")
+  @@index([created_at], map: "idx_notifications_created_at")
+  @@index([delivery_method], map: "idx_notifications_delivery_method")
+  @@index([email_sent, email_sent_at], map: "idx_notifications_email")
+  @@index([email_sent], map: "idx_notifications_email_sent")
+  @@index([read], map: "idx_notifications_read")
+  @@index([sent_by], map: "idx_notifications_sent_by")
+  @@index([type], map: "idx_notifications_type")
+  @@index([user_id, created_at(sort: Desc)], map: "idx_notifications_user_created")
+  @@index([user_id], map: "idx_notifications_user_id")
+  @@index([user_id, read], map: "idx_notifications_user_unread")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model proctoring_sessions {
+  id                 String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  assignment_id      String     @db.Uuid
+  user_id            String     @db.Uuid
+  session_start      DateTime?  @default(now()) @db.Timestamptz(6)
+  session_end        DateTime?  @db.Timestamptz(6)
+  camera_enabled     Boolean?   @default(false)
+  microphone_enabled Boolean?   @default(false)
+  face_verified      Boolean?   @default(false)
+  violations         Json?      @default("[]")
+  screenshots        Json?      @default("[]")
+  system_info        Json?      @default("{}")
+  session_data       Json?      @default("{}")
+  assignments        Assignment @relation(fields: [assignment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_proctoring_sessions_assignment")
+  users              User       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_proctoring_sessions_user")
+
+  @@index([assignment_id], map: "idx_proctoring_sessions_assignment_id")
+  @@index([session_start], map: "idx_proctoring_sessions_session_start")
+  @@index([user_id], map: "idx_proctoring_sessions_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model question_media {
+  id                   String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  question_id          String             @db.Uuid
+  media_file_id        String             @db.Uuid
+  media_type           String             @db.VarChar
+  display_order        Int?               @default(0)
+  is_primary           Boolean?           @default(false)
+  caption              String?
+  created_at           DateTime?          @default(now()) @db.Timestamptz(6)
+  media_files          media_files        @relation(fields: [media_file_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_question_media_file")
+  assignment_questions AssignmentQuestion @relation(fields: [question_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_question_media_question")
+
+  @@index([display_order], map: "idx_question_media_display_order")
+  @@index([question_id], map: "idx_question_media_question_id")
+}
+
+model question_options {
+  id                   String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  question_id          String             @db.Uuid
+  option_text          String
+  is_correct           Boolean?           @default(false)
+  ordering             Int                @default(0)
+  created_at           DateTime?          @default(now()) @db.Timestamptz(6)
+  assignment_questions AssignmentQuestion @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_question")
+
+  @@index([question_id], map: "idx_question_options_question_id")
+}
+
+model user_badges {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id           String?   @db.Uuid
+  badge_name        String    @db.VarChar(255)
+  badge_description String?
+  badge_icon        String?   @db.VarChar(255)
+  earned_at         DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, badge_name])
+}

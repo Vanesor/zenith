@@ -1,4 +1,4 @@
-import Database from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 import emailService from "./EmailService";
 
 export interface NotificationPreferences {
@@ -100,13 +100,13 @@ export class NotificationService {
       
       if (clubId) {
         // Get club name
-        const clubResult = await Database.query(
-          "SELECT name FROM clubs WHERE id = $1",
-          [clubId]
-        );
+        const club = await prisma.club.findUnique({
+          where: { id: clubId },
+          select: { name: true }
+        });
         
-        if (clubResult.rows.length > 0) {
-          clubName = clubResult.rows[0].name;
+        if (club) {
+          clubName = club.name;
         }
         
         // Get users from specific club
@@ -127,24 +127,23 @@ export class NotificationService {
       }
       
       // Query for assignment details
-      const assignmentResult = await Database.query(
-        "SELECT title, due_date FROM assignments WHERE id = $1",
-        [assignmentId]
-      );
+      const assignment = await prisma.assignment.findUnique({
+        where: { id: assignmentId },
+        select: { title: true, due_date: true }
+      });
       
-      if (assignmentResult.rows.length === 0) {
+      if (!assignment) {
         console.error(`Assignment ${assignmentId} not found`);
         return;
       }
       
-      const assignment = assignmentResult.rows[0];
       const dueDate = new Date(assignment.due_date).toLocaleDateString();
       
       // Get all relevant users
-      const usersResult = await Database.query(userQuery, queryParams);
+      const usersResult = await prisma.$queryRawUnsafe(userQuery, ...queryParams) as any[];
       
       // Send notification to each user
-      for (const user of usersResult.rows) {
+      for (const user of usersResult) {
         // Skip if user has disabled assignment notifications
         const preferences = user.notification_preferences as NotificationPreferences;
         if (preferences?.email?.assignments === false) {
@@ -174,48 +173,54 @@ export class NotificationService {
   ): Promise<void> {
     try {
       // Get user details
-      const userResult = await Database.query(
-        "SELECT name, email, notification_preferences FROM users WHERE id = $1",
-        [userId]
-      );
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { 
+          name: true, 
+          email: true, 
+          notification_preferences: true 
+        }
+      });
       
-      if (userResult.rows.length === 0) {
+      if (!user) {
         console.error(`User ${userId} not found`);
         return;
       }
       
-      const user = userResult.rows[0];
-      
       // Skip if user has disabled result notifications
-      const preferences = user.notification_preferences as NotificationPreferences;
+      const preferences = user.notification_preferences as unknown as NotificationPreferences;
       if (preferences?.email?.results === false) {
         return;
       }
       
       // Get assignment details
-      const assignmentResult = await Database.query(
-        "SELECT title FROM assignments WHERE id = $1",
-        [assignmentId]
-      );
+      const assignment = await prisma.assignment.findUnique({
+        where: { id: assignmentId },
+        select: { title: true }
+      });
       
-      if (assignmentResult.rows.length === 0) {
+      if (!assignment) {
         console.error(`Assignment ${assignmentId} not found`);
         return;
       }
       
-      const assignment = assignmentResult.rows[0];
-      
       // Get submission details
-      const submissionResult = await Database.query(
-        "SELECT total_score, grade FROM assignment_submissions WHERE user_id = $1 AND assignment_id = $2",
-        [userId, assignmentId]
-      );
+      const submission = await prisma.assignmentSubmission.findFirst({
+        where: {
+          user_id: userId,
+          assignment_id: assignmentId
+        },
+        select: {
+          total_score: true,
+          status: true
+        }
+      });
       
       let scoreText = undefined;
-      if (submissionResult.rows.length > 0) {
-        const submission = submissionResult.rows[0];
-        if (submission.grade) {
-          scoreText = submission.grade;
+      if (submission) {
+        // Use status as grade if it contains a grade value (like "A", "B+", etc.)
+        if (submission.status && !["submitted", "graded", "pending", "reviewing"].includes(submission.status)) {
+          scoreText = submission.status;
         } else if (submission.total_score !== null) {
           scoreText = `${submission.total_score} points`;
         }
@@ -247,13 +252,13 @@ export class NotificationService {
       
       if (clubId) {
         // Get club name
-        const clubResult = await Database.query(
-          "SELECT name FROM clubs WHERE id = $1",
-          [clubId]
-        );
+        const club = await prisma.club.findUnique({
+          where: { id: clubId },
+          select: { name: true }
+        });
         
-        if (clubResult.rows.length > 0) {
-          clubName = clubResult.rows[0].name;
+        if (club) {
+          clubName = club.name;
         }
         
         // Get users from specific club
@@ -274,27 +279,31 @@ export class NotificationService {
       }
       
       // Query for event details
-      const eventResult = await Database.query(
-        "SELECT title, event_date, event_time, location FROM events WHERE id = $1",
-        [eventId]
-      );
+      const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: { 
+          title: true, 
+          event_date: true, 
+          event_time: true, 
+          location: true 
+        }
+      });
       
-      if (eventResult.rows.length === 0) {
+      if (!event) {
         console.error(`Event ${eventId} not found`);
         return;
       }
       
-      const event = eventResult.rows[0];
       const eventDate = new Date(event.event_date).toLocaleDateString();
       const formattedDate = `${eventDate} at ${event.event_time}`;
       
       // Get all relevant users
-      const usersResult = await Database.query(userQuery, queryParams);
+      const usersResult = await prisma.$queryRawUnsafe(userQuery, ...queryParams) as any[];
       
       // Send notification to each user
-      for (const user of usersResult.rows) {
+      for (const user of usersResult) {
         // Skip if user has disabled event notifications
-        const preferences = user.notification_preferences as NotificationPreferences;
+        const preferences = user.notification_preferences as unknown as NotificationPreferences;
         if (preferences?.email?.events === false) {
           continue;
         }
@@ -305,7 +314,7 @@ export class NotificationService {
           user.name,
           event.title,
           formattedDate,
-          event.location,
+          event.location || 'TBD', // Provide a fallback if location is null
           clubId ? clubName : undefined
         );
       }
@@ -322,10 +331,12 @@ export class NotificationService {
     preferences: NotificationPreferences
   ): Promise<boolean> {
     try {
-      await Database.query(
-        "UPDATE users SET notification_preferences = $1 WHERE id = $2",
-        [preferences, userId]
-      );
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          notification_preferences: preferences as any 
+        }
+      });
       
       return true;
     } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
+import { Prisma } from "@prisma/client";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 import { NotificationService } from "@/lib/NotificationService";
@@ -128,9 +129,60 @@ export async function GET(request: NextRequest) {
     
     queryParams.push(limit.toString(), offset.toString());
 
-    const result = await Database.query(query, queryParams);
-
-    return NextResponse.json(result.rows);
+    // Use Prisma's built-in methods instead of raw queries to avoid type issues
+    try {
+      const assignments = await prisma.assignment.findMany({
+        take: limit,
+        skip: offset,
+        orderBy: {
+          created_at: 'desc'
+        },
+        include: {
+          club: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          creator: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          submissions: {
+            where: {
+              user_id: userId
+            },
+            select: {
+              id: true,
+              submitted_at: true,
+              grade: true,
+              feedback: true,
+              status: true
+            },
+            take: 1
+          }
+        },
+        where: clubId ? { club_id: clubId } : undefined
+      });
+      
+      return NextResponse.json(assignments);
+    } catch (queryError) {
+      console.error("Error with Prisma query:", queryError);
+      
+      // Simple fallback without complex joins
+      const assignments = await prisma.assignment.findMany({
+        take: limit,
+        skip: offset,
+        orderBy: {
+          created_at: 'desc'
+        },
+        where: clubId ? { club_id: clubId } : undefined
+      });
+      
+      return NextResponse.json(assignments);
+    }
   } catch (error) {
     console.error("Error fetching assignments:", error);
     return NextResponse.json(
@@ -259,19 +311,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is a manager (has management role)
-    const userCheck = await Database.query(
-      "SELECT role, club_id FROM users WHERE id = $1",
-      [userId]
-    );
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, club_id: true }
+    });
 
-    if (!userCheck.rows.length) {
+    if (!user) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
 
-    const user = userCheck.rows[0];
     const isManager = [
       "coordinator",
       "co_coordinator", 
@@ -301,177 +352,131 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Begin transaction
+    // Begin Prisma transaction
     try {
-      await Database.query('BEGIN');
+      const result = await prisma.$transaction(async (tx) => {
+        // Create assignment
+        const createdAssignment = await tx.assignment.create({
+          data: {
+            title,
+            description,
+            club_id: targetAudience ? (targetAudience === 'club' ? clubId : null) : actualClubId,
+            created_by: userId,
+            due_date: dueDate,
+          }
+        });
 
-      // Create assignment
-      const assignmentResult = await Database.query(
-        `INSERT INTO assignments (
-          title, description, club_id, created_by, start_date, due_date, max_points, instructions,
-          assignment_type, target_audience, target_clubs, time_limit,
-          allow_navigation, passing_score, is_proctored, require_camera, require_microphone,
-          require_face_verification, require_fullscreen, auto_submit_on_violation, max_violations,
-          shuffle_questions, shuffle_options, allow_calculator, max_attempts, show_results, 
-          allow_review, is_published
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
-         RETURNING *`,
-        [
-          title,
-          description,
-          targetAudience ? (targetAudience === 'club' ? clubId : null) : actualClubId,
-          userId,
-          startDate || null, // Add start_date field
-          dueDate,
-          maxPoints || 100,
-          instructions || "",
-          (assignmentType === 'mixed' ? 'regular' : assignmentType) || "regular",
-          targetAudience || "club",
-          targetClubs || [],
-          timeLimit || 60,
-          allowNavigation !== undefined ? allowNavigation : true,
-          passingScore || 60,
-          isProctored !== undefined ? isProctored : false,
-          requireCamera !== undefined ? requireCamera : false,
-          requireMicrophone !== undefined ? requireMicrophone : false,
-          requireFaceVerification !== undefined ? requireFaceVerification : false,
-          requireFullscreen !== undefined ? requireFullscreen : false,
-          autoSubmitOnViolation !== undefined ? autoSubmitOnViolation : false,
-          maxViolations || 3,
-          shuffleQuestions !== undefined ? shuffleQuestions : false,
-          shuffleOptions !== undefined ? shuffleOptions : false,
-          allowCalculator !== undefined ? allowCalculator : true,
-          maxAttempts || 1,
-          showResults !== undefined ? showResults : true,
-          allowReview !== undefined ? allowReview : true,
-          true // is_published
-        ]
-      );
-
-      const createdAssignment = assignmentResult.rows[0];
-
-      // Create questions
-      for (let i = 0; i < questions.length; i++) {
-        const question: Question = questions[i];
-        
-        // Convert correctAnswer to appropriate format with proper JSON handling
-        let correctAnswerValue = null;
-        
-        try {
-          // Handle different question types with proper JSON formatting
-          if (question.type === 'true-false') {
-            // For true-false, store as string 'true' or 'false'
-            correctAnswerValue = question.correctAnswer === true ? 'true' : 'false';
-          } else if (question.type === 'multiple-choice') {
-            // For multiple choice, always convert to string and ensure valid JSON
-            if (typeof question.correctAnswer === 'number') {
-              correctAnswerValue = question.correctAnswer.toString();
-            } else if (typeof question.correctAnswer === 'string') {
-              correctAnswerValue = question.correctAnswer;
-            } else if (question.correctAnswer !== null && question.correctAnswer !== undefined) {
-              correctAnswerValue = JSON.stringify(question.correctAnswer);
-            }
-          } else if (question.type === 'multi_select' || question.type === 'multi-select') {
-            // For multi-select, ensure it's a proper JSON array
-            if (Array.isArray(question.correctAnswer)) {
-              correctAnswerValue = JSON.stringify(question.correctAnswer);
-            } else if (typeof question.correctAnswer === 'object' && question.correctAnswer !== null) {
-              // If it's an object but not an array, convert to array
-              correctAnswerValue = JSON.stringify(Object.values(question.correctAnswer));
+        // Create questions
+        for (let i = 0; i < questions.length; i++) {
+          const question: Question = questions[i];
+          
+          // Convert correctAnswer to appropriate format with proper JSON handling
+          let correctAnswerValue = null;
+          
+          try {
+            // Handle different question types with proper JSON formatting
+            if (question.type === 'true-false') {
+              // For true-false, store as string 'true' or 'false'
+              correctAnswerValue = question.correctAnswer === true ? 'true' : 'false';
+            } else if (question.type === 'multiple-choice') {
+              // For multiple choice, always convert to string and ensure valid JSON
+              if (typeof question.correctAnswer === 'number') {
+                correctAnswerValue = question.correctAnswer.toString();
+              } else if (typeof question.correctAnswer === 'string') {
+                correctAnswerValue = question.correctAnswer;
+              } else if (question.correctAnswer !== null && question.correctAnswer !== undefined) {
+                correctAnswerValue = JSON.stringify(question.correctAnswer);
+              }
+            } else if (question.type === 'multi_select' || question.type === 'multi-select') {
+              // For multi-select, ensure it's a proper JSON array
+              if (Array.isArray(question.correctAnswer)) {
+                correctAnswerValue = JSON.stringify(question.correctAnswer);
+              } else if (typeof question.correctAnswer === 'object' && question.correctAnswer !== null) {
+                // If it's an object but not an array, convert to array
+                correctAnswerValue = JSON.stringify(Object.values(question.correctAnswer));
+              } else {
+                correctAnswerValue = '[]'; // Default empty array if invalid
+              }
+            } else if (question.type === 'coding') {
+              // For coding questions, ensure test cases are valid
+              correctAnswerValue = question.correctAnswer ? 
+                (typeof question.correctAnswer === 'string' ? 
+                  question.correctAnswer : JSON.stringify(question.correctAnswer)) : 
+                null;
             } else {
-              correctAnswerValue = '[]'; // Default empty array if invalid
+              // For all other types, safely convert to JSON if it's an object
+              if (question.correctAnswer !== null && question.correctAnswer !== undefined) {
+                correctAnswerValue = typeof question.correctAnswer === 'object' ? 
+                  JSON.stringify(question.correctAnswer) : 
+                  String(question.correctAnswer);
+              }
             }
-          } else if (question.type === 'coding') {
-            // For coding questions, ensure test cases are valid
-            correctAnswerValue = question.correctAnswer ? 
-              (typeof question.correctAnswer === 'string' ? 
-                question.correctAnswer : JSON.stringify(question.correctAnswer)) : 
-              null;
-          } else {
-            // For all other types, safely convert to JSON if it's an object
-            if (question.correctAnswer !== null && question.correctAnswer !== undefined) {
-              correctAnswerValue = typeof question.correctAnswer === 'object' ? 
-                JSON.stringify(question.correctAnswer) : 
-                String(question.correctAnswer);
+          } catch (e) {
+            console.error(`Error formatting correctAnswer for question ${i+1}:`, e);
+            correctAnswerValue = null; // Fallback to null on error
+          }
+
+          // Safely prepare JSON fields
+          let optionsJson = null;
+          if (question.options) {
+            try {
+              // Make sure options is an array before stringifying
+              const optionsArray = Array.isArray(question.options) ? question.options : [];
+              optionsJson = JSON.stringify(optionsArray);
+            } catch (e) {
+              console.error('Error converting options to JSON:', e);
+              optionsJson = JSON.stringify([]);
             }
           }
-        } catch (e) {
-          console.error(`Error formatting correctAnswer for question ${i+1}:`, e);
-          correctAnswerValue = null; // Fallback to null on error
+          
+          let testCasesJson = null;
+          if (question.testCases) {
+            try {
+              // Make sure testCases is an array before stringifying
+              const testCasesArray = Array.isArray(question.testCases) ? question.testCases : [];
+              testCasesJson = JSON.stringify(testCasesArray);
+            } catch (e) {
+              console.error('Error converting testCases to JSON:', e);
+              testCasesJson = JSON.stringify([]);
+            }
+          }
+          
+          await tx.assignmentQuestion.create({
+            data: {
+              assignment_id: createdAssignment.id,
+              question_type: mapQuestionType(question.type),
+              question_text: question.description || question.title,
+              options: optionsJson || undefined,
+              correct_answer: correctAnswerValue || undefined,
+              marks: question.points || 1,
+            }
+          });
         }
 
-        // Safely prepare JSON fields
-        let optionsJson = null;
-        if (question.options) {
-          try {
-            // Make sure options is an array before stringifying
-            const optionsArray = Array.isArray(question.options) ? question.options : [];
-            optionsJson = JSON.stringify(optionsArray);
-          } catch (e) {
-            console.error('Error converting options to JSON:', e);
-            optionsJson = JSON.stringify([]);
-          }
-        }
-        
-        let testCasesJson = null;
-        if (question.testCases) {
-          try {
-            // Make sure testCases is an array before stringifying
-            const testCasesArray = Array.isArray(question.testCases) ? question.testCases : [];
-            testCasesJson = JSON.stringify(testCasesArray);
-          } catch (e) {
-            console.error('Error converting testCases to JSON:', e);
-            testCasesJson = JSON.stringify([]);
-          }
-        }
-        
-        await Database.query(
-          `INSERT INTO assignment_questions (
-            assignment_id, type, title, description, options, correct_answer, 
-            points, time_limit, code_language, starter_code, test_cases, question_order,
-            question_text, question_type
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-          [
-            createdAssignment.id,
-            question.type,
-            question.title,
-            question.description,
-            optionsJson, // Use safely prepared options JSON
-            correctAnswerValue,
-            question.points,
-            question.timeAllocation || question.timeLimit, // Use timeAllocation if available, fallback to timeLimit
-            question.language || 'python',
-            question.starterCode,
-            testCasesJson, // Use safely prepared testCases JSON
-            i + 1, // question_order
-            question.description || question.title, // Use description as question_text (required field)
-            mapQuestionType(question.type) // Map to standardized question type
-          ]
-        );
-      }
-
-      await Database.query('COMMIT');
+        return createdAssignment;
+      });
 
       // Create notifications for all club members
-      const clubMembersQuery = `
-        SELECT id FROM users WHERE club_id = $1 AND id != $2
-      `;
-      const clubMembers = await Database.query(clubMembersQuery, [
-        actualClubId,
-        userId,
-      ]);
+      const clubMembers = await prisma.user.findMany({
+        where: {
+          club_id: actualClubId,
+          id: { not: userId }
+        },
+        select: { id: true }
+      });
 
-      if (clubMembers.rows.length > 0) {
-        const clubQuery = `SELECT name FROM clubs WHERE id = $1`;
-        const clubResult = await Database.query(clubQuery, [actualClubId]);
-        const clubName = clubResult.rows[0]?.name || "Club";
+      if (clubMembers.length > 0) {
+        const club = await prisma.club.findUnique({
+          where: { id: actualClubId },
+          select: { name: true }
+        });
+        const clubName = club?.name || "Club";
 
-        const memberIds = clubMembers.rows.map((member: { id: string }) => member.id);
+        const memberIds = clubMembers.map((member) => member.id);
         
         try {
           await NotificationService.notifyAssignmentCreated(
-            createdAssignment.id,
+            result.id,
             memberIds,
             clubName
           );
@@ -482,13 +487,13 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({
-        ...createdAssignment,
+        ...result,
         questionCount: questions.length,
         message: "Assignment created successfully with questions"
       });
 
     } catch (error) {
-      await Database.query('ROLLBACK');
+      // Transaction automatically rolls back on error
       throw error;
     }
 

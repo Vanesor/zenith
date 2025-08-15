@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
-
-
-
-
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const assignmentId = params.id;
+    const assignmentId = (await params).id;
     
     // Verify authentication using centralized AuthMiddleware
     const authResult = await verifyAuth(request);

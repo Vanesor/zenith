@@ -1,6 +1,6 @@
 import { CacheManager } from './CacheManager';
 import { SessionManager } from './SessionManager';
-import { getDatabaseStatus } from './database';
+import { getDatabaseStatus } from './database-consolidated';
 
 export interface SystemStats {
   timestamp: Date;
@@ -106,7 +106,7 @@ export class MonitoringService {
     const [dbStatus, cacheStats, sessionStats] = await Promise.all([
       this.getDatabaseStats(),
       CacheManager.getStats(),
-      SessionManager.getStats()
+      this.getSessionStats() // Use a local method instead of direct access
     ]);
 
     const apiStats = await this.getApiStats();
@@ -156,6 +156,36 @@ export class MonitoringService {
       requestsPerMinute: recentRequests,
       errorRate: Math.round(errorRate * 100) / 100
     };
+  }
+
+  // Get session statistics
+  private async getSessionStats(): Promise<{
+    totalActiveSessions: number;
+    uniqueUsers: number;
+    averageSessionsPerUser: number;
+  }> {
+    try {
+      // Get session data from cache
+      const totalActiveSessions = await CacheManager.get<number>('sessions:active_count') || 0;
+      const uniqueUsers = await CacheManager.get<number>('sessions:unique_users') || 0;
+      
+      const averageSessionsPerUser = uniqueUsers > 0 
+        ? totalActiveSessions / uniqueUsers 
+        : 0;
+        
+      return {
+        totalActiveSessions,
+        uniqueUsers,
+        averageSessionsPerUser: Math.round(averageSessionsPerUser * 100) / 100
+      };
+    } catch (error) {
+      console.error('Error getting session stats:', error);
+      return {
+        totalActiveSessions: 0,
+        uniqueUsers: 0,
+        averageSessionsPerUser: 0
+      };
+    }
   }
 
   // WebSocket statistics

@@ -7,9 +7,14 @@ import { motion } from "framer-motion";
 import { User, Phone, Calendar, Check } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { unstable_noStore as noStore } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
 
 export default function OnboardingPage() {
-  const { data: session, status } = useSession();
+  noStore(); // Prevent static generation
+  const sessionData = useSession();
+  const { data: session, status } = sessionData || { data: null, status: 'loading' };
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { Database } from "@/lib/database-consolidated";
 import jwt from "jsonwebtoken";
 
 // GET /api/management/stats
@@ -58,17 +58,14 @@ export async function GET(request: NextRequest) {
       "SELECT COUNT(*) as count FROM assignments"
     );
 
-    // Get unread notifications count for current user
-    const unreadNotificationsResult = await Database.query(
-      "SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND read = false",
-      [userId]
-    );
+    // Get unread notifications count for current user using PrismaDB
+    const unreadNotifications = await Database.getUnreadNotificationCount(userId);
 
     const stats = {
       totalMembers: parseInt(totalMembersResult.rows[0].count),
       activeEvents: parseInt(activeEventsResult.rows[0].count),
       totalAssignments: parseInt(totalAssignmentsResult.rows[0].count),
-      unreadNotifications: parseInt(unreadNotificationsResult.rows[0].count),
+      unreadNotifications,
     };
 
     return NextResponse.json(stats);

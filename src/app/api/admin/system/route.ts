@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth, MANAGEMENT_ROLES } from "@/lib/AuthMiddleware";
-import { MonitoringService } from "@/lib/MonitoringService";
+import { MonitoringService, SystemStats } from "@/lib/MonitoringService";
 import { CacheManager } from "@/lib/CacheManager";
 import { SessionManager } from "@/lib/SessionManager";
 
@@ -19,7 +19,7 @@ export const GET = withAuth(async () => {
       monitoring.getApiMetrics(15),
       monitoring.checkAlerts(),
       monitoring.getOptimizationSuggestions(),
-      SessionManager.getStats()
+      monitoring.getSystemStats().then(stats => stats.sessions)
     ]);
 
     // Get additional system info
@@ -160,7 +160,7 @@ export const POST = withAuth(async (request: NextRequest) => {
 // Convert metrics to CSV format
 function convertToCsv(data: {
   timestamp: string;
-  metrics: any;
+  metrics: SystemStats;
   alerts: string[];
   suggestions: string[];
 }): string {

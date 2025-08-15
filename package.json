@@ -16,6 +16,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "prisma migrate deploy",
+    "db:init-committee": "tsx scripts/init-committee.ts",
     "db:setup:supabase": "node scripts/setup-supabase-schema.js",
     "db:verify:supabase": "node scripts/verify-supabase-schema.js",
     "db:check:supabase": "node scripts/check-supabase-schema.js",
@@ -25,14 +26,11 @@
     "docker:build": "docker build -t zenith-forum .",
     "docker:run": "docker run -p 3000:3000 zenith-forum"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^2.2.6",
     "@monaco-editor/react": "4.7.0",
-    "@prisma/client": "^6.12.0",
+    "@prisma/client": "^6.14.0",
     "@supabase/supabase-js": "^2.52.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
@@ -65,7 +63,7 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.16.3",
-    "prisma": "^6.12.0",
+    "prisma": "^6.14.0",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",

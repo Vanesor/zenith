@@ -1,10 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { NextRequest, NextResponse } from "next/server";
+import PrismaDB from '@/lib/database-consolidated';
 
 // Simple email sending function (you can replace with your preferred service)
 async function sendInvitationEmail(to: string, inviterName: string, inviteUrl: string, message?: string) {
@@ -31,13 +26,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if user is already in the room
-    const { data: existingMember } = await supabase
-      .from('chat_room_members')
-      .select('id')
-      .eq('room_id', roomId)
-      .eq('user_email', inviteeEmail)
-      .single();
+    // Check if user is already in the room using PrismaDB
+    const existingMember = await PrismaDB.getClient().chatRoomMember.findFirst({
+      where: {
+        chat_room_id: roomId,
+        user_email: inviteeEmail
+      }
+    });
 
     if (existingMember) {
       return NextResponse.json({ 
@@ -53,27 +48,18 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
-    // Create invitation record
-    const { data: invitation, error: inviteError } = await supabase
-      .from('chat_invitations')
-      .insert({
+    // Create invitation record using PrismaDB
+    const invitation = await PrismaDB.getClient().chatInvitation.create({
+      data: {
         room_id: roomId,
         inviter_id: inviterId,
         invitee_email: inviteeEmail,
         invitation_token: invitationToken,
-        expires_at: expiresAt.toISOString(),
-        message: message || null
-      })
-      .select()
-      .single();
-
-    if (inviteError) {
-      console.error('Invitation creation error:', inviteError);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to create invitation' 
-      }, { status: 500 });
-    }
+        expires_at: expiresAt,
+        message: message || null,
+        status: 'pending'
+      }
+    });
 
     // Send invitation email
     try {
@@ -115,31 +101,33 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const { data: invitations, error } = await supabase
-      .from('chat_invitations')
-      .select(`
-        id, invitee_email, created_at, expires_at, status,
-        inviter:users!chat_invitations_inviter_id_fkey(name)
-      `)
-      .eq('room_id', roomId)
-      .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching invitations:', error);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to fetch invitations' 
-      }, { status: 500 });
-    }
+    // Fetch invitations using PrismaDB
+    const invitations = await PrismaDB.getClient().chatInvitation.findMany({
+      where: {
+        room_id: roomId,
+        status: 'pending',
+        expires_at: {
+          gt: new Date()
+        }
+      },
+      include: {
+        inviter: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      invitations: invitations.map(inv => ({
+      invitations: invitations.map((inv: any) => ({
         id: inv.id,
         email: inv.invitee_email,
-        inviter: (inv as any).inviter?.name || 'Unknown',
+        inviter: inv.inviter?.name || 'Unknown',
         created_at: inv.created_at,
         expires_at: inv.expires_at
       }))

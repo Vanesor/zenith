@@ -30,32 +30,45 @@ export class SessionManager {
       isActive: true
     };
     
-    // Store session in memory cache
+    // Add to memory cache
     this.activeSessions.set(sessionId, session);
     
-    // Track user sessions
     if (!this.userSessions.has(userId)) {
       this.userSessions.set(userId, new Set());
     }
     this.userSessions.get(userId)!.add(sessionId);
     
-    // Store session in database for persistence
+    // Store in database
     try {
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+      const { Database, UUIDUtils } = await import('./database-consolidated');
       
-      const supabase = createAdminClient();
-      await supabase.from('sessions').insert({
-        id: sessionId,
-        user_id: userId,
-        token: sessionId,
-        expires_at: expiresAt.toISOString(),
-        user_agent: deviceInfo,
-        ip_address: ipAddress,
-        last_active_at: new Date().toISOString()
-      });
+      // Process parameters to handle UUID types correctly
+      const params = UUIDUtils.processParams([userId, sessionId, deviceInfo, ipAddress]);
+      
+      await Database.query(`
+        INSERT INTO sessions (
+          id, user_id, token, expires_at, user_agent, ip_address, last_active_at
+        ) VALUES (
+          gen_random_uuid(), $1::uuid, $2, NOW() + interval '30 days', $3, $4, NOW()
+        )
+      `, params);
     } catch (error) {
-      console.error('Failed to persist session to database:', error);
+      console.error('Error saving session to database:', error);
+      
+      // Fallback to supabase directly
+      try {
+        const supabase = createAdminClient();
+        await supabase.from('sessions').insert({
+          user_id: userId,
+          token: sessionId,
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          user_agent: deviceInfo,
+          ip_address: ipAddress,
+          last_active_at: new Date()
+        });
+      } catch (supabaseError) {
+        console.error('Error saving session to Supabase:', supabaseError);
+      }
     }
     
     // Clean up old sessions for this user (keep max 5 active sessions)
@@ -66,47 +79,143 @@ export class SessionManager {
   
   // Validate and refresh session
   static async validateSession(sessionId: string): Promise<UserSession | null> {
+    // If no sessionId provided, return null
+    if (!sessionId) return null;
+    
+    // First check in memory cache
     let session = this.activeSessions.get(sessionId);
     
     // If not in memory cache, try to get from database
     if (!session) {
       try {
-        const supabase = createAdminClient();
-        const { data, error } = await supabase
-          .from('sessions')
-          .select('*')
-          .eq('token', sessionId)
-          .single();
+        // Try the main database first
+        const dbModule = await import('./database-consolidated');
+        const db = dbModule.Database;
+        const { UUIDUtils } = dbModule;
+        
+        try {
+          // Use proper parameter processing to ensure correct type handling
+          // Process both parameters correctly, but don't try to convert to UUID
+          // The token is a string and id might be a UUID or string
           
-        if (error || !data) {
-          return null;
+          const result = await db.query(`
+            SELECT id, user_id, token, expires_at, user_agent, ip_address, last_active_at
+            FROM sessions 
+            WHERE token = $1::text OR id::text = $2::text
+          `, [sessionId, sessionId]);
+          
+          if (result && result.rows && result.rows.length > 0) {
+            const data = result.rows[0];
+            
+            // Check if session has expired
+            const expiresAt = new Date(data.expires_at);
+            if (expiresAt < new Date()) {
+              console.log("Session expired:", sessionId);
+              return null;
+            }
+            
+            // Create session object
+            session = {
+              userId: data.user_id || '',
+              sessionId: data.token || data.id,
+              lastActivity: data.last_active_at ? new Date(data.last_active_at) : new Date(),
+              deviceInfo: data.user_agent || '',
+              ipAddress: data.ip_address || '',
+              isActive: true
+            };
+            
+            // Cache in memory
+            this.activeSessions.set(sessionId, session);
+            
+            if (!this.userSessions.has(session.userId)) {
+              this.userSessions.set(session.userId, new Set());
+            }
+            this.userSessions.get(session.userId)!.add(sessionId);
+          }
+        } catch (queryError) {
+          console.error("Error querying session from database:", queryError);
+          
+          // Fallback to prisma client
+          try {
+            const prisma = dbModule.default.getClient();
+            const dbSession = await prisma.session.findFirst({
+              where: {
+                OR: [
+                  { token: sessionId },
+                  { id: sessionId }
+                ]
+              }
+            });
+            
+            if (dbSession) {
+              // Check if session has expired
+              if (dbSession.expires_at && dbSession.expires_at < new Date()) {
+                console.log("Session expired:", sessionId);
+                return null;
+              }
+              
+              // Create session object
+              session = {
+                userId: dbSession.user_id || '',
+                sessionId: dbSession.token || dbSession.id,
+                lastActivity: dbSession.last_active_at || new Date(),
+                deviceInfo: dbSession.user_agent || '',
+                ipAddress: dbSession.ip_address || '',
+                isActive: true
+              };
+              
+              // Cache in memory
+              this.activeSessions.set(sessionId, session);
+              
+              if (!this.userSessions.has(session.userId)) {
+                this.userSessions.set(session.userId, new Set());
+              }
+              this.userSessions.get(session.userId)!.add(sessionId);
+            }
+          } catch (prismaError) {
+            console.error("Error querying session with Prisma:", prismaError);
+          }
         }
         
-        // Check if session has expired
-        if (new Date(data.expires_at) < new Date()) {
-          // Delete expired session from database
-          await supabase.from('sessions').delete().eq('token', sessionId);
-          return null;
+        // If we still don't have a session, try Supabase
+        if (!session) {
+          try {
+            const supabase = createAdminClient();
+            // Use proper filter query approach for Supabase
+            const { data: sessionData } = await supabase
+              .from('sessions')
+              .select('*')
+              .or(`token.eq.${sessionId},id.eq.${sessionId}`)
+              .single();
+              
+            if (sessionData) {
+              const expiresAt = new Date(sessionData.expires_at);
+              if (expiresAt < new Date()) {
+                return null;
+              }
+              
+              session = {
+                userId: sessionData.user_id,
+                sessionId: sessionData.token || sessionData.id,
+                lastActivity: new Date(sessionData.last_active_at),
+                deviceInfo: sessionData.user_agent || '',
+                ipAddress: sessionData.ip_address || '',
+                isActive: true
+              };
+              
+              // Add to memory cache
+              this.activeSessions.set(sessionId, session);
+              
+              // Track user sessions
+              if (!this.userSessions.has(sessionData.user_id)) {
+                this.userSessions.set(sessionData.user_id, new Set());
+              }
+              this.userSessions.get(sessionData.user_id)!.add(sessionId);
+            }
+          } catch (supabaseError) {
+            console.error('Failed to fetch session from Supabase:', supabaseError);
+          }
         }
-        
-        // Create session object from database record
-        session = {
-          userId: data.user_id,
-          sessionId: data.id,
-          lastActivity: new Date(data.last_active_at),
-          deviceInfo: data.user_agent || 'Unknown',
-          ipAddress: data.ip_address || 'Unknown',
-          isActive: true
-        };
-        
-        // Add to memory cache
-        this.activeSessions.set(sessionId, session);
-        
-        // Track user sessions
-        if (!this.userSessions.has(data.user_id)) {
-          this.userSessions.set(data.user_id, new Set());
-        }
-        this.userSessions.get(data.user_id)!.add(sessionId);
       } catch (error) {
         console.error('Failed to fetch session from database:', error);
         return null;
@@ -154,99 +263,89 @@ export class SessionManager {
           this.userSessions.delete(session.userId);
         }
       }
+      
+      // Remove from active sessions
+      this.activeSessions.delete(sessionId);
     }
-    
-    // Remove from memory cache
-    this.activeSessions.delete(sessionId);
     
     // Remove from database
     try {
-      const supabase = createAdminClient();
-      await supabase.from('sessions').delete().eq('token', sessionId);
+      const { Database } = await import('./database-consolidated');
+      await Database.query(`
+        DELETE FROM sessions
+        WHERE token = $1 OR id::text = $2
+      `, [sessionId, sessionId]);
     } catch (error) {
       console.error('Failed to delete session from database:', error);
-    }
-  }
-  
-  // Get all active sessions for a user
-  static async getUserSessions(userId: string): Promise<UserSession[]> {
-    const sessionIds = this.userSessions.get(userId) || new Set();
-    const sessions: UserSession[] = [];
-    
-    for (const sessionId of sessionIds) {
-      const session = this.activeSessions.get(sessionId);
-      if (session && session.isActive) {
-        sessions.push(session);
-      }
-    }
-    
-    return sessions;
-  }
-  
-  // Destroy all sessions for a user
-  static async destroyAllUserSessions(userId: string): Promise<void> {
-    const sessionIds = this.userSessions.get(userId) || new Set();
-    
-    for (const sessionId of sessionIds) {
-      await this.destroySession(sessionId);
-    }
-    
-    this.userSessions.delete(userId);
-  }
-  
-  // Clean up old sessions for a user (keep only newest N sessions)
-  static async cleanupUserSessions(userId: string, keepCount: number): Promise<void> {
-    const sessions = await this.getUserSessions(userId);
-    
-    if (sessions.length > keepCount) {
-      // Sort by last activity (newest first)
-      sessions.sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
       
-      // Destroy oldest sessions
-      const sessionsToDestroy = sessions.slice(keepCount);
-      for (const session of sessionsToDestroy) {
-        await this.destroySession(session.sessionId);
+      // Fallback to Supabase
+      try {
+        const supabase = createAdminClient();
+        await supabase
+          .from('sessions')
+          .delete()
+          .or(`token.eq.${sessionId},id.eq.${sessionId}`);
+      } catch (supabaseError) {
+        console.error('Failed to delete session from Supabase:', supabaseError);
       }
     }
   }
   
-  // Clean up expired sessions (run periodically)
-  static async cleanupExpiredSessions(): Promise<number> {
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    let cleanedCount = 0;
-    
-    for (const [sessionId, session] of this.activeSessions.entries()) {
-      if (session.lastActivity < sevenDaysAgo) {
-        await this.destroySession(sessionId);
-        cleanedCount++;
-      }
-    }
-    
-    return cleanedCount;
+  // Get user's sessions
+  static getUserSessions(userId: string): string[] {
+    const sessionSet = this.userSessions.get(userId);
+    return sessionSet ? Array.from(sessionSet) : [];
   }
   
-  // Get session statistics
-  static getStats(): {
-    totalActiveSessions: number;
-    uniqueUsers: number;
-    averageSessionsPerUser: number;
-  } {
-    const totalActiveSessions = this.activeSessions.size;
-    const uniqueUsers = this.userSessions.size;
-    const averageSessionsPerUser = uniqueUsers > 0 ? totalActiveSessions / uniqueUsers : 0;
+  // Clean up old sessions, keeping only the most recent ones
+  static async cleanupUserSessions(userId: string, maxSessions: number = 5): Promise<void> {
+    const userSessions = this.getUserSessions(userId);
+    if (userSessions.length <= maxSessions) return;
     
-    return {
-      totalActiveSessions,
-      uniqueUsers,
-      averageSessionsPerUser: Math.round(averageSessionsPerUser * 100) / 100
-    };
+    // Sort sessions by last activity
+    const sessionsWithActivity: [string, Date][] = userSessions
+      .map(sid => {
+        const session = this.activeSessions.get(sid);
+        return [sid, session ? session.lastActivity : new Date(0)] as [string, Date];
+      })
+      .sort((a, b) => b[1].getTime() - a[1].getTime());
+    
+    // Keep only the most recent sessions
+    const sessionsToRemove = sessionsWithActivity.slice(maxSessions).map(([sid]) => sid);
+    
+    // Destroy each old session
+    for (const sid of sessionsToRemove) {
+      await this.destroySession(sid);
+    }
+  }
+  
+  // Cleanup inactive sessions periodically
+  static {
+    setInterval(async () => {
+      try {
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        // Clean up inactive sessions in memory
+        for (const [sessionId, session] of this.activeSessions.entries()) {
+          if (session.lastActivity < sevenDaysAgo) {
+            await this.destroySession(sessionId);
+          }
+        }
+        
+        // Clean up database sessions older than 7 days
+        try {
+          const { Database } = await import('./database-consolidated');
+          await Database.query(`
+            DELETE FROM sessions
+            WHERE last_active_at < NOW() - INTERVAL '7 days'
+          `, []);
+        } catch (error) {
+          console.error('Failed to cleanup old sessions from database:', error);
+        }
+      } catch (error) {
+        console.error('Error during session cleanup:', error);
+      }
+    }, 60 * 60 * 1000); // 1 hour
   }
 }
-
-// Run cleanup every hour
-setInterval(async () => {
-  const cleanedCount = await SessionManager.cleanupExpiredSessions();
-  if (cleanedCount > 0) {
-    console.log(`Cleaned up ${cleanedCount} expired sessions`);
-  }
-}, 60 * 60 * 1000); // 1 hour

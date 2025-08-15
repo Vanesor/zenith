@@ -430,9 +430,9 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
         message={`Are you sure you want to delete "${deleteConfirmation.questionTitle}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
-        type="danger"
+        variant="danger"
         onConfirm={confirmDelete}
-        onCancel={() => setDeleteConfirmation({ isOpen: false, questionIndex: -1, questionTitle: '' })}
+        onClose={() => setDeleteConfirmation({ isOpen: false, questionIndex: -1, questionTitle: '' })}
       />
     </div>
   );

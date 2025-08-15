@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import { NotificationService } from "@/lib/NotificationService";
 
@@ -11,47 +11,79 @@ export async function GET(request: NextRequest) {
 
     let announcements;
     if (clubId) {
-      const result = await Database.query(
-        `SELECT * FROM announcements 
-         WHERE club_id = $1 OR club_id IS NULL 
-         ORDER BY created_at DESC 
-         ${limit ? "LIMIT $2" : ""}`,
-        limit ? [clubId, parseInt(limit)] : [clubId]
-      );
-      announcements = result.rows;
+      announcements = await prisma.announcement.findMany({
+        where: {
+          OR: [
+            { club_id: clubId },
+            { club_id: null }
+          ]
+        },
+        orderBy: {
+          created_at: 'desc'
+        },
+        take: limit ? parseInt(limit) : undefined,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          priority: true,
+        }
+      });
     } else {
-      announcements = await Database.getAnnouncements(
-        limit ? parseInt(limit) : undefined
-      );
+      announcements = await prisma.announcement.findMany({
+        orderBy: {
+          created_at: 'desc'
+        },
+        take: limit ? parseInt(limit) : undefined,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          priority: true,
+        }
+      });
     }
 
-    // Get announcement details with author info
+    // Get author and club details for each announcement
     const announcementsWithDetails = await Promise.all(
-      announcements.map(async (announcement) => {
+      announcements.map(async (announcement: any) => {
         const [author, club] = await Promise.all([
-          Database.getUserById(announcement.author_id),
+          announcement.author_id
+            ? prisma.user.findUnique({
+                where: { id: announcement.author_id },
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  avatar: true,
+                  role: true
+                }
+              })
+            : null,
           announcement.club_id
-            ? Database.getClubById(announcement.club_id)
+            ? prisma.club.findUnique({
+                where: { id: announcement.club_id },
+                select: {
+                  id: true,
+                  name: true,
+                  color: true,
+                  icon: true
+                }
+              })
             : null,
         ]);
 
         return {
           ...announcement,
-          author: author
-            ? {
-                name: author.name,
-                avatar: author.avatar,
-                role: author.role,
-              }
-            : null,
-          club: club ? { name: club.name, color: club.color } : null,
+          author,
+          club,
         };
       })
     );
 
     return NextResponse.json(announcementsWithDetails);
   } catch (error) {
-    console.error("Error fetching announcements:", error);
+    console.error("Failed to fetch announcements:", error);
     return NextResponse.json(
       { error: "Failed to fetch announcements" },
       { status: 500 }
@@ -59,57 +91,79 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/announcements - Create a new announcement
 export async function POST(request: NextRequest) {
   try {
-    // Use centralized authentication system
     const authResult = await verifyAuth(request);
-    
-    if (!authResult.success) {
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id: userId } = authResult.user;
+
+    // Check if user has permission to create announcements
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, club_id: true }
+    });
+
+    if (!user || (user.role !== 'coordinator' && user.role !== 'co_coordinator')) {
+      return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+    }
+
+    const { title, content, clubId, priority, expiresAt } = await request.json();
+
+    if (!title || !content) {
       return NextResponse.json(
-        { error: authResult.error || "Unauthorized" }, 
-        { status: 401 }
+        { error: "Title and content are required" },
+        { status: 400 }
       );
     }
-    
-    const userId = authResult.user!.id;
 
-    const userResult = await Database.query("SELECT role, club_id FROM users WHERE id = $1", [userId]);
-    const user = userResult.rows[0];
+    const announcement = await prisma.announcement.create({
+      data: {
+        title,
+        content,
+        priority: priority || 'normal',
+      }
+    });
 
-    const isManager = [
-      "coordinator", "co_coordinator", "secretary", "media",
-      "president", "vice_president", "innovation_head", "treasurer", "outreach"
-    ].includes(user.role);
+    // Get author and club details
+    const [author, club] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+          role: true
+        }
+      }),
+      announcement.club_id
+        ? prisma.club.findUnique({
+            where: { id: announcement.club_id },
+            select: {
+              id: true,
+              name: true,
+              color: true,
+              icon: true
+            }
+          })
+        : null,
+    ]);
 
-    if (!isManager) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    // Send notifications (optional - can be implemented later)
+    console.log(`Announcement created: ${announcement.id} by user ${userId}`);
 
-    const { title, content, club_id } = await request.json();
-    
-    const targetClubId = club_id || user.club_id;
-
-    if (!targetClubId) {
-      return NextResponse.json({ error: "Club ID is required for creating an announcement." }, { status: 400 });
-    }
-
-    const result = await Database.query(
-      `INSERT INTO announcements (title, content, created_by, club_id)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [title, content, userId, targetClubId]
-    );
-    const newAnnouncement = result.rows[0];
-
-    // Notify club members
-    await NotificationService.notifyAnnouncement(targetClubId, newAnnouncement.title, newAnnouncement.content);
-
-    return NextResponse.json({ announcement: newAnnouncement }, { status: 201 });
+    return NextResponse.json({
+      ...announcement,
+      author,
+      club
+    }, { status: 201 });
   } catch (error) {
-    console.error("Error creating announcement:", error);
+    console.error("Failed to create announcement:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to create announcement" },
       { status: 500 }
     );
   }

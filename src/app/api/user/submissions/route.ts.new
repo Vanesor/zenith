@@ -1,0 +1,144 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/database-consolidated";
+import { verifyAuth } from "@/lib/AuthMiddleware";
+
+export async function GET(request: NextRequest) {
+  try {
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
+
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "50");
+    const offset = parseInt(searchParams.get("offset") || "0");
+    const status = searchParams.get("status"); // 'submitted', 'graded', 'completed'
+
+    // Get user's assignment submissions with assignment details using Prisma
+    const submissions = await prisma.assignmentSubmission.findMany({
+      where: {
+        user_id: userId,
+        status: {
+          in: ['submitted', 'graded', 'completed']
+        },
+        ...(status ? { status } : {})
+      },
+      include: {
+        assignment: {
+          include: {
+            club: {
+              select: { name: true }
+            }
+          }
+        }
+      },
+      orderBy: { completed_at: 'desc' },
+      take: limit,
+      skip: offset
+    });
+
+    // Get summary statistics using Prisma aggregations
+    const totalSubmissions = await prisma.assignmentSubmission.count({
+      where: { 
+        user_id: userId,
+        status: {
+          in: ['submitted', 'graded', 'completed']
+        }
+      }
+    });
+
+    const gradedSubmissions = await prisma.assignmentSubmission.count({
+      where: { 
+        user_id: userId,
+        status: 'graded'
+      }
+    });
+
+    // Get submissions with scores for average calculation
+    const scoredSubmissions = await prisma.assignmentSubmission.findMany({
+      where: {
+        user_id: userId,
+        status: {
+          in: ['submitted', 'graded', 'completed']
+        },
+        total_score: {
+          not: null
+        }
+      },
+      include: {
+        assignment: {
+          select: {
+            max_points: true,
+            passing_score: true
+          }
+        }
+      }
+    });
+
+    // Calculate average score and passed assignments
+    let averageScore = 0;
+    let passedAssignments = 0;
+
+    if (scoredSubmissions.length > 0) {
+      const scores = scoredSubmissions.map(sub => {
+        const percentage = sub.assignment.max_points > 0 
+          ? (sub.total_score! / sub.assignment.max_points) * 100 
+          : 0;
+        
+        if (sub.total_score! >= (sub.assignment.passing_score || 0)) {
+          passedAssignments++;
+        }
+        
+        return percentage;
+      });
+
+      averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    }
+
+    // Transform submissions to match expected format
+    const transformedSubmissions = submissions.map(submission => ({
+      id: submission.id,
+      assignment_id: submission.assignment_id,
+      assignment_title: submission.assignment.title,
+      club_name: submission.assignment.club?.name || 'General',
+      total_score: submission.total_score,
+      max_points: submission.assignment.max_points,
+      status: submission.status,
+      submitted_at: submission.submitted_at?.toISOString(),
+      completed_at: submission.completed_at?.toISOString(),
+      time_spent: submission.time_spent,
+      percentage: submission.assignment.max_points > 0 && submission.total_score !== null
+        ? Math.round((submission.total_score / submission.assignment.max_points) * 100)
+        : null
+    }));
+
+    return NextResponse.json({
+      success: true,
+      submissions: transformedSubmissions,
+      pagination: {
+        limit,
+        offset,
+        total: totalSubmissions
+      },
+      stats: {
+        totalSubmissions,
+        gradedSubmissions,
+        averageScore: Math.round(averageScore * 100) / 100,
+        passedAssignments
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching user submissions:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch user submissions" },
+      { status: 500 }
+    );
+  }
+}

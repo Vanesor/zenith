@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // Helper function to handle errors consistently
@@ -67,7 +67,7 @@ export async function POST(
 
     // Check if assignment exists and is still open
     const assignmentCheck = await Database.query(
-      `SELECT * FROM assignments WHERE id = $1`,
+      `SELECT id, due_date, status FROM assignments WHERE id = $1`,
       [assignmentId]
     );
 

@@ -75,9 +75,9 @@ const getIconComponent = (iconName: string) => {
 const getClubTextColor = (clubName: string) => {
   const clubColors: Record<string, string> = {
     'Ascend': 'text-zenith-primary',    // Blue for ASCEND
-    'Aster': 'text-pink-500',     // Pink for ASTER  
-    'Achievers': 'text-purple-500', // Purple for ACHIEVERS
-    'Altogether': 'text-green-500', // Green for ALTOGETHER
+    'Aster': 'stat-posts',     // Pink for ASTER  
+    'Achievers': 'stat-events', // Purple for ACHIEVERS
+    'Altogether': 'stat-members', // Green for ALTOGETHER
   };
   
   // Find the club by checking if the name contains the key
@@ -237,7 +237,7 @@ export default function ClubPage() {
                 </p>
               </div>
               <div className="text-center">
-                <Calendar className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <Calendar className="w-8 h-8 stat-events mx-auto mb-2" />
                 <p className="text-2xl font-bold text-zenith-primary">
                   {events.length}
                 </p>
@@ -246,7 +246,7 @@ export default function ClubPage() {
                 </p>
               </div>
               <div className="text-center">
-                <MessageSquare className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <MessageSquare className="w-8 h-8 stat-posts mx-auto mb-2" />
                 <p className="text-2xl font-bold text-zenith-primary">
                   {posts.length}
                 </p>
@@ -255,7 +255,7 @@ export default function ClubPage() {
                 </p>
               </div>
               <div className="text-center">
-                <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                <Star className="w-8 h-8 text-zenith-secondary mx-auto mb-2" />
                 <p className="text-2xl font-bold text-zenith-primary">
                   4.8
                 </p>
@@ -335,7 +335,7 @@ export default function ClubPage() {
                     name={club.leadership.coordinator?.name}
                     size="sm"
                   />
-                  <Crown className="w-5 h-5 text-yellow-500" />
+                  <Crown className="w-5 h-5 text-zenith-secondary" />
                   <div>
                     <p className="font-medium text-zenith-primary">
                       {club.leadership.coordinator?.name || "Not assigned"}
@@ -365,7 +365,7 @@ export default function ClubPage() {
                     name={club.leadership.secretary?.name}
                     size="sm"
                   />
-                  <FileText className="w-5 h-5 text-green-500" />
+                  <FileText className="w-5 h-5 stat-members" />
                   <div>
                     <p className="font-medium text-zenith-primary">
                       {club.leadership.secretary?.name || "Not assigned"}
@@ -380,7 +380,7 @@ export default function ClubPage() {
                     name={club.leadership.media?.name}
                     size="sm"
                   />
-                  <Edit className="w-5 h-5 text-purple-500" />
+                  <Edit className="w-5 h-5 stat-events" />
                   <div>
                     <p className="font-medium text-zenith-primary">
                       {club.leadership.media?.name || "Not assigned"}
@@ -438,13 +438,13 @@ export default function ClubPage() {
                   </span>
                 </button>
                 <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
-                  <MessageSquare size={16} className="text-green-600" />
+                  <MessageSquare size={16} className="stat-members" />
                   <span className="text-sm text-zenith-primary">
                     Join Discussion
                   </span>
                 </button>
                 <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
-                  <FileText size={16} className="text-purple-600" />
+                  <FileText size={16} className="stat-posts" />
                   <span className="text-sm text-zenith-primary">
                     View Resources
                   </span>

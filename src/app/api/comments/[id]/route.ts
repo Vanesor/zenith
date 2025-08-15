@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -9,7 +9,7 @@ interface JwtPayload {
 }
 
 // PUT /api/comments/[id] - Update comment
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -20,7 +20,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     const userId = decoded.userId;
 
-    const { id } = params;
+    const { id } = await params;
     const { content } = await request.json();
 
     if (!content) {
@@ -70,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/comments/[id] - Delete comment
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -81,7 +81,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     const userId = decoded.userId;
 
-    const { id } = params;
+    const { id } = await params;
 
     const commentResult = await Database.query(
       "SELECT author_id, created_at FROM comments WHERE id = $1",
@@ -131,9 +131,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 }
 
 // GET /api/comments/[id] - Get single comment (can be used for fetching replies etc)
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const result = await Database.query(
       `

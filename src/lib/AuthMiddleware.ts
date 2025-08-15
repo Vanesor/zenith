@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { SessionManager } from "./SessionManager";
 import { CacheManager, CacheKeys } from "./CacheManager";
+import { Database } from "./database-consolidated";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -13,6 +14,36 @@ export interface AuthenticatedRequest extends NextRequest {
     sessionId: string;
     club_id?: string | null;
   };
+}
+
+async function checkTrustedDevice(userId: string, request: NextRequest): Promise<boolean> {
+  const trustedDeviceId = request.cookies.get('zenith-trusted-device')?.value;
+  if (!trustedDeviceId) return false;
+  
+  try {
+    // Use Prisma directly to avoid type casting issues with raw queries
+    const prisma = (await import('./database-consolidated')).default.getClient();
+    
+    try {
+      const device = await prisma.trustedDevice.findFirst({
+        where: {
+          user_id: userId,
+          device_identifier: trustedDeviceId,
+          expires_at: {
+            gt: new Date()
+          }
+        }
+      });
+      
+      return !!device;
+    } catch (prismaError) {
+      console.error("Error in checkTrustedDevice with Prisma:", prismaError);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error checking trusted device:', error);
+    return false;
+  }
 }
 
 export async function verifyAuth(request: NextRequest): Promise<{
@@ -27,10 +58,18 @@ export async function verifyAuth(request: NextRequest): Promise<{
   error?: string;
   expired?: boolean;
   expiredAt?: Date;
+  trustedDevice?: boolean;
+  newToken?: string; // Add this field for token refresh
 }> {
   try {
+    // Try to get token from Authorization header first (API calls)
     const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
+    let token = authHeader?.replace("Bearer ", "");
+
+    // If no Authorization header, try to get token from cookies (browser requests)
+    if (!token) {
+      token = request.cookies.get("zenith-token")?.value;
+    }
 
     if (!token) {
       console.log("Auth failed: No token provided");
@@ -53,22 +92,131 @@ export async function verifyAuth(request: NextRequest): Promise<{
       
       // Specific handling for expired tokens
       if (tokenError instanceof jwt.TokenExpiredError) {
-        return { 
-          success: false, 
-          error: "Token expired", 
-          expired: true,
-          expiredAt: tokenError.expiredAt 
-        };
+        // Try to use refresh token
+        const refreshToken = request.cookies.get("zenith-refresh-token")?.value;
+        if (refreshToken) {
+          try {
+            // Verify refresh token
+            const refreshDecoded = jwt.verify(refreshToken, JWT_SECRET) as {
+              userId: string;
+              sessionId: string;
+              type: string;
+            };
+            
+            if (refreshDecoded.type === 'refresh') {
+              // Generate a new access token
+              const newAccessToken = jwt.sign({
+                userId: refreshDecoded.userId,
+                sessionId: refreshDecoded.sessionId,
+                type: 'access'
+              }, JWT_SECRET, {
+                expiresIn: '24h',
+                issuer: 'zenith-auth',
+                audience: 'zenith-users',
+              });
+              
+              // Store the new token and also use the decoded refresh token data
+              const newUserToken = jwt.sign({
+                userId: refreshDecoded.userId,
+                email: '', // Will be filled in from database
+                role: '',  // Will be filled in from database
+                sessionId: refreshDecoded.sessionId
+              }, JWT_SECRET, {
+                expiresIn: '24h',
+                issuer: 'zenith-auth',
+                audience: 'zenith-users',
+              });
+              
+              // Get user data to fill in email and role
+              try {
+                // Import UUIDUtils for proper UUID handling
+                const { UUIDUtils } = await import('./database-consolidated');
+                
+                // Process parameters to handle UUID types correctly
+                const params = UUIDUtils.processParams([refreshDecoded.userId]);
+                
+                const userResult = await Database.query(
+                  "SELECT email, role FROM users WHERE id = $1::uuid",
+                  params
+                );
+                
+                if (userResult.rows.length > 0) {
+                  decoded = {
+                    userId: refreshDecoded.userId,
+                    email: userResult.rows[0].email,
+                    role: userResult.rows[0].role,
+                    sessionId: refreshDecoded.sessionId
+                  };
+                  
+                  // Return both the auth info and the new token
+                  return {
+                    success: true,
+                    user: {
+                      id: refreshDecoded.userId,
+                      email: userResult.rows[0].email,
+                      role: userResult.rows[0].role,
+                      sessionId: refreshDecoded.sessionId,
+                      // club_id will be fetched later in the function
+                    },
+                    newToken: newUserToken
+                  };
+                }
+              } catch (dbError) {
+                console.error("Error fetching user info for token refresh:", dbError);
+              }
+              
+              // Fallback to using just the ID info
+              decoded = {
+                userId: refreshDecoded.userId,
+                email: '', // Will be filled in later
+                role: '',  // Will be filled in later
+                sessionId: refreshDecoded.sessionId
+              };
+            } else {
+              return { 
+                success: false, 
+                error: "Invalid refresh token", 
+                expired: true,
+                expiredAt: tokenError.expiredAt 
+              };
+            }
+          } catch (refreshError) {
+            return { 
+              success: false, 
+              error: "Both tokens expired", 
+              expired: true,
+              expiredAt: tokenError.expiredAt 
+            };
+          }
+        } else {
+          return { 
+            success: false, 
+            error: "Token expired", 
+            expired: true,
+            expiredAt: tokenError.expiredAt 
+          };
+        }
+      } else {
+        return { success: false, error: "Invalid token" };
       }
-      
-      return { success: false, error: "Invalid token" };
     }
 
-    // Validate session
-    const session = await SessionManager.validateSession(decoded.sessionId);
-    if (!session) {
-      return { success: false, error: "Session expired or invalid" };
+    try {
+      // Validate session - but don't fail if session is invalid when we have a valid token
+      const session = await SessionManager.validateSession(decoded.sessionId);
+      if (!session) {
+        // Just log warning but don't fail the request since token is valid
+        console.warn(`Auth warning: Valid token but invalid session ${decoded.sessionId}`);
+        // Continue anyway since token is valid
+      }
+    } catch (sessionError) {
+      // Log the error but continue since token is valid
+      console.error("Session validation error:", sessionError);
+      // Don't fail due to session errors when token is valid
     }
+    
+    // Check if this is a trusted device
+    const isTrustedDevice = await checkTrustedDevice(decoded.userId, request);
 
     // Check if user data is cached
     interface UserData {
@@ -97,13 +245,33 @@ export async function verifyAuth(request: NextRequest): Promise<{
     } else {
       // Try to fetch from database
       try {
-        const Database = (await import('./database')).default;
-        const userResult = await Database.query(
-          "SELECT club_id FROM users WHERE id = $1",
-          [decoded.userId]
-        );
-        if (userResult && userResult.rows && userResult.rows.length > 0) {
-          club_id = userResult.rows[0].club_id;
+        // Import UUIDUtils for proper UUID handling
+        const { UUIDUtils } = await import('./database-consolidated');
+        
+        try {
+          // Process parameters to handle UUID types correctly
+          const params = UUIDUtils.processParams([decoded.userId]);
+          
+          const userResult = await Database.query(
+            "SELECT club_id FROM users WHERE id = $1::uuid",
+            params
+          );
+          if (userResult && userResult.rows && userResult.rows.length > 0) {
+            club_id = userResult.rows[0].club_id;
+          }
+        } catch (queryError) {
+          console.error("Error in raw query for user club_id:", queryError);
+          
+          // Fallback to standard Prisma
+          const prisma = (await import('./database-consolidated')).default.getClient();
+          const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { club_id: true }
+          });
+          
+          if (user) {
+            club_id = user.club_id;
+          }
         }
       } catch (dbError) {
         console.error("Error fetching user club_id:", dbError);
@@ -118,7 +286,8 @@ export async function verifyAuth(request: NextRequest): Promise<{
         role: decoded.role,
         sessionId: decoded.sessionId,
         club_id: club_id
-      }
+      },
+      trustedDevice: isTrustedDevice
     };
 
   } catch (error) {

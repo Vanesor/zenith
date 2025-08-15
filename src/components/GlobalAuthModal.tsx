@@ -118,7 +118,7 @@ const GlobalAuthModal = () => {
               className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800 
                          hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
-              <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <X className="w-4 h-4 text-zenith-muted" />
             </button>
             
             <div className="text-center">
@@ -126,10 +126,10 @@ const GlobalAuthModal = () => {
                               rounded-full flex items-center justify-center mb-4">
                 <Shield className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-2xl font-bold text-zenith-primary">
                 {isLogin ? 'Welcome Back' : 'Join Zenith'}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-zenith-muted mt-1">
                 {authModalReason}
               </p>
             </div>
@@ -140,9 +140,9 @@ const GlobalAuthModal = () => {
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="flex flex-col items-center p-2">
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-1">
-                  <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <Zap className="w-4 h-4 text-zenith-primary" />
                 </div>
-                <span className="text-xs text-gray-600 dark:text-gray-300">Code Playground</span>
+                <span className="text-xs text-zenith-muted">Code Playground</span>
               </div>
               <div className="flex flex-col items-center p-2">
                 <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-1">

@@ -1,4 +1,4 @@
-import Database from './database';
+import PrismaDB, { prisma, Database } from './database-consolidated';
 import crypto from 'crypto';
 
 interface DeviceInfo {
@@ -132,7 +132,7 @@ export class TrustedDeviceService {
         [userId]
       );
       
-      return result.rows.map(row => ({
+      return result.rows.map((row: any) => ({
         id: row.id,
         deviceName: row.device_name,
         deviceType: row.device_type,
@@ -189,7 +189,7 @@ export class TrustedDeviceService {
         [userId]
       );
       
-      const count = result.rowCount || 0;
+      const count = result.rows.length;
       
       // Log security event
       if (count > 0) {
@@ -219,7 +219,7 @@ export class TrustedDeviceService {
         [userId]
       );
       
-      return result.rows.map(session => {
+      return result.rows.map((session: any) => {
         // Parse device info to more readable format
         let deviceName = 'Unknown Device';
         let browser = 'Unknown Browser';
@@ -300,7 +300,7 @@ export class TrustedDeviceService {
         [userId, currentSessionId]
       );
       
-      const count = result.rowCount || 0;
+      const count = result.rows.length;
       
       // Log security event
       if (count > 0) {

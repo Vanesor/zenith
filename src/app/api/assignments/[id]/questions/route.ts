@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 
@@ -9,10 +9,11 @@ import { verifyAuth } from "@/lib/AuthMiddleware";
 // GET /api/assignments/[id]/questions - Get questions for an assignment
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const assignmentId = params.id;
+    const { id } = await params;
+    const assignmentId = id;
     
     // Verify authentication using centralized AuthMiddleware
     const authResult = await verifyAuth(request);
@@ -116,38 +117,53 @@ export async function GET(
 
     const questionsResult = await Database.query(questionsQuery, [assignmentId]);
     
-    // Get options for multiple choice questions
-    // Note: We don't include isCorrect for students
-    const options = await Promise.all(
-      questionsResult.rows.map(async question => {
-        if (question.questionType === 'single_choice' || question.questionType === 'multiple_choice') {
-          let optionsQuery = `
-            SELECT 
-              id,
-              option_text as "optionText",
-              ordering
-          `;
-          
-          // Only show correct answers to instructors
-          if (isInstructor) {
-            optionsQuery += `, is_correct as "isCorrect"`;
-          }
-          
-          optionsQuery += `
-            FROM question_options
-            WHERE question_id = $1
-            ORDER BY ordering ASC
-          `;
-          
-          const optionsResult = await Database.query(optionsQuery, [question.id]);
-          return { ...question, options: optionsResult.rows };
+    // Get options for multiple choice questions - OPTIMIZED to avoid N+1
+    const questionIds = questionsResult.rows
+      .filter(q => q.questionType === 'single_choice' || q.questionType === 'multiple_choice')
+      .map(q => q.id);
+
+    let optionsMap = new Map();
+    if (questionIds.length > 0) {
+      let optionsQuery = `
+        SELECT 
+          question_id,
+          id,
+          option_text as "optionText",
+          ordering
+      `;
+      
+      // Only show correct answers to instructors
+      if (isInstructor) {
+        optionsQuery += `, is_correct as "isCorrect"`;
+      }
+      
+      optionsQuery += `
+        FROM question_options
+        WHERE question_id = ANY($1)
+        ORDER BY question_id, ordering ASC
+      `;
+      
+      const allOptionsResult = await Database.query(optionsQuery, [questionIds]);
+      
+      // Group options by question_id
+      allOptionsResult.rows.forEach(option => {
+        if (!optionsMap.has(option.question_id)) {
+          optionsMap.set(option.question_id, []);
         }
-        return question;
-      })
-    );
+        optionsMap.get(option.question_id).push(option);
+      });
+    }
+
+    // Attach options to questions
+    const options = questionsResult.rows.map(question => {
+      if (question.questionType === 'single_choice' || question.questionType === 'multiple_choice') {
+        return { ...question, options: optionsMap.get(question.id) || [] };
+      }
+      return question;
+    });
 
     // If shuffle is enabled and user is a student, shuffle the questions
-    let questionsToReturn = options;
+    const questionsToReturn = options;
     if (assignment.shuffle_questions && !isInstructor) {
       // Fisher-Yates shuffle algorithm
       for (let i = questionsToReturn.length - 1; i > 0; i--) {
@@ -161,10 +177,10 @@ export async function GET(
     }
 
     return NextResponse.json(questionsToReturn);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching assignment questions:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }

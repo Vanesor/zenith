@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import Database from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 import { generateToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
@@ -30,19 +30,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the user details to create a full session
-    const userResult = await Database.query(
-      "SELECT * FROM users WHERE id = $1",
-      [userId]
-    );
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
 
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
-
-    const user = userResult.rows[0];
 
     // Create a JWT token for the authenticated session
     const token = generateToken({

@@ -143,7 +143,7 @@ export default function ClubPage() {
           </h1>
           <Link
             href="/dashboard"
-            className="text-zenith-primary dark:text-blue-400 hover:underline"
+            className="text-zenith-primary hover:underline"
           >
             Back to Dashboard
           </Link>
@@ -208,7 +208,7 @@ export default function ClubPage() {
                 </p>
               </div>
               <div className="text-center">
-                <Calendar className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <Calendar className="w-8 h-8 stat-events mx-auto mb-2" />
                 <p className="text-2xl font-bold text-zenith-primary dark:text-white">
                   {events.length}
                 </p>
@@ -217,7 +217,7 @@ export default function ClubPage() {
                 </p>
               </div>
               <div className="text-center">
-                <MessageSquare className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <MessageSquare className="w-8 h-8 stat-posts mx-auto mb-2" />
                 <p className="text-2xl font-bold text-zenith-primary dark:text-white">
                   {posts.length}
                 </p>
@@ -226,7 +226,7 @@ export default function ClubPage() {
                 </p>
               </div>
               <div className="text-center">
-                <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                <Star className="w-8 h-8 text-zenith-secondary mx-auto mb-2" />
                 <p className="text-2xl font-bold text-zenith-primary dark:text-white">
                   4.8
                 </p>
@@ -364,8 +364,8 @@ export default function ClubPage() {
                         {event.title}
                       </h3>
                       <p className="text-xs text-zenith-secondary dark:text-zenith-muted mt-1">
-                        {new Date(event.event_date).toLocaleDateString()} at{" "}
-                        {event.event_time}
+                        {new Date(event.date).toLocaleDateString()} at{" "}
+                        {event.time}
                       </p>
                       <p className="text-xs text-zenith-muted dark:text-zenith-muted">
                         {event.location}

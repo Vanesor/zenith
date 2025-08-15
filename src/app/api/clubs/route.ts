@@ -1,35 +1,97 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { prisma } from "@/lib/database-consolidated";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = searchParams.get("limit");
+    const limitParam = searchParams.get("limit");
+    const limit = limitParam ? parseInt(limitParam) : undefined;
 
-    const clubs = await Database.getAllClubs();
+    // Get clubs with basic info
+    const clubs = await prisma.club.findMany({
+      orderBy: {
+        created_at: 'desc'
+      },
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        created_at: true,
+        logo_url: true,
+        banner_image_url: true,
+        type: true,
+        icon: true,
+        color: true,
+        member_count: true
+      }
+    });
 
-    // Get member counts for each club
+    // Get member counts and other stats for each club
     const clubsWithStats = await Promise.all(
       clubs.map(async (club) => {
-        const members = await Database.getClubMembers(club.id);
-        const events = await Database.getEventsByClub(club.id);
-        const posts = await Database.getPostsByClub(club.id);
-        const leadership = await Database.getClubLeadership(club.id);
+        // Get member count
+        const memberCount = await prisma.user.count({
+          where: { club_id: club.id }
+        });
+
+        // Get upcoming event count
+        const eventCount = await prisma.event.count({
+          where: {
+            club_id: club.id,
+            event_date: {
+              gte: new Date()
+            }
+          }
+        });
+
+        // Get post count (assuming posts table exists with club_id)
+        let postCount = 0;
+        try {
+          postCount = await prisma.post.count({
+            where: { club_id: club.id }
+          });
+        } catch (error) {
+          // Posts table might not exist or might not have club_id
+          console.log('Could not fetch post count for club:', club.id);
+        }
+
+        // Get leadership info
+        let leadership: any[] = [];
+        try {
+          leadership = await prisma.user.findMany({
+            where: {
+              club_id: club.id,
+              role: {
+                in: [
+                  'coordinator', 'co_coordinator', 'secretary', 'media',
+                  'president', 'vice_president', 'innovation_head', 'treasurer', 'outreach'
+                ]
+              }
+            },
+            select: {
+              id: true,
+              name: true,
+              role: true,
+              avatar: true
+            },
+            orderBy: {
+              role: 'asc'
+            }
+          });
+        } catch (error) {
+          console.log('Could not fetch leadership for club:', club.id);
+        }
 
         return {
           ...club,
-          memberCount: members.length,
-          eventCount: events.filter((e) => new Date(e.date) >= new Date())
-            .length,
-          postCount: posts.length,
+          memberCount,
+          eventCount,
+          postCount,
           leadership,
         };
       })
     );
-
-    if (limit) {
-      return NextResponse.json(clubsWithStats.slice(0, parseInt(limit)));
-    }
 
     return NextResponse.json(clubsWithStats);
   } catch (error) {

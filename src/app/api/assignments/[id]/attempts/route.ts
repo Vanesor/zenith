@@ -1,12 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { verifyAuth } from '@/lib/AuthMiddleware';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/database-consolidated";
+import { Database } from "@/lib/database-consolidated";
+import { verifyAuth } from "@/lib/AuthMiddleware";
+import { FastAuth } from '@/lib/FastAuth';
 
-// Initialize PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://zenith_user:zenith_password@localhost:5432/zenith_db'
-});
-
+// Define interface for attempt row
+interface AttemptRow {
+  id: string;
+  attempt_number: number;
+  start_time: string;
+  end_time: string | null;
+  score: number | null;
+  status: string;
+  answers: string | object;
+  violations: string | object;
+  submitted_at: string | null;
+}
 
 export async function GET(
   request: NextRequest,
@@ -27,54 +36,33 @@ export async function GET(
     const userId = authResult.user!.id;
 
     // Get user details
-    const userQuery = 'SELECT id, email, name FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, [userId]);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true }
+    });
     
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const user = userResult.rows[0];
-
     // Get user's attempts for this assignment
-    const attemptsQuery = `
-      SELECT 
-        id, attempt_number, start_time, end_time, score, status, 
-        answers, violations, submitted_at
-      FROM assignment_attempts 
-      WHERE assignment_id = $1 AND user_id = $2
-      ORDER BY attempt_number DESC
-    `;
-    
-    const attemptsResult = await pool.query(attemptsQuery, [assignmentId, user.id]);
-    
-    const attempts = attemptsResult.rows.map(attempt => {
-      // Safe JSON parsing with fallback
-      const parseJsonSafely = (value: any, fallback: any) => {
-        if (!value) return fallback;
-        if (typeof value === 'object') return value;
-        if (typeof value === 'string') {
-          try {
-            return JSON.parse(value);
-          } catch (e) {
-            console.warn('Failed to parse JSON:', value);
-            return fallback;
-          }
-        }
-        return fallback;
-      };
-
-      return {
-        id: attempt.id,
-        attemptNumber: attempt.attempt_number,
-        startTime: attempt.start_time.toISOString(),
-        endTime: attempt.end_time ? attempt.end_time.toISOString() : null,
-        score: attempt.score,
-        status: attempt.status,
-        answers: parseJsonSafely(attempt.answers, {}),
-        violations: parseJsonSafely(attempt.violations, []),
-        submittedAt: attempt.submitted_at ? attempt.submitted_at.toISOString() : null
-      };
+    const attempts = await prisma.assignmentAttempt.findMany({
+      where: { 
+        assignment_id: assignmentId, 
+        user_id: user.id 
+      },
+      orderBy: { attempt_number: 'desc' },
+      select: {
+        id: true,
+        attempt_number: true,
+        start_time: true,
+        end_time: true,
+        score: true,
+        status: true,
+        answers: true,
+        violations: true,
+        submitted_at: true
+      }
     });
 
     return NextResponse.json({ attempts });
@@ -86,49 +74,53 @@ export async function GET(
 }
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
-    const assignmentId = params.id;
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const token = authHeader.replace('Bearer ', '');
     const { attemptId, answers, violation } = await request.json();
     
-    // Get user from token (simplified - in production, verify JWT properly)
-    const userQuery = 'SELECT id, email, name FROM users WHERE id = $1';
-    const userResult = await pool.query(userQuery, [1]); // Replace with actual token verification
+    // Extract and verify the token
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = FastAuth.verifyToken(token);
     
-    if (userResult.rows.length === 0) {
+    if (!decoded || !decoded.userId) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    
+    // Get user details using the verified userId
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, email: true, name: true }
+    });
+    
+    if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
-
-    const user = userResult.rows[0];
 
     // Update attempt with new answers or violations
     if (violation) {
       // Add violation
       const getAttemptQuery = 'SELECT violations FROM assignment_attempts WHERE id = $1 AND user_id = $2';
-      const attemptResult = await pool.query(getAttemptQuery, [attemptId, user.id]);
+      const attemptResult = await Database.query(getAttemptQuery, [attemptId, user.id]);
       
       if (attemptResult.rows.length === 0) {
         return NextResponse.json({ error: 'Attempt not found' }, { status: 404 });
       }
 
       // Safe JSON parsing with fallback
-      const parseJsonSafely = (value: any, fallback: any) => {
+      const parseJsonSafely = (value: unknown, fallback: unknown) => {
         if (!value) return fallback;
         if (typeof value === 'object') return value;
         if (typeof value === 'string') {
           try {
             return JSON.parse(value);
-          } catch (e) {
-            console.warn('Failed to parse JSON:', value);
+          } catch (error) {
+            console.warn('Failed to parse JSON:', value, error);
             return fallback;
           }
         }
@@ -148,28 +140,18 @@ export async function POST(
         WHERE id = $3 AND user_id = $4
       `;
       
-      await pool.query(updateViolationsQuery, [
-        JSON.stringify(updatedViolations),
-        new Date(),
-        attemptId,
-        user.id
-      ]);
+      await prisma.assignmentAttempt.update({
+        where: { id: attemptId },
+        data: { violations: updatedViolations as any }
+      });
 
       return NextResponse.json({ success: true, violations: updatedViolations });
     } else if (answers) {
       // Save progress
-      const updateAnswersQuery = `
-        UPDATE assignment_attempts 
-        SET answers = $1, updated_at = $2
-        WHERE id = $3 AND user_id = $4
-      `;
-      
-      await pool.query(updateAnswersQuery, [
-        JSON.stringify(answers),
-        new Date(),
-        attemptId,
-        user.id
-      ]);
+      await prisma.assignmentAttempt.update({
+        where: { id: attemptId },
+        data: { answers: answers as any }
+      });
 
       return NextResponse.json({ success: true });
     }

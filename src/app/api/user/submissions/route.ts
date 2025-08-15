@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
-import Database from "@/lib/database";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,103 +20,126 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0");
     const status = searchParams.get("status"); // 'submitted', 'graded', 'completed'
 
-    // Base query to get user's assignment submissions
-    let query = `
-      SELECT 
-        s.id,
-        s.assignment_id as "assignmentId",
-        a.title,
-        a.description,
-        a.max_points as "maxPoints",
-        s.total_score as "score",
-        s.completed_at as "submittedAt",
-        s.time_spent as "timeSpent",
-        s.status,
-        s.violation_count as "violationCount",
-        s.auto_submitted as "autoSubmitted",
-        COALESCE(c.name, 'General') as "clubName",
-        CASE 
-          WHEN s.total_score IS NOT NULL AND a.max_points > 0 
-          THEN ROUND((s.total_score::decimal / a.max_points::decimal) * 100, 2)
-          ELSE 0
-        END as "percentage",
-        CASE 
-          WHEN s.total_score IS NOT NULL AND a.passing_score > 0 
-          THEN s.total_score >= a.passing_score
-          ELSE false
-        END as "isPassing",
-        a.passing_score as "passingScore",
-        COUNT(aq.id) as "totalQuestions"
-      FROM assignment_submissions s
-      JOIN assignments a ON s.assignment_id = a.id
-      LEFT JOIN clubs c ON a.club_id = c.id
-      LEFT JOIN assignment_questions aq ON a.id = aq.assignment_id
-      WHERE s.user_id = $1
-    `;
+    // Get user's assignment submissions with assignment details using Prisma
+    const submissions = await prisma.assignmentSubmission.findMany({
+      where: {
+        user_id: userId,
+        status: {
+          in: ['submitted', 'graded', 'completed']
+        },
+        ...(status ? { status } : {})
+      },
+      include: {
+        assignment: {
+          include: {
+            club: {
+              select: { name: true }
+            }
+          }
+        }
+      },
+      orderBy: { completed_at: 'desc' },
+      take: limit,
+      skip: offset
+    });
 
-    const queryParams = [userId];
-    let paramIndex = 2;
+    // Get summary statistics using Prisma aggregations
+    const totalSubmissions = await prisma.assignmentSubmission.count({
+      where: { 
+        user_id: userId,
+        status: {
+          in: ['submitted', 'graded', 'completed']
+        }
+      }
+    });
 
-    // Add status filter if provided
-    if (status) {
-      query += ` AND s.status = $${paramIndex}`;
-      queryParams.push(status);
-      paramIndex++;
+    const gradedSubmissions = await prisma.assignmentSubmission.count({
+      where: { 
+        user_id: userId,
+        status: 'graded'
+      }
+    });
+
+    // Get submissions with scores for average calculation
+    const scoredSubmissions = await prisma.assignmentSubmission.findMany({
+      where: {
+        user_id: userId,
+        status: {
+          in: ['submitted', 'graded', 'completed']
+        },
+        total_score: {
+          not: null
+        }
+      },
+      include: {
+        assignment: {
+          select: {
+            max_points: true,
+            passing_score: true
+          }
+        }
+      }
+    });
+
+    // Calculate average score and passed assignments
+    let averageScore = 0;
+    let passedAssignments = 0;
+
+    if (scoredSubmissions.length > 0) {
+      const scores = scoredSubmissions.map(sub => {
+        if (!sub.assignment) return 0;
+        
+        const percentage = (sub.assignment.max_points && sub.assignment.max_points > 0) 
+          ? (sub.total_score! / sub.assignment.max_points) * 100 
+          : 0;
+        
+        if (sub.total_score! >= (sub.assignment.passing_score || 0)) {
+          passedAssignments++;
+        }
+        
+        return percentage;
+      });
+
+      averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     }
 
-    query += `
-      GROUP BY s.id, a.id, c.name
-      ORDER BY s.completed_at DESC 
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-    
-    queryParams.push(limit.toString(), (offset).toString());
-
-    const result = await Database.query(query, queryParams);
-
-    // Also get summary statistics
-    const statsQuery = `
-      SELECT 
-        COUNT(*) as "totalSubmissions",
-        COUNT(CASE WHEN s.status = 'graded' THEN 1 END) as "gradedSubmissions",
-        COALESCE(AVG(CASE WHEN s.total_score IS NOT NULL AND a.max_points > 0 
-          THEN (s.total_score::decimal / a.max_points::decimal) * 100 END), 0) as "averageScore",
-        COUNT(CASE WHEN s.total_score >= a.passing_score THEN 1 END) as "passedAssignments"
-      FROM assignment_submissions s
-      JOIN assignments a ON s.assignment_id = a.id
-      WHERE s.user_id = $1 AND s.status IN ('submitted', 'graded', 'completed')
-    `;
-
-    const statsResult = await Database.query(statsQuery, [userId]);
-    const stats = statsResult.rows[0] || {
-      totalSubmissions: 0,
-      gradedSubmissions: 0,
-      averageScore: 0,
-      passedAssignments: 0
-    };
+    // Transform submissions to match expected format
+    const transformedSubmissions = submissions.map(submission => ({
+      id: submission.id,
+      assignment_id: submission.assignment_id,
+      assignment_title: submission.assignment?.title || 'Unknown Assignment',
+      club_name: submission.assignment?.club?.name || 'General',
+      total_score: submission.total_score,
+      max_points: submission.assignment?.max_points || 0,
+      status: submission.status,
+      submitted_at: submission.submitted_at?.toISOString(),
+      completed_at: submission.completed_at?.toISOString(),
+      time_spent: submission.time_spent,
+      percentage: (submission.assignment?.max_points && submission.assignment.max_points > 0 && submission.total_score !== null)
+        ? Math.round((submission.total_score / submission.assignment.max_points) * 100)
+        : null
+    }));
 
     return NextResponse.json({
-      submissions: result.rows,
-      stats: {
-        totalSubmissions: parseInt(stats.totalSubmissions),
-        gradedSubmissions: parseInt(stats.gradedSubmissions),
-        averageScore: parseFloat(stats.averageScore || 0).toFixed(1),
-        passedAssignments: parseInt(stats.passedAssignments),
-        passRate: stats.totalSubmissions > 0 
-          ? ((parseInt(stats.passedAssignments) / parseInt(stats.totalSubmissions)) * 100).toFixed(1)
-          : "0"
-      },
+      success: true,
+      submissions: transformedSubmissions,
       pagination: {
         limit,
         offset,
-        hasMore: result.rows.length === limit
+        total: totalSubmissions
+      },
+      stats: {
+        totalSubmissions,
+        gradedSubmissions,
+        averageScore: Math.round(averageScore * 100) / 100,
+        passedAssignments
       }
     });
 
   } catch (error) {
     console.error("Error fetching user submissions:", error);
     return NextResponse.json(
-      { error: "Failed to fetch submissions" },
+      { error: "Failed to fetch user submissions" },
       { status: 500 }
     );
   }

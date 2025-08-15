@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
-import Database, { Post, Comment } from "@/lib/database";
+import { Database } from "@/lib/database-consolidated";
 
 export async function GET() {
   try {
-    const posts: Post[] = await Database.getAllPosts();
+    const posts = await Database.getAllPosts() as any[];
 
     // Get posts with club details and author info
     const postsWithDetails = await Promise.all(
-      posts.map(async (post: Post) => {
+      posts.map(async (post: any) => {
         const [club, author] = await Promise.all([
           Database.getClubById(post.club_id),
           Database.getUserById(post.author_id),
         ]);
 
-        const comments: Comment[] = await Database.getCommentsByPost(post.id);
+        const comments: any[] = await Database.getCommentsByPost(post.id);
 
         return {
           ...post,

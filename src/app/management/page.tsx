@@ -360,7 +360,7 @@ export default function ManagementDashboard() {
                   {stats.activeEvents}
                 </p>
               </div>
-              <Calendar className="w-8 h-8 text-green-600" />
+              <Calendar className="w-8 h-8 stat-events" />
             </div>
           </div>
           <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
@@ -373,7 +373,7 @@ export default function ManagementDashboard() {
                   {stats.totalPosts}
                 </p>
               </div>
-              <FileText className="w-8 h-8 text-purple-600" />
+              <FileText className="w-8 h-8 stat-posts" />
             </div>
           </div>
           <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
@@ -386,7 +386,7 @@ export default function ManagementDashboard() {
                   {stats.totalAssignments}
                 </p>
               </div>
-              <BookOpen className="w-8 h-8 text-orange-600" />
+              <BookOpen className="w-8 h-8 stat-posts" />
             </div>
           </div>
         </div>
@@ -474,7 +474,7 @@ export default function ManagementDashboard() {
               </h2>
               <Link
                 href="/management/events"
-                className="text-zenith-primary dark:text-blue-400 hover:underline text-sm"
+                className="text-zenith-primary hover:underline text-sm"
               >
                 View All
               </Link>
@@ -492,7 +492,7 @@ export default function ManagementDashboard() {
                     <div className="flex space-x-2">
                       <Link
                         href={`/events/${event.id}`}
-                        className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90"
+                        className="text-zenith-primary hover:text-zenith-primary/90"
                       >
                         <Eye size={16} />
                       </Link>
@@ -504,7 +504,7 @@ export default function ManagementDashboard() {
                       </Link>
                       <button
                         onClick={() => handleDeleteEvent(event.id, event.title)}
-                        className="text-red-600 dark:text-red-400 hover:text-red-800"
+                        className="stat-danger hover:opacity-80"
                         title={
                           !canEdit(
                             event.created_at || new Date().toISOString()
@@ -522,7 +522,7 @@ export default function ManagementDashboard() {
                   </p>
                   <div className="flex items-center justify-between text-xs text-zenith-muted">
                     <span>
-                      {event.event_date} at {event.event_time}
+                      {event.date} at {event.time}
                     </span>
                     <span>{event.attendeeCount} attendees</span>
                   </div>
@@ -539,7 +539,7 @@ export default function ManagementDashboard() {
               </h2>
               <Link
                 href="/management/posts"
-                className="text-zenith-primary dark:text-blue-400 hover:underline text-sm"
+                className="text-zenith-primary hover:underline text-sm"
               >
                 View All
               </Link>
@@ -557,7 +557,7 @@ export default function ManagementDashboard() {
                     <div className="flex space-x-2">
                       <Link
                         href={`/posts/${post.id}`}
-                        className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90"
+                        className="text-zenith-primary hover:text-zenith-primary/90"
                       >
                         <Eye size={16} />
                       </Link>
@@ -615,7 +615,7 @@ export default function ManagementDashboard() {
               </h2>
               <Link
                 href="/management/announcements"
-                className="text-zenith-primary dark:text-blue-400 hover:underline text-sm"
+                className="text-zenith-primary hover:underline text-sm"
               >
                 View All
               </Link>
@@ -630,10 +630,10 @@ export default function ManagementDashboard() {
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${
                         announcement.priority === "high"
-                          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                          ? "bg-zenith-section stat-danger"
                           : announcement.priority === "medium"
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                          ? "bg-zenith-section stat-warning"
+                          : "bg-zenith-section stat-members"
                       }`}
                     >
                       {announcement.priority}

@@ -57,8 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Then check server-side session (most reliable)
         if (sessionCookie || storedToken) {
           try {
-            // Fetch current user from API
-            const response = await fetch("/api/auth/check");
+            // Fetch current user from API - include credentials to send cookies
+            const response = await fetch("/api/auth/check", {
+              credentials: 'include', // Important to include cookies in the request
+              headers: storedToken ? {
+                Authorization: `Bearer ${storedToken}`
+              } : {}
+            });
+            
             if (response.ok) {
               const data = await response.json();
               if (data.authenticated && data.user) {

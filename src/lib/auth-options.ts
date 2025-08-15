@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import Database from "@/lib/database";
+import { Database } from "@/lib/database-consolidated";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 

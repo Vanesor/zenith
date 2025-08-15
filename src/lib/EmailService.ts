@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { Database } from './database-consolidated';
 
 export type EmailOptions = {
   to: string;
@@ -46,7 +47,6 @@ class EmailService {
       
       // Log the email in database
       try {
-        const { default: Database } = await import('./database');
         await Database.query(
           `INSERT INTO email_logs (recipient, subject, content_preview, status, message_id, category, related_id)
            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -67,7 +67,6 @@ class EmailService {
       
       // Try to log the failed email
       try {
-        const { default: Database } = await import('./database');
         await Database.query(
           `INSERT INTO email_logs (recipient, subject, content_preview, status)
            VALUES ($1, $2, $3, $4)`,

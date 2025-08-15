@@ -1,7 +1,24 @@
 import React from "react";
 import Link from "next/link";
-import { Post } from "@/shared/types";
-import { formatDate, truncateText } from "@/shared/utils";
+// Simple Post interface for component
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  author: { username: string };
+  created_at: string;
+  createdAt: string;
+  category: { name: string; color: string };
+  tags: string[];
+  likes: number;
+  comment_count: number;
+  isPinned: boolean;
+  isLocked: boolean;
+}
+
+// Simple utility functions
+const formatDate = (date: string) => new Date(date).toLocaleDateString();
+const truncateText = (text: string, limit: number = 150) => text.length > limit ? text.substring(0, limit) + '...' : text;
 
 interface PostCardProps {
   post: Post;
@@ -114,12 +131,12 @@ export const PostCard: React.FC<PostCardProps> = ({
         {(post.isPinned || post.isLocked) && (
           <div className="flex items-center space-x-2">
             {post.isPinned && (
-              <span className="text-yellow-500" title="Pinned">
+              <span className="text-zenith-secondary" title="Pinned">
                 📌
               </span>
             )}
             {post.isLocked && (
-              <span className="text-red-500" title="Locked">
+              <span className="text-zenith-secondary" title="Locked">
                 🔒
               </span>
             )}

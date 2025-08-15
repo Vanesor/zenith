@@ -1,14 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import Database from "@/lib/database";
+import { prisma, Database } from "@/lib/database-consolidated";
 import { verifyAuth } from "@/lib/AuthMiddleware";
+
+// Define interfaces for database rows
+interface QuestionRow {
+  id: string;
+  title: string;
+  description?: string;
+  question_text?: string;
+  question_type: string;
+  marks?: number;
+  points?: number;
+  time_limit?: number;
+  code_language?: string;
+  code_template?: string;
+  starter_code?: string;
+  test_cases?: unknown;
+  expected_output?: string;
+  solution?: string;
+  options?: unknown;
+  correct_answer?: unknown;
+  question_order?: number;
+  ordering?: number;
+  allowed_languages?: unknown;
+  allow_any_language?: boolean;
+  explanation?: string;
+}
 
 // Get a single assignment with all details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: assignmentId } = params;
+    const { id: assignmentId } = await params;
     
     // Verify authentication
     const authResult = await verifyAuth(request);
@@ -19,8 +44,6 @@ export async function GET(
         { status: 401 }
       );
     }
-    
-    const requestingUserId = authResult.user!.id;
     
     // Get assignment details
     const assignmentQuery = `
@@ -42,9 +65,14 @@ export async function GET(
     
     const assignment = assignmentResult.rows[0];
     
-    // Get assignment questions
+    // Get assignment questions - optimized to select only needed columns
     const questionsQuery = `
-      SELECT * FROM assignment_questions
+      SELECT 
+        id, title, description, question_text, question_type, 
+        marks, points, difficulty_level, explanation, hints, 
+        question_order, sample_input, sample_output, test_cases, 
+        coding_language, starter_code, solution, created_at, updated_at
+      FROM assignment_questions
       WHERE assignment_id = $1
       ORDER BY question_order
     `;
@@ -87,25 +115,28 @@ export async function GET(
       autoSubmitOnViolation: assignment.auto_submit_on_violation,
       maxViolations: assignment.max_violations,
       codeEditorSettings: assignment.code_editor_settings,
-      questions: questions.map((q: any) => ({
-        id: q.id,
-        title: q.title,
-        description: q.description || q.question_text,
-        questionType: q.question_type,
-        marks: q.marks || q.points,
-        timeLimit: q.time_limit,
-        codeLanguage: q.code_language,
-        codeTemplate: q.code_template || q.starter_code,
-        testCases: q.test_cases,
-        expectedOutput: q.expected_output,
-        solution: q.solution,
-        options: q.options,
-        correctAnswer: q.correct_answer,
-        questionOrder: q.question_order || q.ordering,
-        allowedLanguages: q.allowed_languages,
-        allowAnyLanguage: q.allow_any_language,
-        explanation: q.explanation
-      }))
+      questions: questions.map((q: unknown) => {
+        const question = q as QuestionRow;
+        return {
+          id: question.id,
+          title: question.title,
+          description: question.description || question.question_text,
+          questionType: question.question_type,
+          marks: question.marks || question.points,
+          timeLimit: question.time_limit,
+          codeLanguage: question.code_language,
+          codeTemplate: question.code_template || question.starter_code,
+          testCases: question.test_cases,
+          expectedOutput: question.expected_output,
+          solution: question.solution,
+          options: question.options,
+          correctAnswer: question.correct_answer,
+          questionOrder: question.question_order || question.ordering,
+          allowedLanguages: question.allowed_languages,
+          allowAnyLanguage: question.allow_any_language,
+          explanation: question.explanation
+        };
+      })
     };
     
     return NextResponse.json(formattedAssignment);
@@ -119,10 +150,10 @@ export async function GET(
 // Update an assignment
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: assignmentId } = params;
+    const { id: assignmentId } = await params;
     
     // Verify authentication
     const authResult = await verifyAuth(request);
@@ -337,10 +368,10 @@ export async function PUT(
 // Delete an assignment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: assignmentId } = params;
+    const { id: assignmentId } = await params;
     
     // Verify authentication
     const authResult = await verifyAuth(request);

@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database";
+import { Database } from "@/lib/database-consolidated";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET /api/events/[id]/details
-export async function GET(request: NextRequest, { params }: Props) {
+export async function GET(
+  request: NextRequest,
+  { params }: Props
+) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Get event with details
     const eventQuery = `
@@ -75,7 +78,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 // PUT /api/events/[id]/details - Update event details
 export async function PUT(request: NextRequest, { params }: Props) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const {
       guidelines,
       prerequisites,

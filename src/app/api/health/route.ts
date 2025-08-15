@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { checkDatabaseHealth } from "@/lib/database";
-import { DatabaseRouter } from "@/lib/DatabaseRouter";
+import { checkDatabaseHealth } from "@/lib/database-consolidated";
+import PrismaDB from "@/lib/database-consolidated";
 import { CacheManager } from "@/lib/CacheManager";
-import { SessionManager } from "@/lib/SessionManager";
+import { MonitoringService } from "@/lib/MonitoringService";
 import { WebSocketManager } from "@/lib/WebSocketManager";
 
 export async function GET() {
@@ -13,22 +13,21 @@ export async function GET() {
     const dbHealthy = await checkDatabaseHealth();
     const dbResponseTime = Date.now() - startTime;
     
-    // Check database router stats
-    const dbStats = DatabaseRouter.getStats();
-    const dbRouterHealth = await DatabaseRouter.healthCheck();
+    // Check consolidated database health
+    const prismaHealthy = await PrismaDB.isHealthy();
+    const prismaResponseTime = Date.now() - startTime;
 
-    // Check cache connection
+    // Check cache connection  
     const cacheStats = await CacheManager.getStats();
-    const cacheHealthy = cacheStats?.connected || false;
+    const cacheHealthy = cacheStats ? true : false;
 
     // Check session manager
-    const sessionStats = SessionManager.getStats();
+    const monitoringService = MonitoringService.getInstance();
+    const systemStats = await monitoringService.getSystemStats();
+    const sessionStats = systemStats.sessions;
     
-    // Check WebSocket stats
-    const wsStats = WebSocketManager.getStats();
-
     // Overall health status
-    const isHealthy = dbHealthy && cacheHealthy && dbRouterHealth.healthy;
+    const isHealthy = dbHealthy && prismaHealthy && cacheHealthy;
     const status = isHealthy ? 'healthy' : 'unhealthy';
 
     const healthData = {
@@ -40,27 +39,18 @@ export async function GET() {
       environment: process.env.NODE_ENV || 'development',
       services: {
         database: {
-          status: dbHealthy && dbRouterHealth.healthy ? 'healthy' : 'unhealthy',
-          responseTime: dbResponseTime,
-          master: dbRouterHealth.master,
-          replicas: dbRouterHealth.replicas,
-          connections: dbStats
+          legacy: { status: dbHealthy ? 'healthy' : 'unhealthy', responseTime: dbResponseTime },
+          prisma: { status: prismaHealthy ? 'healthy' : 'unhealthy', responseTime: prismaResponseTime }
         },
         cache: {
           status: cacheHealthy ? 'healthy' : 'unhealthy',
           connected: cacheHealthy,
-          memory: cacheStats?.usedMemory || 'unknown',
-          keys: cacheStats?.totalKeys || 0
+          stats: cacheStats || {}
         },
         sessions: {
           status: 'healthy',
-          activeSessions: sessionStats.totalActiveSessions,
-          uniqueUsers: sessionStats.uniqueUsers
-        },
-        websocket: {
-          status: 'healthy',
-          connections: wsStats?.totalConnections || 0,
-          rooms: wsStats?.totalRooms || 0
+          activeSessions: sessionStats.totalActiveSessions || 0,
+          uniqueUsers: sessionStats.uniqueUsers || 0
         }
       },
       system: {
