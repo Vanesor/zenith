@@ -69,7 +69,7 @@ export function UnifiedHeader({
   const navigationItems = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/clubs", label: "Clubs", icon: Users },
-    { href: "/events", label: "Events", icon: Calendar },
+    { href: "/calendar", label: "Calendar", icon: Calendar },
     { href: "/assignments", label: "Assignments", icon: BookOpen },
     { href: "/chat", label: "Chat", icon: MessageSquare },
     { href: "/playground", label: "Playground", icon: Code2 },

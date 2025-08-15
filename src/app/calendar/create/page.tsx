@@ -77,7 +77,7 @@ export default function CreateEventForm() {
 
   if (!canCreateEvents) {
     return (
-      <div className="p-6 bg-zenith-card rounded-lg shadow-md">
+      <div className="p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-red-600 mb-2">Permission Denied</h2>
         <p>You don't have permission to create events. Only club coordinators and managers can create events.</p>
       </div>
@@ -85,7 +85,7 @@ export default function CreateEventForm() {
   }
 
   return (
-    <div className="p-6 bg-zenith-card rounded-lg shadow-md">
+    <div className="p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold mb-6">Create New Event</h2>
       
       {error && (
@@ -96,24 +96,24 @@ export default function CreateEventForm() {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-zenith-secondary">Event Title</label>
+          <label className="block text-sm font-medium text-gray-700">Event Title</label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-zenith-secondary">Event Type</label>
+          <label className="block text-sm font-medium text-gray-700">Event Type</label>
           <select
             name="type"
             value={formData.type}
             onChange={handleChange}
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           >
             {EVENT_TYPES.map((type) => (
               <option key={type.value} value={type.value}>
@@ -124,77 +124,77 @@ export default function CreateEventForm() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-zenith-secondary">Description</label>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             rows={4}
             required
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-zenith-secondary">Date</label>
+            <label className="block text-sm font-medium text-gray-700">Date</label>
             <input
               type="date"
               name="date"
               value={formData.date}
               onChange={handleChange}
               required
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-zenith-secondary">Start Time</label>
+            <label className="block text-sm font-medium text-gray-700">Start Time</label>
             <input
               type="time"
               name="startTime"
               value={formData.startTime}
               onChange={handleChange}
               required
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-zenith-secondary">End Time (Optional)</label>
+            <label className="block text-sm font-medium text-gray-700">End Time (Optional)</label>
             <input
               type="time"
               name="endTime"
               value={formData.endTime}
               onChange={handleChange}
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-zenith-secondary">Location</label>
+            <label className="block text-sm font-medium text-gray-700">Location</label>
             <input
               type="text"
               name="location"
               value={formData.location}
               onChange={handleChange}
               required
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-zenith-secondary">Maximum Attendees (Optional)</label>
+          <label className="block text-sm font-medium text-gray-700">Maximum Attendees (Optional)</label>
           <input
             type="number"
             name="maxAttendees"
             value={formData.maxAttendees}
             onChange={handleChange}
             min="1"
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
@@ -205,9 +205,9 @@ export default function CreateEventForm() {
             name="isPublic"
             checked={formData.isPublic}
             onChange={handleChange}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-zenith-border rounded"
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
           />
-          <label htmlFor="isPublic" className="ml-2 block text-sm text-zenith-secondary">
+          <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-700">
             Make this event public (visible to all users)
           </label>
         </div>
@@ -216,14 +216,14 @@ export default function CreateEventForm() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="bg-zenith-card py-2 px-4 border border-zenith-border rounded-md shadow-sm text-sm font-medium text-zenith-secondary hover:bg-zenith-section focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
+            className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-zenith-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {isSubmitting ? "Creating..." : "Create Event"}
           </button>

@@ -15,6 +15,9 @@ import {
   Heart,
   MapPin,
   Clock,
+  ChevronLeft,
+  Play,
+  Pause,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
@@ -103,6 +106,73 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn] = useState(false);
+  
+  // Carousel state
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Carousel images data
+  const carouselImages = [
+    {
+      id: 1,
+      // url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      url: "community.jpg",
+      title: "Welcome to Zenith Forum",
+      subtitle: "Where Excellence Meets Community",
+      description: "Join our vibrant college community and discover your potential"
+    },
+    {
+      id: 2,
+      // url: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      url:"father.jpg",
+      title: "Specialized Clubs",
+      subtitle: "Find Your Passion",
+      description: "Explore our diverse range of clubs and activities"
+    },
+    {
+      id: 3,
+      // url: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      url:"yash.jpg",
+      title: "Events & Workshops",
+      subtitle: "Learn & Grow Together",
+      description: "Participate in exciting events and skill-building workshops"
+    },
+    {
+      id: 4,
+      url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      title: "Innovation Hub",
+      subtitle: "Transform Ideas into Reality",
+      description: "Collaborate on projects and bring your innovations to life"
+    }
+  ];
+
+  // Carousel auto-play functionality
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, carouselImages.length]);
+
+  // Carousel navigation functions
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  const toggleAutoPlay = () => {
+    setIsAutoPlaying(!isAutoPlaying);
+  };
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -165,6 +235,122 @@ export default function HomePage() {
 
       {/* Main Content with proper spacing for fixed header */}
       <div className="pt-44">{/* Increased even more for college banner + nav bar */}
+
+      {/* Image Carousel */}
+      <section className="relative h-96 md:h-[500px] lg:h-[600px] overflow-hidden">
+        <div className="relative w-full h-full">
+          {carouselImages.map((image, index) => (
+            <motion.div
+              key={image.id}
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: currentSlide === index ? 1 : 0,
+                scale: currentSlide === index ? 1 : 1.1 
+              }}
+              transition={{ duration: 0.7, ease: "easeInOut" }}
+              className={`absolute inset-0 w-full h-full ${
+                currentSlide === index ? 'z-10' : 'z-0'
+              }`}
+            >
+              <div
+                className="w-full h-full bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${image.url})` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                <div className="relative z-10 flex items-end justify-center h-full pb-12">
+                  <div className="text-center text-white px-6 max-w-5xl mx-auto">
+                    <motion.h1
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
+                      className="text-3xl md:text-5xl lg:text-6xl font-bold mb-3 text-white drop-shadow-2xl"
+                    >
+                      {image.title}
+                    </motion.h1>
+                    <motion.h2
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.4 }}
+                      className="text-lg md:text-xl lg:text-2xl font-semibold mb-4 text-yellow-300 drop-shadow-lg"
+                    >
+                      {image.subtitle}
+                    </motion.h2>
+                    <motion.p
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.6 }}
+                      className="text-base md:text-lg mb-6 text-white/95 drop-shadow-lg max-w-2xl mx-auto"
+                    >
+                      {image.description}
+                    </motion.p>
+                    <motion.div
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.8 }}
+                      className="flex flex-col sm:flex-row gap-3 justify-center"
+                    >
+                      <Link
+                        href="/register"
+                        className="bg-zenith-accent hover:bg-zenith-accent/90 text-white px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 inline-flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                      >
+                        Get Started
+                        <ChevronRight className="ml-2 w-4 h-4" />
+                      </Link>
+                      <Link
+                        href="#clubs"
+                        className="bg-white/15 backdrop-blur-sm border border-white/40 text-white hover:bg-white/25 hover:border-white/60 px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      >
+                        Explore Clubs
+                      </Link>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 border border-white/20"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 border border-white/20"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
+        {/* Auto-play toggle */}
+        <button
+          onClick={toggleAutoPlay}
+          className="absolute top-4 right-4 z-20 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white p-2 rounded-full transition-all duration-300 border border-white/20"
+          aria-label={isAutoPlaying ? "Pause slideshow" : "Play slideshow"}
+        >
+          {isAutoPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+        </button>
+
+        {/* Dots Indicator */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+          {carouselImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                currentSlide === index
+                  ? 'bg-white scale-125'
+                  : 'bg-white/60 hover:bg-white/80 hover:scale-110'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </section>
 
       {/* Hero Section */}
       <section className="py-8 px-4 sm:px-6 lg:px-8">{/* Further reduced since parent has more padding */}
@@ -322,7 +508,7 @@ export default function HomePage() {
                         {club.upcoming_events} upcoming events
                       </div>
                       <Link
-                        href={`/clubs/${club.id}`}
+                        href={`/homeclub/${club.id}`}
                         className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold transition-colors"
                       >
                         Learn More
@@ -410,6 +596,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
 
       {/* What is Zenith */}
       <section className="py-20 bg-zenith-section">
@@ -586,6 +773,14 @@ export default function HomePage() {
                     className="hover:text-white transition-colors"
                   >
                     Events
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/calendar"
+                    className="hover:text-white transition-colors"
+                  >
+                    Calendar
                   </Link>
                 </li>
                 <li>

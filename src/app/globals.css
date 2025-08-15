@@ -500,3 +500,17 @@ body {
   overflow: auto;
 }
 
+/* Hero Section Light Mode Enhancements */
+.light .hero-section {
+  position: relative;
+}
+
+/* Light mode text color overrides */
+.light .light\:text-gray-800 {
+  color: #1f2937 !important;
+}
+
+.light .light\:text-gray-700 {
+  color: #374151 !important;
+}
+
