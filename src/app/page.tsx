@@ -118,7 +118,7 @@ export default function HomePage() {
       // url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
       url: "community.jpg",
       title: "Welcome to Zenith Forum",
-      subtitle: "Where Excellence Meets Community",
+      subtitle: "DRIVEN BY PASSION, BUILT FOR EXCELLENCE",
       description: "Join our vibrant college community and discover your potential"
     },
     {

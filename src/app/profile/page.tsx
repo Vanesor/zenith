@@ -648,7 +648,7 @@ export default function ProfilePage() {
       setProfile(prev => ({ ...prev, avatar: data.avatarUrl }));
       // Update user in auth context
       updateUser({ avatar: data.avatarUrl });
-      setProfileSuccess('Profile image updated successfully!');
+      setProfileSuccess('Profile image updated and saved successfully!');
       
       // Clear success message after 3 seconds
       setTimeout(() => setProfileSuccess(null), 3000);

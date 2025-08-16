@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { SupabaseStorageService } from '@/lib/supabaseStorage';
+import Database from '@/lib/database';
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -62,6 +63,18 @@ export async function POST(request: NextRequest) {
          success: false,
         error: uploadResult.error || 'Failed to upload to Supabase Storage'
        }, { status: 500 });
+    }
+    
+    // Update user's avatar field in the database
+    try {
+      await Database.query(
+        'UPDATE users SET avatar = $1 WHERE id = $2',
+        [uploadResult.fileUrl, decoded.userId]
+      );
+      console.log(`✅ Avatar URL updated in database for user ${decoded.userId}`);
+    } catch (dbError) {
+      console.error('Error updating avatar in database:', dbError);
+      // Still return success since the file was uploaded, but log the error
     }
     
     console.log(`✅ Profile image uploaded to Supabase Storage for user ${decoded.userId}: ${uploadResult.fileUrl}`);

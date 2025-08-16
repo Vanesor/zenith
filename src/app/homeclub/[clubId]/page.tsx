@@ -408,33 +408,50 @@ export default function PublicClubPage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
             {/* Coordinator */}
             {club.leadership.coordinator && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="bg-zenith-card rounded-2xl p-6 shadow-lg border border-zenith text-center hover:shadow-xl transition-shadow"
+                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
               >
-                <div className="relative mb-4">
-                  <UserAvatar 
-                    name={club.leadership.coordinator.name}
-                    avatar={club.leadership.coordinator.photo}
-                    size="xl"
-                    className="mx-auto"
-                  />
-                  <div className="absolute -top-2 -right-2 bg-yellow-500 text-white p-2 rounded-full">
-                    <Crown className="w-4 h-4" />
+                <div className="relative mb-8">
+                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    {club.leadership.coordinator.photo ? (
+                      <img 
+                        src={club.leadership.coordinator.photo}
+                        alt={club.leadership.coordinator.name}
+                        className="w-full h-full object-cover object-center"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <UserAvatar 
+                      name={club.leadership.coordinator.name}
+                      avatar={club.leadership.coordinator.photo}
+                      size="xl"
+                      className={`${club.leadership.coordinator.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                    />
+                  </div>
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white p-3 rounded-full shadow-lg">
+                    <Crown className="w-6 h-6" />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-zenith-primary mb-1">
-                  {club.leadership.coordinator.name}
-                </h3>
-                <p className="text-zenith-accent font-medium mb-2">Coordinator</p>
-                <p className="text-sm text-zenith-muted">
-                  Leading the club vision and strategic direction
-                </p>
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold text-zenith-primary">
+                    {club.leadership.coordinator.name}
+                  </h3>
+                  <div className="inline-block bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Coordinator
+                  </div>
+                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
+                    Leading the club vision and strategic direction
+                  </p>
+                </div>
               </motion.div>
             )}
 
@@ -444,26 +461,43 @@ export default function PublicClubPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-zenith-card rounded-2xl p-6 shadow-lg border border-zenith text-center hover:shadow-xl transition-shadow"
+                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
               >
-                <div className="relative mb-4">
-                  <UserAvatar 
-                    name={club.leadership.coCoordinator.name}
-                    avatar={club.leadership.coCoordinator.photo}
-                    size="xl"
-                    className="mx-auto"
-                  />
-                  <div className="absolute -top-2 -right-2 bg-blue-500 text-white p-2 rounded-full">
-                    <Shield className="w-4 h-4" />
+                <div className="relative mb-8">
+                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    {club.leadership.coCoordinator.photo ? (
+                      <img 
+                        src={club.leadership.coCoordinator.photo}
+                        alt={club.leadership.coCoordinator.name}
+                        className="w-full h-full object-cover object-center"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <UserAvatar 
+                      name={club.leadership.coCoordinator.name}
+                      avatar={club.leadership.coCoordinator.photo}
+                      size="xl"
+                      className={`${club.leadership.coCoordinator.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                    />
+                  </div>
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white p-3 rounded-full shadow-lg">
+                    <Shield className="w-6 h-6" />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-zenith-primary mb-1">
-                  {club.leadership.coCoordinator.name}
-                </h3>
-                <p className="text-zenith-accent font-medium mb-2">Co-Coordinator</p>
-                <p className="text-sm text-zenith-muted">
-                  Supporting coordination and member engagement
-                </p>
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold text-zenith-primary">
+                    {club.leadership.coCoordinator.name}
+                  </h3>
+                  <div className="inline-block bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Co-Coordinator
+                  </div>
+                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
+                    Supporting coordination and member engagement
+                  </p>
+                </div>
               </motion.div>
             )}
 
@@ -473,26 +507,43 @@ export default function PublicClubPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-zenith-card rounded-2xl p-6 shadow-lg border border-zenith text-center hover:shadow-xl transition-shadow"
+                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
               >
-                <div className="relative mb-4">
-                  <UserAvatar 
-                    name={club.leadership.secretary.name}
-                    avatar={club.leadership.secretary.photo}
-                    size="xl"
-                    className="mx-auto"
-                  />
-                  <div className="absolute -top-2 -right-2 bg-green-500 text-white p-2 rounded-full">
-                    <FileText className="w-4 h-4" />
+                <div className="relative mb-8">
+                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    {club.leadership.secretary.photo ? (
+                      <img 
+                        src={club.leadership.secretary.photo}
+                        alt={club.leadership.secretary.name}
+                        className="w-full h-full object-cover object-center"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <UserAvatar 
+                      name={club.leadership.secretary.name}
+                      avatar={club.leadership.secretary.photo}
+                      size="xl"
+                      className={`${club.leadership.secretary.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                    />
+                  </div>
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-full shadow-lg">
+                    <FileText className="w-6 h-6" />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-zenith-primary mb-1">
-                  {club.leadership.secretary.name}
-                </h3>
-                <p className="text-zenith-accent font-medium mb-2">Secretary</p>
-                <p className="text-sm text-zenith-muted">
-                  Managing documentation and communications
-                </p>
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold text-zenith-primary">
+                    {club.leadership.secretary.name}
+                  </h3>
+                  <div className="inline-block bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Secretary
+                  </div>
+                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
+                    Managing documentation and communications
+                  </p>
+                </div>
               </motion.div>
             )}
 
@@ -502,31 +553,49 @@ export default function PublicClubPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-zenith-card rounded-2xl p-6 shadow-lg border border-zenith text-center hover:shadow-xl transition-shadow"
+                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
               >
-                <div className="relative mb-4">
-                  <UserAvatar 
-                    name={club.leadership.media.name}
-                    avatar={club.leadership.media.photo}
-                    size="xl"
-                    className="mx-auto"
-                  />
-                  <div className="absolute -top-2 -right-2 bg-purple-500 text-white p-2 rounded-full">
-                    <MessageSquare className="w-4 h-4" />
+                <div className="relative mb-8">
+                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    {club.leadership.media.photo ? (
+                      <img 
+                        src={club.leadership.media.photo}
+                        alt={club.leadership.media.name}
+                        className="w-full h-full object-cover object-center"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <UserAvatar 
+                      name={club.leadership.media.name}
+                      avatar={club.leadership.media.photo}
+                      size="xl"
+                      className={`${club.leadership.media.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                    />
+                  </div>
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white p-3 rounded-full shadow-lg">
+                    <MessageSquare className="w-6 h-6" />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-zenith-primary mb-1">
-                  {club.leadership.media.name}
-                </h3>
-                <p className="text-zenith-accent font-medium mb-2">Media Head</p>
-                <p className="text-sm text-zenith-muted">
-                  Managing social media and publicity
-                </p>
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold text-zenith-primary">
+                    {club.leadership.media.name}
+                  </h3>
+                  <div className="inline-block bg-gradient-to-r from-purple-500 to-purple-700 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Media Head
+                  </div>
+                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
+                    Managing social media and publicity
+                  </p>
+                </div>
               </motion.div>
             )}
           </div>
         </div>
       </section>
+
 
       {/* Club Description */}
       <section className="py-16 bg-zenith-section">
