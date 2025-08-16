@@ -144,6 +144,7 @@ model User {
   security_events                     SecurityEvent[]
   sessions                            Session[]
   trusted_devices                     TrustedDevice[]
+  activities                          user_activities[]
   club                                Club?                    @relation(fields: [club_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([club_id], map: "idx_users_club_id")
@@ -157,35 +158,36 @@ model User {
 }
 
 model Club {
-  id                String        @id @db.VarChar(50)
-  name              String        @db.VarChar(255)
-  type              String        @db.VarChar(255)
+  id                String           @id @db.VarChar(50)
+  name              String           @db.VarChar(255)
+  type              String           @db.VarChar(255)
   description       String
   long_description  String?
-  icon              String        @db.VarChar(100)
-  color             String        @db.VarChar(100)
-  coordinator_id    String?       @db.Uuid
-  co_coordinator_id String?       @db.Uuid
-  secretary_id      String?       @db.Uuid
-  media_id          String?       @db.Uuid
+  icon              String           @db.VarChar(100)
+  color             String           @db.VarChar(100)
+  coordinator_id    String?          @db.Uuid
+  co_coordinator_id String?          @db.Uuid
+  secretary_id      String?          @db.Uuid
+  media_id          String?          @db.Uuid
   guidelines        String?
-  meeting_schedule  Json?         @default("{}")
-  created_at        DateTime?     @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime?     @default(now()) @updatedAt @db.Timestamptz(6)
+  meeting_schedule  Json?            @default("{}")
+  created_at        DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?        @default(now()) @updatedAt @db.Timestamptz(6)
   logo_url          String?
   banner_image_url  String?
-  club_images       Json?         @default("[]")
-  member_count      Int?          @default(0)
+  club_images       Json?            @default("[]")
+  member_count      Int?             @default(0)
   assignments       Assignment[]
   chat_rooms        ChatRoom[]
-  co_coordinator    User?         @relation("ClubCoCoordinator", fields: [co_coordinator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_co_coordinator")
-  coordinator       User?         @relation("ClubCoordinator", fields: [coordinator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_coordinator")
-  media             User?         @relation("ClubMedia", fields: [media_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_media")
-  secretary         User?         @relation("ClubSecretary", fields: [secretary_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_secretary")
+  co_coordinator    User?            @relation("ClubCoCoordinator", fields: [co_coordinator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_co_coordinator")
+  coordinator       User?            @relation("ClubCoordinator", fields: [coordinator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_coordinator")
+  media             User?            @relation("ClubMedia", fields: [media_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_media")
+  secretary         User?            @relation("ClubSecretary", fields: [secretary_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_clubs_secretary")
   discussions       discussions[]
   events            Event[]
   posts             Post[]
   members           User[]
+  statistics        club_statistics[]
 
   @@index([created_at], map: "idx_clubs_created_at")
   @@index([name], map: "idx_clubs_name")
@@ -1053,4 +1055,64 @@ model user_badges {
   earned_at         DateTime? @default(now()) @db.Timestamptz(6)
 
   @@unique([user_id, badge_name])
+}
+
+// Analytics Tables
+model club_statistics {
+  id                Int       @id @default(autoincrement())
+  club_id           String?   @db.VarChar(50)
+  member_count      Int?      @default(0)
+  event_count       Int?      @default(0)
+  assignment_count  Int?      @default(0)
+  comment_count     Int?      @default(0)
+  total_engagement  Int?      @default(0)
+  average_engagement Decimal?  @default(0) @db.Decimal(5, 2)
+  last_updated      DateTime? @default(now()) @db.Timestamptz(6)
+  club              Club?     @relation(fields: [club_id], references: [id], onDelete: Cascade)
+
+  @@index([club_id], map: "idx_club_statistics_club")
+  @@index([last_updated], map: "idx_club_statistics_updated")
+}
+
+model user_activities {
+  id          Int       @id @default(autoincrement())
+  user_id     String?   @db.Uuid
+  action      String    @db.VarChar(50)
+  target_type String    @db.VarChar(50)
+  target_id   String?
+  target_name String?
+  details     Json?
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  user        User?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "idx_user_activities_user_id")
+  @@index([created_at], map: "idx_user_activities_created_at")
+  @@index([action], map: "idx_user_activities_action")
+  @@index([target_type], map: "idx_user_activities_target_type")
+}
+
+model system_statistics {
+  id                     Int       @id @default(autoincrement())
+  active_users_count     Int?      @default(0)
+  total_users_count      Int?      @default(0)
+  total_clubs_count      Int?      @default(0)
+  total_events_count     Int?      @default(0)
+  total_assignments_count Int?     @default(0)
+  total_comments_count   Int?      @default(0)
+  daily_active_users     Int?      @default(0)
+  weekly_active_users    Int?      @default(0)
+  monthly_active_users   Int?      @default(0)
+  timestamp              DateTime? @default(now()) @db.Timestamptz(6)
+  
+  @@index([timestamp], map: "idx_system_statistics_timestamp")
+}
+
+model query_cache {
+  cache_key    String   @id
+  cache_value  Json
+  last_updated DateTime? @default(now()) @db.Timestamptz(6)
+  expires_at   DateTime @db.Timestamptz(6)
+  
+  @@index([last_updated], map: "idx_query_cache_updated")
+  @@index([expires_at], map: "idx_query_cache_expires")
 }

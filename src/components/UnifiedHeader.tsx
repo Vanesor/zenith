@@ -74,6 +74,19 @@ export function UnifiedHeader({
     { href: "/chat", label: "Chat", icon: MessageSquare },
     { href: "/playground", label: "Playground", icon: Code2 },
   ];
+  
+  // Check if user has admin access (committee member, coordinator or co-coordinator)
+  const hasAdminAccess = user && (
+    user.role === 'admin' || 
+    user.role === 'committee_member' || 
+    user.role === 'coordinator' || 
+    user.role === 'co_coordinator'
+  );
+  
+  // Add admin link if user has admin access
+  if (hasAdminAccess) {
+    navigationItems.push({ href: "/admin", label: "Admin", icon: Settings });
+  }
 
   const handleLogout = async () => {
     try {
