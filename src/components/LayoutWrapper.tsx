@@ -5,6 +5,7 @@ import { UnifiedHeader } from "@/components/UnifiedHeader";
 import { Footer } from "@/components/NewFooter";
 import { useAuth } from "@/contexts/AuthContext";
 import { SessionExpirationHandler } from "@/components/SessionExpirationHandler";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const noHeaderPaths = ["/", "/login", "/register"];
 const noFooterPaths = ["/", "/login", "/register"]; // Pages with no footer or their own footer
@@ -48,6 +49,11 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Global theme toggle - appears on all pages */}
+      <div className="fixed top-4 right-4 z-[60]">
+        <ThemeToggle />
+      </div>
+
       {shouldShowHeader && (
         <header className="z-50 fixed top-0 left-0 right-0 w-full">
           <UnifiedHeader />

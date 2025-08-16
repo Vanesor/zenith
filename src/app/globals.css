@@ -21,6 +21,11 @@
   --text-secondary: #d1d5db;
   --text-muted: #9ca3af;
   --border-color: #4b5563;
+  
+  /* Toast variables for dark theme */
+  --toast-bg: rgba(31, 41, 55, 0.95);
+  --toast-color: #f9fafb;
+  --toast-border: rgba(75, 85, 99, 0.3);
 }
 
 /* Light theme variables */
@@ -43,6 +48,11 @@
   --text-secondary: #4b5563;    /* Secondary text → Medium gray */
   --text-muted: #6b7280;        /* Muted text → Light gray */
   --border-color: #e5e7eb;      /* Light gray borders */
+  
+  /* Toast variables for light theme */
+  --toast-bg: rgba(255, 255, 255, 0.95);
+  --toast-color: #1f2937;
+  --toast-border: rgba(229, 231, 235, 0.5);
 }
 
 body {

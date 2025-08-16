@@ -4,7 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext"; // Use the original ThemeContext
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
-import { ToastProvider } from "@/contexts/ToastContext";
+import { ToastProvider as OldToastProvider } from "@/contexts/ToastContext";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import GlobalAuthModal from "@/components/GlobalAuthModal";
 
@@ -37,10 +38,11 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <AuthModalProvider>
-              <ToastProvider>
+              <OldToastProvider>
                 <LayoutWrapper>{children}</LayoutWrapper>
                 <GlobalAuthModal />
-              </ToastProvider>
+                <ToastProvider />
+              </OldToastProvider>
             </AuthModalProvider>
           </AuthProvider>
         </ThemeProvider>

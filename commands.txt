@@ -1,0 +1,9 @@
+/home/vane/Pictures/Screenshots/Screenshot from 2025-08-16 19-22-36.png/home/vane/Pictures/Screenshots/Screenshot from 2025-08-16 19-22-32.png/home/vane/Pictures/Screenshots/Screenshot from 2025-08-16 19-22-30.png/home/vane/Pictures/Screenshots/Screenshot from 2025-08-16 19-22-07.png/home/vane/Pictures/Screenshots/Screenshot from 2025-08-16 19-21-58.png
+
+now i want to change the ui completely i want modern professional and more dynamic ui as it is a site for college age students so i want it to be engaging focus on visuals use libraries if you need and remove the current layout structure and styling completely and give creative site and modern inspired by the attached images 
+
+and make sure to make code according to dark and light themes and use combinatios of colours make it modern visual and proper
+
+and be sure to remove old code 
+
+do changes page by page do register, login, forgotpassword, 2fa, email otp etcc first
