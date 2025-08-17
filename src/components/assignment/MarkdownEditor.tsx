@@ -64,7 +64,7 @@ export function MarkdownEditor({
       .replace(/^\> (.*$)/gm, '<blockquote class="border-l-4 border-zenith-primary pl-4 italic text-zenith-secondary dark:text-zenith-muted">$1</blockquote>')
       .replace(/^\- (.*$)/gm, '<li class="ml-4">$1</li>')
       .replace(/^\d+\. (.*$)/gm, '<li class="ml-4">$1</li>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-zenith-primary hover:underline">$1</a>');
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-zenith-primary hover:no-underline">$1</a>');
 
     // Wrap lists
     html = html.replace(/(<li.*<\/li>)/g, '<ul class="list-disc ml-4">$1</ul>');

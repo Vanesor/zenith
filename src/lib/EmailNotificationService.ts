@@ -1,4 +1,4 @@
-import emailService from './EmailService';
+import emailServiceV2 from './EmailServiceV2';
 import { Database } from './database-consolidated';
 
 /**
@@ -64,7 +64,7 @@ export class EmailNotificationService {
         </div>
       `;
 
-      return await emailService.sendEmail({
+      return await emailServiceV2.sendEmail({
         to: user.email,
         subject: `Event Notification: ${eventTitle}`,
         html
@@ -130,7 +130,7 @@ export class EmailNotificationService {
         </div>
       `;
 
-      return await emailService.sendEmail({
+      return await emailServiceV2.sendEmail({
         to: user.email,
         subject: `Assignment Notification: ${assignmentTitle}`,
         html
@@ -201,7 +201,7 @@ export class EmailNotificationService {
         </div>
       `;
 
-      return await emailService.sendEmail({
+      return await emailServiceV2.sendEmail({
         to: user.email,
         subject: title,
         html

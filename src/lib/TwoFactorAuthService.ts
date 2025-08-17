@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { prisma, Database } from './database-consolidated';
 import crypto from 'crypto';
 import { HashAlgorithms } from 'otplib/core';
-import emailService from './EmailService';
+import emailServiceV2 from './EmailServiceV2';
 import { TrustedDeviceService } from './TrustedDeviceService';
 import { UAParser } from 'ua-parser-js';
 
@@ -270,7 +270,7 @@ export class TwoFactorAuthService {
       );
       
       // Send OTP via email
-      const emailSent = await emailService.sendOtpEmail(email, otp);
+      const emailSent = await emailServiceV2.sendOtpEmail(email, otp, '2fa');
       
       // Log security event if email was sent successfully
       if (emailSent) {

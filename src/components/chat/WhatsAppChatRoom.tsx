@@ -451,7 +451,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                         href={message.file_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-zenith-primary hover:underline text-sm truncate"
+                        className="text-zenith-primary hover:no-underline text-sm truncate"
                       >
                         {message.message || 'Download file'}
                       </a>

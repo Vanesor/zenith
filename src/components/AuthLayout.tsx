@@ -68,12 +68,28 @@ export function AuthLayout({
             {/* Logo and branding */}
             <div className="text-center mb-8">
               <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 mb-6 shadow-lg"
+                initial={{ scale: 0.8, opacity: 0, y: -10 }}
+                animate={{ 
+                  scale: 1, 
+                  opacity: 1, 
+                  y: 0,
+                  rotate: [0, 3, -3, 0]
+                }}
+                transition={{ 
+                  delay: 0.2, 
+                  duration: 0.5,
+                  rotate: {
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 shadow-lg border-2 border-blue-500/30 dark:border-purple-500/30 bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm"
+                style={{
+                  filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.3))'
+                }}
               >
-                <span className="text-white text-2xl font-bold">Z</span>
+                <span className="text-blue-600 dark:text-blue-400 text-2xl font-bold">Z</span>
               </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}

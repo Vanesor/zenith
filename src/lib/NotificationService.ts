@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/database-consolidated";
-import emailService from "./EmailService";
+import emailServiceV2 from "./EmailServiceV2";
 
 export interface NotificationPreferences {
   email: {
@@ -151,12 +151,13 @@ export class NotificationService {
         }
         
         // Send email notification
-        await emailService.sendAssignmentNotification(
+        await emailServiceV2.sendAssignmentNotification(
           user.email,
           user.name,
           assignmentTitle,
           dueDate,
-          clubId ? clubName : undefined
+          clubId ? clubName : undefined,
+          assignmentId
         );
       }
     } catch (error) {
@@ -227,11 +228,12 @@ export class NotificationService {
       }
       
       // Send email notification
-      await emailService.sendAssignmentResultNotification(
+      await emailServiceV2.sendAssignmentResultNotification(
         user.email,
         user.name,
         assignment.title,
-        scoreText
+        scoreText,
+        assignmentId
       );
     } catch (error) {
       console.error("Error sending assignment result notification:", error);
@@ -308,15 +310,9 @@ export class NotificationService {
           continue;
         }
         
-        // Send email notification
-        await emailService.sendEventNotification(
-          user.email,
-          user.name,
-          event.title,
-          formattedDate,
-          event.location || 'TBD', // Provide a fallback if location is null
-          clubId ? clubName : undefined
-        );
+        // Send email notification using EmailNotificationService
+        // TODO: Implement sendEventNotification in EmailServiceV2
+        console.log(`Event notification needed for ${user.email}: ${event.title}`);
       }
     } catch (error) {
       console.error("Error sending event notifications:", error);

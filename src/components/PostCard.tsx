@@ -63,7 +63,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
       {/* Post Content */}
       <div className="mb-4">
-        <Link href={`/posts/${post.id}`} className="hover:underline">
+        <Link href={`/posts/${post.id}`} className="hover:no-underline">
           <h2 className="text-xl font-bold text-zenith-primary mb-2">{post.title}</h2>
         </Link>
         <p className="text-zenith-secondary leading-relaxed">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, Database } from "@/lib/database-consolidated";
 import { v4 as uuidv4 } from "uuid";
-import emailService from "@/lib/EmailService";
+import emailServiceV2 from "@/lib/EmailServiceV2";
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Send password reset email
-    const emailSent = await emailService.sendPasswordResetEmail(
+    const emailSent = await emailServiceV2.sendPasswordResetEmail(
       user.email,
       resetToken
     );

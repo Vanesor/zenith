@@ -474,7 +474,7 @@ export default function ManagementDashboard() {
               </h2>
               <Link
                 href="/management/events"
-                className="text-zenith-primary hover:underline text-sm"
+                className="text-zenith-primary hover:no-underline text-sm"
               >
                 View All
               </Link>
@@ -539,7 +539,7 @@ export default function ManagementDashboard() {
               </h2>
               <Link
                 href="/management/posts"
-                className="text-zenith-primary hover:underline text-sm"
+                className="text-zenith-primary hover:no-underline text-sm"
               >
                 View All
               </Link>
@@ -615,7 +615,7 @@ export default function ManagementDashboard() {
               </h2>
               <Link
                 href="/management/announcements"
-                className="text-zenith-primary hover:underline text-sm"
+                className="text-zenith-primary hover:no-underline text-sm"
               >
                 View All
               </Link>

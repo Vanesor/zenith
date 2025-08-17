@@ -143,7 +143,7 @@ export default function ClubPage() {
           </h1>
           <Link
             href="/dashboard"
-            className="text-zenith-primary hover:underline"
+            className="text-zenith-primary hover:no-underline"
           >
             Back to Dashboard
           </Link>

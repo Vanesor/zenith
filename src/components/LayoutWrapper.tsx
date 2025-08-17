@@ -7,8 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SessionExpirationHandler } from "@/components/SessionExpirationHandler";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-const noHeaderPaths = ["/", "/login", "/register"];
-const noFooterPaths = ["/", "/login", "/register"]; // Pages with no footer or their own footer
+const noHeaderPaths = ["/login", "/register", "/forgot-password", "/verify-email", "/reset-password", "/setup-2fa"];
+const noFooterPaths = ["/login", "/register", "/forgot-password", "/verify-email", "/reset-password", "/setup-2fa"]; // Pages with no footer or their own footer
 
 // Paths where the header should be hidden (like during tests/exams)
 const hideHeaderPaths = [
@@ -49,10 +49,12 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Global theme toggle - appears on all pages */}
-      <div className="fixed top-4 right-4 z-[60]">
-        <ThemeToggle />
-      </div>
+      {/* Global theme toggle - appears on all pages except auth pages */}
+      {!isExcludedPath && (
+        <div className="fixed top-4 right-4 z-[60]">
+          <ThemeToggle />
+        </div>
+      )}
 
       {shouldShowHeader && (
         <header className="z-50 fixed top-0 left-0 right-0 w-full">
