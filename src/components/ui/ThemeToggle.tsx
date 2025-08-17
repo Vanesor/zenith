@@ -1,36 +1,24 @@
 'use client';
 
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme, isLoaded } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   // Enhanced toggle function with theme enforcement
   const handleToggle = () => {
-    toggleTheme();
-    
-    // Force theme application immediately
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        const html = document.documentElement;
-        const currentTheme = theme === 'dark' ? 'light' : 'dark';
-        
-        if (currentTheme === 'dark') {
-          html.classList.add('dark');
-          html.classList.remove('light');
-        } else {
-          html.classList.add('light');  
-          html.classList.remove('dark');
-        }
-        
-        html.setAttribute('data-theme', currentTheme);
-      }
-    }, 10);
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  // Don't render until theme is loaded to prevent flash
-  if (!isLoaded) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
     return (
       <div className="p-2 rounded-lg bg-zenith-card border border-zenith-border">
         <div className="h-5 w-5 animate-pulse bg-zenith-hover rounded"></div>

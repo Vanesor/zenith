@@ -19,7 +19,7 @@ import {
   Code2,
   Mail,
 } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from "next-themes";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import UserAvatar from "@/components/UserAvatar";
@@ -61,7 +61,9 @@ export function UnifiedHeader({
       }
       
       // Force a re-render by updating a data attribute
-      html.setAttribute('data-theme', theme);
+      if (theme) {
+        html.setAttribute('data-theme', theme);
+      }
     }
   }, [theme]);
 

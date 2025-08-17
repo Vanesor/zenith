@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Send, Smile, Paperclip, User } from "lucide-react";
 import Image from "next/image";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import UserBadge from "./UserBadge";
 

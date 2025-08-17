@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/contexts/ThemeContext"; // Use the original ThemeContext
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { ToastProvider as OldToastProvider } from "@/contexts/ToastContext";
 import { ToastProvider } from "@/components/ui/toast-provider";
-import { LayoutWrapper } from "@/components/LayoutWrapper";
+import { PaperpalLayoutWrapper } from "@/components/PaperpalLayoutWrapper";
 import GlobalAuthModal from "@/components/GlobalAuthModal";
 
 const geistSans = Geist({
@@ -33,13 +33,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300 bg-zenith-main text-zenith-primary`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
-        <ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <AuthProvider>
             <AuthModalProvider>
               <OldToastProvider>
-                <LayoutWrapper>{children}</LayoutWrapper>
+                <PaperpalLayoutWrapper>{children}</PaperpalLayoutWrapper>
                 <GlobalAuthModal />
                 <ToastProvider />
               </OldToastProvider>

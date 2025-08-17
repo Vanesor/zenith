@@ -33,7 +33,7 @@ import {
   Loader2,
   MapPin
 } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import PrismaDB from "@/lib/database-consolidated";
 

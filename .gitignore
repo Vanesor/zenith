@@ -11,13 +11,14 @@
 !.yarn/versions
 .github/
 /public/uploads/
-
+backup/
 # testing
 /coverage
 
 # next.js
 /.next/
 /out/
+
 
 # production
 /build

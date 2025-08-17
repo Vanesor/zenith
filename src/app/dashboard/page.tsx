@@ -1,483 +1,401 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  Bell,
-  Calendar,
-  Users,
-  BookOpen,
-  MessageSquare,
-  Settings,
-  Code,
-  GraduationCap,
-  Heart,
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Users, 
+  Calendar, 
+  Award, 
+  TrendingUp, 
+  BookOpen, 
   Clock,
-  MapPin,
-} from "lucide-react";
-import ZenChatbot from "@/components/ZenChatbot";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import ClubLogo from "@/components/ClubLogo";
+  ArrowRight,
+  Star,
+  MessageSquare,
+  FileText,
+  Zap
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 
-// Icon mapping for clubs
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Code: Code,
-  MessageSquare: MessageSquare,
-  GraduationCap: GraduationCap,
-  Heart: Heart,
-};
-
-interface Club {
-  id: string;
-  name: string;
-  type: string;
-  description: string;
-  icon: string;
-  color: string;
-  member_count: number;
+interface DashboardStats {
+  total_clubs: number;
   upcoming_events: number;
+  total_members: number;
+  user_clubs: number;
+  activity_score: number;
+  assignment_completion: number;
 }
 
-interface Announcement {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  priority: string;
-  created_at: string;
-  club_name: string;
-  club_color: string;
-  author_name: string;
-}
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  event_date: string;
-  event_time: string;
-  location: string;
-  club_name: string;
-  club_color: string;
-  organizer_name: string;
-}
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  club_name: string;
-  club_color: string;
-  author_name: string;
-}
-
-interface DashboardData {
-  clubs: Club[];
-  announcements: Announcement[];
-  upcomingEvents: Event[];
-  recentPosts: Post[];
-}
-
-export default function DashboardPage() {
-  const { user, logout, isLoading } = useAuth();
-  const router = useRouter();
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
+export default function ModernDashboard() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Don't redirect during initial loading
-    if (isLoading) {
-      return;
-    }
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const fetchDashboardData = async () => {
+    const fetchStats = async () => {
       try {
-        // Get token from localStorage
-        const token = localStorage.getItem("zenith-token");
-        
-        // Even if no token in localStorage, we can still try the request
-        // as the AuthMiddleware will check for cookies
-        const headers: HeadersInit = {
-          "Content-Type": "application/json",
-        };
-        
-        // Add Authorization header if token exists
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data.stats);
         }
-
-        const response = await fetch("/api/dashboard", {
-          headers,
-          // Adding credentials: 'include' ensures cookies are sent with the request
-          credentials: 'include'
-        });
-        
-        if (response.status === 401) {
-          logout();
-          router.push("/login");
-          return;
-        }
-        
-        if (!response.ok) throw new Error("Failed to fetch dashboard data");
-        const data = await response.json();
-        setDashboardData(data);
-      } catch (err) {
-        setError("Failed to load dashboard data");
-        console.error("Dashboard data fetch error:", err);
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDashboardData();
-  }, [user, router, logout, isLoading]);
+    if (user) {
+      fetchStats();
+    }
+  }, [user]);
 
-  // Show loading spinner during auth validation
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zenith-primary"></div>
-      </div>
-    );
-  }
+  const statsCards = [
+    {
+      title: 'Active Clubs',
+      value: stats?.total_clubs?.toString() || '0',
+      change: 'Explore new clubs',
+      icon: Users,
+      color: 'from-blue-500 to-cyan-500',
+      trend: 'up'
+    },
+    {
+      title: 'Upcoming Events',
+      value: stats?.upcoming_events?.toString() || '0',
+      change: 'Don\'t miss out!',
+      icon: Calendar,
+      color: 'from-purple-500 to-pink-500',
+      trend: 'up'
+    },
+    {
+      title: 'My Clubs',
+      value: stats?.user_clubs?.toString() || '0',
+      change: 'Join more clubs',
+      icon: Award,
+      color: 'from-green-500 to-emerald-500',
+      trend: 'up'
+    },
+    {
+      title: 'Activity Score',
+      value: `${stats?.activity_score || 0}%`,
+      change: 'Keep it up!',
+      icon: TrendingUp,
+      color: 'from-orange-500 to-red-500',
+      trend: 'up'
+    }
+  ];
 
-  if (!user) {
-    return null;
-  }
+  const quickActions = [
+    {
+      title: 'Join a Club',
+      description: 'Explore and join clubs that match your interests',
+      icon: Users,
+      color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600',
+      href: '/clubs'
+    },
+    {
+      title: 'View Events',
+      description: 'Check out upcoming events and workshops',
+      icon: Calendar,
+      color: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600',
+      href: '/events'
+    },
+    {
+      title: 'Assignments',
+      description: 'Manage your club assignments and tasks',
+      icon: FileText,
+      color: 'bg-green-50 dark:bg-green-900/20 text-green-600',
+      href: '/assignments'
+    },
+    {
+      title: 'Messages',
+      description: 'Connect with club members and coordinators',
+      icon: MessageSquare,
+      color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600',
+      href: '/chat'
+    }
+  ];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-zenith-muted">
-            Loading dashboard...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !dashboardData) {
-    return (
-      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-zenith-primary mb-4">
-            Unable to load dashboard
-          </h1>
-          <p className="text-zenith-muted mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const { clubs, announcements, upcomingEvents } = dashboardData;
+  const recentActivity = [
+    {
+      type: 'event',
+      title: 'Tech Talk on AI & Machine Learning',
+      time: '2 hours ago',
+      club: 'Computer Science Club',
+      icon: BookOpen,
+      color: 'text-blue-600'
+    },
+    {
+      type: 'achievement',
+      title: 'Completed Web Development Workshop',
+      time: '1 day ago',
+      club: 'Coding Club',
+      icon: Award,
+      color: 'text-green-600'
+    },
+    {
+      type: 'message',
+      title: 'New message from club coordinator',
+      time: '2 days ago',
+      club: 'Robotics Club',
+      icon: MessageSquare,
+      color: 'text-purple-600'
+    },
+    {
+      type: 'event',
+      title: 'Hackathon 2025 Registration Open',
+      time: '3 days ago',
+      club: 'Innovation Club',
+      icon: Zap,
+      color: 'text-orange-600'
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zenith-primary mb-2">
-            Welcome back, {user.firstName}!
-          </h1>
-          <p className="text-zenith-secondary">
-            Here&apos;s what&apos;s happening in your clubs today.
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted">
-                  Clubs Joined
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary">
-                  {user?.club_id ? 1 : 0}
-                </p>
-              </div>
-              <Users className="w-8 h-8 text-zenith-primary" />
-            </div>
+    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+      {/* Welcome Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-2"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-primary">
+              Welcome back, {user?.firstName || 'Student'}! 👋
+            </h1>
+            <p className="text-secondary text-lg">
+              Here's what's happening in your clubs today
+            </p>
           </div>
-
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted">
-                  Upcoming Events
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary">
-                  {upcomingEvents.length}
-                </p>
-              </div>
-              <Calendar className="w-8 h-8 stat-events" />
-            </div>
-          </div>
-
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted">
-                  Announcements
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary">
-                  {announcements.length}
-                </p>
-              </div>
-              <Bell className="w-8 h-8 text-zenith-secondary" />
-            </div>
-          </div>
-
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted">
-                  Assignments
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary">
-                  5
-                </p>
-              </div>
-              <BookOpen className="w-8 h-8 stat-posts" />
-            </div>
+          <div className="hidden md:flex items-center space-x-2 text-sm text-secondary">
+            <Clock className="w-4 h-4" />
+            <span>{new Date().toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</span>
           </div>
         </div>
+      </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* My Clubs */}
-            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-              <h2 className="text-xl font-semibold text-zenith-primary mb-6">
-                My Clubs
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {user?.club_id ? (
-                  // Show the single club the user is a member of
-                  clubs
-                    .filter((club) => club.id === user.club_id)
-                    .map((club) => {
-                      const IconComponent = iconMap[club.icon] || Code;
-                      return (
-                        <Link
-                          key={club.id}
-                          href={`/clubs/${club.id}`}
-                          className="block"
-                        >
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            className="p-4 rounded-lg border border-zenith-border hover:border-zenith-primary transition-colors"
-                          >
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div
-                                className={`w-14 h-14 bg-gradient-to-r ${club.color} rounded-lg flex items-center justify-center`}
-                              >
-                                <ClubLogo 
-                                  clubId={club.id}
-                                  clubName={club.name}
-                                  size="md"
-                                  fallbackIcon={club.icon}
-                                  className="text-white"
-                                />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-zenith-primary">
-                                  {club.name}
-                                </h3>
-                                <p className="text-sm text-zenith-muted">
-                                  {club.type}
-                                </p>
-                              </div>
-                            </div>
-                            <p className="text-sm text-zenith-muted mb-3">
-                              {club.description}
-                            </p>
-                            <div className="flex justify-between text-xs text-zenith-muted">
-                              <span>{club.member_count} members</span>
-                              <span>{club.upcoming_events} events</span>
-                            </div>
-                          </motion.div>
-                        </Link>
-                      );
-                    })
-                ) : (
-                  // Show message if user hasn't joined any club
-                  <div className="col-span-2 text-center py-8">
-                    <p className="text-zenith-muted mb-4">
-                      You haven&apos;t joined any club yet.
-                    </p>
-                    <Link
-                      href="/clubs"
-                      className="inline-flex items-center px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
-                    >
-                      Browse Clubs
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              <Link
-                href="/clubs"
-                className="mt-4 inline-flex items-center text-zenith-primary hover:text-zenith-primary/90 text-sm font-medium"
+      {/* Stats Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        {loading ? (
+          // Loading skeleton
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="card p-6 animate-pulse">
+              <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          ))
+        ) : (
+          statsCards.map((stat, index) => {
+            const IconComponent = stat.icon;
+            return (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + index * 0.05 }}
+                className="card p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
-                Explore all clubs →
-              </Link>
-            </div>
-
-            {/* Recent Announcements */}
-            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-              <h2 className="text-xl font-semibold text-zenith-primary mb-6">
-                Recent Announcements
-              </h2>
-              <div className="space-y-4">
-                {announcements.map((announcement) => (
-                  <div
-                    key={announcement.id}
-                    className="p-4 rounded-lg border border-zenith-border hover:border-zenith-primary transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-zenith-primary">
-                        {announcement.title}
-                      </h3>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          announcement.priority === "high"
-                            ? "bg-red-100 text-red-800"
-                            : announcement.priority === "medium"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-zenith-section text-zenith-primary"
-                        }`}
-                      >
-                        {announcement.priority}
-                      </span>
-                    </div>
-                    <p className="text-sm text-zenith-muted mb-2">
-                      {announcement.content}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-zenith-muted">
-                      <span>{announcement.club_name}</span>
-                      <span>
-                        {new Date(announcement.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center shadow-lg`}>
+                    <IconComponent className="w-6 h-6 text-white" />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
+                  <div className="flex items-center text-green-600 text-sm font-medium">
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                    {stat.trend}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium text-secondary">{stat.title}</h3>
+                  <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                  <p className="text-xs text-muted">{stat.change}</p>
+                </div>
+              </motion.div>
+            );
+          })
+        )}
+      </motion.div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Upcoming Events */}
-            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-              <h2 className="text-lg font-semibold text-zenith-primary mb-4">
-                Upcoming Events
-              </h2>
-              <div className="space-y-4">
-                {upcomingEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="border-l-4 border-zenith-primary pl-4"
-                  >
-                    <h3 className="font-medium text-zenith-primary text-sm">
-                      {event.title}
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="space-y-6"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-primary">Quick Actions</h2>
+          <Link 
+            href="/clubs" 
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1 transition-colors"
+          >
+            <span>View All</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {quickActions.map((action, index) => {
+            const IconComponent = action.icon;
+            return (
+              <motion.div
+                key={action.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + index * 0.05 }}
+              >
+                <Link href={action.href}>
+                  <div className="card p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
+                    <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
+                      <IconComponent className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-blue-600 transition-colors">
+                      {action.title}
                     </h3>
-                    <p className="text-xs text-zenith-muted mb-1">
-                      {event.club_name}
-                    </p>
-                    <div className="flex items-center text-xs text-zenith-muted space-x-2">
-                      <Clock size={12} />
-                      <span>
-                        {event.event_date} at {event.event_time}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-xs text-zenith-muted space-x-2 mt-1">
-                      <MapPin size={12} />
-                      <span>{event.location}</span>
+                    <p className="text-sm text-secondary">{action.description}</p>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Recent Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="space-y-6"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-primary">Recent Activity</h2>
+          <Link 
+            href="/activity" 
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1 transition-colors"
+          >
+            <span>View All</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="card p-6">
+          <div className="space-y-4">
+            {recentActivity.map((activity, index) => {
+              const IconComponent = activity.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.05 }}
+                  className="flex items-center space-x-4 p-4 rounded-lg hover:bg-section transition-colors"
+                >
+                  <div className={`w-10 h-10 bg-section rounded-full flex items-center justify-center`}>
+                    <IconComponent className={`w-5 h-5 ${activity.color}`} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-primary font-medium">{activity.title}</h4>
+                    <div className="flex items-center space-x-2 text-sm text-secondary">
+                      <span>{activity.club}</span>
+                      <span>•</span>
+                      <span>{activity.time}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <Link
-                href="/events"
-                className="mt-4 inline-flex items-center text-zenith-primary hover:text-zenith-primary/90 text-sm font-medium"
-              >
-                View all events →
-              </Link>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
-              <h2 className="text-lg font-semibold text-zenith-primary mb-4">
-                Quick Actions
-              </h2>
-              <div className="space-y-3">
-                <Link
-                  href="/assignments"
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
-                >
-                  <BookOpen size={16} className="stat-posts" />
-                  <span className="text-sm text-zenith-primary">
-                    View Assignments
-                  </span>
-                </Link>
-
-                <Link
-                  href="/calendar"
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
-                >
-                  <Calendar size={16} className="text-zenith-primary" />
-                  <span className="text-sm text-zenith-primary">
-                    Calendar & Events
-                  </span>
-                </Link>
-
-                <Link
-                  href="/notifications"
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
-                >
-                  <Bell size={16} className="text-zenith-secondary" />
-                  <span className="text-sm text-zenith-primary">
-                    Notifications
-                  </span>
-                </Link>
-
-                <Link
-                  href="/profile"
-                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors"
-                >
-                  <Settings size={16} className="text-zenith-secondary" />
-                  <span className="text-sm text-zenith-primary">
-                    Profile Settings
-                  </span>
-                </Link>
-              </div>
-            </div>
+                  <ArrowRight className="w-4 h-4 text-muted" />
+                </motion.div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <ZenChatbot />
-      </div>
+      {/* Featured Clubs */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="space-y-6"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-primary">Featured Clubs</h2>
+          <Link 
+            href="/clubs" 
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1 transition-colors"
+          >
+            <span>Explore All</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              name: 'Computer Science Club',
+              members: 45,
+              description: 'Learn programming, algorithms, and latest tech trends',
+              image: 'CS',
+              color: 'from-blue-500 to-cyan-500'
+            },
+            {
+              name: 'Robotics Club',
+              members: 32,
+              description: 'Build robots and explore automation technologies',
+              image: 'RC',
+              color: 'from-purple-500 to-pink-500'
+            },
+            {
+              name: 'Innovation Club',
+              members: 28,
+              description: 'Develop innovative solutions for real-world problems',
+              image: 'IC',
+              color: 'from-green-500 to-emerald-500'
+            }
+          ].map((club, index) => (
+            <motion.div
+              key={club.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + index * 0.1 }}
+              className="card p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            >
+              <div className="flex items-center space-x-4 mb-4">
+                <div className={`w-12 h-12 bg-gradient-to-r ${club.color} rounded-xl flex items-center justify-center text-white font-bold`}>
+                  {club.image}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-primary">{club.name}</h3>
+                  <div className="flex items-center space-x-2 text-sm text-secondary">
+                    <Users className="w-4 h-4" />
+                    <span>{club.members} members</span>
+                  </div>
+                </div>
+                <Star className="w-5 h-5 text-yellow-500" />
+              </div>
+              <p className="text-secondary text-sm mb-4">{club.description}</p>
+              <Link href="/clubs">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+                  Learn More
+                </button>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
   );
 }

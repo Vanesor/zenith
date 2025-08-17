@@ -1,72 +1,390 @@
 @import "tailwindcss";
 
-/* Custom Zenith Theme Variables */
+/* Modern Paperpal-inspired Theme Variables */
+@import "tailwindcss";
+
+/* Modern Paperpal-inspired Theme Variables */
 :root {
-  /* Dark theme (default) variables */
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  /* Light theme (default) variables */
+  --background: #fefcf7;
+  --foreground: #2d2520;
+  
+  /* Light theme colors - Warm Cream Color Scheme */
+  --bg-main: #fefcf7;           /* Main background → Warm cream */
+  --bg-section: #f8f5f0;        /* Section background → Light cream */
+  --bg-card: #ffffff;           /* Card background → Pure white for contrast */
+  --bg-hover: #f3f0ea;          /* Hover background → Soft cream */
+  --bg-sidebar: #fefcf7;        /* Sidebar background → Warm cream */
+  --bg-nav: #ffffff;            /* Navigation background → Pure white for header */
+  
+  /* Brand colors - Complementary to cream */
+  --primary-brand: #8b5a2b;     /* Warm brown */
+  --primary-accent: #a0694b;    /* Light brown accent */
+  --primary-hover: #6b4423;     /* Dark brown hover */
+  --secondary-accent: #6366f1;  /* Indigo for secondary actions */
+  --success-green: #059669;     /* Forest green for success */
+  --warning-orange: #d97706;    /* Amber orange for warnings */
+  --danger-red: #dc2626;        /* Red for errors */
+  
+  /* Text colors - High contrast on cream */
+  --text-primary: #2d2520;      /* Dark brown (almost black) */
+  --text-secondary: #57524c;    /* Medium brown */
+  --text-muted: #78716c;        /* Light brown-gray */
+  --text-accent: #8b5a2b;       /* Brown accent text */
+  
+  /* Border and shadow - Warm tones */
+  --border-color: #e7e2dc;      /* Light brown border */
+  --border-hover: #d6cfc7;      /* Medium brown border */
+  --shadow-sm: 0 1px 2px 0 rgb(139 90 43 / 0.08);
+  --shadow-md: 0 4px 6px -1px rgb(139 90 43 / 0.12), 0 2px 4px -2px rgb(139 90 43 / 0.08);
+  --shadow-lg: 0 10px 15px -3px rgb(139 90 43 / 0.15), 0 4px 6px -4px rgb(139 90 43 / 0.08);
+  
+  /* Toast variables for light theme */
+  --toast-bg: rgba(255, 255, 255, 0.98);
+  --toast-color: #2d2520;
+  --toast-border: rgba(231, 226, 220, 0.9);
+  --toast-shadow: 0 20px 25px -5px rgba(139, 90, 43, 0.12), 0 10px 10px -5px rgba(139, 90, 43, 0.08);
+}
+
+/* Dark theme variables */
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
   
   /* Dark theme colors */
-  --bg-main: #111827;
-  --bg-section: #1f2937;
-  --bg-card: #374151;
-  --bg-hover: #4b5563;
-  --primary-brand: #d97706;
-  --primary-accent: #3b82f6;
-  --primary-hover: #2563eb;
-  --secondary-accent: #ec4899;
-  --success-green: #10b981;
-  --events-purple: #a855f7;
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
-  --border-color: #4b5563;
+  --bg-main: #0f172a;           /* Main background → Dark slate */
+  --bg-section: #1e293b;        /* Section background → Medium dark */
+  --bg-card: #1e293b;           /* Card background → Medium dark */
+  --bg-hover: #334155;          /* Hover background → Lighter dark */
+  --bg-sidebar: #1e293b;        /* Sidebar background */
+  --bg-nav: #1e293b;            /* Navigation background */
   
-/* Enhanced Toast variables for dark theme */
-  --toast-bg: rgba(17, 24, 39, 0.95);
-  --toast-color: #f9fafb;
-  --toast-border: rgba(75, 85, 99, 0.4);
-  --toast-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  /* Brand colors for dark theme */
+  --primary-brand: #3b82f6;     /* Brighter blue for dark mode */
+  --primary-accent: #60a5fa;    /* Light blue for accents */
+  --primary-hover: #2563eb;     /* Blue hover state */
+  --secondary-accent: #a78bfa;  /* Light purple for secondary actions */
+  --success-green: #34d399;     /* Light green for success states */
+  --warning-orange: #fbbf24;    /* Light orange for warnings */
+  --danger-red: #f87171;        /* Light red for errors */
+  
+  /* Text colors for dark theme */
+  --text-primary: #f1f5f9;      /* Primary text → Light slate */
+  --text-secondary: #cbd5e1;    /* Secondary text → Medium light */
+  --text-muted: #94a3b8;        /* Muted text → Gray */
+  --text-accent: #60a5fa;       /* Accent text → Light blue */
+  
+  /* Border and shadow for dark theme */
+  --border-color: #334155;      /* Dark border */
+  --border-hover: #475569;      /* Hover border */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+
+  /* Toast variables for dark theme */
+  --toast-bg: rgba(30, 41, 59, 0.95);
+  --toast-color: #f1f5f9;
+  --toast-border: rgba(51, 65, 85, 0.8);
+  --toast-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
-/* Light theme variables */
-.light {
-  --background: #ffffff;
-  --foreground: #1f2937;
-  
-  /* Custom light theme colors - Enhanced Professional Scheme */
-  --bg-main: #ffffff;           /* Main background → Pure White */
-  --bg-section: #fafbfc;        /* Section background → Subtle Gray */
-  --bg-card: #f8fafc;           /* Card background → Light Blue Gray */
-  --bg-hover: #f1f5f9;          /* Hover background → Lighter Blue Gray */
-  --primary-brand: #d97706;     /* Zenith Amber for logo/headings */
-  --primary-accent: #2563eb;    /* Professional Blue for buttons & CTAs */
-  --primary-hover: #1d4ed8;     /* Blue hover state */
-  --secondary-accent: #db2777;  /* Pink for secondary actions */
-  --success-green: #059669;     /* Green for success states */
-  --events-purple: #9333ea;     /* Purple for events */
-  --text-primary: #1e293b;      /* Primary text → Darker slate */
-  --text-secondary: #475569;    /* Secondary text → Slate */
-  --text-muted: #64748b;        /* Muted text → Light slate */
-  --border-color: #e2e8f0;      /* Light slate borders */
-  
-  /* Enhanced Toast variables for light theme */
-  --toast-bg: rgba(255, 255, 255, 0.95);
-  --toast-color: #1e293b;
-  --toast-border: rgba(226, 232, 240, 0.6);
-  --toast-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
+/* Base body styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
-  /* Add padding top to account for the fixed header */
-  padding-top: 0; /* This will be dynamically handled by the layout */
-  min-height: 100vh;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+}
+
+/* CSS Custom Properties for Tailwind */
+.bg-main { background-color: var(--bg-main); }
+.bg-section { background-color: var(--bg-section); }
+.bg-card { background-color: var(--bg-card); }
+.bg-hover { background-color: var(--bg-hover); }
+.bg-sidebar { background-color: var(--bg-sidebar); }
+.bg-nav { background-color: var(--bg-nav); }
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-accent { color: var(--text-accent); }
+
+.border-custom { border-color: var(--border-color); }
+.border-hover { border-color: var(--border-hover); }
+
+/* Modern Card Styles */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-hover);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Button Styles - Cream Theme Compatible */
+.btn-primary {
+  background-color: var(--primary-brand);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+/* Sidebar Styles */
+.sidebar {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-nav-item {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0.5rem;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-nav-item.active {
+  background-color: var(--primary-brand);
+  color: white;
+}
+
+/* Header Styles */
+.header {
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+}
+
+/* Input Styles */
+.input {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-brand);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Loading Animations */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-section);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-brand), var(--secondary-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Focus Styles */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  border-color: var(--primary-brand);
+}
+
+/* Animation Utilities */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Override any existing styles */
+.zenith-main { background-color: var(--bg-main) !important; }
+.zenith-section { background-color: var(--bg-section) !important; }
+.zenith-card { background-color: var(--bg-card) !important; }
+.zenith-hover { background-color: var(--bg-hover) !important; }
+.zenith-primary { color: var(--text-primary) !important; }
+.zenith-secondary { color: var(--text-secondary) !important; }
+.zenith-muted { color: var(--text-muted) !important; }
+.zenith-accent { color: var(--text-accent) !important; }
+.zenith-border { border-color: var(--border-color) !important; }
+
+/* Dark theme variables */
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  
+  /* Dark theme colors */
+  --bg-main: #0f172a;           /* Main background → Dark slate */
+  --bg-section: #1e293b;        /* Section background → Medium dark */
+  --bg-card: #1e293b;           /* Card background → Medium dark */
+  --bg-hover: #334155;          /* Hover background → Lighter dark */
+  --bg-sidebar: #1e293b;        /* Sidebar background */
+  --bg-nav: #1e293b;            /* Navigation background */
+  
+  /* Brand colors for dark theme */
+  --primary-brand: #3b82f6;     /* Brighter blue for dark mode */
+  --primary-accent: #60a5fa;    /* Light blue for accents */
+  --primary-hover: #2563eb;     /* Blue hover state */
+  --secondary-accent: #a78bfa;  /* Light purple for secondary actions */
+  --success-green: #34d399;     /* Light green for success states */
+  --warning-orange: #fbbf24;    /* Light orange for warnings */
+  --danger-red: #f87171;        /* Light red for errors */
+  
+  /* Text colors for dark theme */
+  --text-primary: #f1f5f9;      /* Primary text → Light slate */
+  --text-secondary: #cbd5e1;    /* Secondary text → Medium light */
+  --text-muted: #94a3b8;        /* Muted text → Gray */
+  --text-accent: #60a5fa;       /* Accent text → Light blue */
+  
+  /* Border and shadow for dark theme */
+  --border-color: #334155;      /* Dark border */
+  --border-hover: #475569;      /* Hover border */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+
+  /* Toast variables for dark theme */
+  --toast-bg: rgba(30, 41, 59, 0.95);
+  --toast-color: #f1f5f9;
+  --toast-border: rgba(51, 65, 85, 0.8);
+  --toast-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* Base body styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
 }
 
 /* Smooth transitions for theme changes */
@@ -199,16 +517,43 @@ body {
   color: var(--primary-accent);
 }
 
-/* Light mode specific enhancements */
+/* Light mode specific enhancements - Cream Theme */
 .light .bg-zenith-card {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 4px 0 rgba(139, 90, 43, 0.08), 0 1px 2px 0 rgba(139, 90, 43, 0.06);
+  border: 1px solid rgba(231, 226, 220, 0.7);
+  background: #ffffff;
+}
+
+.light .card {
+  box-shadow: 0 2px 4px 0 rgba(139, 90, 43, 0.08), 0 1px 2px 0 rgba(139, 90, 43, 0.06);
+  border: 1px solid rgba(231, 226, 220, 0.7);
+  background: #ffffff;
+}
+
+.light .card:hover {
+  box-shadow: 0 4px 6px -1px rgba(139, 90, 43, 0.12), 0 2px 4px -2px rgba(139, 90, 43, 0.08);
+  border-color: rgba(214, 207, 199, 0.8);
 }
 
 .light .bg-zenith-section {
+  background-color: var(--bg-section);
   border: 1px solid var(--border-color);
 }
 
-/* Form input styling for light mode */
+/* Enhanced cream theme styles */
+.light .bg-blue-600 {
+  background-color: var(--primary-brand) !important;
+}
+
+.light .hover\:bg-blue-700:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+.light .text-blue-600 {
+  color: var(--primary-brand) !important;
+}
+
+/* Form input styling for cream theme */
 .light input[type="email"],
 .light input[type="password"], 
 .light input[type="text"],
@@ -219,6 +564,18 @@ body {
   background-color: #ffffff;
   border-color: var(--border-color);
   color: var(--text-primary);
+}
+
+.light input[type="email"]:focus,
+.light input[type="password"]:focus, 
+.light input[type="text"]:focus,
+.light input[type="tel"]:focus,
+.light input[type="date"]:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: var(--primary-brand);
+  box-shadow: 0 0 0 3px rgba(139, 90, 43, 0.1);
+  outline: none;
 }
 
 .light input[type="email"]:focus,

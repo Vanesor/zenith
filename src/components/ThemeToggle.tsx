@@ -1,22 +1,27 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useTheme } from "next-themes";
 
 // This is the old fixed-position ThemeToggle - Use ui/ThemeToggle instead
 // Keeping for backwards compatibility
 export function ThemeToggle() {
-  const { theme, toggleTheme, isLoaded } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  // Don't render until theme is loaded to prevent flash
-  if (!isLoaded) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
     return null;
   }
 
   return (
     <button
-      onClick={toggleTheme}
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
       className="fixed top-4 right-4 z-[60] p-3 rounded-full bg-zenith-card border border-zenith-border backdrop-blur-md hover:bg-zenith-section transition-all duration-300 shadow-lg hover:shadow-xl group"
       aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
     >
