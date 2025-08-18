@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Play, 
   Square, 
@@ -18,13 +18,18 @@ import {
   Maximize2,
   Minimize2,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Save,
+  Upload,
+  Trash2,
+  RotateCcw,
+  Sparkles,
+  Monitor
 } from 'lucide-react';
 import { PlaygroundCodeEditor } from '@/components/playground/PlaygroundCodeEditor';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { useAuthModal } from '@/contexts/AuthModalContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useToast } from '@/contexts/ToastContext';
+import { AnimatedPlaygroundIcon } from '@/components/icons/AnimatedPlaygroundIcon';
 
 interface ExecutionResult {
   output: string;
@@ -41,6 +46,7 @@ interface Language {
   extension: string;
   template: string;
   icon: string;
+  color: string;
 }
 
 const SUPPORTED_LANGUAGES: Language[] = [
@@ -49,64 +55,55 @@ const SUPPORTED_LANGUAGES: Language[] = [
     name: 'Python',
     version: '3.9',
     extension: 'py',
-    template: `# Welcome to Zenith Code Playground!
+    template: `# Welcome to Zenith Code Playground! 🚀
 # Write your Python code here
 
 def main():
-    print("Hello, World!")
+    print("Hello, Zenith! 🌟")
     
-    # Your code here
+    # Example: Working with lists and comprehensions
     numbers = [1, 2, 3, 4, 5]
     squared = [x**2 for x in numbers]
-    print(f"Squared numbers: {squared}")
+    print(f"Original: {numbers}")
+    print(f"Squared: {squared}")
 
 if __name__ == "__main__":
     main()`,
-    icon: '🐍'
+    icon: '🐍',
+    color: 'from-green-500 to-blue-500'
   },
   {
     id: 'javascript',
     name: 'JavaScript',
-    version: 'Node.js 16',
+    version: 'Node.js 18',
     extension: 'js',
-    template: `// Welcome to Zenith Code Playground!
+    template: `// Welcome to Zenith Code Playground! 🚀
 // Write your JavaScript code here
 
-console.log("Hello, World!");
+console.log("Hello, Zenith! 🌟");
 
-// Your code here
+// Example: Modern JavaScript features
 const numbers = [1, 2, 3, 4, 5];
 const squared = numbers.map(x => x * x);
-console.log(\`Squared numbers: \${squared}\`);
 
-// Example async function
-async function example() {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            console.log("Async operation completed!");
-            resolve("Done");
-        }, 1000);
-    });
-}
-
-example().then(result => console.log(result));`,
-    icon: '🟨'
+console.log("Original:", numbers);
+console.log("Squared:", squared);`,
+    icon: '🟨',
+    color: 'from-yellow-500 to-orange-500'
   },
   {
     id: 'java',
     name: 'Java',
-    version: '11',
+    version: '17',
     extension: 'java',
-    template: `// Welcome to Zenith Code Playground!
-// Write your Java code here
-
+    template: `// Welcome to Zenith Code Playground! 🚀
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+        System.out.println("Hello, Zenith! 🌟");
         
-        // Your code here
+        // Example: Working with arrays
         int[] numbers = {1, 2, 3, 4, 5};
-        System.out.print("Squared numbers: ");
+        System.out.print("Squared: ");
         
         for (int i = 0; i < numbers.length; i++) {
             System.out.print(numbers[i] * numbers[i]);
@@ -115,583 +112,408 @@ public class Main {
         System.out.println();
     }
 }`,
-    icon: '☕'
-  },
-  {
-    id: 'cpp',
-    name: 'C++',
-    version: '17',
-    extension: 'cpp',
-    template: `// Welcome to Zenith Code Playground!
-// Write your C++ code here
-
-#include <iostream>
-#include <vector>
-#include <algorithm>
-
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-    
-    // Your code here
-    std::vector<int> numbers = {1, 2, 3, 4, 5};
-    std::vector<int> squared;
-    
-    std::transform(numbers.begin(), numbers.end(), 
-                   std::back_inserter(squared),
-                   [](int x) { return x * x; });
-    
-    std::cout << "Squared numbers: ";
-    for (size_t i = 0; i < squared.size(); ++i) {
-        std::cout << squared[i];
-        if (i < squared.size() - 1) std::cout << ", ";
-    }
-    std::cout << std::endl;
-    
-    return 0;
-}`,
-    icon: '⚙️'
-  },
-  {
-    id: 'c',
-    name: 'C',
-    version: 'GCC 9.4',
-    extension: 'c',
-    template: `// Welcome to Zenith Code Playground!
-// Write your C code here
-
-#include <stdio.h>
-
-int main() {
-    printf("Hello, World!\\n");
-    
-    // Your code here
-    int numbers[] = {1, 2, 3, 4, 5};
-    int size = sizeof(numbers) / sizeof(numbers[0]);
-    
-    printf("Squared numbers: ");
-    for (int i = 0; i < size; i++) {
-        printf("%d", numbers[i] * numbers[i]);
-        if (i < size - 1) printf(", ");
-    }
-    printf("\\n");
-    
-    return 0;
-}`,
-    icon: '🔧'
+    icon: '☕',
+    color: 'from-red-500 to-pink-500'
   }
 ];
 
-export default function PlaygroundPage() {
-  const { user, isLoading } = useAuth();
-  const { isAuthenticated } = useAuthGuard({ 
-    redirectReason: "Please sign in to use the interactive code playground",
-    redirectOnClose: false, // Keep user on playground page
-    requireAuth: true // Show modal initially for unauthenticated users
-  });
-  const { openAuthModal } = useAuthModal();
+function PlaygroundPage() {
   const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(SUPPORTED_LANGUAGES[0]);
-  const [code, setCode] = useState(SUPPORTED_LANGUAGES[0].template);
+  const [code, setCode] = useState<string>(SUPPORTED_LANGUAGES[0].template);
   const [isExecuting, setIsExecuting] = useState(false);
-  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+  const [result, setResult] = useState<ExecutionResult | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [executionHistory, setExecutionHistory] = useState<ExecutionResult[]>([]);
-  const [editorZoom, setEditorZoom] = useState(14); // Font size for zoom
-  const [editorTheme, setEditorTheme] = useState('vs-dark'); // Monaco theme
+  const [fontSize, setFontSize] = useState(14);
+  const [theme, setTheme] = useState<'vs-dark' | 'light'>('vs-dark');
   
   const outputRef = useRef<HTMLDivElement>(null);
 
-  // Update code template when language changes
   useEffect(() => {
     setCode(selectedLanguage.template);
-    setExecutionResult(null);
   }, [selectedLanguage]);
 
-  // Auto-scroll output to bottom
+  // Set loading to false after initial render
   useEffect(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
-    }
-  }, [executionResult]);
+    setIsLoading(false);
+  }, []);
 
   const executeCode = async () => {
-    // Check authentication first
-    if (!user) {
-      openAuthModal("Please sign in to execute code in the playground", false); // Don't redirect, keep on playground
-      showToast({
-        title: 'Authentication Required',
-        message: 'Please log in to execute code in the playground.',
-        type: 'warning'
-      });
-      return;
-    }
-
     if (!code.trim()) {
-      showToast({
-        title: 'No Code',
-        message: 'Please write some code before executing.',
-        type: 'warning'
+      showToast({ 
+        title: 'Warning', 
+        message: 'Please enter some code to execute', 
+        type: 'warning' 
       });
       return;
     }
 
     setIsExecuting(true);
-    setExecutionResult(null);
+    setResult(null);
 
     try {
-      const startTime = Date.now();
-      
-      const response = await fetch('/api/code/execute', {
+      const response = await fetch('/api/playground/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           language: selectedLanguage.id,
-          code: code,
-          input: '', // No input for playground
+          code,
         }),
       });
 
-      const endTime = Date.now();
-      const executionTime = endTime - startTime;
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const data = await response.json();
+      setResult(data);
       
-      const executionResult: ExecutionResult = {
-        output: result.output || '',
-        error: result.error || '',
-        executionTime: executionTime,
-        memoryUsed: result.memoryUsed || 0,
-        status: result.error ? 'error' : 'success'
-      };
-
-      setExecutionResult(executionResult);
-      setExecutionHistory(prev => [executionResult, ...prev.slice(0, 9)]); // Keep last 10 executions
-
-      if (result.error) {
-        showToast({
-          title: 'Execution Error',
-          message: 'Your code has some errors. Check the output panel.',
-          type: 'error'
+      if (data.status === 'success') {
+        showToast({ 
+          title: 'Success', 
+          message: 'Code executed successfully!', 
+          type: 'success' 
         });
       } else {
-        showToast({
-          title: 'Code Executed Successfully',
-          message: `Execution completed in ${executionTime}ms`,
-          type: 'success'
+        showToast({ 
+          title: 'Error', 
+          message: 'Execution failed', 
+          type: 'error' 
         });
       }
-
     } catch (error) {
-      console.error('Execution error:', error);
-      setExecutionResult({
+      setResult({
         output: '',
-        error: `Failed to execute code: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        status: 'error'
+        error: 'Failed to execute code. Please try again.',
+        status: 'error',
       });
-      
-      showToast({
-        title: 'Execution Failed',
-        message: 'Failed to execute your code. Please try again.',
-        type: 'error'
+      showToast({ 
+        title: 'Error', 
+        message: 'Failed to execute code', 
+        type: 'error' 
       });
     } finally {
       setIsExecuting(false);
     }
   };
 
-  const handleLanguageChange = (language: Language) => {
-    setSelectedLanguage(language);
-  };
-
-  // Copy code to clipboard
-  const copyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      showToast({
-        title: 'Code Copied',
-        message: 'Code has been copied to clipboard',
-        type: 'success'
-      });
-    } catch (error) {
-      showToast({
-        title: 'Copy Failed',
-        message: 'Failed to copy code to clipboard',
-        type: 'error'
-      });
-    }
-  };
-
-  // Zoom in editor
-  const zoomIn = () => {
-    setEditorZoom(prev => Math.min(prev + 2, 24));
-  };
-
-  // Zoom out editor
-  const zoomOut = () => {
-    setEditorZoom(prev => Math.max(prev - 2, 10));
-  };
-
-  const downloadCode = () => {
-    const blob = new Blob([code], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `playground.${selectedLanguage.extension}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showToast({
-      title: 'Code Downloaded',
-      message: `File saved as playground.${selectedLanguage.extension}`,
-      type: 'success'
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    showToast({ 
+      title: 'Copied', 
+      message: 'Copied to clipboard!', 
+      type: 'success' 
     });
   };
 
+  const resetCode = () => {
+    setCode(selectedLanguage.template);
+    setResult(null);
+    showToast({ 
+      title: 'Reset', 
+      message: 'Code reset to template', 
+      type: 'info' 
+    });
+  };
+
+  const increaseFontSize = () => {
+    setFontSize(prev => Math.min(prev + 2, 24));
+  };
+
+  const decreaseFontSize = () => {
+    setFontSize(prev => Math.max(prev - 2, 10));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-zenith-background dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <Loader2 className="w-6 h-6 animate-spin text-zenith-primary" />
+          <span className="text-zenith-primary">Loading playground...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      {isFullscreen ? (
-        // Fullscreen Mode - Clean interface with just editor and minimal controls
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
-          {/* Minimal header bar */}
-          <div className="bg-gray-900 border-b border-gray-700 p-2 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+    <div className={`min-h-screen bg-zenith-background dark:bg-gray-900 ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+      {/* Header */}
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="bg-zenith-card dark:bg-gray-800 border-b border-zenith-border dark:border-gray-700 p-4"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <AnimatedPlaygroundIcon className="w-8 h-8 text-zenith-primary" />
+              <div>
+                <h1 className="text-2xl font-bold text-zenith-primary dark:text-white">
+                  Code Playground
+                </h1>
+                <p className="text-sm text-zenith-muted">
+                  Write, execute, and experiment with code
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {/* Language Selector */}
+            <div className="relative">
               <select
                 value={selectedLanguage.id}
                 onChange={(e) => {
                   const lang = SUPPORTED_LANGUAGES.find(l => l.id === e.target.value);
-                  if (lang) handleLanguageChange(lang);
+                  if (lang) setSelectedLanguage(lang);
                 }}
-                className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="appearance-none bg-zenith-section dark:bg-gray-700 border border-zenith-border dark:border-gray-600 rounded-lg px-4 py-2 pr-8 text-zenith-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-zenith-primary"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.id} value={lang.id}>
-                    {lang.icon} {lang.name}
+                    {lang.icon} {lang.name} {lang.version}
                   </option>
                 ))}
               </select>
-              
-              <select
-                value={editorTheme}
-                onChange={e => setEditorTheme(e.target.value)}
-                className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="vs-dark">Dark</option>
-                <option value="vs-light">Light</option>
-                <option value="hc-black">High Contrast Black</option>
-                <option value="hc-light">High Contrast Light</option>
-                <option value="vs-dark-plus">Dark+</option>
-                <option value="monokai">Monokai</option>
-                <option value="github">GitHub</option>
-                <option value="solarized-dark">Solarized Dark</option>
-                <option value="solarized-light">Solarized Light</option>
-              </select>
             </div>
-            
-            <div className="flex items-center space-x-1">
+
+            {/* Controls */}
+            <div className="flex items-center space-x-1 bg-zenith-section dark:bg-gray-700 rounded-lg p-1">
               <button
-                onClick={zoomOut}
-                className="p-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded transition-all"
-                title="Zoom out"
+                onClick={decreaseFontSize}
+                className="p-2 rounded hover:bg-zenith-background dark:hover:bg-gray-600 transition-colors"
+                title="Decrease font size"
               >
-                <ZoomOut className="w-4 h-4" />
+                <ZoomOut className="w-4 h-4 text-zenith-secondary" />
+              </button>
+              <span className="text-xs text-zenith-muted px-2">{fontSize}px</span>
+              <button
+                onClick={increaseFontSize}
+                className="p-2 rounded hover:bg-zenith-background dark:hover:bg-gray-600 transition-colors"
+                title="Increase font size"
+              >
+                <ZoomIn className="w-4 h-4 text-zenith-secondary" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="p-2 bg-zenith-section dark:bg-gray-700 rounded-lg hover:bg-zenith-background dark:hover:bg-gray-600 transition-colors"
+              title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="w-4 h-4 text-zenith-secondary" />
+              ) : (
+                <Maximize2 className="w-4 h-4 text-zenith-secondary" />
+              )}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Code Editor */}
+        <motion.div 
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="flex-1 flex flex-col"
+        >
+          <div className="bg-zenith-card dark:bg-gray-800 border-b border-zenith-border dark:border-gray-700 p-3 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Code2 className="w-4 h-4 text-zenith-primary" />
+              <span className="text-sm font-medium text-zenith-primary dark:text-white">
+                {selectedLanguage.name} Editor
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={resetCode}
+                className="p-1.5 rounded hover:bg-zenith-section dark:hover:bg-gray-700 transition-colors"
+                title="Reset to template"
+              >
+                <RotateCcw className="w-4 h-4 text-zenith-secondary" />
               </button>
               <button
-                onClick={zoomIn}
-                className="p-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded transition-all"
-                title="Zoom in"
+                onClick={() => copyToClipboard(code)}
+                className="p-1.5 rounded hover:bg-zenith-section dark:hover:bg-gray-700 transition-colors"
+                title="Copy code"
               >
-                <ZoomIn className="w-4 h-4" />
-              </button>
-              <button
-                onClick={executeCode}
-                disabled={isExecuting || !user}
-                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded text-sm transition-all flex items-center space-x-1"
-              >
-                {isExecuting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-                <span>Run</span>
-              </button>
-              <button
-                onClick={() => setIsFullscreen(false)}
-                className="p-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded transition-all"
-                title="Exit fullscreen"
-              >
-                <Minimize2 className="w-4 h-4" />
+                <Copy className="w-4 h-4 text-zenith-secondary" />
               </button>
             </div>
           </div>
           
-          {/* Editor taking full remaining space */}
           <div className="flex-1">
             <PlaygroundCodeEditor
               value={code}
               onChange={setCode}
               language={selectedLanguage.id}
-              theme={editorTheme}
-              fontSize={editorZoom}
-              readOnly={isExecuting}
-              showLineNumbers={true}
+              theme={theme}
+              fontSize={fontSize}
               className="h-full"
             />
           </div>
-        </div>
-      ) : (
-        // Normal Mode
-        <div className="min-h-screen bg-gradient-to-br from-zenith-main via-zenith-section to-zenith-main transition-all duration-300 pt-16">
-          {/* Header */}
-          <div className="bg-zenith-card/90 backdrop-blur-md border-b border-zenith-border sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Title */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Code2 className="w-6 h-6 text-zenith-primary" />
-                <h1 className="text-xl font-bold text-zenith-primary">Code Playground</h1>
-              </div>
-              <div className="text-sm text-zenith-muted">
-                {user?.name ? `Welcome back, ${user.name}!` : 'Practice coding online'}
-              </div>
-            </div>
+        </motion.div>
 
-            {/* Actions */}
+        {/* Output Panel */}
+        <motion.div 
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="w-96 bg-zenith-card dark:bg-gray-800 border-l border-zenith-border dark:border-gray-700 flex flex-col"
+        >
+          <div className="p-3 border-b border-zenith-border dark:border-gray-700 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <button
-                onClick={downloadCode}
-                className="p-2 text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover rounded-lg transition-all"
-                title="Download code"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-              <button
-                onClick={copyCode}
-                className="p-2 text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover rounded-lg transition-all"
-                title="Copy code"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-              <button
-                onClick={zoomIn}
-                className="p-2 text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover rounded-lg transition-all"
-                title="Zoom in"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
-              <button
-                onClick={zoomOut}
-                className="p-2 text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover rounded-lg transition-all"
-                title="Zoom out"
-              >
-                <ZoomOut className="w-4 h-4" />
-              </button>
-              {/* Monaco Theme Selector */}
-              <select
-                value={editorTheme}
-                onChange={e => setEditorTheme(e.target.value)}
-                className="ml-2 px-2 py-1 rounded bg-zenith-section text-zenith-primary border border-zenith-border text-xs"
-                title="Editor Theme"
-                style={{ minWidth: 120 }}
-              >
-                <option value="vs-dark">Dark</option>
-                <option value="vs-light">Light</option>
-                <option value="hc-black">High Contrast Black</option>
-                <option value="hc-light">High Contrast Light</option>
-                <option value="vs-dark-plus">Dark+</option>
-                <option value="monokai">Monokai</option>
-                <option value="github">GitHub</option>
-                <option value="solarized-dark">Solarized Dark</option>
-                <option value="solarized-light">Solarized Light</option>
-              </select>
-              <button
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className="p-2 text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover rounded-lg transition-all"
-                title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-              >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              </button>
+              <Terminal className="w-4 h-4 text-zenith-primary" />
+              <span className="text-sm font-medium text-zenith-primary dark:text-white">
+                Output
+              </span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-8rem)]">
-          
-          {/* Left Panel - Code Editor */}
-          <div className="lg:col-span-2 flex flex-col">
-            
-            {/* Language Selector & Run Button */}
-            <div className="bg-zenith-card rounded-t-xl border border-zenith-border border-b-0 p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                {/* Language Selector */}
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-zenith-muted" />
-                  <select
-                    value={selectedLanguage.id}
-                    onChange={(e) => {
-                      const lang = SUPPORTED_LANGUAGES.find(l => l.id === e.target.value);
-                      if (lang) handleLanguageChange(lang);
-                    }}
-                    className="bg-zenith-section border border-zenith-border rounded-lg px-3 py-2 text-zenith-primary focus:outline-none focus:ring-2 focus:ring-zenith-primary"
-                  >
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                      <option key={lang.id} value={lang.id}>
-                        {lang.icon} {lang.name} ({lang.version})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Run Button */}
-              <button
-                onClick={executeCode}
-                disabled={isExecuting}
-                className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium transition-all shadow-lg ${
-                  isExecuting
-                    ? 'bg-gray-400 cursor-not-allowed text-gray-600'
-                    : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-green-200'
-                }`}
-              >
-                {isExecuting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Running...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4" />
-                    <span>Run Code</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Code Editor */}
-            <div className="flex-1 bg-zenith-card rounded-b-xl border border-zenith-border border-t-0">
-              <PlaygroundCodeEditor
-                value={code}
-                onChange={setCode}
-                language={selectedLanguage.id}
-                theme={editorTheme}
-                fontSize={editorZoom}
-                readOnly={isExecuting}
-                showLineNumbers={true}
-                className="rounded-b-xl border border-zenith-border border-t-0 flex-1 bg-zenith-main"
-              />
-            </div>
-          </div>
-
-          {/* Right Panel - Output & Info */}
-          <div className="flex flex-col space-y-6">
-            
-            {/* Execution Info */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-zenith-card rounded-xl border border-zenith-border p-4"
+            <button
+              onClick={executeCode}
+              disabled={isExecuting}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                isExecuting
+                  ? 'bg-gray-200 dark:bg-gray-700 text-zenith-muted cursor-not-allowed'
+                  : 'bg-gradient-to-r ' + selectedLanguage.color + ' text-white hover:shadow-lg transform hover:scale-105'
+              }`}
             >
-              <div className="flex items-center space-x-2 mb-4">
-                <Terminal className="w-5 h-5 text-zenith-primary" />
-                <h3 className="font-semibold text-zenith-primary">Execution Info</h3>
-              </div>
-              
-              {executionResult ? (
-                <div className="space-y-3">
+              {isExecuting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
+              <span>{isExecuting ? 'Running...' : 'Run Code'}</span>
+            </button>
+          </div>
+
+          <div className="flex-1 p-4 overflow-auto" ref={outputRef}>
+            <AnimatePresence mode="wait">
+              {result ? (
+                <motion.div
+                  key="result"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  {/* Status */}
                   <div className="flex items-center space-x-2">
-                    {executionResult.status === 'success' ? (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    {result.status === 'success' ? (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-red-500" />
+                      <XCircle className="w-5 h-5 text-red-500" />
                     )}
                     <span className={`text-sm font-medium ${
-                      executionResult.status === 'success' ? 'text-green-600' : 'text-red-600'
+                      result.status === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                     }`}>
-                      {executionResult.status === 'success' ? 'Success' : 'Error'}
+                      {result.status === 'success' ? 'Execution Successful' : 'Execution Failed'}
                     </span>
                   </div>
-                  
-                  {executionResult.executionTime && (
-                    <div className="text-sm text-zenith-muted">
-                      <span className="font-medium">Execution Time:</span> {executionResult.executionTime}ms
+
+                  {/* Output */}
+                  {result.output && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-zenith-muted uppercase tracking-wide">
+                          Output
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(result.output)}
+                          className="p-1 rounded hover:bg-zenith-section dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <Copy className="w-3 h-3 text-zenith-muted" />
+                        </button>
+                      </div>
+                      <pre className="bg-zenith-background dark:bg-gray-900 p-3 rounded-lg text-sm text-zenith-primary dark:text-gray-300 font-mono whitespace-pre-wrap border border-zenith-border dark:border-gray-600">
+                        {result.output}
+                      </pre>
                     </div>
                   )}
-                  
-                  {executionResult.memoryUsed && (
-                    <div className="text-sm text-zenith-muted">
-                      <span className="font-medium">Memory Used:</span> {executionResult.memoryUsed}KB
+
+                  {/* Error */}
+                  {result.error && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">
+                          Error
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(result.error!)}
+                          className="p-1 rounded hover:bg-zenith-section dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <Copy className="w-3 h-3 text-zenith-muted" />
+                        </button>
+                      </div>
+                      <pre className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-sm text-red-700 dark:text-red-300 font-mono whitespace-pre-wrap border border-red-200 dark:border-red-800">
+                        {result.error}
+                      </pre>
                     </div>
                   )}
-                </div>
+
+                  {/* Execution Info */}
+                  {(result.executionTime || result.memoryUsed) && (
+                    <div className="pt-2 border-t border-zenith-border dark:border-gray-700">
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        {result.executionTime && (
+                          <div>
+                            <span className="text-zenith-muted">Execution Time</span>
+                            <div className="font-mono text-zenith-primary dark:text-white">
+                              {result.executionTime}ms
+                            </div>
+                          </div>
+                        )}
+                        {result.memoryUsed && (
+                          <div>
+                            <span className="text-zenith-muted">Memory Used</span>
+                            <div className="font-mono text-zenith-primary dark:text-white">
+                              {result.memoryUsed}KB
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
               ) : (
-                <div className="flex items-center space-x-2 text-zenith-muted">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">Ready to execute</span>
-                </div>
+                <motion.div
+                  key="placeholder"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center h-full text-center space-y-4"
+                >
+                  <div className="w-16 h-16 bg-zenith-section dark:bg-gray-700 rounded-2xl flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 text-zenith-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-zenith-primary dark:text-white mb-2">
+                      Ready to Code!
+                    </h3>
+                    <p className="text-sm text-zenith-muted mb-4">
+                      Write your {selectedLanguage.name} code and click "Run Code" to see the output.
+                    </p>
+                    <div className="flex items-center justify-center space-x-2 text-xs text-zenith-muted">
+                      <Monitor className="w-4 h-4" />
+                      <span>{selectedLanguage.name} {selectedLanguage.version}</span>
+                    </div>
+                  </div>
+                </motion.div>
               )}
-            </motion.div>
-
-            {/* Output Panel */}
-            <div className="flex-1 bg-zenith-card rounded-xl border border-zenith-border flex flex-col">
-              <div className="p-4 border-b border-zenith-border">
-                <div className="flex items-center space-x-2">
-                  <Terminal className="w-5 h-5 text-zenith-primary" />
-                  <h3 className="font-semibold text-zenith-primary">Output</h3>
-                </div>
-              </div>
-              
-              <div 
-                ref={outputRef}
-                className="flex-1 p-4 font-mono text-sm overflow-auto max-h-96"
-              >
-                {executionResult ? (
-                  <div className="space-y-2">
-                    {executionResult.output && (
-                      <div className="text-zenith-primary whitespace-pre-wrap">
-                        {executionResult.output}
-                      </div>
-                    )}
-                    {executionResult.error && (
-                      <div className="text-red-500 whitespace-pre-wrap">
-                        <div className="font-semibold mb-1">Error:</div>
-                        {executionResult.error}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-zenith-muted italic">
-                    Output will appear here after running your code...
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Language Info Card */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-gradient-to-br from-zenith-card to-zenith-section rounded-xl border border-zenith-border p-4"
-            >
-              <div className="text-center">
-                <div className="text-3xl mb-2">{selectedLanguage.icon}</div>
-                <h4 className="font-semibold text-zenith-primary">{selectedLanguage.name}</h4>
-                <p className="text-sm text-zenith-muted">{selectedLanguage.version}</p>
-              </div>
-            </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       </div>
-        </div>
-      )}
-    </>
+    </div>
+  );
+}
+
+// Protected Playground Page
+export default function ProtectedPlaygroundPage() {
+  return (
+    <ProtectedRoute>
+      <PlaygroundPage />
+    </ProtectedRoute>
   );
 }

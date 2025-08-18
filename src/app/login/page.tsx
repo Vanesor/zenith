@@ -108,7 +108,9 @@ export default function LoginPage() {
             duration: 3000,
             icon: '👋',
           });
-          await login(result.user, result.token);
+          
+          // Fix: Call login with token first, then user
+          await login(result.token, result.user);
           
           setTimeout(() => {
             router.push('/dashboard');
@@ -155,7 +157,7 @@ export default function LoginPage() {
           duration: 3000,
           icon: '🔓',
         });
-        await login(result.user, result.token);
+        await login(result.token, result.user);
         
         setTimeout(() => {
           router.push('/dashboard');

@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { AnimatedPlaygroundIcon } from "@/components/icons/AnimatedPlaygroundIcon";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Assignments", href: "/assignments", icon: BookOpen },
     { name: "Events", href: "/events", icon: Calendar },
+    { name: "Playground", href: "/playground", icon: AnimatedPlaygroundIcon, isCustom: true },
     { name: "Discussions", href: "/discussions", icon: MessageSquare },
     { name: "Members", href: "/members", icon: Users },
     { name: "Notifications", href: "/notifications", icon: Bell },
@@ -127,7 +129,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         : "text-zenith-secondary dark:text-gray-300 hover:bg-zenith-section dark:hover:bg-gray-800"
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
+                    {item.isCustom ? (
+                      <Icon className="w-5 h-5" />
+                    ) : (
+                      <Icon className="w-5 h-5" />
+                    )}
                     <span className="font-medium">{item.name}</span>
                   </Link>
                 );

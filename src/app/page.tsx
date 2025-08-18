@@ -15,11 +15,17 @@ import {
   Heart,
   MapPin,
   Clock,
+  TrendingUp,
+  Award,
+  Star,
+  Zap
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import ClubLogo from "@/components/ClubLogo";
-import { UnifiedHeader } from "@/components/UnifiedHeader";
+import { UniversalLoader } from "@/components/UniversalLoader";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 // Icon mapping for clubs
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -99,10 +105,18 @@ interface HomeData {
 }
 
 export default function HomePage() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
   const [homeData, setHomeData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // If user is authenticated, redirect to dashboard
+    if (!isLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -122,17 +136,14 @@ export default function HomePage() {
     fetchHomeData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-zenith-accent mx-auto mb-4"></div>
-          <p className="text-zenith-secondary">
-            Loading Zenith Forum...
-          </p>
-        </div>
-      </div>
-    );
+  // Show loading while checking auth or fetching data
+  if (isLoading || loading) {
+    return <UniversalLoader message="Loading Zenith community..." />;
+  }
+
+  // If user is authenticated, don't show landing page (will redirect)
+  if (user) {
+    return null;
   }
 
   if (error || !homeData) {
@@ -157,47 +168,76 @@ export default function HomePage() {
   const { stats, clubs, upcomingEvents } = homeData;
 
   return (
-    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
       <ZenChatbot />
 
-      {/* Unified Header */}
-      <UnifiedHeader showNavigation={true} />
+      {/* Hero Section with built-in header */}
+      <section className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-purple-400/30 dark:to-pink-400/30 blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 dark:from-blue-400/30 dark:to-cyan-400/30 blur-3xl animate-pulse delay-1000"></div>
+        </div>
 
-      {/* Main Content with proper spacing for fixed header */}
-      <div className="pt-44">{/* Increased even more for college banner + nav bar */}
+        {/* Header */}
+        <div className="relative z-20 max-w-7xl mx-auto mb-16">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Zenith</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">CS Department Forum</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/login"
+                className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+              >
+                Get Started
+              </Link>
+            </div>
+          </div>
+        </div>
 
-      {/* Hero Section */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8">{/* Further reduced since parent has more padding */}
-        <div className="max-w-7xl mx-auto text-center">
+        <div className="relative z-10 max-w-7xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold text-zenith-primary mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6">
               Welcome to{" "}
-              <span className="text-zenith-brand">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ZENITH
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-zenith-secondary mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
               DRIVEN BY PASSION, BUILT FOR EXCELLENCE
             </p>
-            <p className="text-lg text-zenith-muted mb-12 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
               Join our vibrant college forum community where students connect,
               learn, and grow together through specialized clubs and activities.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-zenith-accent hover:bg-zenith-accent text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
               >
                 Get Started
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="bg-zenith-card text-zenith-primary border border-zenith hover:bg-zenith-section px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>
@@ -553,7 +593,62 @@ export default function HomePage() {
         </div>
       </section>
 
-      </div> {/* End of main content with proper spacing */}
+      {/* Statistics Section */}
+      <section className="py-16 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.totalClubs}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Specialized Clubs
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.totalMembers}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Active Members
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Calendar className="w-8 h-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.upcomingEvents}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Upcoming Events
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <MessageSquare className="w-8 h-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats.totalPosts}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Discussions
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">

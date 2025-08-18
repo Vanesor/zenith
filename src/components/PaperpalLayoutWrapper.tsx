@@ -40,12 +40,18 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
   useEffect(() => {
     setMounted(true);
     
-    // Set initial sidebar state based on screen size
+    // Set initial sidebar state based on screen size and authentication
     const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setSidebarOpen(false); // Closed on mobile/tablet
+      if (user) {
+        // For authenticated users: on desktop keep sidebar open, on mobile close it
+        if (window.innerWidth < 1024) {
+          setSidebarOpen(false); // Closed on mobile/tablet
+        } else {
+          setSidebarOpen(true); // Open on desktop for authenticated users
+        }
       } else {
-        setSidebarOpen(true); // Open on desktop
+        // For unauthenticated users: always keep sidebar closed
+        setSidebarOpen(false);
       }
     };
 
@@ -55,7 +61,7 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
     // Listen for window resize
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [user]);
 
   // Don't render layout for auth pages
   const isAuthPage = noLayoutPaths.includes(pathname);
@@ -69,12 +75,21 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
     return pathname.startsWith(path);
   });
 
-  // Close sidebar on route change (mobile only)
+  // Handle sidebar state on route change and authentication changes
   useEffect(() => {
-    if (window.innerWidth < 1024) {
+    // Responsive behavior for sidebar based on authentication state and screen size
+    if (user) {
+      // For authenticated users: on desktop keep sidebar open, on mobile close it
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    } else {
+      // For unauthenticated users: always keep sidebar closed
       setSidebarOpen(false);
     }
-  }, [pathname]);
+  }, [pathname, user]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -112,6 +127,8 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
         <PaperpalHeader 
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)} 
           sidebarOpen={sidebarOpen}
+          showAuthButtons={!user}
+          expandedHeader={!user}
         />
         <main className="w-full">
           {children}
@@ -120,17 +137,22 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
     );
   }
 
+  // Show sidebar only for authenticated users
+  const showSidebar = !!user;
+
   return (
     <div className="min-h-screen bg-[#fefcf7] dark:bg-gray-900">
-      {/* Global Sidebar - Always rendered */}
-      <PaperpalSidebar 
-        isOpen={sidebarOpen} 
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        onCollapseChange={setSidebarCollapsed}
-      />
+      {/* Global Sidebar - Always render but conditionally show */}
+      {showSidebar && (
+        <PaperpalSidebar 
+          isOpen={sidebarOpen} 
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          onCollapseChange={setSidebarCollapsed}
+        />
+      )}
       
       {/* Mobile Backdrop - Enhanced overlay */}
-      {sidebarOpen && (
+      {sidebarOpen && showSidebar && (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -141,17 +163,21 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
         />
       )}
       
-      {/* Main Content - Dynamic spacing based on sidebar state */}
+      {/* Main Content - Dynamic spacing based on sidebar state and authentication */}
       <div className={`transition-all duration-500 ease-in-out ${
-        sidebarOpen 
+        showSidebar && sidebarOpen 
           ? (sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-80') 
-          : 'lg:ml-20'
+          : showSidebar 
+          ? 'lg:ml-20' 
+          : 'ml-0'
       } ml-0`}>
         {/* Note: ml-0 on mobile ensures no margin, sidebar overlays */}
         {/* Header */}
         <PaperpalHeader 
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)} 
           sidebarOpen={sidebarOpen}
+          showAuthButtons={!user}
+          expandedHeader={!user}
         />
         
         {/* Page Content */}

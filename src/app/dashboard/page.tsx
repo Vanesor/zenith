@@ -87,37 +87,6 @@ export default function ModernDashboard() {
     }
   ];
 
-  const quickActions = [
-    {
-      title: 'Join a Club',
-      description: 'Explore and join clubs that match your interests',
-      icon: Users,
-      color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600',
-      href: '/clubs'
-    },
-    {
-      title: 'View Events',
-      description: 'Check out upcoming events and workshops',
-      icon: Calendar,
-      color: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600',
-      href: '/events'
-    },
-    {
-      title: 'Assignments',
-      description: 'Manage your club assignments and tasks',
-      icon: FileText,
-      color: 'bg-green-50 dark:bg-green-900/20 text-green-600',
-      href: '/assignments'
-    },
-    {
-      title: 'Messages',
-      description: 'Connect with club members and coordinators',
-      icon: MessageSquare,
-      color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600',
-      href: '/chat'
-    }
-  ];
-
   const recentActivity = [
     {
       type: 'event',
@@ -228,51 +197,6 @@ export default function ModernDashboard() {
             );
           })
         )}
-      </motion.div>
-
-      {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="space-y-6"
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-primary">Quick Actions</h2>
-          <Link 
-            href="/clubs" 
-            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1 transition-colors"
-          >
-            <span>View All</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickActions.map((action, index) => {
-            const IconComponent = action.icon;
-            return (
-              <motion.div
-                key={action.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.05 }}
-              >
-                <Link href={action.href}>
-                  <div className="card p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
-                    <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
-                      <IconComponent className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-blue-600 transition-colors">
-                      {action.title}
-                    </h3>
-                    <p className="text-sm text-secondary">{action.description}</p>
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
       </motion.div>
 
       {/* Recent Activity */}

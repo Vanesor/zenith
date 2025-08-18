@@ -12,15 +12,13 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// This creates a singleton instance of PrismaClient.
+  // This creates a singleton instance of PrismaClient.
 export const db =
   globalThis.prisma ||
   new PrismaClient({
-    // Configure logging based on environment
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
-
-// In development, preserve the instance across hot reloads
+    // Configure logging based on environment - reduce verbosity
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  });// In development, preserve the instance across hot reloads
 if (process.env.NODE_ENV !== 'production') {
   globalThis.prisma = db;
 }

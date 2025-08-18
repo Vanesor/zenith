@@ -27,7 +27,8 @@ import {
   Monitor,
   Zap,
   Target,
-  Award
+  Award,
+  Code2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -96,23 +97,29 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
       icon: MessageSquare,
       description: "Connect with peers"
     },
+    { 
+      name: "Playground", 
+      href: "/playground", 
+      icon: Code2,
+      description: "Code & experiment"
+    },
   ];
 
   const quickActions = [
     { 
-      name: "Create Post", 
+      name: "New Post", 
       href: "/posts/create", 
       icon: Plus,
       color: "text-blue-600"
     },
     { 
-      name: "Join Event", 
-      href: "/events", 
-      icon: Target,
+      name: "Join Club", 
+      href: "/clubs", 
+      icon: Users,
       color: "text-green-600"
     },
     { 
-      name: "View Stats", 
+      name: "Analytics", 
       href: "/analytics", 
       icon: BarChart3,
       color: "text-purple-600"

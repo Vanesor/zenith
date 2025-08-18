@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
         }
       },
       include: {
-        assignment: {
+        assignments: {
           select: {
             max_points: true,
             passing_score: true
@@ -87,13 +87,13 @@ export async function GET(request: NextRequest) {
 
     if (scoredSubmissions.length > 0) {
       const scores = scoredSubmissions.map(sub => {
-        if (!sub.assignment) return 0;
+        if (!sub.assignments) return 0;
         
-        const percentage = (sub.assignment.max_points && sub.assignment.max_points > 0) 
-          ? (sub.total_score! / sub.assignment.max_points) * 100 
+        const percentage = (sub.assignments.max_points && sub.assignments.max_points > 0) 
+          ? (sub.total_score! / sub.assignments.max_points) * 100 
           : 0;
         
-        if (sub.total_score! >= (sub.assignment.passing_score || 0)) {
+        if (sub.total_score! >= (sub.assignments.passing_score || 0)) {
           passedAssignments++;
         }
         

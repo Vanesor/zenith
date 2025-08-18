@@ -1,6 +1,20 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+
+// Helper function to validate JWT format
+const isValidJWTFormat = (token: string): boolean => {
+  if (!token || typeof token !== 'string') return false;
+  
+  // Check for placeholder values
+  if (token === 'session-based' || token === 'null' || token === 'undefined') {
+    return false;
+  }
+  
+  // Check JWT format (3 parts separated by dots)
+  const parts = token.split('.');
+  return parts.length === 3;
+};
 
 interface User {
   id: string;
@@ -70,14 +84,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (response.ok) {
               const data = await response.json();
               if (data.authenticated && data.user) {
-                setToken(storedToken || 'session-based'); // Use existing token or placeholder
+                // Only set token if we have a valid JWT token, not session-based auth
+                if (storedToken && isValidJWTFormat(storedToken)) {
+                  setToken(storedToken);
+                } else {
+                  setToken(null); // Clear invalid token but keep user session
+                }
                 setUser(data.user);
                 
                 // Update localStorage to match server state
                 localStorage.setItem("zenith-user", JSON.stringify(data.user));
-                if (!storedToken) {
-                  // If we have a session but no token, store a placeholder
-                  localStorage.setItem("zenith-token", 'session-based');
+                // Don't store invalid tokens
+                if (!storedToken || !isValidJWTFormat(storedToken)) {
+                  localStorage.removeItem("zenith-token");
                 }
                 setIsLoading(false);
                 return; // Exit early since we have valid session
@@ -235,6 +254,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = (newToken: string, userData: User) => {
+    // Validate token format before storing
+    if (!isValidJWTFormat(newToken)) {
+      console.error("Invalid JWT format provided to login function");
+      return;
+    }
+    
     setToken(newToken);
     setUser(userData);
     if (typeof window !== "undefined") {

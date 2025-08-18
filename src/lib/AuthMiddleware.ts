@@ -69,6 +69,22 @@ export async function verifyAuth(request: NextRequest): Promise<{
       token = request.cookies.get("zenith-token")?.value;
     }
 
+    // Additional validation - check if token looks like a JWT
+    if (token) {
+      // Check if token has proper JWT format (3 parts separated by dots)
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) {
+        console.error("Token format invalid - not a proper JWT");
+        return { success: false, error: "Invalid token format" };
+      }
+      
+      // Check if token is a placeholder value
+      if (token === 'session-based' || token === 'null' || token === 'undefined') {
+        console.error("Token is placeholder value:", token);
+        return { success: false, error: "Invalid token - placeholder value" };
+      }
+    }
+
     if (!token) {
       console.log("Auth failed: No token provided");
       return { success: false, error: "No token provided" };
