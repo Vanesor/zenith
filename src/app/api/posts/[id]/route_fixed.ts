@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 interface Props {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       GROUP BY p.id, u.name, u.avatar, c.name, c.color
     `;
 
-    const result = await Database.query(query, [id]);
+    const result = await db.executeRawSQL(query, [id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       ORDER BY c.created_at ASC
     `;
 
-    const commentsResult = await Database.query(commentsQuery, [id]);
+    const commentsResult = await db.executeRawSQL(commentsQuery, [id]);
 
     return NextResponse.json({
       ...post,
@@ -82,7 +82,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const { title, content, tags } = await request.json();
 
     // Get current post
-    const currentPost = await Database.query(
+    const currentPost = await db.executeRawSQL(
       "SELECT author_id, created_at FROM posts WHERE id = $1",
       [id]
     );
@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
       RETURNING *
     `;
 
-    const updateResult = await Database.query(updateQuery, [title, content, tags, id]);
+    const updateResult = await db.executeRawSQL(updateQuery, [title, content, tags, id]);
 
     return NextResponse.json({
       message: "Post updated successfully",
@@ -151,7 +151,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const { id } = await params;
 
     // Get current post
-    const currentPost = await Database.query(
+    const currentPost = await db.executeRawSQL(
       "SELECT author_id FROM posts WHERE id = $1",
       [id]
     );
@@ -176,7 +176,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     // Delete post (this will cascade delete comments and likes)
-    await Database.query("DELETE FROM posts WHERE id = $1", [id]);
+    await db.executeRawSQL("DELETE FROM posts WHERE id = $1", [id]);
 
     return NextResponse.json({
       message: "Post deleted successfully"

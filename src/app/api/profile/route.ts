@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     let user;
     try {
       console.log('🔍 Querying database for user:', decoded.userId);
-      user = await prisma.user.findUnique({
+      user = await db.users.findUnique({
         where: { id: decoded.userId },
         select: {
           id: true,
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     let clubInfo = null;
     if (user.club_id) {
       try {
-        clubInfo = await prisma.club.findUnique({
+        clubInfo = await db.clubs.findUnique({
           where: { id: user.club_id },
           select: {
             id: true,
@@ -196,7 +196,7 @@ export async function PUT(request: NextRequest) {
     let user;
     try {
       console.log('🔍 Attempting profile update for user:', decoded.userId);
-      user = await prisma.user.update({
+      user = await db.users.update({
         where: { id: decoded.userId },
         data: {
           name: fullName || updateData.name,

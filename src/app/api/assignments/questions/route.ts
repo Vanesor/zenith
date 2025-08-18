@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // POST /api/assignments/questions
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has permission to add questions
-    const assignmentCheck = await Database.query(
+    const assignmentCheck = await db.executeRawSQL(
       `SELECT a.id, a.created_by, u.role
        FROM assignments a
        JOIN users u ON a.created_by = u.id
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the question
-    const result = await Database.query(
+    const result = await db.executeRawSQL(
       `INSERT INTO assignment_questions (
         assignment_id, question_text, question_type, marks, time_limit,
         code_language, code_template, test_cases, expected_output, solution, ordering

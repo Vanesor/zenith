@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Get clubs with their statistics and coordinator information
-    const clubs = await prisma.club.findMany({
+    const clubs = await db.clubs.findMany({
       select: {
         id: true,
         name: true,
@@ -26,12 +26,12 @@ export async function GET() {
     // Fetch additional stats for each club
     const clubsWithStats = await Promise.all(clubs.map(async (club) => {
       // Get event count
-      const eventCount = await prisma.event.count({
+      const eventCount = await db.events.count({
         where: { club_id: club.id }
       });
       
       // Get assignment count
-      const assignmentCount = await prisma.assignment.count({
+      const assignmentCount = await db.assignments.count({
         where: { club_id: club.id }
       });
       
@@ -39,7 +39,7 @@ export async function GET() {
       let clubStats = null;
       try {
         // Use raw query to handle cases where the table might not exist yet
-        const stats = await prisma.$queryRaw`
+        const stats = await db.$queryRaw`
           SELECT average_engagement 
           FROM club_statistics 
           WHERE club_id = ${club.id}

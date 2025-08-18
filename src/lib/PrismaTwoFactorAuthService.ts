@@ -1,7 +1,7 @@
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
-import PrismaDB from './database-consolidated';
+import db from "./database";
 import emailService from './EmailService';
 import { UAParser } from 'ua-parser-js';
 
@@ -33,8 +33,8 @@ export class PrismaTwoFactorAuthService {
   static async generateSecret(userId: string, email: string): Promise<string> {
     const secret = authenticator.generateSecret(); // 32 characters by default
     
-    // Store secret temporarily (will be verified later) using PrismaDB
-    await PrismaDB.setupTOTP(userId, secret, true);
+    // Store secret temporarily (will be verified later) using db
+    await db.setupTOTP(userId, secret, true);
     
     return secret;
   }
@@ -55,8 +55,8 @@ export class PrismaTwoFactorAuthService {
       })
     );
     
-    // Store hashed codes in the database using PrismaDB
-    await PrismaDB.storeRecoveryCodes(userId, hashedCodes);
+    // Store hashed codes in the database using db
+    await db.storeRecoveryCodes(userId, hashedCodes);
     
     // Return the original unhashed codes to the user (they need to save these)
     return codes;
@@ -90,7 +90,7 @@ export class PrismaTwoFactorAuthService {
   static async verifyAndActivate(userId: string, token: string): Promise<boolean> {
     try {
       // Get user's temporary secret
-      const twoFAStatus = await PrismaDB.get2FAStatus(userId);
+      const twoFAStatus = await db.get2FAStatus(userId);
       
       if (!twoFAStatus.tempSecret) {
         console.error('No temporary secret found for 2FA setup');
@@ -105,7 +105,7 @@ export class PrismaTwoFactorAuthService {
       }
       
       // Activate 2FA by storing the secret permanently
-      await PrismaDB.setupTOTP(userId, twoFAStatus.tempSecret, false);
+      await db.setupTOTP(userId, twoFAStatus.tempSecret, false);
       
       // Generate recovery codes for the user
       await this.generateRecoveryCodes(userId);
@@ -120,7 +120,7 @@ export class PrismaTwoFactorAuthService {
   // Disable 2FA for a user
   static async disable2FA(userId: string): Promise<boolean> {
     try {
-      return await PrismaDB.disable2FA(userId);
+      return await db.disable2FA(userId);
     } catch (error) {
       console.error('Error disabling 2FA:', error);
       return false;
@@ -130,7 +130,7 @@ export class PrismaTwoFactorAuthService {
   // Get a user's 2FA status
   static async get2FAStatus(userId: string): Promise<TwoFactorAuthStatus> {
     try {
-      return await PrismaDB.get2FAStatus(userId);
+      return await db.get2FAStatus(userId);
     } catch (error) {
       console.error('Error getting 2FA status:', error);
       return { enabled: false };
@@ -145,8 +145,8 @@ export class PrismaTwoFactorAuthService {
     // Generate a secret for this OTP session
     const secret = crypto.randomBytes(16).toString('hex');
     
-    // Store the OTP and secret using PrismaDB
-    await PrismaDB.setupEmailOTP(userId, otp, secret);
+    // Store the OTP and secret using db
+    await db.setupEmailOTP(userId, otp, secret);
     
     // Send the OTP email
     await emailService.sendEmail({
@@ -162,7 +162,7 @@ export class PrismaTwoFactorAuthService {
   // Verify Email OTP
   static async verifyEmailOTP(userId: string, otp: string): Promise<boolean> {
     try {
-      return await PrismaDB.verifyEmailOTP(userId, otp);
+      return await db.verifyEmailOTP(userId, otp);
     } catch (error) {
       console.error('Error verifying email OTP:', error);
       return false;
@@ -192,8 +192,8 @@ export class PrismaTwoFactorAuthService {
       
       const deviceName = `${browserName} on ${osName} (${deviceType})`;
       
-      // Add trusted device using PrismaDB
-      const deviceId = await PrismaDB.addTrustedDevice(userId, {
+      // Add trusted device using db
+      const deviceId = await db.addTrustedDevice(userId, {
         device_identifier: deviceInfo.deviceId,
         device_name: deviceName,
         device_type: deviceType,
@@ -213,7 +213,7 @@ export class PrismaTwoFactorAuthService {
   // Check if a device is trusted
   static async isTrustedDevice(userId: string, deviceId: string): Promise<boolean> {
     try {
-      return await PrismaDB.isTrustedDevice(userId, deviceId);
+      return await db.isTrustedDevice(userId, deviceId);
     } catch (error) {
       console.error('Error checking trusted device:', error);
       return false;
@@ -223,7 +223,7 @@ export class PrismaTwoFactorAuthService {
   // Get all trusted devices for a user
   static async getTrustedDevices(userId: string): Promise<any[]> {
     try {
-      return await PrismaDB.getTrustedDevices(userId);
+      return await db.getTrustedDevices(userId);
     } catch (error) {
       console.error('Error getting trusted devices:', error);
       return [];
@@ -233,7 +233,7 @@ export class PrismaTwoFactorAuthService {
   // Remove a trusted device
   static async removeTrustedDevice(userId: string, deviceId: string): Promise<boolean> {
     try {
-      return await PrismaDB.removeTrustedDevice(userId, deviceId);
+      return await db.removeTrustedDevice(userId, deviceId);
     } catch (error) {
       console.error('Error removing trusted device:', error);
       return false;
@@ -243,7 +243,7 @@ export class PrismaTwoFactorAuthService {
   // Update trusted device last used timestamp
   static async updateTrustedDeviceUsage(userId: string, deviceId: string): Promise<boolean> {
     try {
-      return await PrismaDB.updateTrustedDeviceLastUsed(userId, deviceId);
+      return await db.updateTrustedDeviceLastUsed(userId, deviceId);
     } catch (error) {
       console.error('Error updating trusted device usage:', error);
       return false;

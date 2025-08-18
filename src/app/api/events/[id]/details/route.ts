@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -36,7 +36,7 @@ export async function GET(
       WHERE e.id = $1
     `;
 
-    const eventResult = await Database.query(eventQuery, [id]);
+    const eventResult = await db.executeRawSQL(eventQuery, [id]);
 
     if (eventResult.rows.length === 0) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -58,7 +58,7 @@ export async function GET(
       LIMIT 10
     `;
 
-    const registrationsResult = await Database.query(recentRegistrationsQuery, [
+    const registrationsResult = await db.executeRawSQL(recentRegistrationsQuery, [
       id,
     ]);
 
@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
 
     // Check if event details exist
     const existingQuery = "SELECT id FROM event_details WHERE event_id = $1";
-    const existingResult = await Database.query(existingQuery, [id]);
+    const existingResult = await db.executeRawSQL(existingQuery, [id]);
 
     let query: string;
     let queryParams: (string | string[] | object | null)[];
@@ -154,7 +154,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
       ];
     }
 
-    const result = await Database.query(query, queryParams);
+    const result = await db.executeRawSQL(query, queryParams);
 
     return NextResponse.json({ event_details: result.rows[0] });
   } catch (error) {

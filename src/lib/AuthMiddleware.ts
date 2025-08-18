@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { SessionManager } from "./SessionManager";
 import { CacheManager, CacheKeys } from "./CacheManager";
-import { Database } from "./database-consolidated";
+import { db, executeRawSQL, queryRawSQL } from "./database-service";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -21,11 +21,9 @@ async function checkTrustedDevice(userId: string, request: NextRequest): Promise
   if (!trustedDeviceId) return false;
   
   try {
-    // Use Prisma directly to avoid type casting issues with raw queries
-    const prisma = (await import('./database-consolidated')).default.getClient();
-    
+    // Use Prisma directly to avoid type casting issues with raw queries    
     try {
-      const device = await prisma.trustedDevice.findFirst({
+      const device = await db.trusted_devices.findFirst({
         where: {
           user_id: userId,
           device_identifier: trustedDeviceId,
@@ -130,14 +128,14 @@ export async function verifyAuth(request: NextRequest): Promise<{
               // Get user data to fill in email and role
               try {
                 // Import UUIDUtils for proper UUID handling
-                const { UUIDUtils } = await import('./database-consolidated');
+                // We no longer need UUIDUtils with the new database interface
                 
                 // Process parameters to handle UUID types correctly
-                const params = UUIDUtils.processParams([refreshDecoded.userId]);
+                const params = [refreshDecoded.userId];
                 
-                const userResult = await Database.query(
+                const userResult = await queryRawSQL(
                   "SELECT email, role FROM users WHERE id = $1::uuid",
-                  params
+                  refreshDecoded.userId
                 );
                 
                 if (userResult.rows.length > 0) {
@@ -246,15 +244,15 @@ export async function verifyAuth(request: NextRequest): Promise<{
       // Try to fetch from database
       try {
         // Import UUIDUtils for proper UUID handling
-        const { UUIDUtils } = await import('./database-consolidated');
+        // We no longer need UUIDUtils with the new database interface
         
         try {
           // Process parameters to handle UUID types correctly
-          const params = UUIDUtils.processParams([decoded.userId]);
+          const params = [decoded.userId];
           
-          const userResult = await Database.query(
+          const userResult = await queryRawSQL(
             "SELECT club_id FROM users WHERE id = $1::uuid",
-            params
+            decoded.userId
           );
           if (userResult && userResult.rows && userResult.rows.length > 0) {
             club_id = userResult.rows[0].club_id;
@@ -263,8 +261,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
           console.error("Error in raw query for user club_id:", queryError);
           
           // Fallback to standard Prisma
-          const prisma = (await import('./database-consolidated')).default.getClient();
-          const user = await prisma.user.findUnique({
+          const user = await db.users.findUnique({
             where: { id: decoded.userId },
             select: { club_id: true }
           });

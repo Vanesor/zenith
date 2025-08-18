@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Try to get recent user activities, but fallback to mock data if the table doesn't exist
     let recentActivities = [];
     
     try {
       // Use raw query instead to handle cases where the table might not exist yet
-      const result = await prisma.$queryRaw`
+      const result = await db.$queryRaw`
         SELECT 
           ua.id, 
           ua.user_id, 

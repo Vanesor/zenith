@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import FastAuth from "@/lib/FastAuth";
-import PrismaDB from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     // Verify based on the chosen 2FA method
     if (method === "app") {
       // Get user's TOTP secret
-      const userResult = await Database.query(
+      const userResult = await db.executeRawSQL(
         "SELECT totp_secret FROM users WHERE id = $1::uuid AND totp_enabled = true",
         [userId]
       );
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
         const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
         
         // Use the correct schema column names (expires_at instead of trusted_until)
-        await Database.query(`
+        await db.executeRawSQL(`
           INSERT INTO trusted_devices 
           (user_id, device_identifier, device_name, ip_address, browser)
           VALUES ($1::uuid, $2, $3, $4, $5)

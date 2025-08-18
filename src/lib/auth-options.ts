@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { Database } from "@/lib/database-consolidated";
+import { db, executeRawSQL, queryRawSQL } from "./database-service";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Check if user exists
-          const userResult = await Database.query(
+          const userResult = await queryRawSQL(
             `SELECT id, email, name, password_hash, role, avatar, totp_enabled, totp_secret 
              FROM users 
              WHERE email = $1`,
@@ -116,10 +116,11 @@ export const authOptions: NextAuthOptions = {
         if (account.provider === "google" || account.provider === "github") {
           try {
             // Try to find user by OAuth ID or email
-            const existingUserByOAuth = await Database.query(
+            const existingUserByOAuth = await queryRawSQL(
               `SELECT * FROM users 
                WHERE oauth_provider = $1 AND oauth_id = $2`,
-              [account.provider, account.providerAccountId]
+              account.provider, 
+              account.providerAccountId
             );
 
             // If user exists, use it
@@ -127,14 +128,14 @@ export const authOptions: NextAuthOptions = {
               dbUser = existingUserByOAuth.rows[0];
             } else {
               // Try to find user by email
-              const existingUserByEmail = await Database.query(
+              const existingUserByEmail = await queryRawSQL(
                 `SELECT * FROM users WHERE email = $1`,
-                [user.email]
+                user.email
               );
 
               if (existingUserByEmail.rows.length > 0) {
                 // Update existing user with OAuth details
-                await Database.query(
+                await executeRawSQL(
                   `UPDATE users 
                    SET 
                     oauth_provider = $1, 
@@ -154,23 +155,21 @@ export const authOptions: NextAuthOptions = {
                 dbUser = existingUserByEmail.rows[0];
               } else {
                 // Create new user
-                const result = await Database.query(
+                const result = await queryRawSQL(
                   `INSERT INTO users 
                    (id, email, name, avatar, role, oauth_provider, oauth_id, oauth_data, email_verified, has_password) 
                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                    RETURNING *`,
-                  [
-                    uuidv4(),
-                    user.email,
-                    user.name,
-                    user.image,
-                    "student", // Default role
-                    account.provider,
-                    account.providerAccountId,
-                    JSON.stringify(account),
-                    true, // Email already verified through OAuth
-                    false, // User needs to set a password
-                  ]
+                  uuidv4(),
+                  user.email,
+                  user.name,
+                  user.image,
+                  "student", // Default role
+                  account.provider,
+                  account.providerAccountId,
+                  JSON.stringify(account),
+                  true, // Email already verified through OAuth
+                  false // User needs to set a password
                 );
 
                 dbUser = result.rows[0];

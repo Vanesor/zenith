@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db, executeRawSQL, queryRawSQL } from '@/lib/database-service';
 
 // GET /api/users/badges?user_id=<userId>
 export async function GET(request: NextRequest) {
@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
       ORDER BY earned_at DESC
     `;
 
-    const badges = await Database.query(query, [userId]);
+          const badgeResults = await queryRawSQL(query, [userId]);
 
-    return NextResponse.json({ badges: badges.rows });
+    return NextResponse.json({ badges: badgeResults.rows });
   } catch (error) {
     console.error("Error fetching user badges:", error);
     return NextResponse.json(
@@ -54,12 +54,13 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
-    const result = await Database.query(query, [
+    const result = await queryRawSQL(
+      query, 
       user_id,
       badge_name,
       badge_description || null,
-      badge_icon || null,
-    ]);
+      badge_icon || null
+    );
 
     return NextResponse.json({ badge: result.rows[0] }, { status: 201 });
   } catch (error) {

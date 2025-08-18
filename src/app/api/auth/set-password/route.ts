@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import bcrypt from "bcryptjs";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import { authOptions } from "@/lib/auth-options";
 
 export async function POST(request: NextRequest) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists
-    const userResult = await Database.query(
+    const userResult = await db.executeRawSQL(
       `SELECT id, email FROM users WHERE email = $1`,
       [session.user.email]
     );
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Update user with new password
-    await Database.query(
+    await db.executeRawSQL(
       `UPDATE users 
        SET 
          password_hash = $1,

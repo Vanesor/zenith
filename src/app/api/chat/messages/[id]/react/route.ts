@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 import jwt from 'jsonwebtoken';
 
 // Helper function to verify JWT token
@@ -37,7 +37,7 @@ export async function POST(
 
     // Get current message using PrismaDB
     const resolvedParams = await params;
-    const message = await PrismaDB.getClient().chatMessage.findUnique({
+    const message = await db.chat_messages.findUnique({
       where: { id: resolvedParams.id },
       select: { reactions: true }
     });
@@ -64,7 +64,7 @@ export async function POST(
     }
 
     // Update message using PrismaDB
-    await PrismaDB.getClient().chatMessage.update({
+    await db.chat_messages.update({
       where: { id: resolvedParams.id },
       data: { reactions: currentReactions }
     });

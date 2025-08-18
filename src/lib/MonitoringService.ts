@@ -1,6 +1,6 @@
 import { CacheManager } from './CacheManager';
 import { SessionManager } from './SessionManager';
-import { getDatabaseStatus } from './database-consolidated';
+import { checkDatabaseHealth } from './database-service';
 
 export interface SystemStats {
   timestamp: Date;
@@ -128,10 +128,10 @@ export class MonitoringService {
     responseTime: number;
   }> {
     const startTime = Date.now();
-    const connected = getDatabaseStatus();
+    const healthResult = await checkDatabaseHealth();
     const responseTime = Date.now() - startTime;
 
-    return { connected, responseTime };
+    return { connected: healthResult.connected, responseTime };
   }
 
   // API usage statistics

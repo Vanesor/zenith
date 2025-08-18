@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db, executeRawSQL, queryRawSQL } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(
@@ -34,7 +34,7 @@ export async function GET(
       WHERE id = $1
     `;
     
-    const userResult = await Database.query(userQuery, [requestingUserId]);
+    const userResult = await queryRawSQL(userQuery, requestingUserId);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "Requesting user not found" }, { status: 404 });
@@ -45,7 +45,7 @@ export async function GET(
     
     // Get the club ID of the target user
     const targetUserQuery = `SELECT club_id FROM users WHERE id = $1`;
-    const targetUserResult = await Database.query(targetUserQuery, [userId]);
+    const targetUserResult = await queryRawSQL(targetUserQuery, userId);
     
     if (targetUserResult.rows.length === 0) {
       return NextResponse.json({ error: "Target user not found" }, { status: 404 });
@@ -105,7 +105,7 @@ export async function GET(
     submissionsQuery += ` ORDER BY s.submitted_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(limit.toString(), offset.toString());
     
-    const submissionsResult = await Database.query(submissionsQuery, queryParams);
+    const submissionsResult = await queryRawSQL(submissionsQuery, ...queryParams);
     
     // Count total for pagination
     let countQuery = `
@@ -121,11 +121,11 @@ export async function GET(
       countParams.push(status);
     }
     
-    const countResult = await Database.query(countQuery, countParams);
+    const countResult = await queryRawSQL(countQuery, ...countParams);
     const total = parseInt(countResult.rows[0].total);
     
     // Format each submission
-    const submissions = submissionsResult.rows.map(sub => {
+    const submissions = submissionsResult.rows.map((sub: any) => {
       // Check if this is a subjective assignment
       const isSubjective = ['essay', 'writing'].includes(sub.assignment_type?.toLowerCase());
       

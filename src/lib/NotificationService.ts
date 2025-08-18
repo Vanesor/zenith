@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/database-consolidated";
+import { prismaClient as prisma } from "./database";
 import emailServiceV2 from "./EmailServiceV2";
 
 export interface NotificationPreferences {
@@ -100,7 +100,7 @@ export class NotificationService {
       
       if (clubId) {
         // Get club name
-        const club = await prisma.club.findUnique({
+        const club = await db.clubs.findUnique({
           where: { id: clubId },
           select: { name: true }
         });
@@ -127,7 +127,7 @@ export class NotificationService {
       }
       
       // Query for assignment details
-      const assignment = await prisma.assignment.findUnique({
+      const assignment = await db.assignments.findUnique({
         where: { id: assignmentId },
         select: { title: true, due_date: true }
       });
@@ -140,7 +140,7 @@ export class NotificationService {
       const dueDate = new Date(assignment.due_date).toLocaleDateString();
       
       // Get all relevant users
-      const usersResult = await prisma.$queryRawUnsafe(userQuery, ...queryParams) as any[];
+      const usersResult = await db.$queryRawUnsafe(userQuery, ...queryParams) as any[];
       
       // Send notification to each user
       for (const user of usersResult) {
@@ -174,7 +174,7 @@ export class NotificationService {
   ): Promise<void> {
     try {
       // Get user details
-      const user = await prisma.user.findUnique({
+      const user = await db.users.findUnique({
         where: { id: userId },
         select: { 
           name: true, 
@@ -195,7 +195,7 @@ export class NotificationService {
       }
       
       // Get assignment details
-      const assignment = await prisma.assignment.findUnique({
+      const assignment = await db.assignments.findUnique({
         where: { id: assignmentId },
         select: { title: true }
       });
@@ -206,7 +206,7 @@ export class NotificationService {
       }
       
       // Get submission details
-      const submission = await prisma.assignmentSubmission.findFirst({
+      const submission = await db.assignment_submissions.findFirst({
         where: {
           user_id: userId,
           assignment_id: assignmentId
@@ -254,7 +254,7 @@ export class NotificationService {
       
       if (clubId) {
         // Get club name
-        const club = await prisma.club.findUnique({
+        const club = await db.clubs.findUnique({
           where: { id: clubId },
           select: { name: true }
         });
@@ -281,7 +281,7 @@ export class NotificationService {
       }
       
       // Query for event details
-      const event = await prisma.event.findUnique({
+      const event = await db.events.findUnique({
         where: { id: eventId },
         select: { 
           title: true, 
@@ -300,7 +300,7 @@ export class NotificationService {
       const formattedDate = `${eventDate} at ${event.event_time}`;
       
       // Get all relevant users
-      const usersResult = await prisma.$queryRawUnsafe(userQuery, ...queryParams) as any[];
+      const usersResult = await db.$queryRawUnsafe(userQuery, ...queryParams) as any[];
       
       // Send notification to each user
       for (const user of usersResult) {
@@ -327,7 +327,7 @@ export class NotificationService {
     preferences: NotificationPreferences
   ): Promise<boolean> {
     try {
-      await prisma.user.update({
+      await db.users.update({
         where: { id: userId },
         data: { 
           notification_preferences: preferences as any 

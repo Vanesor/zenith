@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import PrismaDB, { UUIDUtils } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(request: NextRequest) {
@@ -47,9 +47,9 @@ export async function GET(request: NextRequest) {
       console.error("Error fetching events:", error);
       
       // Fallback to using Prisma's standard methods if raw query fails
-      const prisma = PrismaDB.getClient();
+      const prisma = prisma;
       
-      const fallbackEvents = await prisma.event.findMany({
+      const fallbackEvents = await db.events.findMany({
         orderBy: {
           event_date: 'desc'
         },

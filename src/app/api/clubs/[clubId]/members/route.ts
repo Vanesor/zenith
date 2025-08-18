@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     const userQuery = `
       SELECT role, club_id FROM users WHERE id = $1
     `;
-    const userResult = await Database.query(userQuery, [userId]);
+    const userResult = await db.executeRawSQL(userQuery, [userId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     const targetUserQuery = `
       SELECT id, name, email, club_id FROM users WHERE email = $1
     `;
-    const targetUserResult = await Database.query(targetUserQuery, [email]);
+    const targetUserResult = await db.executeRawSQL(targetUserQuery, [email]);
     
     if (targetUserResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, { params }: Props) {
       UPDATE users SET club_id = $1 WHERE id = $2
       RETURNING id, name, email, role, created_at as joined_at, avatar
     `;
-    const updateResult = await Database.query(updateQuery, [clubId, targetUser.id]);
+    const updateResult = await db.executeRawSQL(updateQuery, [clubId, targetUser.id]);
 
     return NextResponse.json({ 
       message: "Member added successfully",

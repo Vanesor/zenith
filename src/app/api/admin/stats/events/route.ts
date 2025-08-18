@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Set a default value for upcoming events
     const defaultCount = 18;
@@ -12,7 +12,7 @@ export async function GET() {
     let currentCount;
     try {
       // Check if the events table exists and what columns it has
-      const result = await prisma.$queryRaw`
+      const result = await db.$queryRaw`
         SELECT COUNT(*) as count 
         FROM events 
         WHERE created_at >= NOW() - INTERVAL '30 days'

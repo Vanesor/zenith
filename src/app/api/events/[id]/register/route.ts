@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
+import { db } from '@/lib/database-service';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Check if already registered
-    const existingRegistration = await prisma.eventRegistration.findFirst({
+    const existingRegistration = await db.eventRegistration.findFirst({
       where: {
         event_id: id,
         user_id: user_id
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Register user
-    const registration = await prisma.eventRegistration.create({
+    const registration = await db.eventRegistration.create({
       data: {
         event_id: id,
         user_id: user_id,
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     });
 
     // Get user info for response
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: user_id },
       select: { name: true, avatar: true, role: true }
     });
@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       );
     }
 
-    const deletedRegistration = await prisma.eventRegistration.deleteMany({
+    const deletedRegistration = await db.eventRegistration.deleteMany({
       where: {
         event_id: id,
         user_id: userId
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest, { params }: Props) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const registrations = await prisma.eventRegistration.findMany({
+    const registrations = await db.eventRegistration.findMany({
       where: { event_id: id },
       orderBy: { id: 'desc' },
       take: limit,

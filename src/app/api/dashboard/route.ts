@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import PrismaDB from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import jwt from "jsonwebtoken";
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
               
               // Create a new session in the database
               try {
-                await PrismaDB.getClient().$executeRaw`
+                await db.$executeRaw`
                   INSERT INTO sessions (user_id, token, expires_at, user_agent, ip_address, last_active_at)
                   VALUES (
                     ${decoded.userId}::uuid,
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
   const userId = authResult.user!.id;
   try {
     // Get all clubs with member counts and upcoming eventsd
-    const clubsResult = await PrismaDB.getClient().$queryRaw`
+    const clubsResult = await db.$queryRaw`
       SELECT 
         c.id,
         c.name,
@@ -134,12 +134,12 @@ export async function GET(request: NextRequest) {
     `;
     
     // Get the current user's club information
-    const userClubQuery = await PrismaDB.getClient().$queryRaw`
+    const userClubQuery = await db.$queryRaw`
       SELECT club_id FROM users WHERE id = ${userId}::uuid
     `;
 
     // Get recent announcements
-    const announcementsResult = await PrismaDB.getClient().$queryRaw`
+    const announcementsResult = await db.$queryRaw`
       SELECT 
         a.id,
         a.title,
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
     
     try {
       // First try with prisma client functions instead of raw query
-      const events = await PrismaDB.getClient().event.findMany({
+      const events = await db.events.findMany({
         where: {
           event_date: {
             gte: new Date()
@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
           event_time: true,
           location: true,
           image_url: true,
-          club: {
+          clubs: {
             select: {
               name: true,
               color: true,
@@ -198,15 +198,15 @@ export async function GET(request: NextRequest) {
         event_time: event.event_time,
         location: event.location,
         image_url: event.image_url,
-        club_name: event.club?.name || 'General',
-        club_color: event.club?.color || '#888888',
-        club_icon: event.club?.icon || 'calendar'
+        club_name: event.clubs?.name || 'General',
+        club_color: event.clubs?.color || '#888888',
+        club_icon: event.clubs?.icon || 'calendar'
       }));
     } catch (eventError) {
       console.error("Error fetching events with Prisma client:", eventError);
       // Fallback to a simpler query if the complex one fails
       try {
-        const simpleEvents = await PrismaDB.getClient().$queryRaw`
+        const simpleEvents = await db.$queryRaw`
           SELECT id, title, description, event_date, location, image_url
           FROM events
           WHERE event_date >= CURRENT_DATE
@@ -222,7 +222,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get recent posts
-    const postsResult = await PrismaDB.getClient().$queryRaw`
+    const postsResult = await db.$queryRaw`
       SELECT 
         p.id,
         p.title,

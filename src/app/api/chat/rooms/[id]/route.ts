@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // PUT /api/chat/rooms/[id] - Update room name (managers only)
@@ -39,7 +39,7 @@ export async function PUT(
       JOIN users u ON u.id = $1
       WHERE cr.id = $2
     `;
-    const roomResult = await Database.query(roomQuery, [userId, id]);
+    const roomResult = await db.executeRawSQL(roomQuery, [userId, id]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
@@ -73,7 +73,7 @@ export async function PUT(
       SELECT id FROM chat_rooms 
       WHERE LOWER(name) = LOWER($1) AND club_id = $2 AND id != $3
     `;
-    const duplicateResult = await Database.query(duplicateQuery, [
+    const duplicateResult = await db.executeRawSQL(duplicateQuery, [
       name.trim(),
       user.club_id,
       id,
@@ -94,7 +94,7 @@ export async function PUT(
       RETURNING *
     `;
 
-    const result = await Database.query(updateQuery, [name.trim(), id]);
+    const result = await db.executeRawSQL(updateQuery, [name.trim(), id]);
 
     return NextResponse.json({
       message: "Room renamed successfully",
@@ -137,7 +137,7 @@ export async function DELETE(
       JOIN users u ON u.id = $1
       WHERE cr.id = $2
     `;
-    const roomResult = await Database.query(roomQuery, [userId, id]);
+    const roomResult = await db.executeRawSQL(roomQuery, [userId, id]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
@@ -168,14 +168,14 @@ export async function DELETE(
 
     // Delete associated messages first (if chat_messages table exists)
     try {
-      await Database.query("DELETE FROM chat_messages WHERE room_id = $1", [id]);
+      await db.executeRawSQL("DELETE FROM chat_messages WHERE room_id = $1", [id]);
     } catch (error) {
       console.log("No chat_messages table or no messages to delete");
     }
 
     // Delete the room
     const deleteQuery = "DELETE FROM chat_rooms WHERE id = $1";
-    await Database.query(deleteQuery, [id]);
+    await db.executeRawSQL(deleteQuery, [id]);
 
     return NextResponse.json({
       message: "Room deleted successfully",

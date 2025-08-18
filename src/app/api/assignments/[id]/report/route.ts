@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(
@@ -28,7 +28,7 @@ export async function GET(
       WHERE id = $1
     `;
     
-    const userResult = await Database.query(userQuery, [requestingUserId]);
+    const userResult = await db.executeRawSQL(userQuery, [requestingUserId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -49,7 +49,7 @@ export async function GET(
       WHERE a.id = $1
     `;
     
-    const assignmentResult = await Database.query(assignmentQuery, [assignmentId]);
+    const assignmentResult = await db.executeRawSQL(assignmentQuery, [assignmentId]);
     
     if (assignmentResult.rows.length === 0) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
@@ -85,7 +85,7 @@ export async function GET(
       GROUP BY question_type
     `;
     
-    const questionTypesResult = await Database.query(questionTypesQuery, [assignmentId]);
+    const questionTypesResult = await db.executeRawSQL(questionTypesQuery, [assignmentId]);
     
     // Get submission statistics
     const submissionStatsQuery = `
@@ -102,7 +102,7 @@ export async function GET(
       WHERE assignment_id = $1
     `;
     
-    const submissionStatsResult = await Database.query(submissionStatsQuery, [assignmentId]);
+    const submissionStatsResult = await db.executeRawSQL(submissionStatsQuery, [assignmentId]);
     const stats = submissionStatsResult.rows[0];
     
     // Get score distribution
@@ -123,7 +123,7 @@ export async function GET(
       ORDER BY score_range
     `;
     
-    const scoreDistributionResult = await Database.query(scoreDistributionQuery, [assignmentId]);
+    const scoreDistributionResult = await db.executeRawSQL(scoreDistributionQuery, [assignmentId]);
     
     // Get performance by question
     const questionPerformanceQuery = `
@@ -140,7 +140,7 @@ export async function GET(
       ORDER BY q.question_order
     `;
     
-    const questionPerformanceResult = await Database.query(questionPerformanceQuery, [assignmentId]);
+    const questionPerformanceResult = await db.executeRawSQL(questionPerformanceQuery, [assignmentId]);
     
     // Format the report data
     const report = {

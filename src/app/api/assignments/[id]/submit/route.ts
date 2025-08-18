@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // Helper function to handle errors consistently
@@ -66,7 +66,7 @@ export async function POST(
     }
 
     // Check if assignment exists and is still open
-    const assignmentCheck = await Database.query(
+    const assignmentCheck = await db.executeRawSQL(
       `SELECT id, due_date, status FROM assignments WHERE id = $1`,
       [assignmentId]
     );
@@ -91,7 +91,7 @@ export async function POST(
     }
 
     // Check if already submitted
-    const existingSubmission = await Database.query(
+    const existingSubmission = await db.executeRawSQL(
       `SELECT id FROM assignment_submissions WHERE assignment_id = $1 AND user_id = $2`,
       [assignmentId, userId]
     );
@@ -110,7 +110,7 @@ export async function POST(
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // Create submission record
-    const submissionResult = await Database.query(
+    const submissionResult = await db.executeRawSQL(
       `INSERT INTO assignment_submissions (
         assignment_id, user_id, started_at, completed_at,
         time_spent, violation_count, auto_submitted, status,
@@ -135,7 +135,7 @@ export async function POST(
 
     // Record proctoring session if proctoring data is provided
     if (assignment.is_proctored && Object.keys(proctoringData).length > 0) {
-      await Database.query(
+      await db.executeRawSQL(
         `INSERT INTO proctoring_sessions (
           assignment_id, user_id, session_start, session_end,
           camera_enabled, microphone_enabled, face_verified,
@@ -160,7 +160,7 @@ export async function POST(
     // Record individual violations
     if (violations && violations.length > 0) {
       for (const violation of violations) {
-        await Database.query(
+        await db.executeRawSQL(
           `INSERT INTO assignment_violations (
             submission_id, violation_type, occurred_at, details
           )
@@ -176,7 +176,7 @@ export async function POST(
     }
 
     // Get all questions for this assignment
-    const questionsResult = await Database.query(
+    const questionsResult = await db.executeRawSQL(
       `SELECT id, question_type, marks FROM assignment_questions WHERE assignment_id = $1`,
       [assignmentId]
     );
@@ -207,7 +207,7 @@ export async function POST(
       // For objective questions, check if the answer is correct
       if (question.question_type === 'single_choice' || question.question_type === 'multiple_choice') {
         // Get correct options
-        const optionsResult = await Database.query(
+        const optionsResult = await db.executeRawSQL(
           `SELECT id FROM question_options WHERE question_id = $1 AND is_correct = true`,
           [questionId]
         );
@@ -251,7 +251,7 @@ export async function POST(
       }
 
       // Record this response
-      const responseResult = await Database.query(
+      const responseResult = await db.executeRawSQL(
         `INSERT INTO question_responses (
           submission_id, question_id, selected_options,
           code_answer, essay_answer, is_correct, score, time_spent
@@ -277,13 +277,13 @@ export async function POST(
     }
 
     // Update submission with total score for auto-graded questions
-    await Database.query(
+    await db.executeRawSQL(
       `UPDATE assignment_submissions SET total_score = $1 WHERE id = $2`,
       [totalScore, submissionId]
     );
 
     // Get the assignment's max points for reference
-    const maxPointsResult = await Database.query(
+    const maxPointsResult = await db.executeRawSQL(
       `SELECT COALESCE(SUM(marks), 0) as max_points FROM assignment_questions WHERE assignment_id = $1`,
       [assignmentId]
     );

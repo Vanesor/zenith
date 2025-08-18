@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
     // For engagement, we'll try to calculate from various sources
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Default value if no data
     let engagementValue = 73;
     
     try {
       // Try to get average engagement from club_statistics
-      const clubStatsResult = await prisma.$queryRaw`
+      const clubStatsResult = await db.$queryRaw`
         SELECT AVG(average_engagement) as avg_engagement
         FROM club_statistics
         WHERE average_engagement IS NOT NULL

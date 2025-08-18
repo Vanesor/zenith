@@ -7,3 +7,5 @@ and make sure to make code according to dark and light themes and use combinatio
 and be sure to remove old code 
 
 do changes page by page do register, login, forgotpassword, 2fa, email otp etcc first
+
+i have updated the prism.schema remove all the databse files and also change the imports and make a proper database.ts file a single file for all proper databse operations and also fix all the database import to that new file look for prisma documentation with typescript and supabase on how to mkae proper secure sonnections and optimised operations

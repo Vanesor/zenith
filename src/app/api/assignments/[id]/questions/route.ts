@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 
@@ -27,7 +27,7 @@ export async function GET(
     const userId = authResult.user!.id;
 
     // Check if assignment exists
-    const assignmentCheck = await Database.query(
+    const assignmentCheck = await db.executeRawSQL(
       `SELECT a.*, u.role as user_role, u.club_id as user_club_id 
        FROM assignments a
        JOIN users u ON u.id = $1
@@ -66,7 +66,7 @@ export async function GET(
     }
 
     // Check if the user has already submitted this assignment
-    const submissionCheck = await Database.query(
+    const submissionCheck = await db.executeRawSQL(
       `SELECT id FROM assignment_submissions 
        WHERE assignment_id = $1 AND user_id = $2 AND status = 'submitted'`,
       [assignmentId, userId]
@@ -115,7 +115,7 @@ export async function GET(
       ORDER BY q.ordering ASC
     `;
 
-    const questionsResult = await Database.query(questionsQuery, [assignmentId]);
+    const questionsResult = await db.executeRawSQL(questionsQuery, [assignmentId]);
     
     // Get options for multiple choice questions - OPTIMIZED to avoid N+1
     const questionIds = questionsResult.rows
@@ -143,7 +143,7 @@ export async function GET(
         ORDER BY question_id, ordering ASC
       `;
       
-      const allOptionsResult = await Database.query(optionsQuery, [questionIds]);
+      const allOptionsResult = await db.executeRawSQL(optionsQuery, [questionIds]);
       
       // Group options by question_id
       allOptionsResult.rows.forEach(option => {

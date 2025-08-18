@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status"); // 'submitted', 'graded', 'completed'
 
     // Get user's assignment submissions with assignment details using Prisma
-    const submissions = await prisma.assignmentSubmission.findMany({
+    const submissions = await db.assignment_submissions.findMany({
       where: {
         user_id: userId,
         status: {
@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
         ...(status ? { status } : {})
       },
       include: {
-        assignment: {
+        assignments: {
           include: {
-            club: {
+            clubs: {
               select: { name: true }
             }
           }
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get summary statistics using Prisma aggregations
-    const totalSubmissions = await prisma.assignmentSubmission.count({
+    const totalSubmissions = await db.assignment_submissions.count({
       where: { 
         user_id: userId,
         status: {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    const gradedSubmissions = await prisma.assignmentSubmission.count({
+    const gradedSubmissions = await db.assignment_submissions.count({
       where: { 
         user_id: userId,
         status: 'graded'
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get submissions with scores for average calculation
-    const scoredSubmissions = await prisma.assignmentSubmission.findMany({
+    const scoredSubmissions = await db.assignment_submissions.findMany({
       where: {
         user_id: userId,
         status: {
@@ -107,16 +107,16 @@ export async function GET(request: NextRequest) {
     const transformedSubmissions = submissions.map(submission => ({
       id: submission.id,
       assignment_id: submission.assignment_id,
-      assignment_title: submission.assignment?.title || 'Unknown Assignment',
-      club_name: submission.assignment?.club?.name || 'General',
+      assignment_title: submission.assignments?.title || 'Unknown Assignment',
+      club_name: submission.assignments?.clubs?.name || 'General',
       total_score: submission.total_score,
-      max_points: submission.assignment?.max_points || 0,
+      max_points: submission.assignments?.max_points || 0,
       status: submission.status,
       submitted_at: submission.submitted_at?.toISOString(),
       completed_at: submission.completed_at?.toISOString(),
       time_spent: submission.time_spent,
-      percentage: (submission.assignment?.max_points && submission.assignment.max_points > 0 && submission.total_score !== null)
-        ? Math.round((submission.total_score / submission.assignment.max_points) * 100)
+      percentage: (submission.assignments?.max_points && submission.assignments.max_points > 0 && submission.total_score !== null)
+        ? Math.round((submission.total_score / submission.assignments.max_points) * 100)
         : null
     }));
 

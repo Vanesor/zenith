@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const userId = decoded.userId;
 
     // Get user's assignment history with detailed information using Prisma
-    const assignmentAttempts = await prisma.assignmentAttempt.findMany({
+    const assignmentAttempts = await db.assignmentAttempt.findMany({
       where: {
         user_id: userId,
         status: {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Get total attempts count for each assignment
     const assignmentIds = assignmentAttempts.map(attempt => attempt.assignment_id);
-    const attemptsCount = await prisma.assignmentAttempt.groupBy({
+    const attemptsCount = await db.assignmentAttempt.groupBy({
       by: ['assignment_id'],
       where: {
         assignment_id: {

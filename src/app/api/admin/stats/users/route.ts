@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
     // In a production environment, we would check authentication here
     // For now, we'll proceed without the check for demo purposes
     
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Simulate user count since we're having connection issues
     let currentCount;
     
     try {
       // Try to get actual count if database is accessible
-      const result: any = await prisma.$queryRaw`SELECT COUNT(*) as count FROM users`;
+      const result: any = await db.$queryRaw`SELECT COUNT(*) as count FROM users`;
       currentCount = parseInt(result[0]?.count) || 854;
     } catch (error) {
       console.error('Error fetching user count, using default value:', error);
@@ -28,7 +28,7 @@ export async function GET() {
     const trend = currentCount > lastMonthCount ? 'up' : 
                  currentCount < lastMonthCount ? 'down' : 'neutral';
     
-    await prisma.$disconnect();
+    await db.$disconnect();
     
     return new NextResponse(JSON.stringify({ 
       count: currentCount,

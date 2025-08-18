@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const limit = limitParam ? parseInt(limitParam) : undefined;
 
     // Get clubs with basic info
-    const clubs = await prisma.club.findMany({
+    const clubs = await db.clubs.findMany({
       orderBy: {
         created_at: 'desc'
       },
@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
     const clubsWithStats = await Promise.all(
       clubs.map(async (club) => {
         // Get member count
-        const memberCount = await prisma.user.count({
+        const memberCount = await db.users.count({
           where: { club_id: club.id }
         });
 
         // Get upcoming event count
-        const eventCount = await prisma.event.count({
+        const eventCount = await db.events.count({
           where: {
             club_id: club.id,
             event_date: {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         // Get post count (assuming posts table exists with club_id)
         let postCount = 0;
         try {
-          postCount = await prisma.post.count({
+          postCount = await db.posts.count({
             where: { club_id: club.id }
           });
         } catch (error) {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         // Get leadership info
         let leadership: any[] = [];
         try {
-          leadership = await prisma.user.findMany({
+          leadership = await db.users.findMany({
             where: {
               club_id: club.id,
               role: {

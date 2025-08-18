@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { createAdminClient } from './supabase';
+import { db, executeRawSQL, queryRawSQL } from './database-service';
 
 export interface UserSession {
   userId: string;
@@ -40,18 +41,14 @@ export class SessionManager {
     
     // Store in database
     try {
-      const { Database, UUIDUtils } = await import('./database-consolidated');
-      
-      // Process parameters to handle UUID types correctly
-      const params = UUIDUtils.processParams([userId, sessionId, deviceInfo, ipAddress]);
-      
-      await Database.query(`
+      // Use the executeRawSQL function from our database service
+      await executeRawSQL(`
         INSERT INTO sessions (
           id, user_id, token, expires_at, user_agent, ip_address, last_active_at
         ) VALUES (
           gen_random_uuid(), $1::uuid, $2, NOW() + interval '30 days', $3, $4, NOW()
         )
-      `, params);
+      `, userId, sessionId, deviceInfo, ipAddress);
     } catch (error) {
       console.error('Error saving session to database:', error);
       
@@ -89,20 +86,17 @@ export class SessionManager {
     if (!session) {
       try {
         // Try the main database first
-        const dbModule = await import('./database-consolidated');
-        const db = dbModule.Database;
-        const { UUIDUtils } = dbModule;
+        const db = (await import('./database')).default;
         
         try {
           // Use proper parameter processing to ensure correct type handling
-          // Process both parameters correctly, but don't try to convert to UUID
           // The token is a string and id might be a UUID or string
           
-          const result = await db.query(`
+          const result = await queryRawSQL(`
             SELECT id, user_id, token, expires_at, user_agent, ip_address, last_active_at
             FROM sessions 
             WHERE token = $1::text OR id::text = $2::text
-          `, [sessionId, sessionId]);
+          `, sessionId, sessionId);
           
           if (result && result.rows && result.rows.length > 0) {
             const data = result.rows[0];
@@ -137,8 +131,7 @@ export class SessionManager {
           
           // Fallback to prisma client
           try {
-            const prisma = dbModule.default.getClient();
-            const dbSession = await prisma.session.findFirst({
+            const dbSession = await db.sessions.findFirst({
               where: {
                 OR: [
                   { token: sessionId },
@@ -270,11 +263,10 @@ export class SessionManager {
     
     // Remove from database
     try {
-      const { Database } = await import('./database-consolidated');
-      await Database.query(`
+      await executeRawSQL(`
         DELETE FROM sessions
         WHERE token = $1 OR id::text = $2
-      `, [sessionId, sessionId]);
+      `, sessionId, sessionId);
     } catch (error) {
       console.error('Failed to delete session from database:', error);
       
@@ -335,11 +327,10 @@ export class SessionManager {
         
         // Clean up database sessions older than 7 days
         try {
-          const { Database } = await import('./database-consolidated');
-          await Database.query(`
+          await executeRawSQL(`
             DELETE FROM sessions
             WHERE last_active_at < NOW() - INTERVAL '7 days'
-          `, []);
+          `);
         } catch (error) {
           console.error('Failed to cleanup old sessions from database:', error);
         }

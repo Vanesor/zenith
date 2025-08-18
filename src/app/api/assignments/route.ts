@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
-import { Prisma } from "@prisma/client";
+import { db } from '@/lib/database-service';
+import { Prisma } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 import { NotificationService } from "@/lib/NotificationService";
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
 
     // Use Prisma's built-in methods instead of raw queries to avoid type issues
     try {
-      const assignments = await prisma.assignment.findMany({
+      const assignments = await db.assignments.findMany({
         take: limit,
         skip: offset,
         orderBy: {
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
       console.error("Error with Prisma query:", queryError);
       
       // Simple fallback without complex joins
-      const assignments = await prisma.assignment.findMany({
+      const assignments = await db.assignments.findMany({
         take: limit,
         skip: offset,
         orderBy: {
@@ -311,7 +311,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is a manager (has management role)
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { role: true, club_id: true }
     });
@@ -354,7 +354,7 @@ export async function POST(request: NextRequest) {
 
     // Begin Prisma transaction
     try {
-      const result = await prisma.$transaction(async (tx) => {
+      const result = await db.$transaction(async (tx) => {
         // Create assignment
         const createdAssignment = await tx.assignment.create({
           data: {
@@ -457,7 +457,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Create notifications for all club members
-      const clubMembers = await prisma.user.findMany({
+      const clubMembers = await db.users.findMany({
         where: {
           club_id: actualClubId,
           id: { not: userId }
@@ -466,7 +466,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (clubMembers.length > 0) {
-        const club = await prisma.club.findUnique({
+        const club = await db.clubs.findUnique({
           where: { id: actualClubId },
           select: { name: true }
         });

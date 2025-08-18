@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Get active assignments with additional details
-    const activeAssignments = await prisma.assignment.findMany({
+    const activeAssignments = await db.assignments.findMany({
       where: {
         status: 'active',
         due_date: {
@@ -29,19 +29,19 @@ export async function GET() {
     const assignmentsWithDetails = await Promise.all(activeAssignments.map(async (assignment) => {
       // Get club name
       const club = assignment.club_id 
-        ? await prisma.club.findUnique({
+        ? await db.clubs.findUnique({
             where: { id: assignment.club_id },
             select: { name: true, member_count: true }
           })
         : null;
       
       // Get submission count
-      const submittedCount = await prisma.assignmentSubmission.count({
+      const submittedCount = await db.assignment_submissions.count({
         where: { assignment_id: assignment.id }
       });
       
       // Get average score
-      const submissions = await prisma.assignmentSubmission.findMany({
+      const submissions = await db.assignment_submissions.findMany({
         where: { 
           assignment_id: assignment.id,
           grade: { not: null }

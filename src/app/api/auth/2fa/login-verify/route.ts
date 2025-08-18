@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { TwoFactorAuthService } from "@/lib/TwoFactorAuthService";
 import FastAuth from "@/lib/FastAuth";
-import PrismaDB from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 
 /**
  * API route for verifying a 2FA token during login
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Find the user using the consolidated database
-    const userResult = await Database.query(
+    const userResult = await db.executeRawSQL(
       "SELECT id, email, name, role, club_id, totp_secret, totp_enabled FROM users WHERE id = $1::uuid",
       [userId]
     );

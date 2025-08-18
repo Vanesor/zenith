@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db, queryRawSQL } from '@/lib/database-service';
 import jwt from "jsonwebtoken";
 
 // GET /api/management/stats
@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
     const userId = decoded.userId;
 
     // Check if user is a manager (has management role)
-    const userResult = await Database.query(
+    const userResult = await queryRawSQL(
       "SELECT role FROM users WHERE id = $1",
-      [userId]
+      userId
     );
 
     if (userResult.rows.length === 0) {
@@ -44,28 +44,31 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total members count
-    const totalMembersResult = await Database.query(
+    const totalMembersResult = await queryRawSQL(
       "SELECT COUNT(*) as count FROM users WHERE club_id IS NOT NULL"
     );
 
     // Get active events count (events happening in the future)
-    const activeEventsResult = await Database.query(
+    const activeEventsResult = await queryRawSQL(
       "SELECT COUNT(*) as count FROM events WHERE event_date >= CURRENT_DATE"
     );
 
     // Get total assignments count
-    const totalAssignmentsResult = await Database.query(
+    const totalAssignmentsResult = await queryRawSQL(
       "SELECT COUNT(*) as count FROM assignments"
     );
 
-    // Get unread notifications count for current user using PrismaDB
-    const unreadNotifications = await Database.getUnreadNotificationCount(userId);
+    // Get unread notifications count for current user
+    const unreadNotificationsResult = await queryRawSQL(
+      "SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND read = FALSE",
+      userId
+    );
 
     const stats = {
       totalMembers: parseInt(totalMembersResult.rows[0].count),
       activeEvents: parseInt(activeEventsResult.rows[0].count),
       totalAssignments: parseInt(totalAssignmentsResult.rows[0].count),
-      unreadNotifications,
+      unreadNotifications: parseInt(unreadNotificationsResult.rows[0].count),
     };
 
     return NextResponse.json(stats);

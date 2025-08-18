@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Content is required" }, { status: 400 });
     }
 
-    const commentResult = await Database.query(
+    const commentResult = await db.executeRawSQL(
       "SELECT author_id, created_at FROM comments WHERE id = $1",
       [id]
     );
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    const result = await Database.query(
+    const result = await db.executeRawSQL(
       "UPDATE comments SET content = $1, updated_at = NOW() WHERE id = $2 RETURNING *",
       [content, id]
     );
@@ -83,7 +83,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id } = await params;
 
-    const commentResult = await Database.query(
+    const commentResult = await db.executeRawSQL(
       "SELECT author_id, created_at FROM comments WHERE id = $1",
       [id]
     );
@@ -93,7 +93,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     const comment = commentResult.rows[0];
-    const userResult = await Database.query("SELECT role FROM users WHERE id = $1", [userId]);
+    const userResult = await db.executeRawSQL("SELECT role FROM users WHERE id = $1", [userId]);
     const userRole = userResult.rows[0]?.role;
 
     const isAuthor = comment.author_id === userId;
@@ -118,7 +118,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       );
     }
 
-    await Database.query("DELETE FROM comments WHERE id = $1", [id]);
+    await db.executeRawSQL("DELETE FROM comments WHERE id = $1", [id]);
 
     return NextResponse.json({ message: "Comment deleted successfully" });
   } catch (error) {
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
 
-    const result = await Database.query(
+    const result = await db.executeRawSQL(
       `
       SELECT c.*, u.name as author_name, u.avatar_url
       FROM comments c

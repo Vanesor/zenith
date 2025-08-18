@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 // Simple email sending function (you can replace with your preferred service)
 async function sendInvitationEmail(to: string, inviterName: string, inviteUrl: string, message?: string) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is already in the room using PrismaDB
-    const existingMember = await PrismaDB.getClient().chatRoomMember.findFirst({
+    const existingMember = await db.chatRoomMember.findFirst({
       where: {
         chat_room_id: roomId,
         user_email: inviteeEmail
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
     // Create invitation record using PrismaDB
-    const invitation = await PrismaDB.getClient().chatInvitation.create({
+    const invitation = await db.chatInvitation.create({
       data: {
         room_id: roomId,
         inviter_id: inviterId,
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch invitations using PrismaDB
-    const invitations = await PrismaDB.getClient().chatInvitation.findMany({
+    const invitations = await db.chatInvitation.findMany({
       where: {
         room_id: roomId,
         status: 'pending',

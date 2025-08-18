@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/AuthMiddleware';
-import PrismaDB, { Database } from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 import { FastAuth } from '@/lib/FastAuth';
 
 // Safe JSON parsing utility
@@ -51,10 +51,10 @@ export async function GET(
     const userId = authResult.user!.id;
 
     // Use Prisma client directly to avoid type casting issues
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
 
     // Get user details
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { id: true, email: true, name: true }
     });
@@ -64,7 +64,7 @@ export async function GET(
     }
 
     // Get assignment details with questions
-    const assignment = await prisma.assignment.findUnique({
+    const assignment = await db.assignments.findUnique({
       where: { id: assignmentId },
       include: {
         questions: {
@@ -157,7 +157,7 @@ export async function PUT(
     
     // Get user details from database using the verified user ID
     const userQuery = 'SELECT id, email, name, role FROM users WHERE id = $1';
-    const userResult = await Database.query(userQuery, [decoded.userId]);
+    const userResult = await db.executeRawSQL(userQuery, [decoded.userId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -183,7 +183,7 @@ export async function PUT(
       RETURNING *
     `;
     
-    const updateResult = await Database.query(updateQuery, [
+    const updateResult = await db.executeRawSQL(updateQuery, [
       body.title,
       body.description,
       body.timeLimit,
@@ -236,7 +236,7 @@ export async function DELETE(
     const userId = authResult.user!.id;
     
     // Check if user has permission to delete the assignment (must be a club manager)
-    const userCheck = await Database.query(
+    const userCheck = await db.executeRawSQL(
       "SELECT role, club_id FROM users WHERE id = $1",
       [userId]
     );
@@ -259,7 +259,7 @@ export async function DELETE(
     }
     
     // Check if the assignment exists and belongs to the user's club
-    const assignmentCheck = await Database.query(
+    const assignmentCheck = await db.executeRawSQL(
       `SELECT a.*, a.start_date as "startDate" FROM assignments a 
        WHERE a.id = $1 AND (a.created_by = $2 OR a.club_id = $3)`,
       [assignmentId, userId, user.club_id]
@@ -275,7 +275,7 @@ export async function DELETE(
     const assignment = assignmentCheck.rows[0];
     
     // Check if the assignment has already started (has submissions)
-    const submissionsCheck = await Database.query(
+    const submissionsCheck = await db.executeRawSQL(
       "SELECT COUNT(*) as submission_count FROM assignment_attempts WHERE assignment_id = $1",
       [assignmentId]
     );
@@ -293,22 +293,22 @@ export async function DELETE(
     }
 
     // Begin transaction
-    await Database.query('BEGIN');
+    await db.executeRawSQL('BEGIN');
     
     // First delete all questions related to the assignment
-    await Database.query(
+    await db.executeRawSQL(
       "DELETE FROM assignment_questions WHERE assignment_id = $1",
       [assignmentId]
     );
     
     // Then delete the assignment
-    const deleteResult = await Database.query(
+    const deleteResult = await db.executeRawSQL(
       "DELETE FROM assignments WHERE id = $1 RETURNING id",
       [assignmentId]
     );
     
     // Commit transaction
-    await Database.query('COMMIT');
+    await db.executeRawSQL('COMMIT');
     
     if (deleteResult.rows.length === 0) {
       // Should not happen due to our previous check, but just in case
@@ -323,7 +323,7 @@ export async function DELETE(
   } catch (error) {
     // Rollback transaction if there was an error
     try {
-      await Database.query('ROLLBACK');
+      await db.executeRawSQL('ROLLBACK');
     } catch (rollbackError) {
       console.error("Error during rollback:", rollbackError);
     }

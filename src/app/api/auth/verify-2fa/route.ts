@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import FastAuth from "@/lib/FastAuth";
-import PrismaDB from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check which 2FA method is enabled
-    const methodResult = await Database.query(
+    const methodResult = await db.executeRawSQL(
       "SELECT totp_enabled, email_otp_enabled, totp_secret FROM users WHERE id = $1::uuid",
       [userId]
     );

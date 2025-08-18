@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { authOptions } from "@/lib/auth-options";
 
 export async function POST(request: NextRequest) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
         // Check if user exists and update profile
     try {
-      const user = await prisma.user.findUnique({
+      const user = await db.users.findUnique({
         where: { email: session.user.email },
         select: { id: true, email: true, name: true }
       });
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Update user profile using Prisma
-      await prisma.user.update({
+      await db.users.update({
         where: { id: user.id },
         data: {
           name: `${firstName} ${lastName}`,

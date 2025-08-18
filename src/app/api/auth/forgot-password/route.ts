@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import { v4 as uuidv4 } from "uuid";
 import emailServiceV2 from "@/lib/EmailServiceV2";
 
@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const { email } = await request.json();
 
     // Check if user exists
-    const userResult = await Database.query(
+    const userResult = await db.executeRawSQL(
       "SELECT id, email, name FROM users WHERE email = $1",
       [email]
     );
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     tokenExpiry.setHours(tokenExpiry.getHours() + 1); // 1 hour validity
 
     // Save token in database
-    await Database.query(
+    await db.executeRawSQL(
       `UPDATE users 
        SET 
         password_reset_token = $1, 

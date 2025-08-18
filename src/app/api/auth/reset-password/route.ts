@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user with this token
-    const userResult = await Database.query(
+    const userResult = await db.executeRawSQL(
       `SELECT id, email, password_reset_token_expires_at 
        FROM users 
        WHERE password_reset_token = $1`,
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Update user password and clear token
-    await Database.query(
+    await db.executeRawSQL(
       `UPDATE users 
        SET 
         password_hash = $1,

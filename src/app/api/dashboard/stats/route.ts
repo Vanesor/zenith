@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/AuthMiddleware';
-import { prisma } from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
     }
     
     // Get total clubs count
-    const clubsCount = await prisma.club.count();
+    const clubsCount = await db.clubs.count();
 
     // Get upcoming events count
-    const eventsCount = await prisma.event.count({
+    const eventsCount = await db.events.count({
       where: {
         event_date: {
           gte: new Date()
@@ -28,23 +28,23 @@ export async function GET(request: NextRequest) {
     });
 
     // Get total members count
-    const membersCount = await prisma.user.count();
+    const membersCount = await db.users.count();
 
     // Get user's joined clubs count
-    const userClubsCount = await prisma.club_members.count({
+    const userClubsCount = await db.club_members.count({
       where: {
         user_id: userId
       }
     });
 
     // Get user's assignments stats
-    const assignments = await prisma.assignment.findMany({
+    const assignments = await db.assignments.findMany({
       where: {
         status: 'active'
       }
     });
 
-    const assignmentSubmissions = await prisma.assignmentSubmission.count({
+    const assignmentSubmissions = await db.assignment_submissions.count({
       where: {
         user_id: userId,
         status: 'submitted'

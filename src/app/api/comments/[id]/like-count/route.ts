@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       WHERE comment_id = $1
     `;
 
-    const result = await Database.query(query, [commentId]);
+    const result = await db.executeRawSQL(query, [commentId]);
     const count = parseInt(result.rows[0].count);
 
     return NextResponse.json({ count });

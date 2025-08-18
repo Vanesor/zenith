@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Set default count for active assignments
     const defaultCount = 32;
@@ -11,7 +11,7 @@ export async function GET() {
     // Try to get real count from the database
     let currentCount;
     try {
-      const result = await prisma.$queryRaw`
+      const result = await db.$queryRaw`
         SELECT COUNT(*) as count 
         FROM assignments 
         WHERE status = 'active' AND due_date >= NOW()

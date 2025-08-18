@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
-import PrismaDB from "@/lib/database-consolidated";
+import db from "./database";
 
 // Types
 interface AdminStatCard {

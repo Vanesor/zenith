@@ -4,7 +4,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
-import PrismaDB, { Database } from './database-consolidated';
+import { db, findUserByEmail, findUserById, updateUser, createUser, createSession, findSession } from "./database-service";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'your-refresh-secret-key-change-in-production';
@@ -149,7 +149,7 @@ export class FastAuth {
       if (!decoded) return null;
   
       // Get fresh user data from optimized database with indexes
-      const user = await PrismaDB.findUserById(decoded.userId);
+      const user = await findUserById(decoded.userId);
       
       if (!user) {
         console.error("Token valid but user not found:", decoded.userId);
@@ -170,7 +170,7 @@ export class FastAuth {
   static async authenticateUser(email: string, password: string, rememberMe = false): Promise<AuthResult> {
     try {
       // 1. Fast user lookup with indexed email query (~5ms with optimization)
-      const user = await PrismaDB.findUserByEmail(email.toLowerCase());
+      const user = await findUserByEmail(email.toLowerCase());
       
       if (!user) {
         return {
@@ -198,21 +198,13 @@ export class FastAuth {
       }
 
       // 4. Check 2FA requirement (if implemented)
-      if (user.two_factor_enabled) {
-        // Determine which 2FA method is available
-        const method2faResult = await Database.query(
-          "SELECT totp_enabled, email_otp_enabled FROM users WHERE id = $1::uuid",
-          [user.id]
-        );
-        
+      if (user.totp_enabled || user.email_otp_enabled) {
+        // Use existing 2FA method information from the user record
         let method = '2fa_app'; // default
-        if (method2faResult.rows.length > 0) {
-          const { totp_enabled, email_otp_enabled } = method2faResult.rows[0];
-          if (email_otp_enabled) {
-            method = 'email_otp';
-          } else if (totp_enabled) {
-            method = '2fa_app';
-          }
+        if (user.email_otp_enabled) {
+          method = 'email_otp';
+        } else if (user.totp_enabled) {
+          method = '2fa_app';
         }
 
         return {
@@ -237,7 +229,7 @@ export class FastAuth {
         ip_address: '127.0.0.1' // This would be extracted from request in real implementation
       };
 
-      const session = await PrismaDB.createSession(sessionData);
+      const session = await createSession(sessionData);
 
       // 6. Generate JWT tokens
       const tokenPayload = {
@@ -265,7 +257,7 @@ export class FastAuth {
           avatar: user.avatar,
           role: user.role,
           club_id: user.club_id,
-          verified: user.verified
+          verified: user.email_verified
         },
         sessionId: session.id,
       };
@@ -298,7 +290,7 @@ export class FastAuth {
       }
 
       // 2. Check if user already exists (optimized indexed query)
-      const existingUser = await PrismaDB.findUserByEmail(userData.email.toLowerCase());
+      const existingUser = await findUserByEmail(userData.email.toLowerCase());
       
       if (existingUser) {
         return {
@@ -311,10 +303,10 @@ export class FastAuth {
       const hashedPassword = await this.hashPassword(userData.password);
 
       // 4. Create user with optimized Prisma operation
-      const newUser = await PrismaDB.createUser({
+      const newUser = await createUser({
         email: userData.email.toLowerCase(),
         name: userData.name,
-        password: hashedPassword,
+        password_hash: hashedPassword,
         role: 'student', // Default role
       });
 
@@ -332,7 +324,7 @@ export class FastAuth {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       };
 
-      const session = await PrismaDB.createSession(sessionData);
+      const session = await createSession(sessionData);
 
       // 6. Generate tokens
       const tokenPayload = {
@@ -376,7 +368,7 @@ export class FastAuth {
   }> {
     try {
       // Use optimized session lookup with user data
-      const session = await PrismaDB.findSession(sessionToken);
+      const session = await findSession(sessionToken);
       
       if (!session) {
         return { valid: false };
@@ -384,12 +376,18 @@ export class FastAuth {
 
       return {
         valid: true,
-        user: session.user || {
-          id: session.user_id,
-          email: session.email,
-          name: session.name,
-          role: session.role,
-          avatar: session.avatar
+        user: session.users ? {
+          id: session.users.id,
+          email: session.users.email,
+          name: session.users.name,
+          role: session.users.role,
+          avatar: session.users.avatar
+        } : {
+          id: session.user_id || '',
+          email: '',
+          name: '',
+          role: 'student',
+          avatar: null
         },
         session,
         needsRefresh: new Date(session.expires_at) < new Date(Date.now() + 5 * 60 * 1000) // 5 min buffer

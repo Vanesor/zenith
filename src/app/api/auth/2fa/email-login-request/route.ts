@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,12 +18,12 @@ export async function POST(request: NextRequest) {
     
     if (userId) {
       // Get the user by ID
-      user = await prisma.user.findUnique({
+      user = await db.users.findUnique({
         where: { id: userId }
       });
     } else {
       // Get the user by email
-      user = await prisma.user.findUnique({
+      user = await db.users.findUnique({
         where: { email }
       });
     }

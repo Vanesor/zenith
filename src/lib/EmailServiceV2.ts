@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { Database } from './database-consolidated';
+import db from "./database";
 import { 
   createOTPTemplate, 
   createPasswordResetTemplate, 
@@ -57,7 +57,7 @@ class EmailServiceV2 {
         
         // Log the email in database
         try {
-          await Database.query(
+          await db.executeRawSQL(
             `INSERT INTO email_logs (recipient, subject, status, sent_at, category, related_id, message_id)
              VALUES ($1, $2, $3, NOW(), $4, $5, $6)`,
             [to, subject, 'sent', category || 'general', relatedId || null, data?.id || null]
@@ -75,7 +75,7 @@ class EmailServiceV2 {
       
       // Log failed email attempt
       try {
-        await Database.query(
+        await db.executeRawSQL(
           `INSERT INTO email_logs (recipient, subject, status, sent_at, category, related_id, content_preview)
            VALUES ($1, $2, $3, NOW(), $4, $5, $6)`,
           [options.to, options.subject, 'failed', category || 'general', relatedId || null, error instanceof Error ? error.message : 'Unknown error']
@@ -264,7 +264,7 @@ class EmailServiceV2 {
   // Get email statistics
   async getEmailStats(days: number = 7): Promise<any> {
     try {
-      const result = await Database.query(
+      const result = await db.executeRawSQL(
         `SELECT 
           status,
           category,

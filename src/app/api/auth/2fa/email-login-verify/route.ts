@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { generateToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the user details to create a full session
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId }
     });
 

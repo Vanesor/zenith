@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import { NotificationService } from "@/lib/NotificationService";
 
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     let announcements;
     if (clubId) {
-      announcements = await prisma.announcement.findMany({
+      announcements = await db.announcement.findMany({
         where: {
           OR: [
             { club_id: clubId },
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         }
       });
     } else {
-      announcements = await prisma.announcement.findMany({
+      announcements = await db.announcement.findMany({
         orderBy: {
           created_at: 'desc'
         },
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       announcements.map(async (announcement: any) => {
         const [author, club] = await Promise.all([
           announcement.author_id
-            ? prisma.user.findUnique({
+            ? db.users.findUnique({
                 where: { id: announcement.author_id },
                 select: {
                   id: true,
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
               })
             : null,
           announcement.club_id
-            ? prisma.club.findUnique({
+            ? db.clubs.findUnique({
                 where: { id: announcement.club_id },
                 select: {
                   id: true,
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const { id: userId } = authResult.user;
 
     // Check if user has permission to create announcements
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { role: true, club_id: true }
     });
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const announcement = await prisma.announcement.create({
+    const announcement = await db.announcement.create({
       data: {
         title,
         content,
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
 
     // Get author and club details
     const [author, club] = await Promise.all([
-      prisma.user.findUnique({
+      db.users.findUnique({
         where: { id: userId },
         select: {
           id: true,
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         }
       }),
       announcement.club_id
-        ? prisma.club.findUnique({
+        ? db.clubs.findUnique({
             where: { id: announcement.club_id },
             select: {
               id: true,

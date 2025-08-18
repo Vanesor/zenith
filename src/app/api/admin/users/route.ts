@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import PrismaDB from '@/lib/database-consolidated';
+import { db } from '@/lib/database-service';
 
 export async function GET() {
   try {
-    const prisma = PrismaDB.getClient();
+    const prisma = prisma;
     
     // Raw SQL query to fetch users with their primary club
-    const rawUsers = await prisma.$queryRaw`
+    const rawUsers = await db.$queryRaw`
       SELECT 
         u.id, 
         u.name, 

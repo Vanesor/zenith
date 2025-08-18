@@ -5,8 +5,8 @@
  * with appropriate error handling and fallback data when the database is not available
  */
 
-import PrismaDB from '@/lib/database-consolidated';
-import { Prisma } from '@prisma/client';
+import db from "./database";
+import { Prisma } from '@/lib/database-service';
 
 // Type definitions
 type ReportType = 'user' | 'club';
@@ -115,13 +115,13 @@ interface ClubEventStats {
 // Get member statistics with fallback data
 export async function getMemberStats() {
   try {
-    const prisma = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     
     // Check connection first to fail fast
-    await prisma.$queryRaw`SELECT 1`;
+    await db.$queryRaw`SELECT 1`;
     
     // Get member stats with their roles
-    const memberStats = await prisma.$queryRaw`
+    const memberStats = await db.$queryRaw`
       SELECT 
         role, 
         COUNT(*) as count
@@ -157,13 +157,13 @@ export async function getMemberStats() {
 // Get club details with fallback data
 export async function getClubDetails(clubId: string) {
   try {
-    const prisma = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     
     // Check connection first to fail fast
-    await prisma.$queryRaw`SELECT 1`;
+    await db.$queryRaw`SELECT 1`;
     
     // Get club data with coordinator
-    const clubData = await prisma.club.findUnique({
+    const clubData = await db.clubs.findUnique({
       where: { id: clubId },
       select: {
         id: true,
@@ -185,14 +185,14 @@ export async function getClubDetails(clubId: string) {
     }
     
     // Get member statistics
-    const memberStats = await prisma.$queryRaw<MemberStats[]>`
+    const memberStats = await db.$queryRaw<MemberStats[]>`
       SELECT COUNT(*) as total_members
       FROM club_members
       WHERE club_id = ${clubId}
     `;
     
     // Get member list
-    const members = await prisma.$queryRaw`
+    const members = await db.$queryRaw`
       SELECT 
         u.id,
         u.name,
@@ -210,7 +210,7 @@ export async function getClubDetails(clubId: string) {
     `;
     
     // Get upcoming events
-    const upcomingEvents = await prisma.$queryRaw`
+    const upcomingEvents = await db.$queryRaw`
       SELECT 
         id,
         title,
@@ -271,13 +271,13 @@ export async function getClubDetails(clubId: string) {
 // Get club statistics with fallback data
 export async function getClubStats() {
   try {
-    const prisma = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     
     // Check connection first to fail fast
-    await prisma.$queryRaw`SELECT 1`;
+    await db.$queryRaw`SELECT 1`;
     
     // Get club stats with their member counts and engagement
-    const clubStats = await prisma.$queryRaw`
+    const clubStats = await db.$queryRaw`
       SELECT 
         c.id, 
         c.name, 
@@ -323,13 +323,13 @@ export async function getClubStats() {
 // Get assignment statistics with fallback data
 export async function getAssignmentStats() {
   try {
-    const prisma = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     
     // Check connection first to fail fast
-    await prisma.$queryRaw`SELECT 1`;
+    await db.$queryRaw`SELECT 1`;
     
     // Get assignment stats with their submission rates
-    const assignmentStats = await prisma.$queryRaw`
+    const assignmentStats = await db.$queryRaw`
       SELECT 
         a.id, 
         a.title, 
@@ -385,13 +385,13 @@ export async function getAssignmentStats() {
 // Get event statistics with fallback data
 export async function getEventStats() {
   try {
-    const prisma = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     
     // Check connection first to fail fast
-    await prisma.$queryRaw`SELECT 1`;
+    await db.$queryRaw`SELECT 1`;
     
     // Get event stats with their attendee counts
-    const eventStats = await prisma.$queryRaw`
+    const eventStats = await db.$queryRaw`
       SELECT 
         e.id, 
         e.title, 
@@ -448,13 +448,13 @@ export async function getEventStats() {
 // Get user profile data with fallback
 export async function getUserProfile(userId: string) {
   try {
-    const prisma = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     
     // Check connection first to fail fast
-    await prisma.$queryRaw`SELECT 1`;
+    await db.$queryRaw`SELECT 1`;
     
     // Get user data with clubs and related statistics
-    const userData = await prisma.user.findUnique({
+    const userData = await db.users.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -480,7 +480,7 @@ export async function getUserProfile(userId: string) {
       type: string;
     }
     
-    const clubMemberships = await prisma.$queryRaw<ClubMembership[]>`
+    const clubMemberships = await db.$queryRaw<ClubMembership[]>`
       SELECT 
         c.id,
         c.name,
@@ -494,7 +494,7 @@ export async function getUserProfile(userId: string) {
     `;
     
     // Get additional user stats
-    const assignmentStats = await prisma.$queryRaw<AssignmentStats[]>`
+    const assignmentStats = await db.$queryRaw<AssignmentStats[]>`
       SELECT 
         COUNT(*) as total_submissions,
         AVG(CAST(score AS FLOAT)) as average_score
@@ -504,7 +504,7 @@ export async function getUserProfile(userId: string) {
         user_id = ${userId}
     `;
     
-    const eventStats = await prisma.$queryRaw<EventStats[]>`
+    const eventStats = await db.$queryRaw<EventStats[]>`
       SELECT 
         COUNT(*) as total_attendances
       FROM 
@@ -584,17 +584,17 @@ export async function getUserProfile(userId: string) {
 // Generate report data for a user or club
 export async function generateReportData(type: ReportType, id: string) {
   try {
-    const prisma = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     
     // Check connection first to fail fast
-    await prisma.$queryRaw`SELECT 1`;
+    await db.$queryRaw`SELECT 1`;
     
     if (type === 'user') {
       // Generate user report
       const userData = await getUserProfile(id);
       
       // Get additional detailed information
-      const assignmentDetails = await prisma.$queryRaw`
+      const assignmentDetails = await db.$queryRaw`
         SELECT 
           a.title,
           a.due_date,
@@ -614,7 +614,7 @@ export async function generateReportData(type: ReportType, id: string) {
         LIMIT 10
       `;
       
-      const eventDetails = await prisma.$queryRaw`
+      const eventDetails = await db.$queryRaw`
         SELECT 
           e.title,
           e.event_date,
@@ -646,7 +646,7 @@ export async function generateReportData(type: ReportType, id: string) {
       };
     } else if (type === 'club') {
       // Generate club report
-      const clubData = await prisma.club.findUnique({
+      const clubData = await db.clubs.findUnique({
         where: { id },
         select: {
           id: true,
@@ -668,14 +668,14 @@ export async function generateReportData(type: ReportType, id: string) {
       }
       
       // Get member statistics
-      const memberStats = await prisma.$queryRaw<MemberStats[]>`
+      const memberStats = await db.$queryRaw<MemberStats[]>`
         SELECT COUNT(*) as total_members
         FROM club_members
         WHERE club_id = ${id}
       `;
       
       // Get assignment statistics
-      const assignmentStats = await prisma.$queryRaw<ClubAssignmentStats[]>`
+      const assignmentStats = await db.$queryRaw<ClubAssignmentStats[]>`
         SELECT 
           COUNT(*) as total_assignments,
           AVG(
@@ -689,7 +689,7 @@ export async function generateReportData(type: ReportType, id: string) {
       `;
       
       // Get event statistics
-      const eventStats = await prisma.$queryRaw<ClubEventStats[]>`
+      const eventStats = await db.$queryRaw<ClubEventStats[]>`
         SELECT 
           COUNT(*) as total_events,
           AVG(

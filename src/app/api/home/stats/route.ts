@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
-import { prisma } from "@/lib/database-consolidated";
+import { db, executeRawSQL, queryRawSQL } from '@/lib/database-service';
 
 // GET /api/home/stats - Get dashboard statistics
 export async function GET() {
@@ -13,10 +12,10 @@ export async function GET() {
         (SELECT COUNT(*) FROM events WHERE event_date >= CURRENT_DATE) as upcoming_events,
         (SELECT COUNT(*) FROM posts) as total_posts
     `;
-    const statsResult = await Database.query(statsQuery);
+    const statsResult = await queryRawSQL(statsQuery);
 
     // Get club statistics with member counts
-    const clubStatsResult = await Database.query(`
+    const clubStatsResult = await queryRawSQL(`
       SELECT 
         c.id,
         c.name,
@@ -34,7 +33,7 @@ export async function GET() {
     `);
 
     // Get upcoming events with club information
-    const upcomingEventsResult = await Database.query(`
+    const upcomingEventsResult = await queryRawSQL(`
       SELECT 
         e.*,
         c.name as club_name,
@@ -49,7 +48,7 @@ export async function GET() {
     `);
 
     // Get recent posts with author and club info
-    const recentPostsResult = await Database.query(`
+    const recentPostsResult = await queryRawSQL(`
       SELECT 
         p.id,
         p.title,

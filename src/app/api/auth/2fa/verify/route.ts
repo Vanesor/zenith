@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // we need to store it first before enabling 2FA
     if (tempSecret && tempSecret === secretToVerify) {
       // Store the verified secret
-      await Database.query(
+      await db.executeRawSQL(
         `UPDATE users 
          SET 
           totp_temp_secret = $1, 

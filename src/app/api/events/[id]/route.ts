@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -56,14 +56,14 @@ export async function GET(request: NextRequest, { params }: Props) {
       WHERE e.id = $2
     `;
 
-    const result = await Database.query(query, [userId, id]);
+    const result = await db.executeRawSQL(query, [userId, id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
     
     // Get the attendees for the event
-    const attendeesResult = await Database.query(
+    const attendeesResult = await db.executeRawSQL(
       `SELECT 
         u.id, 
         u.name, 
@@ -157,10 +157,10 @@ export async function PUT(request: NextRequest, { params }: Props) {
 
     // Update the event using raw query
     const updateQuery = `UPDATE events SET title = $1, description = $2, event_date = $3, event_time = $4, location = $5, max_attendees = $6, status = $7, image_url = $8, updated_at = CURRENT_TIMESTAMP WHERE id = $9`;
-    await Database.query(updateQuery, [title, description, date, startTime, location, maxAttendees || null, status || event.status, imageUrl || event.image_url, id]);
+    await db.executeRawSQL(updateQuery, [title, description, date, startTime, location, maxAttendees || null, status || event.status, imageUrl || event.image_url, id]);
     
     // Get updated event
-    const eventResult = await Database.query('SELECT * FROM events WHERE id = $1', [id]);
+    const eventResult = await db.executeRawSQL('SELECT * FROM events WHERE id = $1', [id]);
     const updatedEvent = eventResult.rows[0];
 
     if (!updatedEvent) {
@@ -171,7 +171,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     }
     
     // Get attendees for email-only notifications
-    const attendeesResult = await Database.query('SELECT user_id as id FROM event_attendees WHERE event_id = $1', [id]);
+    const attendeesResult = await db.executeRawSQL('SELECT user_id as id FROM event_attendees WHERE event_id = $1', [id]);
     const attendees = attendeesResult.rows;
     const attendeeIds = (attendees as any[]).filter((a: any) => a.id !== userId).map((a: any) => a.id);
     
@@ -206,7 +206,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const { id } = await params;
     
     // Check if user has permission to delete events
-    const userResult = await Database.query(
+    const userResult = await db.executeRawSQL(
       `SELECT role, club_id FROM users WHERE id = $1`,
       [userId]
     );
@@ -225,7 +225,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
     
     // Check if the event exists and belongs to the user's club
-    const eventCheck = await Database.query(
+    const eventCheck = await db.executeRawSQL(
       `SELECT * FROM events WHERE id = $1`,
       [id]
     );
@@ -245,7 +245,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
     
     // Create a notification for event attendees about the cancellation
-    await Database.query(
+    await db.executeRawSQL(
       `INSERT INTO notifications (
         user_id,
         title,
@@ -271,13 +271,13 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     );
     
     // First, delete all attendees
-    await Database.query(
+    await db.executeRawSQL(
       `DELETE FROM event_attendees WHERE event_id = $1`,
       [id]
     );
     
     // Then, delete the event
-    await Database.query(
+    await db.executeRawSQL(
       `DELETE FROM events WHERE id = $1`,
       [id]
     );

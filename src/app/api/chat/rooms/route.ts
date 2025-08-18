@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 // GET /api/chat/rooms - Get all chat rooms or by club
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const userId = authResult.user!.id;
 
     // Get user info to determine accessible rooms using Prisma
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { club_id: true, role: true }
     });
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const clubId = searchParams.get("club_id") || user.club_id;
 
     // Use Prisma directly to avoid UUID casting issues
-    const rooms = await prisma.chatRoom.findMany({
+    const rooms = await db.chat_rooms.findMany({
       where: {
         OR: [
           { type: "public" },
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user info using Prisma
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { club_id: true, role: true }
     });
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check for duplicate room names within the same club
-    const existingRoom = await prisma.chatRoom.findFirst({
+    const existingRoom = await db.chat_rooms.findFirst({
       where: {
         name: {
           equals: name.trim(),
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create room using Prisma
-    const room = await prisma.chatRoom.create({
+    const room = await db.chat_rooms.create({
       data: {
         name: name.trim(),
         description: description || '',

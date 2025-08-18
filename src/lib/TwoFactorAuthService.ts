@@ -1,6 +1,6 @@
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
-import { prisma, Database } from './database-consolidated';
+import db, { prismaClient as prisma } from "./database";
 import crypto from 'crypto';
 import { HashAlgorithms } from 'otplib/core';
 import emailServiceV2 from './EmailServiceV2';
@@ -36,7 +36,7 @@ export class TwoFactorAuthService {
     const secret = authenticator.generateSecret(); // 32 characters by default
     
     // Store secret temporarily (will be verified later)
-    await prisma.user.update({
+    await db.users.update({
       where: { id: userId },
       data: {
         totp_temp_secret: secret,
@@ -64,7 +64,7 @@ export class TwoFactorAuthService {
     );
     
     // Store hashed codes in the database using Prisma
-    await prisma.user.update({
+    await db.users.update({
       where: { id: userId },
       data: {
         totp_recovery_codes: JSON.stringify(hashedCodes) as any
@@ -106,7 +106,7 @@ export class TwoFactorAuthService {
   static async enable2FA(userId: string): Promise<boolean> {
     try {
       // Get the temp secret first
-      const user = await prisma.user.findUnique({
+      const user = await db.users.findUnique({
         where: { id: userId },
         select: { totp_temp_secret: true }
       });
@@ -116,7 +116,7 @@ export class TwoFactorAuthService {
       }
       
       // Move temporary secret to permanent secret
-      const result = await prisma.user.update({
+      const result = await db.users.update({
         where: { id: userId },
         data: {
           totp_secret: user.totp_temp_secret,
@@ -138,7 +138,7 @@ export class TwoFactorAuthService {
   // Disable 2FA for a user
   static async disable2FA(userId: string): Promise<boolean> {
     try {
-      const result = await Database.query(
+      const result = await db.executeRawSQL(
         `UPDATE users 
          SET 
           totp_secret = NULL,
@@ -161,7 +161,7 @@ export class TwoFactorAuthService {
   static async verifyRecoveryCode(userId: string, providedCode: string): Promise<boolean> {
     try {
       // Get stored recovery codes
-      const result = await Database.query(
+      const result = await db.executeRawSQL(
         `SELECT totp_recovery_codes FROM users WHERE id = $1`,
         [userId]
       );
@@ -186,7 +186,7 @@ export class TwoFactorAuthService {
       // Remove used recovery code and update database
       storedCodes.splice(matchIndex, 1);
       
-      await Database.query(
+      await db.executeRawSQL(
         `UPDATE users SET totp_recovery_codes = $1 WHERE id = $2`,
         [JSON.stringify(storedCodes), userId]
       );
@@ -201,7 +201,7 @@ export class TwoFactorAuthService {
   // Get user's 2FA status
   static async get2FAStatus(userId: string, deviceId?: string): Promise<TwoFactorAuthStatus> {
     try {
-      const result = await prisma.user.findUnique({
+      const result = await db.users.findUnique({
         where: { id: userId },
         select: {
           totp_enabled: true,
@@ -259,7 +259,7 @@ export class TwoFactorAuthService {
       const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
       
       // Store hashed OTP in database with expiration (10 minutes)
-      await Database.query(
+      await db.executeRawSQL(
         `UPDATE users 
          SET 
           email_otp = $1, 
@@ -289,7 +289,7 @@ export class TwoFactorAuthService {
   // Enable email OTP as 2FA method
   static async enableEmailOTP(userId: string): Promise<boolean> {
     try {
-      const result = await Database.query(
+      const result = await db.executeRawSQL(
         `UPDATE users 
          SET 
           email_otp_enabled = TRUE,
@@ -316,7 +316,7 @@ export class TwoFactorAuthService {
   // Verify email OTP code
   static async verifyEmailOTP(userId: string, otp: string): Promise<boolean> {
     try {
-      const result = await Database.query(
+      const result = await db.executeRawSQL(
         `SELECT 
           email_otp,
           email_otp_expires_at
@@ -347,7 +347,7 @@ export class TwoFactorAuthService {
       }
       
       // Clear the OTP after successful verification
-      await Database.query(
+      await db.executeRawSQL(
         `UPDATE users 
          SET 
           email_otp = NULL,
@@ -427,7 +427,7 @@ export class TwoFactorAuthService {
   // Disable email OTP as 2FA method
   static async disableEmailOTP(userId: string): Promise<boolean> {
     try {
-      const result = await Database.query(
+      const result = await db.executeRawSQL(
         `UPDATE users 
          SET 
           email_otp_enabled = false,

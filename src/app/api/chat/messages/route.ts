@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, Database } from "@/lib/database-consolidated";
+import db, { prismaClient as prisma } from "@/lib/database";
 
 // GET /api/chat/messages?room_id=<roomId>&limit=<limit>&offset=<offset>
 export async function GET(request: NextRequest) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       LIMIT $2 OFFSET $3
     `;
 
-    const messages = await Database.query(query, [roomId, limit, offset]);
+    const messages = await db.executeRawSQL(query, [roomId, limit, offset]);
 
     return NextResponse.json({ messages: messages.rows.reverse() });
   } catch (error) {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
-    const result = await Database.query(query, [
+    const result = await db.executeRawSQL(query, [
       room_id,
       user_id,
       content,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       WHERE cm.id = $1
     `;
 
-    const fullMessage = await Database.query(fullMessageQuery, [
+    const fullMessage = await db.executeRawSQL(fullMessageQuery, [
       result.rows[0].id,
     ]);
 

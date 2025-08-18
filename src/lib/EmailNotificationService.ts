@@ -1,5 +1,5 @@
 import emailServiceV2 from './EmailServiceV2';
-import { Database } from './database-consolidated';
+import db from "./database";
 
 /**
  * EmailNotificationService replaces in-app notifications with email-only notifications
@@ -18,7 +18,7 @@ export class EmailNotificationService {
   ): Promise<boolean> {
     try {
       // Get user email
-      const userResult = await Database.query(
+      const userResult = await db.executeRawSQL(
         `SELECT email, name FROM users WHERE id = $1`,
         [userId]
       );
@@ -87,7 +87,7 @@ export class EmailNotificationService {
   ): Promise<boolean> {
     try {
       // Get user email
-      const userResult = await Database.query(
+      const userResult = await db.executeRawSQL(
         `SELECT email, name FROM users WHERE id = $1`,
         [userId]
       );
@@ -154,7 +154,7 @@ export class EmailNotificationService {
   ): Promise<boolean> {
     try {
       // Get user email
-      const userResult = await Database.query(
+      const userResult = await db.executeRawSQL(
         `SELECT email, name FROM users WHERE id = $1`,
         [userId]
       );

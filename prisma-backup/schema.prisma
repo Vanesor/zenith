@@ -1,0 +1,525 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // required for prisma migrate with hosted Postgres
+}
+
+//////////////////////////////////////////
+// Models (converted from schema.sql)  //
+// NOTE: arrays were mapped to Json for //
+// safety; refine to typed arrays later //
+//////////////////////////////////////////
+
+model User {
+  id                           String    @id @default(uuid()) @db.Uuid
+  email                        String    @unique
+  password_hash                String
+  name                         String?
+  username                     String?
+  avatar                       String?
+  role                         String    @default("student")
+  club_id                      String?   // FK to Club.id (Club.id is varchar in SQL)
+  bio                          String?
+  social_links                 Json?     // jsonb
+  preferences                  Json?     // jsonb
+  created_at                   DateTime  @default(now())
+  updated_at                   DateTime  @updatedAt
+  profile_image_url            String?
+  profile_images               Json?     // jsonb
+  verification_photo_url       String?
+  phone_number                 String?
+  date_of_birth                DateTime? @db.Date
+  address                      String?
+  emergency_contact            Json?
+  phone                        String?
+  location                     String?
+  website                      String?
+  github                       String?
+  linkedin                     String?
+  twitter                      String?
+  email_verified               Boolean   @default(false)
+  // OTP & TOTP fields kept as string/json types
+  totp_secret                  String?
+  totp_temp_secret             String?
+  totp_temp_secret_created_at  DateTime?
+  totp_enabled                 Boolean?  @default(false)
+  totp_enabled_at              DateTime?
+  totp_recovery_codes          Json?
+  notification_preferences     Json?     @default("{\"email\": {\"events\": true, \"results\": true, \"assignments\": true, \"discussions\": true}}")
+  email_otp_enabled            Boolean?  @default(false)
+  email_otp_verified           Boolean?  @default(false)
+  email_otp_secret             String?
+  email_otp_backup_codes       Json?     @default("[]")
+  email_otp_last_used          DateTime?
+  email_otp_created_at         DateTime?
+  email_otp                   String?
+  email_otp_expires_at         DateTime?
+
+  // relations
+  clubsCreated                 Club[]    @relation("ClubCreatedBy")
+  posts                        Post[]    @relation("UserPosts")
+  comments                     Comment[] @relation("UserComments")
+  assignmentsCreated           Assignment[] @relation("AssignmentCreatedBy")
+  mediaFiles                   MediaFile[] 
+  sessions                     Session[] @relation("UserSessions")
+  assignmentAttempts           AssignmentAttempt[]
+  assignmentSubmissions        AssignmentSubmission[]
+  questionResponses            QuestionResponse[]
+  proctoringSessions           ProctoringSession[]
+
+  @@map("users")
+}
+
+model Club {
+  id                  String   @id @db.VarChar
+  name                String
+  type                String
+  description         String
+  long_description    String?
+  icon                String
+  color               String
+  coordinator_id      String?  @db.Uuid
+  co_coordinator_id   String?  @db.Uuid
+  secretary_id        String?  @db.Uuid
+  media_id            String?  @db.Uuid
+  guidelines          String?
+  meeting_schedule    Json?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @default(now())
+  logo_url            String?
+  banner_image_url    String?
+  club_images         Json?
+  member_count        Int?     @default(0)
+
+  members             ClubMember[]
+  posts               Post[]
+  events              Event[]
+  assignments         Assignment[]
+
+  @@map("clubs")
+}
+
+model ClubMember {
+  id        String   @id @default(uuid()) @db.Uuid
+  user_id   String   @db.Uuid
+  club_id   String   @db.VarChar
+  is_leader Boolean  @default(false)
+  joined_at DateTime @default(now())
+
+  @@map("club_members")
+}
+
+model Post {
+  id              String   @id @default(uuid()) @db.Uuid
+  title           String
+  content         String
+  author_id       String?  @db.Uuid
+  club_id         String?  @db.VarChar
+  category        String?
+  tags            Json?    // mapped from text[] → keep as Json
+  image_url       String?
+  is_pinned       Boolean  @default(false)
+  is_locked       Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+  edited          Boolean  @default(false)
+  edited_by       String?  @db.Uuid
+  is_announcement Boolean  @default(false)
+  view_count      Int      @default(0)
+  likes_count     Int      @default(0)
+  comments_count  Int      @default(0)
+  post_images     Json?
+  featured_image_url String?
+  attachments     Json?
+  search_vector   String?  // tsvector -- keep as text
+
+  author  User?    @relation(fields: [author_id], references: [id], name: "UserPosts")
+  club    Club?    @relation(fields: [club_id], references: [id])
+
+  comments Comment[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id         String   @id @default(uuid()) @db.Uuid
+  post_id    String?  @db.Uuid
+  author_id  String?  @db.Uuid
+  content    String
+  parent_id  String?  @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  likes_count Int     @default(0)
+
+  post   Post?  @relation(fields: [post_id], references: [id])
+  author User?  @relation(fields:[author_id], references:[id], name: "UserComments")
+  parent Comment? @relation("CommentParent", fields:[parent_id], references:[id])
+
+  @@map("comments")
+}
+
+model MediaFile {
+  id              String   @id @default(uuid()) @db.Uuid
+  filename        String
+  original_filename String
+  file_size       Int
+  mime_type       String
+  file_url        String
+  thumbnail_url   String?
+  alt_text        String?
+  description     String?
+  uploaded_by     String?  @db.Uuid
+  upload_context  String?
+  upload_reference_id String?
+  is_public       Boolean  @default(true)
+  metadata        Json?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+
+  uploadedBy User? @relation(fields: [uploaded_by], references: [id])
+
+  @@map("media_files")
+}
+
+model Event {
+  id            String   @id @default(uuid()) @db.Uuid
+  title         String
+  description   String
+  club_id       String?  @db.VarChar
+  created_by    String?  @db.Uuid
+  event_date    DateTime @db.Date
+  event_time    String   // stored as time without time zone in SQL
+  location      String
+  max_attendees Int?
+  status        String   @default("upcoming")
+  image_url     String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  event_images  Json?
+  banner_image_url String?
+  gallery_images Json?
+
+  createdBy User? @relation(fields: [created_by], references: [id])
+  club     Club? @relation(fields: [club_id], references: [id])
+
+  attendees EventAttendee[]
+  registrations EventRegistration[]
+
+  @@map("events")
+}
+
+model EventAttendee {
+  id            String   @id @default(uuid()) @db.Uuid
+  event_id      String?  @db.Uuid
+  user_id       String?  @db.Uuid
+  registered_at DateTime @default(now())
+
+  @@map("event_attendees")
+}
+
+model EventRegistration {
+  id           String   @id @default(uuid()) @db.Uuid
+  event_id     String?  @db.Uuid
+  user_id      String?  @db.Uuid
+  status       String   @default("registered")
+  registration_data Json?
+  registered_at DateTime @default(now())
+  updated_at    DateTime @default(now())
+
+  @@map("event_registrations")
+}
+
+model Assignment {
+  id                 String   @id @default(uuid()) @db.Uuid
+  title              String
+  description        String
+  club_id            String?  @db.VarChar
+  created_by         String?  @db.Uuid
+  due_date           DateTime
+  max_points         Int?     @default(100)
+  instructions       String?
+  status             String   @default("active")
+  created_at         DateTime @default(now())
+  updated_at         DateTime @default(now())
+
+  assignmentType     String?  @map("assignment_type")
+  // many optional proctoring and settings fields are mapped to Json
+  code_editor_settings Json?
+  proctoring_settings Json?
+  start_date         DateTime?
+  start_time         DateTime?
+
+  createdBy User? @relation(fields: [created_by], references: [id], name: "AssignmentCreatedBy")
+  club     Club? @relation(fields: [club_id], references: [id])
+
+  questions AssignmentQuestion[]
+  attempts  AssignmentAttempt[]
+  submissions AssignmentSubmission[]
+  templates AssignmentTemplate[]
+
+  @@map("assignments")
+}
+
+model AssignmentQuestion {
+  id            String  @id @default(uuid()) @db.Uuid
+  assignment_id String  @db.Uuid
+  question_text String
+  question_type String
+  marks         Int     @default(1)
+  time_limit    Int?
+  code_language String?
+  code_template String?
+  test_cases    Json?
+  expected_output String?
+  solution      String?
+  ordering      Int     @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  options       Json?
+  correct_answer Json?
+  points        Int     @default(1)
+  question_order Int    @default(0)
+  starter_code  String?
+  integer_min   Float?
+  integer_max   Float?
+  integer_step  Float?  @default(1)
+  explanation   String?
+  allowed_languages Json?
+  allow_any_language Boolean? @default(false)
+  question_images Json?
+  answer_images Json?
+
+  assignment Assignment @relation(fields: [assignment_id], references: [id])
+
+  @@map("assignment_questions")
+}
+
+model QuestionOption {
+  id          String @id @default(uuid()) @db.Uuid
+  question_id String @db.Uuid
+  option_text String
+  is_correct  Boolean @default(false)
+  ordering    Int     @default(0)
+  created_at  DateTime @default(now())
+
+  @@map("question_options")
+}
+
+model AssignmentSubmission {
+  id            String   @id @default(uuid()) @db.Uuid
+  assignment_id String?
+  user_id       String?
+  submission_text String?
+  file_url      String?
+  submitted_at  DateTime @default(now())
+  status        String   @default("submitted")
+  grade         Int?
+  feedback      String?
+  started_at    DateTime?
+  completed_at  DateTime?
+  violation_count Int?   @default(0)
+  time_spent    Int?
+  auto_submitted Boolean? @default(false)
+  ip_address    String?
+  user_agent    String?
+  total_score   Int?     @default(0)
+
+  @@map("assignment_submissions")
+}
+
+model AssignmentAttempt {
+  id            String   @id @default(uuid()) @db.Uuid
+  assignment_id String   @db.Uuid
+  user_id       String   @db.Uuid
+  attempt_number Int     @default(1)
+  start_time    DateTime @default(now())
+  end_time      DateTime?
+  time_spent    Int?     @default(0)
+  score         Int?     @default(0)
+  max_score     Int?     @default(0)
+  percentage    Float?   @default(0)
+  is_passing    Boolean? @default(false)
+  answers       Json?    @default("{}")
+  graded_answers Json?
+  violations    Json?    @default("[]")
+  status        String?  @default("in_progress")
+  submitted_at  DateTime?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  is_fullscreen Boolean? @default(false)
+  auto_save_data Json?
+  window_violations Int? @default(0)
+  last_auto_save DateTime?
+  browser_info  Json?
+
+  @@map("assignment_attempts")
+}
+
+model QuestionResponse {
+  id             String   @id @default(uuid()) @db.Uuid
+  submission_id  String   @db.Uuid
+  question_id    String   @db.Uuid
+  selected_options Json?
+  code_answer    String?
+  essay_answer   String?
+  is_correct     Boolean?
+  score          Int?     @default(0)
+  time_spent     Int?
+  feedback       String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @default(now())
+  selected_language String?
+  last_auto_save DateTime?
+  attempt_history Json?
+
+  @@map("question_responses")
+}
+
+model CodingSubmission {
+  id                  String  @id @default(uuid()) @db.Uuid
+  question_response_id String @db.Uuid
+  language            String
+  code                String
+  is_final            Boolean? @default(false)
+  execution_result    Json?
+  created_at          DateTime @default(now())
+
+  @@map("coding_submissions")
+}
+
+model CodeResult {
+  id            String  @id @default(uuid()) @db.Uuid
+  response_id    String  @db.Uuid
+  test_case_index Int?
+  passed         Boolean?
+  stdout         String?
+  stderr         String?
+  execution_time Int?
+  memory_used    Int?
+  created_at     DateTime @default(now())
+
+  @@map("code_results")
+}
+
+model ProctoringSession {
+  id            String  @id @default(uuid()) @db.Uuid
+  assignment_id  String  @db.Uuid
+  user_id        String  @db.Uuid
+  session_start  DateTime @default(now())
+  session_end    DateTime?
+  camera_enabled Boolean? @default(false)
+  microphone_enabled Boolean? @default(false)
+  face_verified  Boolean? @default(false)
+  violations     Json?   @default("[]")
+  screenshots    Json?
+  system_info    Json?
+  session_data   Json?
+
+  @@map("proctoring_sessions")
+}
+
+model ChatRoom {
+  id            String  @id @default(uuid()) @db.Uuid
+  name          String
+  description   String?
+  club_id       String? @db.VarChar
+  type          String  @default("public")
+  created_by    String? @db.Uuid
+  members       String[]? // optional - original sql stored members as array; keep as text[]
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  room_settings Json?
+
+  messages ChatMessage[]
+  membersMap ChatRoomMember[]
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id                String  @id @default(uuid()) @db.Uuid
+  room_id           String?
+  user_id           String?
+  message           String?
+  message_type      String? @default("text")
+  file_url          String?
+  created_at        DateTime @default(now())
+  reply_to_message_id String?
+  is_edited         Boolean? @default(false)
+  attachments       Json?   @default("[]")
+  message_images    Json?   @default("[]")
+  reactions         Json?   @default("{}")
+  thread_id         String?
+
+  @@map("chat_messages")
+}
+
+model ChatRoomMember {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chat_room_id String?
+  user_id     String?
+  joined_at   DateTime @default(now())
+  role        String  @default("member")
+  user_email  String?
+
+  @@map("chat_room_members")
+}
+
+model ChatAttachment {
+  id               String  @id @default(uuid()) @db.Uuid
+  message_id       String?
+  room_id          String?
+  filename         String
+  original_filename String
+  file_path        String
+  file_type        String
+  file_size        Int
+  mime_type        String?
+  encryption_key   String?
+  created_at       DateTime @default(now())
+
+  @@map("chat_attachments")
+}
+
+model Notification {
+  id         Int     @id @default(autoincrement())
+  user_id    String? @db.Uuid
+  type       String
+  title      String?
+  message    String
+  link       String?
+  read       Boolean @default(false)
+  delivery_method String? @default("in-app")
+  created_at DateTime @default(now())
+  metadata   Json?
+
+  @@map("notifications")
+}
+
+model Session {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String? @db.Uuid
+  token         String  @unique
+  expires_at    DateTime
+  created_at    DateTime @default(now())
+  last_active_at DateTime @default(now())
+  user_agent    String?
+  ip_address    String?
+  device_info   Json?
+  is_trusted    Boolean? @default(false)
+  requires_2fa  Boolean? @default(true)
+  has_completed_2fa Boolean? @default(false)
+
+  @@map("sessions")
+}
+
+//////////////////////////////////////////
+// small implementation tables (seqs)   //
+// and any remaining misc objects can  //
+// be added the same way when needed   //
+//////////////////////////////////////////

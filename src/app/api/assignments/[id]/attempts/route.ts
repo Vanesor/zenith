@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 import { FastAuth } from '@/lib/FastAuth';
 
@@ -36,7 +36,7 @@ export async function GET(
     const userId = authResult.user!.id;
 
     // Get user details
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { id: true, email: true, name: true }
     });
@@ -46,7 +46,7 @@ export async function GET(
     }
 
     // Get user's attempts for this assignment
-    const attempts = await prisma.assignmentAttempt.findMany({
+    const attempts = await db.assignmentAttempt.findMany({
       where: { 
         assignment_id: assignmentId, 
         user_id: user.id 
@@ -93,7 +93,7 @@ export async function POST(
     }
     
     // Get user details using the verified userId
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true, name: true }
     });
@@ -106,7 +106,7 @@ export async function POST(
     if (violation) {
       // Add violation
       const getAttemptQuery = 'SELECT violations FROM assignment_attempts WHERE id = $1 AND user_id = $2';
-      const attemptResult = await Database.query(getAttemptQuery, [attemptId, user.id]);
+      const attemptResult = await db.executeRawSQL(getAttemptQuery, [attemptId, user.id]);
       
       if (attemptResult.rows.length === 0) {
         return NextResponse.json({ error: 'Attempt not found' }, { status: 404 });
@@ -140,7 +140,7 @@ export async function POST(
         WHERE id = $3 AND user_id = $4
       `;
       
-      await prisma.assignmentAttempt.update({
+      await db.assignmentAttempt.update({
         where: { id: attemptId },
         data: { violations: updatedViolations as any }
       });
@@ -148,7 +148,7 @@ export async function POST(
       return NextResponse.json({ success: true, violations: updatedViolations });
     } else if (answers) {
       // Save progress
-      await prisma.assignmentAttempt.update({
+      await db.assignmentAttempt.update({
         where: { id: attemptId },
         data: { answers: answers as any }
       });

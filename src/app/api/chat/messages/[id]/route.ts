@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { createClient } from '@supabase/supabase-js';
 import { verifyAuth } from '@/lib/AuthMiddleware';
 

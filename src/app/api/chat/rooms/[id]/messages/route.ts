@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import { verifyAuth, AuthenticatedRequest } from "@/lib/AuthMiddleware";
 
 // GET /api/chat/rooms/[id]/messages - Get messages for a specific room
@@ -26,7 +26,7 @@ export async function GET(
     const userId = authResult.user!.id;
 
     // Verify user has access to this room using Prisma
-    const room = await prisma.chatRoom.findFirst({
+    const room = await db.chat_rooms.findFirst({
       where: { id: roomId },
       include: {
         creator: {
@@ -40,7 +40,7 @@ export async function GET(
     }
 
     // Get user info to check access
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { club_id: true, role: true }
     });
@@ -61,7 +61,7 @@ export async function GET(
     }
 
     // Get messages for the room using Prisma
-    const messages = await prisma.chatMessage.findMany({
+    const messages = await db.chat_messages.findMany({
       where: { room_id: roomId },
       include: {
         user: {
@@ -141,7 +141,7 @@ export async function POST(
     }
 
     // Verify user has access to this room using Prisma
-    const room = await prisma.chatRoom.findFirst({
+    const room = await db.chat_rooms.findFirst({
       where: { id: roomId },
       include: {
         creator: {
@@ -155,7 +155,7 @@ export async function POST(
     }
 
     // Get user info to check access
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { club_id: true, role: true }
     });
@@ -176,7 +176,7 @@ export async function POST(
     }
 
     // Insert the message using Prisma
-    const message = await prisma.chatMessage.create({
+    const message = await db.chat_messages.create({
       data: {
         room_id: roomId,
         user_id: userId,
@@ -259,7 +259,7 @@ export async function PUT(
     }
 
     // Verify user owns the message and has access to the room using Prisma
-    const message = await prisma.chatMessage.findFirst({
+    const message = await db.chat_messages.findFirst({
       where: {
         id: messageId,
         room_id: roomId
@@ -290,7 +290,7 @@ export async function PUT(
     }
 
     // Update the message using Prisma
-    const updatedMessage = await prisma.chatMessage.update({
+    const updatedMessage = await db.chat_messages.update({
       where: { id: messageId },
       data: {
         message: content.trim(),
@@ -348,7 +348,7 @@ export async function DELETE(
     }
 
     // Verify user owns the message and has access to the room using Prisma
-    const message = await prisma.chatMessage.findFirst({
+    const message = await db.chat_messages.findFirst({
       where: {
         id: messageId,
         room_id: roomId
@@ -388,7 +388,7 @@ export async function DELETE(
     }
 
     // Delete the message using Prisma
-    const deletedMessage = await prisma.chatMessage.delete({
+    const deletedMessage = await db.chat_messages.delete({
       where: { id: messageId }
     });
 

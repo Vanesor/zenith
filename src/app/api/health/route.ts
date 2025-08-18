@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkDatabaseHealth } from "@/lib/database-consolidated";
-import PrismaDB from "@/lib/database-consolidated";
+import { db, checkDatabaseHealth } from '@/lib/database-service';
 import { CacheManager } from "@/lib/CacheManager";
 import { MonitoringService } from "@/lib/MonitoringService";
 import { WebSocketManager } from "@/lib/WebSocketManager";
@@ -13,8 +12,8 @@ export async function GET() {
     const dbHealthy = await checkDatabaseHealth();
     const dbResponseTime = Date.now() - startTime;
     
-    // Check consolidated database health
-    const prismaHealthy = await PrismaDB.isHealthy();
+    // Check database health with db instance
+    const prismaHealthy = await checkDatabaseHealth();
     const prismaResponseTime = Date.now() - startTime;
 
     // Check cache connection  

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -35,7 +35,7 @@ export async function POST(
       JOIN clubs c ON e.club_id = c.id
       WHERE e.id = $1
     `;
-    const eventResult = await Database.query(eventQuery, [eventId]);
+    const eventResult = await db.executeRawSQL(eventQuery, [eventId]);
 
     if (eventResult.rows.length === 0) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -48,7 +48,7 @@ export async function POST(
       SELECT * FROM event_attendees 
       WHERE event_id = $1 AND user_id = $2
     `;
-    const attendeeResult = await Database.query(attendeeQuery, [eventId, userId]);
+    const attendeeResult = await db.executeRawSQL(attendeeQuery, [eventId, userId]);
 
     if (attendeeResult.rows.length > 0) {
       return NextResponse.json({ 
@@ -64,7 +64,7 @@ export async function POST(
         FROM event_attendees 
         WHERE event_id = $1
       `;
-      const countResult = await Database.query(countQuery, [eventId]);
+      const countResult = await db.executeRawSQL(countQuery, [eventId]);
       const currentAttendees = parseInt(countResult.rows[0].count);
 
       if (currentAttendees >= event.max_attendees) {
@@ -76,7 +76,7 @@ export async function POST(
     }
 
     // Add user as an attendee
-    await Database.query(
+    await db.executeRawSQL(
       "INSERT INTO event_attendees (event_id, user_id) VALUES ($1, $2)",
       [eventId, userId]
     );
@@ -127,7 +127,7 @@ export async function DELETE(
 
     // Check if the event exists
     const eventQuery = "SELECT * FROM events WHERE id = $1";
-    const eventResult = await Database.query(eventQuery, [eventId]);
+    const eventResult = await db.executeRawSQL(eventQuery, [eventId]);
 
     if (eventResult.rows.length === 0) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -138,7 +138,7 @@ export async function DELETE(
       SELECT * FROM event_attendees 
       WHERE event_id = $1 AND user_id = $2
     `;
-    const attendeeResult = await Database.query(attendeeQuery, [eventId, userId]);
+    const attendeeResult = await db.executeRawSQL(attendeeQuery, [eventId, userId]);
 
     if (attendeeResult.rows.length === 0) {
       return NextResponse.json({ 
@@ -148,7 +148,7 @@ export async function DELETE(
     }
 
     // Remove user as an attendee
-    await Database.query(
+    await db.executeRawSQL(
       "DELETE FROM event_attendees WHERE event_id = $1 AND user_id = $2",
       [eventId, userId]
     );
@@ -202,7 +202,7 @@ async function createNotification(params: {
       RETURNING id
     `;
     
-    const insertResult = await Database.query(insertQuery, [
+    const insertResult = await db.executeRawSQL(insertQuery, [
       type,
       content,
       userId,
@@ -217,7 +217,7 @@ async function createNotification(params: {
     
     if (recipientId) {
       // Add notification for a specific user
-      await Database.query(
+      await db.executeRawSQL(
         "INSERT INTO user_notifications (user_id, notification_id) VALUES ($1, $2)",
         [recipientId, notificationId]
       );
@@ -248,7 +248,7 @@ async function createNotification(params: {
         queryParams.push(userId);
       }
       
-      await Database.query(usersQuery, queryParams);
+      await db.executeRawSQL(usersQuery, queryParams);
     }
     
     return true;

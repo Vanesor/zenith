@@ -1,7 +1,7 @@
 // Migration Guide - Replace old database operations with optimized ones
 // This file demonstrates how to update existing API routes
 
-import PrismaDB from "@/lib/database-consolidated";
+import { findUserById, findUserByEmail } from "./database-service";
 import FastAuth from '@/lib/FastAuth';
 
 /**
@@ -27,24 +27,24 @@ import FastAuth from '@/lib/FastAuth';
 export const UserOperationsMigration = {
   // OLD WAY
   old_getUserById: async (id: string) => {
-    // const result = await Database.query("SELECT * FROM users WHERE id = $1", [id]);
+    // const result = await db.executeRawSQL("SELECT * FROM users WHERE id = $1", [id]);
     // return result.rows[0] || null;
   },
   
   // NEW WAY (3x faster)
   new_getUserById: async (id: string) => {
-    return await PrismaDB.findUserById(id);
+    return await findUserById(id);
   },
 
   // OLD WAY  
   old_getUserByEmail: async (email: string) => {
-    // const result = await Database.query("SELECT * FROM users WHERE email = $1", [email]);
+    // const result = await db.executeRawSQL("SELECT * FROM users WHERE email = $1", [email]);
     // return result.rows[0] || null;
   },
 
   // NEW WAY (2x faster + caching)
   new_getUserByEmail: async (email: string) => {
-    return await PrismaDB.findUserByEmail(email);
+    return await findUserByEmail(email);
   },
 };
 
@@ -71,34 +71,34 @@ export const AuthMigration = {
 export const ClubOperationsMigration = {
   // OLD WAY
   old_getAllClubs: async () => {
-    // const result = await Database.query("SELECT * FROM clubs ORDER BY name");
+    // const result = await db.executeRawSQL("SELECT * FROM clubs ORDER BY name");
     // return result.rows;
   },
 
   // NEW WAY (optimized fields, no SELECT *)
   new_getAllClubs: async () => {
-    return await PrismaDB.getAllClubs();
+    return await db.getAllClubs();
   },
 
   // OLD WAY
   old_getClubMembers: async (clubId: string) => {
-    // const result = await Database.query("SELECT * FROM users WHERE club_id = $1", [clubId]);
+    // const result = await db.executeRawSQL("SELECT * FROM users WHERE club_id = $1", [clubId]);
     // return result.rows;
   },
 
   // NEW WAY (selected fields only)
   new_getClubMembers: async (clubId: string, limit?: number) => {
-    return await PrismaDB.getClubMembers(clubId, limit);
+    return await db.getClubMembers(clubId, limit);
   },
 };
 
 // 4. COMMITTEE OPERATIONS (NEW)
 export const CommitteeOperations = {
   getMainCommittee: async () => {
-    return await PrismaDB.getMainCommittee();
+    return await db.getMainCommittee();
   },
 
-  // Use raw SQL for operations not yet implemented in PrismaDB
+  // Use raw SQL for operations not yet implemented in db
   createCommitteeRole: async (data: {
     name: string;
     description?: string;
@@ -106,7 +106,7 @@ export const CommitteeOperations = {
     permissions?: string[];
     hierarchy?: number;
   }) => {
-    const client = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     return await client.committeeRole.create({
       data: {
         name: data.name,
@@ -125,7 +125,7 @@ export const CommitteeOperations = {
     term_start?: Date;
     term_end?: Date;
   }) => {
-    const client = PrismaDB.getClient();
+    import { prismaClient as prisma } from "./database";
     return await client.committeeMember.create({
       data: {
         user_id: data.user_id,
@@ -152,8 +152,8 @@ export const CommitteeOperations = {
  */
 
 export const MigrationChecklist = [
-  '✅ Replace Database.getUserByEmail() with PrismaDB.findUserByEmail()',
-  '✅ Replace Database.getUserById() with PrismaDB.findUserById()',
+  '✅ Replace Database.getUserByEmail() with db.findUserByEmail()',
+  '✅ Replace Database.getUserById() with db.findUserById()',
   '✅ Replace manual auth logic with FastAuth.authenticateUser()',
   '✅ Replace manual session management with FastAuth session methods',
   '✅ Update all SELECT * queries to use specific field selection',

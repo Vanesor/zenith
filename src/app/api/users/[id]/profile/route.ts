@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Database } from "@/lib/database-consolidated";
+import { db, executeRawSQL, queryRawSQL } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(
@@ -30,7 +30,7 @@ export async function GET(
       WHERE id = $1
     `;
     
-    const userResult = await Database.query(userQuery, [requestingUserId]);
+    const userResult = await queryRawSQL(userQuery, requestingUserId);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "Requesting user not found" }, { status: 404 });
@@ -82,7 +82,7 @@ export async function GET(
       WHERE u.id = $1
     `;
     
-    const profileResult = await Database.query(profileQuery, [userId]);
+    const profileResult = await queryRawSQL(profileQuery, userId);
     
     if (profileResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -98,7 +98,7 @@ export async function GET(
       WHERE user_id = $1
     `;
     
-    const statsResult = await Database.query(statsQuery, [userId]);
+    const statsResult = await queryRawSQL(statsQuery, userId);
     const stats = statsResult.rows[0] || {
       total_submissions: 0,
       graded_submissions: 0,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database-consolidated";
-import { Database } from "@/lib/database-consolidated";
+import { db } from '@/lib/database-service';
+import { db } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 interface Props {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest, { params }: Props) {
   try {
     const { id } = await params;
 
-    const announcement = await prisma.announcement.findUnique({
+    const announcement = await db.announcement.findUnique({
       where: { id }
     });
 
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const { title, content, type, priority } = await request.json();
 
     // Get current announcement
-    const currentAnnouncement = await prisma.announcement.findUnique({
+    const currentAnnouncement = await db.announcement.findUnique({
       where: { id },
       select: { id: true }
     });
@@ -65,7 +65,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     }
 
     // Check if user is author or manager
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { role: true }
     });
@@ -91,7 +91,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
       );
     }
 
-    const updatedAnnouncement = await prisma.announcement.update({
+    const updatedAnnouncement = await db.announcement.update({
       where: { id },
       data: {
         title,
@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const { id } = await params;
 
     // Get current announcement
-    const currentAnnouncement = await prisma.announcement.findUnique({
+    const currentAnnouncement = await db.announcement.findUnique({
       where: { id },
       select: { id: true }
     });
@@ -141,7 +141,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     // Check if user is manager
-    const user = await prisma.user.findUnique({
+    const user = await db.users.findUnique({
       where: { id: userId },
       select: { role: true }
     });
@@ -167,7 +167,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     // Delete the announcement
-    await prisma.announcement.delete({
+    await db.announcement.delete({
       where: { id }
     });
 
