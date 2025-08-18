@@ -61,14 +61,14 @@ export function PaperpalHeader({
             <div className="flex items-center space-x-3">
               <Image
                 src="/collegelogo.jpeg"
-                alt="St. Joseph Engineering College"
+                alt="St. Vincent Pallotti College of Engineering and Technology"
                 width={28}
                 height={28}
                 className="rounded-full ring-2 ring-white/20"
               />
               <div className="hidden sm:block">
-                <h1 className="text-sm font-semibold text-white">St. Joseph Engineering College</h1>
-                <p className="text-xs text-blue-100">Vamanjoor, Mangalore • Computer Science Department</p>
+                <h1 className="text-sm font-semibold text-white">St. Vincent Pallotti College of Engineering and Technology</h1>
+                <p className="text-xs text-blue-100">Nagpur • Department of Computer Science and Engineering</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">

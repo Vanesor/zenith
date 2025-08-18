@@ -21,7 +21,7 @@ export function UniversalLoader({ fullScreen = true, message = "Loading..." }: U
         transition={{ duration: 0.3 }}
         className="flex flex-col items-center space-y-4 p-8"
       >
-        {/* Paperpal-style logo loader */}
+        {/* Zenith logo loader */}
         <div className="relative">
           <motion.div
             animate={{ 
@@ -34,7 +34,7 @@ export function UniversalLoader({ fullScreen = true, message = "Loading..." }: U
             }}
             className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
           >
-            <span className="text-white font-bold text-2xl">Z</span>
+            <img src="/zenithlogo.png" alt="Zenith" className="w-10 h-10" />
           </motion.div>
           
           {/* Spinning ring */}
@@ -80,7 +80,7 @@ export function UniversalLoader({ fullScreen = true, message = "Loading..." }: U
             Zenith - CS Student Portal
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            St. Joseph Engineering College
+            St. Vincent Pallotti College of Engineering and Technology
           </p>
         </div>
       </motion.div>

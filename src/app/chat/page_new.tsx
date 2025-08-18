@@ -31,7 +31,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useToast } from '@/contexts/ToastContext';
 import { WhatsAppChatRoom } from '@/components/chat/ModernWhatsAppChatRoom';
-import { UniversalLoader } from '@/components/UniversalLoader';
 import TokenManager from '@/lib/TokenManager';
 import { PaperpalHeader } from '@/components/PaperpalHeader';
 
@@ -217,10 +216,11 @@ export default function ChatPage({}: ChatPageProps) {
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zenith-dark via-zenith-darker to-black">
-        <UniversalLoader 
-          message="Loading your conversations..."
-        />
+      <div className="min-h-screen bg-gradient-to-br from-zenith-dark via-zenith-darker to-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-zenith-primary mx-auto mb-4"></div>
+          <p className="text-zenith-muted">Loading your conversations...</p>
+        </div>
       </div>
     );
   }

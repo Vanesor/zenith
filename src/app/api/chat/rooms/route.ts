@@ -39,12 +39,12 @@ export async function GET(request: NextRequest) {
         ]
       },
       include: {
-        club: {
+        clubs: {
           select: {
             name: true
           }
         },
-        creator: {
+        users: {
           select: {
             id: true,
             name: true
@@ -68,8 +68,9 @@ export async function GET(request: NextRequest) {
       created_at: room.created_at,
       updated_at: room.updated_at,
       members: room.members,
-      club_name: room.club?.name || null,
-      creator_name: room.creator?.name || null,
+      // Get name from the included relations
+      club_name: room.clubs ? room.clubs.name : null,
+      creator_name: room.users ? room.users.name : null,
       members_count: Array.isArray(room.members) ? room.members.length : 0
     }));
     
@@ -163,12 +164,12 @@ export async function POST(request: NextRequest) {
         members: []
       },
       include: {
-        club: {
+        clubs: {
           select: {
             name: true
           }
         },
-        creator: {
+        users: {
           select: {
             id: true,
             name: true
@@ -188,8 +189,9 @@ export async function POST(request: NextRequest) {
       created_at: room.created_at,
       updated_at: room.updated_at,
       members: room.members,
-      club_name: room.club?.name || null,
-      creator_name: room.creator?.name || null,
+      // Get name from the included relations
+      club_name: room.clubs ? room.clubs.name : null,
+      creator_name: room.users ? room.users.name : null,
       members_count: Array.isArray(room.members) ? room.members.length : 0
     };
 
