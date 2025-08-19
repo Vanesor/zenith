@@ -141,7 +141,7 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
   const showSidebar = !!user;
 
   return (
-    <div className="min-h-screen bg-[#fefcf7] dark:bg-gray-900">
+    <div className="min-h-screen bg-college-medium dark:bg-college-dark">
       {/* Global Sidebar - Always render but conditionally show */}
       {showSidebar && (
         <PaperpalSidebar 

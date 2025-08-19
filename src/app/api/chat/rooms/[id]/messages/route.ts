@@ -27,12 +27,7 @@ export async function GET(
 
     // Verify user has access to this room using Prisma
     const room = await db.chat_rooms.findFirst({
-      where: { id: roomId },
-      include: {
-        creator: {
-          select: { id: true }
-        }
-      }
+      where: { id: roomId }
     });
 
     if (!room) {
@@ -64,7 +59,7 @@ export async function GET(
     const messages = await db.chat_messages.findMany({
       where: { room_id: roomId },
       include: {
-        user: {
+        users_chat_messages_sender_idTousers: {
           select: {
             name: true,
             role: true,
@@ -74,44 +69,40 @@ export async function GET(
       },
       orderBy: { created_at: 'desc' },
       take: limit,
-      skip: offset
+      skip: offset,
     });
 
-    // Transform messages to match expected format
-    const transformedMessages = messages.map(msg => ({
+    // Transform messages for client
+    const formattedMessages = messages.map((msg) => ({
       id: msg.id,
       room_id: msg.room_id,
-      user_id: msg.user_id,
-      message: msg.message,
-      message_type: msg.message_type,
-      file_url: msg.file_url,
+      user_id: msg.sender_id || msg.user_id,
+      message: msg.message || msg.content || '',
+      sender_name: msg.users_chat_messages_sender_idTousers?.name || 'Unknown User',
       created_at: msg.created_at,
-      reply_to_message_id: msg.reply_to_message_id,
-      is_edited: msg.is_edited,
       updated_at: msg.updated_at,
-      attachments: msg.attachments,
-      message_images: msg.message_images,
-      reactions: msg.reactions,
-      author_name: msg.user?.name,
-      author_role: msg.user?.role,
-      author_avatar: msg.user?.avatar
+      is_edited: msg.is_edited,
+      reply_to_message_id: msg.reply_to_message_id,
+      message_type: msg.message_type || 'text',
+      attachments: msg.attachments || [],
+      reactions: msg.reactions || {},
     }));
 
     return NextResponse.json({ 
-      success: true,
-      messages: transformedMessages.reverse() 
+      messages: formattedMessages,
+      total: messages.length, 
+      hasMore: messages.length === limit 
     });
-
   } catch (error) {
     console.error("Error fetching chat messages:", error);
     return NextResponse.json(
-      { error: "Failed to fetch chat messages" },
+      { error: "Error fetching chat messages: " + error },
       { status: 500 }
     );
   }
 }
 
-// POST /api/chat/rooms/[id]/messages - Send a message to a specific room
+// POST /api/chat/rooms/[id]/messages - Send a message to a room
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -119,8 +110,9 @@ export async function POST(
   try {
     const params = await context.params;
     const { id: roomId } = await params;
-
-    // Verify authentication using the AuthMiddleware
+    const body = await request.json();
+    
+    // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
       return NextResponse.json(
@@ -131,280 +123,62 @@ export async function POST(
 
     const userId = authResult.user!.id;
 
-    const { content, message_type, file_url } = await request.json();
-
-    if (!content || !content.trim()) {
-      return NextResponse.json(
-        { error: "Message content is required" },
-        { status: 400 }
-      );
-    }
-
     // Verify user has access to this room using Prisma
     const room = await db.chat_rooms.findFirst({
-      where: { id: roomId },
-      include: {
-        creator: {
-          select: { id: true }
-        }
-      }
+      where: { id: roomId }
     });
 
     if (!room) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Get user info to check access
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: { club_id: true, role: true }
+    // Check if user is a member of the room
+    const isMember = await db.chat_room_members.findFirst({
+      where: {
+        chat_room_id: roomId,
+        user_id: userId
+      }
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-    
-    // Check if user has access to the room
-    const hasAccess = 
-      room.type === 'public' || 
-      room.club_id === user.club_id || 
-      room.created_by === userId ||
-      (room.members && room.members.includes(userId));
+    // Also allow room creator to send messages
+    const isCreator = room.created_by === userId;
 
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    if (!isMember && !isCreator) {
+      return NextResponse.json({ error: "You are not a member of this room" }, { status: 403 });
     }
 
-    // Insert the message using Prisma
+    // Create the message
     const message = await db.chat_messages.create({
       data: {
         room_id: roomId,
-        user_id: userId,
-        message: content.trim(),
-        message_type: message_type || "text",
-        file_url: file_url || null,
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            role: true,
-            avatar: true
-          }
-        }
+        sender_id: userId,
+        message: body.message,
+        content: body.message,
+        message_type: body.message_type || 'text',
+        reply_to_message_id: body.reply_to_message_id,
+        attachments: body.attachments || [],
+        message_images: body.message_images || []
       }
     });
 
-    // Transform message to match expected format
-    const transformedMessage = {
+    // Format response
+    const formattedMessage = {
       id: message.id,
       room_id: message.room_id,
-      user_id: message.user_id,
-      message: message.message,
-      message_type: message.message_type,
-      file_url: message.file_url,
+      user_id: message.sender_id,
+      message: message.message || message.content || '',
       created_at: message.created_at,
-      reply_to_message_id: message.reply_to_message_id,
       is_edited: message.is_edited,
-      updated_at: message.updated_at,
-      attachments: message.attachments,
-      message_images: message.message_images,
-      reactions: message.reactions,
-      author_name: message.user?.name,
-      author_role: message.user?.role,
-      author_avatar: message.user?.avatar
+      reply_to_message_id: message.reply_to_message_id,
+      message_type: message.message_type || 'text',
+      attachments: message.attachments || [],
     };
 
-    return NextResponse.json({ 
-      success: true,
-      message: transformedMessage 
-    }, { status: 201 });
-
+    return NextResponse.json(formattedMessage);
   } catch (error) {
-    console.error("Error sending chat message:", error);
+    console.error("Error sending message:", error);
     return NextResponse.json(
-      { error: "Failed to send message" },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT /api/chat/rooms/[id]/messages - Edit a message
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const params = await context.params;
-    const { id: roomId } = await params;
-
-    // Verify authentication using the AuthMiddleware
-    const authResult = await verifyAuth(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: authResult.error || "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const userId = authResult.user!.id;
-
-    const { messageId, content } = await request.json();
-
-    if (!messageId || !content || !content.trim()) {
-      return NextResponse.json(
-        { error: "Message ID and content are required" },
-        { status: 400 }
-      );
-    }
-
-    // Verify user owns the message and has access to the room using Prisma
-    const message = await db.chat_messages.findFirst({
-      where: {
-        id: messageId,
-        room_id: roomId
-      },
-      include: {
-        room: {
-          select: {
-            type: true,
-            club_id: true,
-            created_by: true
-          }
-        },
-        user: {
-          select: {
-            club_id: true
-          }
-        }
-      }
-    });
-
-    if (!message) {
-      return NextResponse.json({ error: "Message not found" }, { status: 404 });
-    }
-
-    // Check if user owns the message
-    if (message.user_id !== userId) {
-      return NextResponse.json({ error: "You can only edit your own messages" }, { status: 403 });
-    }
-
-    // Update the message using Prisma
-    const updatedMessage = await db.chat_messages.update({
-      where: { id: messageId },
-      data: {
-        message: content.trim(),
-        is_edited: true,
-        updated_at: new Date()
-      }
-    });
-
-    if (!updatedMessage) {
-      return NextResponse.json({ error: "Failed to update message" }, { status: 500 });
-    }
-
-    return NextResponse.json({ 
-      success: true,
-      message: updatedMessage 
-    });
-
-  } catch (error) {
-    console.error("Error editing message:", error);
-    return NextResponse.json(
-      { error: "Failed to edit message" },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/chat/rooms/[id]/messages - Delete a message
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const params = await context.params;
-    const { id: roomId } = await params;
-
-    // Verify authentication using the AuthMiddleware
-    const authResult = await verifyAuth(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: authResult.error || "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const userId = authResult.user!.id;
-
-    const { searchParams } = new URL(request.url);
-    const messageId = searchParams.get("messageId");
-
-    if (!messageId) {
-      return NextResponse.json(
-        { error: "Message ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Verify user owns the message and has access to the room using Prisma
-    const message = await db.chat_messages.findFirst({
-      where: {
-        id: messageId,
-        room_id: roomId
-      },
-      include: {
-        room: {
-          select: {
-            type: true,
-            club_id: true,
-            created_by: true
-          }
-        },
-        user: {
-          select: {
-            club_id: true,
-            role: true
-          }
-        }
-      }
-    });
-
-    if (!message) {
-      return NextResponse.json({ error: "Message not found" }, { status: 404 });
-    }
-
-    // Check if user owns the message or is a manager/admin
-    const isOwner = message.user_id === userId;
-    const isManager = [
-      "coordinator", "co_coordinator", "secretary", "media", "president", 
-      "vice_president", "innovation_head", "treasurer", "outreach"
-    ].includes(message.user?.role || '');
-
-    if (!isOwner && !isManager) {
-      return NextResponse.json({ 
-        error: "You can only delete your own messages or you need manager permissions" 
-      }, { status: 403 });
-    }
-
-    // Delete the message using Prisma
-    const deletedMessage = await db.chat_messages.delete({
-      where: { id: messageId }
-    });
-
-    if (!deletedMessage) {
-      return NextResponse.json({ error: "Failed to delete message" }, { status: 500 });
-    }
-
-    return NextResponse.json({ 
-      success: true,
-      messageId: deletedMessage.id
-    });
-
-  } catch (error) {
-    console.error("Error deleting message:", error);
-    return NextResponse.json(
-      { error: "Failed to delete message" },
+      { error: "Error sending message: " + error },
       { status: 500 }
     );
   }

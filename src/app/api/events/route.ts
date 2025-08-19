@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
+import { db, findUserById, findAllEvents } from '@/lib/database-service';
 import { verifyAuth } from "@/lib/AuthMiddleware";
 
 export async function GET(request: NextRequest) {
@@ -24,11 +24,30 @@ export async function GET(request: NextRequest) {
     const limit = limitParam ? parseInt(limitParam) : undefined;
 
     try {
-      // Use optimized PrismaDB method for fetching events
-      const events = await PrismaDB.getAllEvents(userId, limit, clubId || undefined);
+      // Use the database service methods to fetch events
+      const events = await findAllEvents({
+        limit,
+        where: clubId ? { club_id: clubId } : undefined
+      });
+      
+      // Add attendance status information
+      const eventsWithAttendance = await Promise.all(events.map(async event => {
+        // Check if user is attending this event
+        const attendance = await db.event_attendees.findFirst({
+          where: {
+            event_id: event.id,
+            user_id: userId
+          }
+        });
+        
+        return {
+          ...event,
+          isAttending: !!attendance
+        };
+      }));
       
       // Handle BigInt serialization more efficiently
-      const serializedEvents = events.map(event => {
+      const serializedEvents = eventsWithAttendance.map(event => {
         // Create a new object with all properties processed
         return Object.fromEntries(
           Object.entries(event).map(([key, value]) => {
@@ -46,19 +65,17 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       console.error("Error fetching events:", error);
       
-      // Fallback to using Prisma's standard methods if raw query fails
-      const prisma = prisma;
-      
+      // Perform direct database query with proper relations
       const fallbackEvents = await db.events.findMany({
         orderBy: {
           event_date: 'desc'
         },
         include: {
-          club: true,
-          creator: {
-            select: {
-              id: true,
-              name: true
+          clubs: true,
+          users: true, // This is the creator relation in the Prisma schema
+          event_attendees: {
+            where: {
+              user_id: userId
             }
           }
         },
@@ -68,7 +85,20 @@ export async function GET(request: NextRequest) {
         ...(limit ? { take: limit } : {})
       });
       
-      return NextResponse.json(fallbackEvents);
+      // Add isAttending flag based on attendees
+      const processedEvents = fallbackEvents.map(event => {
+        // Transform to the expected format
+        return {
+          ...event,
+          isAttending: event.event_attendees.length > 0,
+          // Convert club object to simple string for frontend compatibility
+          club: event.clubs?.name || "Unknown Club",
+          // Add organizer info
+          organizer: event.users?.name || "Unknown"
+        };
+      });
+      
+      return NextResponse.json(processedEvents);
     }
   } catch (error) {
     console.error("Error fetching events:", error);
@@ -93,8 +123,8 @@ export async function POST(request: NextRequest) {
     
     const userId = authResult.user!.id;
     
-    // Check if user has permission to create events using PrismaDB
-    const user = await PrismaDB.getUserById(userId);
+    // Check if user has permission to create events
+    const user = await findUserById(userId);
     
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -132,19 +162,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the event using PrismaDB
-    const eventId = await PrismaDB.createEvent({
-      title,
-      description,
-      event_date: date,
-      event_time: startTime,
-      location,
-      club_id: userClubId,
-      created_by: userId,
-      max_attendees: maxAttendees || undefined,
-      status: "upcoming",
-      image_url: imageUrl || undefined
+    // Create the event using the database service
+    const eventData = await db.events.create({
+      data: {
+        title,
+        description,
+        event_date: new Date(date),
+        event_time: startTime,
+        location,
+        club_id: userClubId,
+        created_by: userId,
+        max_attendees: maxAttendees || undefined,
+        status: "upcoming",
+        image_url: imageUrl || undefined
+      }
     });
+    
+    const eventId = eventData.id;
     
     if (!eventId) {
       return NextResponse.json(
@@ -158,19 +192,23 @@ export async function POST(request: NextRequest) {
     // that will be sent via email (as per user's request for email-only notifications)
     
     // Create a notification record for the event
-    await PrismaDB.createNotification({
-      user_id: userId, // We'll use the creator's ID as a placeholder
-      title: `New event created`,
-      message: `A new event "${title}" has been scheduled for ${date}`,
-      type: 'event',
+    await db.notifications.create({
       data: {
-        eventId,
-        clubId: userClubId,
-        emailOnly: true, // Flag for email-only notification
-        eventTitle: title,
-        eventDate: date
-      },
-      related_id: eventId
+        user_id: userId, // We'll use the creator's ID as a placeholder
+        title: `New event created`,
+        message: `A new event "${title}" has been scheduled for ${date}`,
+        type: 'event',
+        related_id: eventId,
+        metadata: {
+          eventId,
+          clubId: userClubId,
+          emailOnly: true, // Flag for email-only notification
+          eventTitle: title,
+          eventDate: date
+        },
+        delivery_method: 'email',
+        club_id: userClubId
+      }
     });
 
     return NextResponse.json({ id: eventId, success: true }, { status: 201 });

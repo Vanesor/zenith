@@ -69,15 +69,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed left-0 top-0 bottom-0 w-72 bg-zenith-card dark:bg-gray-900 border-r border-zenith-border dark:border-gray-700 z-50 lg:relative lg:translate-x-0"
+            className="fixed left-0 top-0 bottom-0 w-72 bg-college-dark border-r border-zenith-border dark:border-gray-700 z-50 lg:relative lg:translate-x-0"
           >
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-4 border-b border-zenith-border dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-zenith-primary rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-college-primary rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">Z</span>
                 </div>
-                <span className="font-semibold text-zenith-primary dark:text-white">
+                <span className="font-semibold text-college-primary dark:text-white">
                   Zenith
                 </span>
               </div>
@@ -104,10 +104,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-zenith-primary dark:text-white truncate">
+                  <p className="text-sm font-medium text-white dark:text-white truncate">
                     {user?.name || "Guest User"}
                   </p>
-                  <p className="text-xs text-zenith-muted dark:text-zenith-muted truncate">
+                  <p className="text-xs text-gray-300 dark:text-zenith-muted truncate">
                     {user?.role || "Student"}
                   </p>
                 </div>
@@ -125,8 +125,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     onClick={onClose}
                     className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                       isActive(item.href)
-                        ? "bg-blue-50 dark:bg-blue-900/20 text-zenith-primary dark:text-blue-400"
-                        : "text-zenith-secondary dark:text-gray-300 hover:bg-zenith-section dark:hover:bg-gray-800"
+                        ? "bg-college-primary/20 text-college-primary dark:text-college-accent"
+                        : "text-white dark:text-gray-300 hover:bg-college-medium hover:text-college-accent"
                     }`}
                   >
                     {item.isCustom ? (
@@ -145,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <Link
                 href="/settings"
                 onClick={onClose}
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-zenith-secondary dark:text-gray-300 hover:bg-zenith-section dark:hover:bg-gray-800 transition-colors"
+                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-white dark:text-gray-300 hover:bg-college-medium hover:text-college-accent transition-colors"
               >
                 <Settings className="w-5 h-5" />
                 <span className="font-medium">Settings</span>

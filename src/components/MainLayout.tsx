@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { UnifiedHeader } from "./UnifiedHeader";
 import Sidebar from "./Sidebar";
-import { Footer } from "./NewFooter";
+// import { Footer } from "./NewFooter";
+import { useTheme } from "next-themes";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme } = useTheme();
 
   const handleMenuClick = () => {
     setSidebarOpen(true);
@@ -21,10 +22,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex flex-col">
-      {/* Header */}
-      <UnifiedHeader />
-      
+    <div className="min-h-screen bg-college-medium dark:bg-college-dark text-white flex flex-col">
       {/* Main Content Area */}
       <div className="flex flex-1">
         {/* Sidebar */}
@@ -42,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
       
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChatMessageLoader } from './ChatMessageLoader';
 import { 
   Send, 
   Reply, 
@@ -27,7 +28,11 @@ import {
   Clock,
   Download,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertTriangle,
+  MessageSquare,
+  Users,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -37,7 +42,7 @@ import TokenManager from '@/lib/TokenManager';
 const EMOJI_CATEGORIES = {
   'Faces': ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙'],
   'Gestures': ['👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👋', '🤚', '🖐', '✋', '🖖', '👏'],
-  'Hearts': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💌'],
+  'Hearts': ['❤️', '🧡', '💛', '💚', '💙', '💜', '��', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💌'],
   'Objects': ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳']
 };
 
@@ -55,7 +60,7 @@ interface ChatMessage {
   reactions?: MessageReaction[];
   attachments?: MessageAttachment[];
   is_deleted?: boolean;
-  message_status?: 'sending' | 'sent' | 'delivered' | 'read';
+  message_status?: 'sending' | 'sent' | 'delivered' | 'read' | 'error';
 }
 
 interface MessageReaction {
@@ -110,6 +115,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<keyof typeof EMOJI_CATEGORIES>('Faces');
   const [typing, setTyping] = useState<string[]>([]);
@@ -120,19 +126,27 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
   const [showMessageActions, setShowMessageActions] = useState<string | null>(null);
   const [showRoomInfo, setShowRoomInfo] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom - only when sending a new message, not when loading
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
-
+  
+  // Track if we're sending a new message vs loading existing ones
+  const isNewMessageRef = useRef(false);
+  
   useEffect(() => {
-    scrollToBottom();
+    // Only auto-scroll if it's a new message being sent
+    if (isNewMessageRef.current) {
+      scrollToBottom();
+      isNewMessageRef.current = false;
+    }
   }, [messages, scrollToBottom]);
 
   // Auto-resize textarea
@@ -162,6 +176,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
       
       try {
         setLoading(true);
+        setError(null);
         const tokenManager = TokenManager.getInstance();
         const response = await tokenManager.authenticatedFetch(`/api/chat/rooms/${roomId}/messages`);
         
@@ -169,14 +184,17 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
           const data = await response.json();
           setMessages(data.messages || []);
         } else {
+          const errorData = await response.json();
+          setError(errorData.error || 'Failed to load messages');
           showToast({
             type: 'error',
             title: 'Error',
-            message: 'Failed to load messages'
+            message: errorData.error || 'Failed to load messages'
           });
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
+        setError('Network error. Please check your connection.');
         showToast({
           type: 'error',
           title: 'Error',
@@ -188,7 +206,11 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
     };
 
     fetchMessages();
-  }, [roomId, showToast]);
+  }, [roomId, showToast, retryCount]);
+  
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+  };
 
   // Send message
   const handleSendMessage = async () => {
@@ -202,568 +224,475 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
       sender_name: currentUser.name,
       room_id: roomId,
       created_at: new Date().toISOString(),
-      reply_to_message_id: replyingTo?.id,
-      reply_to_message: replyingTo || undefined,
+      is_edited: false,
+      reply_to_message_id: replyingTo ? replyingTo.id : undefined,
       message_status: 'sending'
     };
 
-    // Optimistic update
-    setMessages(prev => [...prev, tempMessage]);
+    // Set flag to trigger scroll on this new message
+    isNewMessageRef.current = true;
+    
+    // Optimistically update UI
+    setMessages(prev => [tempMessage, ...prev]);
     setNewMessage('');
     setReplyingTo(null);
+    setShowEmojiPicker(false);
 
     try {
       const tokenManager = TokenManager.getInstance();
       const response = await tokenManager.authenticatedFetch(`/api/chat/rooms/${roomId}/messages`, {
         method: 'POST',
         body: JSON.stringify({
-          message: newMessage.trim(),
-          reply_to_message_id: replyingTo?.id
+          message: tempMessage.message,
+          reply_to_message_id: tempMessage.reply_to_message_id
         })
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Update with real message
-        setMessages(prev => prev.map(msg => 
-          msg.id === tempId ? { ...data.message, message_status: 'sent' } : msg
-        ));
+      if (response.ok) {
+        const data = await response.json();
+        // Update the temp message with the real one
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === tempId ? {
+              ...msg, 
+              id: data.id,
+              message_status: 'sent',
+              created_at: data.created_at || msg.created_at
+            } : msg
+          )
+        );
       } else {
-        // Remove temp message on error
-        setMessages(prev => prev.filter(msg => msg.id !== tempId));
+        // Show error and mark message as failed
+        const errorData = await response.json();
         showToast({
           type: 'error',
-          title: 'Error',
-          message: 'Failed to send message'
+          title: 'Failed to send',
+          message: errorData.error || 'Message could not be sent'
         });
+        
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === tempId ? { ...msg, message_status: 'error' } : msg
+          )
+        );
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(prev => prev.filter(msg => msg.id !== tempId));
       showToast({
         type: 'error',
-        title: 'Error',
-        message: 'Failed to send message'
+        title: 'Network Error',
+        message: 'Please check your connection'
       });
+      
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === tempId ? { ...msg, message_status: 'error' } : msg
+        )
+      );
     }
   };
 
-  // React to message
-  const handleReactToMessage = async (messageId: string, emoji: string) => {
-    try {
-      const tokenManager = TokenManager.getInstance();
-      const response = await tokenManager.authenticatedFetch(`/api/chat/messages/${messageId}/react`, {
-        method: 'POST',
-        body: JSON.stringify({ emoji })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? { ...msg, reactions: data.reactions } : msg
-        ));
-      }
-    } catch (error) {
-      console.error('Error reacting to message:', error);
-    }
-    setShowEmojiPicker(false);
-  };
-
-  // Delete message
-  const handleDeleteMessage = async (messageId: string) => {
-    try {
-      const tokenManager = TokenManager.getInstance();
-      const response = await tokenManager.authenticatedFetch(`/api/chat/messages/${messageId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? { ...msg, is_deleted: true, message: 'This message was deleted' } : msg
-        ));
-        showToast({
-          type: 'success',
-          title: 'Success',
-          message: 'Message deleted'
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting message:', error);
-    }
-    setShowMessageActions(null);
-  };
-
-  // Edit message
-  const handleEditMessage = async (messageId: string, newContent: string) => {
-    try {
-      const tokenManager = TokenManager.getInstance();
-      const response = await tokenManager.authenticatedFetch(`/api/chat/messages/${messageId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ message: newContent })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? { ...data.message, is_edited: true } : msg
-        ));
-        setEditingMessage(null);
-        setEditingContent('');
-        showToast({
-          type: 'success',
-          title: 'Success',
-          message: 'Message updated'
-        });
-      }
-    } catch (error) {
-      console.error('Error editing message:', error);
+  // Handle pressing Enter to send message
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
-  // Format message time
-  const formatMessageTime = (dateString: string) => {
+  // Add emoji to message
+  const addEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+    messageInputRef.current?.focus();
+  };
+
+  // Format timestamp
+  const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
-    if (diffInHours < 1) {
-      return 'now';
-    } else if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Format date for message groups
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
     } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString(undefined, { 
+        weekday: 'long',
+        month: 'long', 
+        day: 'numeric' 
+      });
     }
   };
 
-  // Check if message can be edited/deleted (within 1 hour)
-  const canEditOrDelete = (message: ChatMessage) => {
-    if (message.user_id !== currentUser.id) return false;
-    const messageTime = new Date(message.created_at).getTime();
-    const now = new Date().getTime();
-    const hourInMs = 60 * 60 * 1000;
-    return (now - messageTime) < hourInMs;
-  };
+  // Group messages by date
+  const messagesByDate = messages.reduce<Record<string, ChatMessage[]>>((groups, message) => {
+    const date = new Date(message.created_at).toDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(message);
+    return groups;
+  }, {});
 
-  // Scroll to replied message
-  const scrollToMessage = (messageId: string) => {
-    const element = document.getElementById(`message-${messageId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      element.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-      setTimeout(() => {
-        element.style.backgroundColor = '';
-      }, 2000);
+  // Handle file input change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Implement file upload functionality
+    if (e.target.files && e.target.files.length > 0) {
+      // File upload logic would go here
+      showToast({
+        type: 'info',
+        title: 'Coming Soon',
+        message: 'File attachments will be available soon!'
+      });
     }
   };
 
-  // Handle file upload
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    setIsUploading(true);
-    
-    for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('roomId', roomId);
-
-      try {
-        const tokenManager = TokenManager.getInstance();
-        const response = await tokenManager.authenticatedFetch('/api/chat/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Add message with attachment
-          const tempMessage: ChatMessage = {
-            id: Date.now().toString(),
-            message: `📎 ${file.name}`,
-            user_id: currentUser.id,
-            sender_name: currentUser.name,
-            room_id: roomId,
-            created_at: new Date().toISOString(),
-            attachments: [data.attachment]
-          };
-          setMessages(prev => [...prev, tempMessage]);
-        }
-      } catch (error) {
-        console.error('Error uploading file:', error);
-        showToast({
-          type: 'error',
-          title: 'Error',
-          message: `Failed to upload ${file.name}`
-        });
-      }
-    }
-    
-    setIsUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  // Create message status icon
+  const getMessageStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'sending':
+        return <Clock className="w-3 h-3 text-gray-400" />;
+      case 'sent':
+        return <Check className="w-3 h-3 text-gray-400" />;
+      case 'delivered':
+        return <CheckCheck className="w-3 h-3 text-gray-400" />;
+      case 'read':
+        return <CheckCheck className="w-3 h-3 text-blue-500" />;
+      case 'error':
+        return <AlertTriangle className="w-3 h-3 text-red-500" />;
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-zenith-dark">
+    <div className="flex flex-col h-full bg-gray-900 relative">
       {/* Chat Header */}
-      <div className="bg-zenith-darker border-b border-zenith-muted/20 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {showMobileBack && (
-              <button
-                onClick={onBack}
-                className="p-2 rounded-full hover:bg-zenith-muted/20 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-white" />
-              </button>
-            )}
-            
-            <div className="w-10 h-10 bg-zenith-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold">
-                {roomName.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            
-            <div>
-              <h2 className="text-lg font-semibold text-white">{roomName}</h2>
-              <p className="text-sm text-zenith-muted">
-                {onlineUsers.length > 0 ? `${onlineUsers.length} online` : 'Click here for room info'}
-              </p>
-            </div>
+      <div className="flex items-center p-3 bg-college-medium border-b border-gray-700 shadow-md">
+        {showMobileBack && (
+          <button 
+            onClick={onBack}
+            className="p-2 mr-2 rounded-full hover:bg-gray-700 transition-colors text-white"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        )}
+        
+        <div className="flex-1 flex items-center">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold">
+              {roomName.substring(0, 2).toUpperCase()}
+            </span>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="p-2 rounded-full hover:bg-zenith-muted/20 transition-colors"
-            >
-              <Search className="w-5 h-5 text-zenith-muted" />
-            </button>
-            <button className="p-2 rounded-full hover:bg-zenith-muted/20 transition-colors">
-              <Phone className="w-5 h-5 text-zenith-muted" />
-            </button>
-            <button className="p-2 rounded-full hover:bg-zenith-muted/20 transition-colors">
-              <Video className="w-5 h-5 text-zenith-muted" />
-            </button>
-            <button
-              onClick={() => setShowRoomInfo(!showRoomInfo)}
-              className="p-2 rounded-full hover:bg-zenith-muted/20 transition-colors"
-            >
-              <MoreVertical className="w-5 h-5 text-zenith-muted" />
-            </button>
+          <div className="ml-3 overflow-hidden">
+            <h2 className="text-white font-medium truncate">{roomName}</h2>
+            {typing.length > 0 ? (
+              <p className="text-xs text-green-400">
+                {typing.length === 1 
+                  ? `${typing[0]} is typing...` 
+                  : `${typing.length} people are typing...`}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400">
+                {onlineUsers.length} online
+              </p>
+            )}
           </div>
         </div>
-
-        {/* Search Bar */}
-        <AnimatePresence>
-          {showSearch && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="mt-4 overflow-hidden"
-            >
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zenith-muted" />
-                <input
-                  type="text"
-                  placeholder="Search messages..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-zenith-dark border border-zenith-muted/20 rounded-lg text-white placeholder-zenith-muted focus:outline-none focus:border-zenith-primary transition-colors"
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        
+        <div className="flex items-center space-x-4">
+          <button 
+            className="text-gray-300 hover:text-white hidden md:block"
+            onClick={() => showToast({
+              type: 'info',
+              title: 'Coming Soon',
+              message: 'Video calling will be available soon!'
+            })}
+          >
+            <Video className="w-5 h-5" />
+          </button>
+          <button 
+            className="text-gray-300 hover:text-white hidden md:block"
+            onClick={() => showToast({
+              type: 'info',
+              title: 'Coming Soon',
+              message: 'Voice calling will be available soon!'
+            })}
+          >
+            <Phone className="w-5 h-5" />
+          </button>
+          <button 
+            className="text-gray-300 hover:text-white"
+            onClick={() => setShowSearch(!showSearch)}
+          >
+            <Search className="w-5 h-5" />
+          </button>
+          <button 
+            className="text-gray-300 hover:text-white"
+            onClick={() => setShowRoomInfo(!showRoomInfo)}
+          >
+            <Info className="w-5 h-5" />
+          </button>
+        </div>
       </div>
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      
+      {/* Search Bar - Appears when search is toggled */}
+      <AnimatePresence>
+        {showSearch && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }} 
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b border-gray-700 overflow-hidden bg-gray-800"
+          >
+            <div className="p-2 flex items-center">
+              <div className="relative flex-1">
+                <input 
+                  type="text"
+                  placeholder="Search in conversation..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full p-2 pl-10 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-college-primary"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              </div>
+              <button 
+                onClick={() => setShowSearch(false)}
+                className="ml-2 p-2 text-gray-400 hover:text-white rounded-full hover:bg-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto bg-[#0a1622] bg-opacity-95 p-4 scrollbar-thin scrollbar-thumb-gray-600">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zenith-primary"></div>
+            <ChatMessageLoader message="Loading messages..." />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <AlertTriangle className="w-16 h-16 text-yellow-500 mb-4" />
+            <h3 className="text-xl font-medium text-white mb-2">Something went wrong</h3>
+            <p className="text-gray-400 mb-6 text-center max-w-md">{error}</p>
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 bg-college-primary text-white rounded-md hover:bg-college-primary/80 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-zenith-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Send className="w-10 h-10 text-zenith-muted" />
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="bg-gray-800 p-6 rounded-lg text-center max-w-md">
+              <div className="bg-gradient-to-br from-college-primary to-college-accent rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-white" />
               </div>
-              <p className="text-zenith-muted">No messages yet. Start the conversation!</p>
+              <h3 className="text-xl font-medium text-white mb-2">No messages yet</h3>
+              <p className="text-gray-400 mb-4">Be the first to send a message in this room!</p>
+              <button 
+                onClick={() => messageInputRef.current?.focus()}
+                className="px-4 py-2 bg-college-primary text-white rounded-md hover:bg-college-primary/80 transition-colors"
+              >
+                Start Conversation
+              </button>
             </div>
           </div>
         ) : (
-          messages
-            .filter(message => 
-              searchTerm === '' || 
-              message.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              message.sender_name?.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .map((message, index) => {
-              const isOwnMessage = message.user_id === currentUser.id;
-              const showSender = index === 0 || messages[index - 1].user_id !== message.user_id;
-              const canEditDelete = canEditOrDelete(message);
-
-              return (
-                <motion.div
-                  key={message.id}
-                  id={`message-${message.id}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} group`}
-                >
-                  <div className={`max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}>
-                    {/* Sender name */}
-                    {!isOwnMessage && showSender && (
-                      <p className="text-xs text-zenith-muted mb-1 px-3">
-                        {message.sender_name}
-                      </p>
-                    )}
-
-                    {/* Reply indicator */}
-                    {message.reply_to_message && (
-                      <div
-                        className={`mb-2 p-2 border-l-4 border-zenith-primary bg-zenith-muted/10 rounded cursor-pointer ${
-                          isOwnMessage ? 'ml-4' : 'mr-4'
-                        }`}
-                        onClick={() => scrollToMessage(message.reply_to_message!.id)}
-                      >
-                        <p className="text-xs text-zenith-primary font-medium">
-                          {message.reply_to_message.sender_name}
-                        </p>
-                        <p className="text-sm text-zenith-muted truncate">
-                          {message.reply_to_message.message}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Message bubble */}
-                    <div
-                      className={`relative px-4 py-2 rounded-2xl ${
-                        isOwnMessage
-                          ? 'bg-zenith-primary text-white'
-                          : 'bg-zenith-muted/20 text-white'
-                      } ${message.is_deleted ? 'italic opacity-60' : ''}`}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        if (!message.is_deleted) {
-                          setShowMessageActions(message.id);
-                        }
-                      }}
-                    >
-                      {/* Message content */}
-                      {editingMessage === message.id ? (
-                        <div className="space-y-2">
-                          <textarea
-                            value={editingContent}
-                            onChange={(e) => setEditingContent(e.target.value)}
-                            className="w-full bg-transparent border-none resize-none focus:outline-none text-white placeholder-white/70"
-                            rows={2}
-                          />
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleEditMessage(message.id, editingContent)}
-                              className="text-xs px-2 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingMessage(null);
-                                setEditingContent('');
-                              }}
-                              className="text-xs px-2 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <p className="text-sm whitespace-pre-wrap break-words">
-                            {message.message}
-                          </p>
-                          
-                          {/* Message status */}
-                          <div className="flex items-center justify-end space-x-1 mt-1">
-                            {message.is_edited && (
-                              <span className="text-xs opacity-70">edited</span>
-                            )}
-                            <span className="text-xs opacity-70">
-                              {formatMessageTime(message.created_at)}
-                            </span>
-                            {isOwnMessage && (
-                              <div className="text-xs">
-                                {message.message_status === 'sending' && (
-                                  <Clock className="w-3 h-3 opacity-70" />
-                                )}
-                                {message.message_status === 'sent' && (
-                                  <Check className="w-3 h-3 opacity-70" />
-                                )}
-                                {message.message_status === 'delivered' && (
-                                  <CheckCheck className="w-3 h-3 opacity-70" />
-                                )}
-                                {message.message_status === 'read' && (
-                                  <CheckCheck className="w-3 h-3 text-blue-400" />
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      )}
-
-                      {/* Message actions */}
-                      <AnimatePresence>
-                        {showMessageActions === message.id && !message.is_deleted && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            className={`absolute top-0 ${
-                              isOwnMessage ? 'right-full mr-2' : 'left-full ml-2'
-                            } bg-zenith-darker border border-zenith-muted/20 rounded-lg shadow-lg z-10`}
-                          >
-                            <div className="flex flex-col">
-                              <button
-                                onClick={() => {
-                                  setReplyingTo(message);
-                                  setShowMessageActions(null);
-                                  messageInputRef.current?.focus();
-                                }}
-                                className="p-2 hover:bg-zenith-muted/20 transition-colors flex items-center space-x-2 text-sm text-white"
-                              >
-                                <Reply className="w-4 h-4" />
-                                <span>Reply</span>
-                              </button>
-                              
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(message.message);
-                                  setShowMessageActions(null);
-                                  showToast({
-                                    type: 'success',
-                                    title: 'Copied',
-                                    message: 'Message copied to clipboard'
-                                  });
-                                }}
-                                className="p-2 hover:bg-zenith-muted/20 transition-colors flex items-center space-x-2 text-sm text-white"
-                              >
-                                <Copy className="w-4 h-4" />
-                                <span>Copy</span>
-                              </button>
-
-                              {canEditDelete && (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      setEditingMessage(message.id);
-                                      setEditingContent(message.message);
-                                      setShowMessageActions(null);
-                                    }}
-                                    className="p-2 hover:bg-zenith-muted/20 transition-colors flex items-center space-x-2 text-sm text-white"
-                                  >
-                                    <Edit3 className="w-4 h-4" />
-                                    <span>Edit</span>
-                                  </button>
-                                  
-                                  <button
-                                    onClick={() => handleDeleteMessage(message.id)}
-                                    className="p-2 hover:bg-red-500/20 transition-colors flex items-center space-x-2 text-sm text-red-400"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span>Delete</span>
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Reactions */}
-                    {message.reactions && message.reactions.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {Object.entries(
-                          message.reactions.reduce((acc, reaction) => {
-                            if (!acc[reaction.emoji]) {
-                              acc[reaction.emoji] = [];
-                            }
-                            acc[reaction.emoji].push(reaction);
-                            return acc;
-                          }, {} as Record<string, MessageReaction[]>)
-                        ).map(([emoji, reactions]) => (
-                          <button
-                            key={emoji}
-                            className="px-2 py-1 bg-zenith-muted/20 rounded-full text-xs flex items-center space-x-1 hover:bg-zenith-muted/30 transition-colors"
-                            title={reactions.map(r => r.user_name).join(', ')}
-                          >
-                            <span>{emoji}</span>
-                            <span className="text-zenith-muted">{reactions.length}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+          <div className="flex flex-col-reverse">
+            {/* Space for scrolling */}
+            <div className="h-4" ref={messagesEndRef}></div>
+            
+            {/* Render messages by date */}
+            {Object.entries(messagesByDate).map(([date, msgs]) => (
+              <div key={date} className="mb-6">
+                {/* Date separator */}
+                <div className="flex justify-center mb-4">
+                  <div className="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full">
+                    {formatDate(msgs[0].created_at)}
                   </div>
+                </div>
+                
+                {/* Messages for this date */}
+                <div className="space-y-2">
+                  {msgs.map((message, idx) => {
+                    const isMe = message.user_id === currentUser.id;
+                    const showSender = !isMe && (!msgs[idx - 1] || msgs[idx - 1].user_id !== message.user_id);
+                    
+                    return (
+                      <div key={message.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <div 
+                          className={`relative max-w-[80%] ${isMe ? 'order-1' : 'order-2'}`}
+                          onMouseEnter={() => setShowMessageActions(message.id)}
+                          onMouseLeave={() => setShowMessageActions(null)}
+                        >
+                          {/* Sender name for others' messages */}
+                          {showSender && !isMe && (
+                            <div className="text-xs text-blue-400 ml-2 mb-1">
+                              {message.sender_name || 'Unknown User'}
+                            </div>
+                          )}
+                          
+                          {/* Reply preview if this is a reply */}
+                          {message.reply_to_message_id && (
+                            <div 
+                              className={`rounded-t-lg px-3 py-1 text-xs cursor-pointer hover:opacity-80 ${
+                                isMe 
+                                  ? 'bg-college-primary text-blue-100 mr-2' 
+                                  : 'bg-gray-700 text-gray-300 ml-2'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Find the original message element by ID
+                                const originalMsgEl = document.getElementById(`msg-${message.reply_to_message_id}`);
+                                if (originalMsgEl) {
+                                  // Scroll to the original message
+                                  originalMsgEl.scrollIntoView({ behavior: 'smooth' });
+                                  
+                                  // Flash highlight animation
+                                  originalMsgEl.classList.add('bg-college-primary', 'bg-opacity-20');
+                                  setTimeout(() => {
+                                    originalMsgEl.classList.remove('bg-college-primary', 'bg-opacity-20');
+                                  }, 2000);
+                                }
+                              }}
+                            >
+                              <div className="flex items-center">
+                                <Reply className="w-3 h-3 mr-1" />
+                                <span className="font-medium truncate">
+                                  {message.reply_to_message?.sender_name || 'Unknown'}
+                                </span>
+                              </div>
+                              <div className="truncate">
+                                {message.reply_to_message?.message || 'Original message not available'}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Message content */}
+                          <div 
+                            id={`msg-${message.id}`} 
+                            className={`px-4 py-2 rounded-2xl transition-colors duration-500 ${
+                              message.reply_to_message_id 
+                                ? (isMe ? 'bg-college-primary text-white rounded-tr-none' : 'bg-gray-800 text-white rounded-tl-none') 
+                                : (isMe ? 'bg-college-primary text-white' : 'bg-gray-800 text-white')
+                            } ${isMe ? 'mr-2' : 'ml-2'}`}>
+                            {message.is_deleted ? (
+                              <span className="italic text-gray-400">
+                                This message was deleted
+                              </span>
+                            ) : (
+                              <>
+                                <div className="whitespace-pre-wrap break-words">
+                                  {message.message}
+                                </div>
+                                <div className="flex items-center justify-end space-x-1 mt-1">
+                                  <span className="text-xs text-opacity-75 text-white">
+                                    {formatTime(message.created_at)}
+                                  </span>
+                                  {isMe && getMessageStatusIcon(message.message_status)}
+                                  {message.is_edited && (
+                                    <span className="text-xs text-opacity-60 text-white">
+                                      (edited)
+                                    </span>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
 
-                  {/* Quick react button */}
-                  <button
-                    className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-zenith-muted/20 ${
-                      isOwnMessage ? 'order-1 mr-2' : 'order-2 ml-2'
-                    }`}
-                    onClick={() => handleReactToMessage(message.id, '👍')}
-                  >
-                    <Smile className="w-4 h-4 text-zenith-muted" />
-                  </button>
-                </motion.div>
-              );
-            })
-        )}
-        
-        {/* Typing indicator */}
-        {typing.length > 0 && (
-          <div className="flex items-center space-x-2">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-zenith-muted rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-zenith-muted rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-zenith-muted rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-            <span className="text-sm text-zenith-muted">
-              {typing.join(', ')} {typing.length === 1 ? 'is' : 'are'} typing...
-            </span>
+                          {/* Message actions */}
+                          {showMessageActions === message.id && !message.is_deleted && (
+                            <div className={`absolute top-0 ${isMe ? 'left-0 transform -translate-x-full -translate-y-1/2' : 'right-0 transform translate-x-full -translate-y-1/2'}`}>
+                              <div className="bg-gray-700 rounded-full p-1 flex space-x-1 shadow-lg">
+                                <button className="p-1 hover:bg-gray-600 rounded-full" onClick={() => setReplyingTo(message)}>
+                                  <Reply className="w-4 h-4 text-blue-400" />
+                                </button>
+                                {isMe && (
+                                  <>
+                                    <button 
+                                      className="p-1 hover:bg-gray-600 rounded-full"
+                                      onClick={() => {
+                                        setEditingMessage(message.id);
+                                        setEditingContent(message.message);
+                                      }}
+                                    >
+                                      <Edit3 className="w-4 h-4 text-yellow-400" />
+                                    </button>
+                                    <button 
+                                      className="p-1 hover:bg-gray-600 rounded-full"
+                                      onClick={() => {
+                                        showToast({
+                                          type: 'info',
+                                          title: 'Coming Soon',
+                                          message: 'Message deletion will be available soon!'
+                                        });
+                                      }}
+                                    >
+                                      <Trash2 className="w-4 h-4 text-red-400" />
+                                    </button>
+                                  </>
+                                )}
+                                <button 
+                                  className="p-1 hover:bg-gray-600 rounded-full"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(message.message);
+                                    showToast({
+                                      type: 'success',
+                                      title: 'Copied',
+                                      message: 'Message copied to clipboard'
+                                    });
+                                  }}
+                                >
+                                  <Copy className="w-4 h-4 text-gray-400" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
-        
-        <div ref={messagesEndRef} />
       </div>
-
-      {/* Reply indicator */}
+      
+      {/* Reply Preview */}
       <AnimatePresence>
         {replyingTo && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            className="p-3 bg-zenith-darker border-t border-zenith-muted/20"
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-gray-800 border-t border-gray-700 px-4 py-2"
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm text-zenith-primary font-medium">
-                  Replying to {replyingTo.sender_name}
-                </p>
-                <p className="text-sm text-zenith-muted truncate">
-                  {replyingTo.message}
-                </p>
+                <div className="text-sm text-college-primary font-medium flex items-center">
+                  <Reply className="w-4 h-4 mr-1" />
+                  Replying to {replyingTo.sender_name || 'Unknown'}
+                </div>
+                <p className="text-gray-300 text-sm truncate">{replyingTo.message}</p>
               </div>
-              <button
+              <button 
+                className="text-gray-500 hover:text-gray-300"
                 onClick={() => setReplyingTo(null)}
-                className="p-1 rounded-full hover:bg-zenith-muted/20 transition-colors"
               >
-                <X className="w-4 h-4 text-zenith-muted" />
+                <X className="w-5 h-5" />
               </button>
             </div>
           </motion.div>
@@ -771,116 +700,162 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
       </AnimatePresence>
 
       {/* Message Input */}
-      <div className="bg-zenith-darker border-t border-zenith-muted/20 p-4">
-        <div className="flex items-end space-x-3">
-          {/* File upload */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="p-2 rounded-full hover:bg-zenith-muted/20 transition-colors disabled:opacity-50"
-          >
-            <Paperclip className="w-5 h-5 text-zenith-muted" />
-          </button>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            onChange={handleFileUpload}
-            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
-          />
-
-          {/* Message input */}
-          <div className="flex-1 relative">
+      <div className="bg-gray-800 border-t border-gray-700 p-3">
+        <div className="flex items-end space-x-2">
+          <div className="flex-1 bg-gray-700 rounded-lg px-3 py-2">
+            <div className="flex items-center space-x-2">
+              <button 
+                className="text-gray-400 hover:text-gray-200"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              >
+                <Smile className="w-5 h-5" />
+              </button>
+              <button 
+                className="text-gray-400 hover:text-gray-200"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+                multiple
+              />
+            </div>
+            
+            {/* Emoji Picker */}
+            <AnimatePresence>
+              {showEmojiPicker && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.2 }}
+                  ref={emojiPickerRef}
+                  className="absolute bottom-24 left-4 bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-3 z-10"
+                >
+                  <div className="flex space-x-2 mb-2">
+                    {Object.keys(EMOJI_CATEGORIES).map(category => (
+                      <button 
+                        key={category} 
+                        onClick={() => setSelectedEmojiCategory(category as keyof typeof EMOJI_CATEGORIES)}
+                        className={`p-1 rounded-md ${
+                          selectedEmojiCategory === category ? 'bg-gray-700' : 'hover:bg-gray-700'
+                        }`}
+                      >
+                        {category === 'Faces' ? '😊' : 
+                         category === 'Gestures' ? '👍' : 
+                         category === 'Hearts' ? '❤️' : '⚽'}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-8 gap-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600">
+                    {EMOJI_CATEGORIES[selectedEmojiCategory].map(emoji => (
+                      <button 
+                        key={emoji}
+                        onClick={() => addEmoji(emoji)}
+                        className="text-xl hover:bg-gray-700 p-1 rounded"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
             <textarea
               ref={messageInputRef}
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Type a message..."
-              className="w-full px-4 py-2 pr-12 bg-zenith-dark border border-zenith-muted/20 rounded-full text-white placeholder-zenith-muted focus:outline-none focus:border-zenith-primary transition-colors resize-none max-h-32"
+              onChange={e => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a message"
+              className="w-full bg-transparent text-white placeholder:text-gray-400 focus:outline-none mt-2 max-h-32 resize-none"
               rows={1}
             />
-            
-            {/* Emoji button */}
-            <button
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-zenith-muted/20 transition-colors"
-            >
-              <Smile className="w-5 h-5 text-zenith-muted" />
-            </button>
           </div>
-
-          {/* Send button */}
-          <button
+          <button 
+            className={`p-3 rounded-full flex-shrink-0 ${
+              newMessage.trim() 
+                ? 'bg-college-primary text-white' 
+                : 'bg-gray-700 text-gray-400'
+            }`}
             onClick={handleSendMessage}
-            disabled={!newMessage.trim() && !replyingTo}
-            className="p-2 bg-zenith-primary rounded-full hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={!newMessage.trim()}
           >
-            <Send className="w-5 h-5 text-white" />
+            <Send className="w-5 h-5" />
           </button>
         </div>
-
-        {/* Emoji Picker */}
-        <AnimatePresence>
-          {showEmojiPicker && (
-            <motion.div
-              ref={emojiPickerRef}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-full right-4 mb-2 bg-zenith-darker border border-zenith-muted/20 rounded-lg shadow-lg p-4 w-80 z-20"
-            >
-              {/* Emoji categories */}
-              <div className="flex space-x-2 mb-4 border-b border-zenith-muted/20 pb-2">
-                {Object.keys(EMOJI_CATEGORIES).map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedEmojiCategory(category as keyof typeof EMOJI_CATEGORIES)}
-                    className={`px-3 py-1 rounded text-sm transition-colors ${
-                      selectedEmojiCategory === category
-                        ? 'bg-zenith-primary text-white'
-                        : 'text-zenith-muted hover:text-white'
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-
-              {/* Emoji grid */}
-              <div className="grid grid-cols-8 gap-2 max-h-48 overflow-y-auto">
-                {EMOJI_CATEGORIES[selectedEmojiCategory].map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => {
-                      setNewMessage(prev => prev + emoji);
-                      setShowEmojiPicker(false);
-                    }}
-                    className="text-xl hover:bg-zenith-muted/20 rounded p-1 transition-colors"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
-
-      {/* Click outside handler for message actions */}
-      {showMessageActions && (
-        <div
-          className="fixed inset-0 z-5"
-          onClick={() => setShowMessageActions(null)}
-        />
-      )}
+      
+      {/* Room Info Sidebar */}
+      <AnimatePresence>
+        {showRoomInfo && (
+          <motion.div
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="absolute top-0 right-0 h-full w-80 bg-gray-900 border-l border-gray-700 z-20 shadow-xl"
+          >
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white">Room Info</h3>
+                <button
+                  onClick={() => setShowRoomInfo(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="flex flex-col items-center mb-6">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-full w-24 h-24 flex items-center justify-center mb-3">
+                  <span className="text-white font-bold text-4xl">
+                    {roomName.substring(0, 2).toUpperCase()}
+                  </span>
+                </div>
+                <h3 className="text-xl font-medium text-white">{roomName}</h3>
+                <p className="text-gray-400 text-sm text-center mt-1">Created on {new Date().toLocaleDateString()}</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-lg font-medium text-white mb-2">Room Members</h4>
+                  <div className="bg-gray-800 rounded-lg p-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600">
+                    <p className="text-gray-400 text-center py-2">
+                      Member list will be available soon
+                    </p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-medium text-white mb-2">Room Settings</h4>
+                  <div className="space-y-2">
+                    <button className="w-full p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-left flex items-center justify-between text-white">
+                      <span>Mute Notifications</span>
+                      <Bell className="w-5 h-5" />
+                    </button>
+                    <button 
+                      className="w-full p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-left flex items-center justify-between text-white"
+                      onClick={onInviteUser}
+                    >
+                      <span>Invite Users</span>
+                      <Users className="w-5 h-5" />
+                    </button>
+                    <button className="w-full p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-left flex items-center justify-between text-white">
+                      <span>Search in Chat</span>
+                      <Search className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
