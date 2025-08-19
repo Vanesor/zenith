@@ -1,5 +1,6 @@
 require('dotenv').config({ path: '.env.local' });
-const { PrismaClient } = require('@prisma/client');
+// Import from the custom generated location
+const { PrismaClient } = require('./src/generated/prisma');
 
 async function testPrismaConnection() {
   console.log('DATABASE_URL:', process.env.DATABASE_URL);
