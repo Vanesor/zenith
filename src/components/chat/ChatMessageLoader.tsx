@@ -8,9 +8,9 @@ interface ChatMessageLoaderProps {
 
 export function ChatMessageLoader({ message = 'Loading messages...' }: ChatMessageLoaderProps) {
   return (
-    <div className="flex flex-col items-center justify-center h-full">
+    <div className="flex flex-col items-center justify-center py-10">
       {/* Message bubbles animation */}
-      <div className="relative w-24 h-24 mb-6">
+      <div className="relative w-20 h-16 mb-4">
         {/* Left bubble */}
         <motion.div
           initial={{ x: -20, opacity: 0 }}
@@ -23,7 +23,7 @@ export function ChatMessageLoader({ message = 'Loading messages...' }: ChatMessa
             repeat: Infinity,
             ease: "easeInOut" 
           }}
-          className="absolute left-0 top-8 bg-gray-700 h-10 w-16 rounded-xl rounded-bl-none"
+          className="absolute left-0 top-6 bg-gray-700 h-8 w-12 rounded-xl rounded-bl-none"
         />
         
         {/* Right bubble */}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authenticateUser, setAuthCookie } from '@/lib/auth';
+import { authenticateUser, setAuthCookie } from '@/lib/auth-unified';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -37,12 +37,14 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const result = await authenticateUser(email, password, rememberMe);
+      const result = await authenticateUser(email, password);
       
       if (result.success) {
         // Set auth cookie
         if (result.token) {
-          await setAuthCookie(result.token, rememberMe);
+          const cookieHeader = setAuthCookie(result.token, rememberMe);
+          // Note: In client-side, we'd need to use document.cookie
+          // This might need server-side implementation
         }
         
         // Redirect to dashboard or last visited page

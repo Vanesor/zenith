@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, checkDatabaseHealth } from '@/lib/database-service';
+import { db, checkDatabaseHealth } from '@/lib/database';
 import { CacheManager } from "@/lib/CacheManager";
 import { MonitoringService } from "@/lib/MonitoringService";
 import { WebSocketManager } from "@/lib/WebSocketManager";

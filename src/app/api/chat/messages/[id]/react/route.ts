@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
 import jwt from 'jsonwebtoken';
 
 // Helper function to verify JWT token

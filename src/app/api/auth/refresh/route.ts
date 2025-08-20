@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import db, { prismaClient as prisma } from "@/lib/database";
+import db from "@/lib/database";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "your-refresh-secret-key";
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user details from database
-    const user = await Database.getUserById(decoded.userId);
+    const user = await db.query(`SELECT id, email, name, role, club_id FROM users WHERE id = $1 AND deleted_at IS NULL`, [decoded.userId]).then(r => r.rows[0] || null);
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },

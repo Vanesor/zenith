@@ -1,4 +1,4 @@
-import { db, executeRawSQL, queryRawSQL } from './database-service';
+import { db } from './database';
 import crypto from 'crypto';
 
 interface DeviceInfo {
@@ -40,18 +40,20 @@ export class TrustedDeviceService {
         .digest('hex');
       
       // Store device information
-      await executeRawSQL(
+      await db.query(
         `INSERT INTO trusted_devices
         (user_id, device_identifier, device_name, device_type, browser, os, ip_address, trust_level)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        userId,
-        deviceIdentifier,
-        deviceInfo.deviceName || 'Unknown Device',
-        deviceInfo.deviceType || 'unknown',
-        deviceInfo.browser || null,
-        deviceInfo.os || null,
-        deviceInfo.ipAddress || null,
-        'standard'
+        [
+          userId,
+          deviceIdentifier,
+          deviceInfo.deviceName || 'Unknown Device',
+          deviceInfo.deviceType || 'unknown',
+          deviceInfo.browser || null,
+          deviceInfo.os || null,
+          deviceInfo.ipAddress || null,
+          'standard'
+        ]
       );
       
       // Log security event
@@ -80,12 +82,11 @@ export class TrustedDeviceService {
     deviceIdentifier: string
   ): Promise<{trusted: boolean, trustLevel?: string}> {
     try {
-      const result = await queryRawSQL(
+      const result = await db.query(
         `SELECT trust_level, expires_at
         FROM trusted_devices
         WHERE user_id = $1 AND device_identifier = $2`,
-        userId,
-        deviceIdentifier
+        [userId, deviceIdentifier]
       );
       
       if (result.rows.length === 0) {
@@ -97,22 +98,20 @@ export class TrustedDeviceService {
       // Check if trust has expired
       if (new Date(device.expires_at) < new Date()) {
         // Trust has expired, remove it
-        await executeRawSQL(
+        await db.query(
           `DELETE FROM trusted_devices 
            WHERE user_id = $1 AND device_identifier = $2`,
-          userId,
-          deviceIdentifier
+          [userId, deviceIdentifier]
         );
         return { trusted: false };
       }
       
       // Update last used timestamp
-      await executeRawSQL(
+      await db.query(
         `UPDATE trusted_devices
          SET last_used = CURRENT_TIMESTAMP
          WHERE user_id = $1 AND device_identifier = $2`,
-        userId, 
-        deviceIdentifier
+        [userId, deviceIdentifier]
       );
       
       return {trusted: true, trustLevel: device.trust_level};
@@ -127,14 +126,14 @@ export class TrustedDeviceService {
    */
   static async getTrustedDevices(userId: string): Promise<TrustedDevice[]> {
     try {
-      const result = await queryRawSQL(
+      const result = await db.query(
         `SELECT 
            id, device_name, device_type, browser, os, ip_address,
            last_used, created_at, expires_at, trust_level
          FROM trusted_devices
          WHERE user_id = $1
          ORDER BY last_used DESC`,
-        userId
+        [userId]
       );
       
       return result.rows.map((row: any) => ({
@@ -160,12 +159,11 @@ export class TrustedDeviceService {
    */
   static async removeTrustedDevice(userId: string, deviceId: string): Promise<boolean> {
     try {
-      const result = await queryRawSQL(
+      const result = await db.query(
         `DELETE FROM trusted_devices
          WHERE user_id = $1 AND id = $2
          RETURNING id`,
-        userId, 
-        deviceId
+        [userId, deviceId]
       );
       
       if (result.rows.length > 0) {
@@ -188,11 +186,11 @@ export class TrustedDeviceService {
    */
   static async removeAllTrustedDevices(userId: string): Promise<number> {
     try {
-      const result = await queryRawSQL(
+      const result = await db.query(
         `DELETE FROM trusted_devices
          WHERE user_id = $1
          RETURNING id`,
-        userId
+        [userId]
       );
       
       const count = result.rows.length;
@@ -216,13 +214,13 @@ export class TrustedDeviceService {
    */
   static async getActiveSessions(userId: string): Promise<any[]> {
     try {
-      const result = await queryRawSQL(
+      const result = await db.query(
         `SELECT 
            id, user_agent, ip_address, created_at, last_active_at, device_info
          FROM sessions
          WHERE user_id = $1 AND expires_at > NOW()
          ORDER BY last_active_at DESC`,
-        userId
+        [userId]
       );
       
       return result.rows.map((session: any) => {
@@ -272,12 +270,11 @@ export class TrustedDeviceService {
    */
   static async revokeSession(userId: string, sessionId: string): Promise<boolean> {
     try {
-      const result = await queryRawSQL(
+      const result = await db.query(
         `DELETE FROM sessions
          WHERE user_id = $1 AND id = $2
          RETURNING id`,
-        userId, 
-        sessionId
+        [userId, sessionId]
       );
       
       if (result.rows.length > 0) {
@@ -300,12 +297,11 @@ export class TrustedDeviceService {
    */
   static async revokeAllOtherSessions(userId: string, currentSessionId: string): Promise<number> {
     try {
-      const result = await queryRawSQL(
+      const result = await db.query(
         `DELETE FROM sessions
          WHERE user_id = $1 AND id != $2
          RETURNING id`,
-        userId,
-        currentSessionId
+        [userId, currentSessionId]
       );
       
       const count = result.rows.length;
@@ -334,14 +330,11 @@ export class TrustedDeviceService {
     ipAddress?: string
   ): Promise<void> {
     try {
-      await executeRawSQL(
+      await db.query(
         `INSERT INTO security_events
          (user_id, event_type, ip_address, event_data)
          VALUES ($1, $2, $3, $4)`,
-        userId, 
-        eventType, 
-        ipAddress || null, 
-        eventData
+        [userId, eventType, ipAddress || null, eventData]
       );
     } catch (error) {
       console.error('Error logging security event:', error);

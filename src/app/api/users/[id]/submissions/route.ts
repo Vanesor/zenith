@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, executeRawSQL, queryRawSQL } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { db, executeRawSQL, queryRawSQL } from '@/lib/database';
+import { verifyAuth } from "@/lib/auth-unified";
 
 export async function GET(
   request: NextRequest,

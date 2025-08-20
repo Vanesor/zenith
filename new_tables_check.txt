@@ -1,0 +1,11 @@
+      tablename      
+---------------------
+ comments
+ likes
+ posts
+ project_invitations
+ project_members
+ projects
+ tasks
+(7 rows)
+

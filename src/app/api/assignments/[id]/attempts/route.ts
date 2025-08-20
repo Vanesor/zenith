@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { db } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
-import { FastAuth } from '@/lib/FastAuth';
+import { db } from '@/lib/database';
+import { verifyAuth, withAuth } from "@/lib/auth-unified";
 
 // Define interface for attempt row
 interface AttemptRow {
@@ -46,7 +44,7 @@ export async function GET(
     }
 
     // Get user's attempts for this assignment
-    const attempts = await db.assignmentAttempt.findMany({
+    const attempts = await db.assignment_attempts.findMany({
       where: { 
         assignment_id: assignmentId, 
         user_id: user.id 
@@ -74,84 +72,81 @@ export async function GET(
 }
 
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const assignmentId = params.id;
     const { attemptId, answers, violation } = await request.json();
     
-    // Extract and verify the token
-    const token = authHeader.replace('Bearer ', '');
-    const decoded = FastAuth.verifyToken(token);
+    // Get user authentication
+    const authResult = await verifyAuth(request);
     
-    if (!decoded || !decoded.userId) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    if (!authResult.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Get user details using the verified userId
-    const user = await db.users.findUnique({
-      where: { id: decoded.userId },
-      select: { id: true, email: true, name: true }
-    });
-    
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const userId = authResult.user.id;
 
     // Update attempt with new answers or violations
     if (violation) {
-      // Add violation
-      const getAttemptQuery = 'SELECT violations FROM assignment_attempts WHERE id = $1 AND user_id = $2';
-      const attemptResult = await db.executeRawSQL(getAttemptQuery, [attemptId, user.id]);
+      // Get current attempt
+            const attempt = await db.query(`
+        SELECT * FROM assignment_attempts 
+        WHERE assignment_id = $1 AND user_id = $2
+      `, [assignmentId, userId]);
       
-      if (attemptResult.rows.length === 0) {
+      if (!attempt) {
         return NextResponse.json({ error: 'Attempt not found' }, { status: 404 });
       }
 
       // Safe JSON parsing with fallback
-      const parseJsonSafely = (value: unknown, fallback: unknown) => {
-        if (!value) return fallback;
-        if (typeof value === 'object') return value;
-        if (typeof value === 'string') {
-          try {
-            return JSON.parse(value);
-          } catch (error) {
-            console.warn('Failed to parse JSON:', value, error);
-            return fallback;
-          }
+      const parseJsonSafely = (json: string, fallback: any[]) => {
+        try {
+          return JSON.parse(json || '[]');
+        } catch {
+          return fallback;
         }
-        return fallback;
       };
 
-      const currentViolations = parseJsonSafely(attemptResult.rows[0].violations, []);
+      if (attempt.rows.length === 0) {
+        return NextResponse.json(
+          { error: "Assignment attempt not found" },
+          { status: 404 }
+        );
+      }
+
+      const attemptData = attempt.rows[0];
+      const currentViolations = parseJsonSafely(attemptData.violations, []);
       const updatedViolations = [...currentViolations, {
         type: violation.type,
         message: violation.message,
         timestamp: new Date().toISOString()
       }];
 
-      const updateViolationsQuery = `
+      await db.query(`
         UPDATE assignment_attempts 
-        SET violations = $1, updated_at = $2
+        SET violations = $1, violation_count = $2
         WHERE id = $3 AND user_id = $4
-      `;
-      
-      await db.assignmentAttempt.update({
-        where: { id: attemptId },
-        data: { violations: updatedViolations as any }
-      });
+      `, [
+        JSON.stringify(updatedViolations),
+        updatedViolations.length,
+        attemptId,
+        userId
+      ]);
 
       return NextResponse.json({ success: true, violations: updatedViolations });
     } else if (answers) {
       // Save progress
-      await db.assignmentAttempt.update({
-        where: { id: attemptId },
-        data: { answers: answers as any }
-      });
+      await db.query(`
+        UPDATE assignment_attempts 
+        SET answers = $1, updated_at = NOW()
+        WHERE id = $2 AND user_id = $3
+      `, [
+        JSON.stringify(answers),
+        attemptId,
+        userId
+      ]);
 
       return NextResponse.json({ success: true });
     }

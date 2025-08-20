@@ -1,0 +1,45 @@
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE FUNCTION
+psql:simple-blog-project-schema.sql:255: NOTICE:  trigger "posts_search_vector_update" for relation "public.posts" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+psql:simple-blog-project-schema.sql:285: NOTICE:  trigger "tasks_generate_key" for relation "public.tasks" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+psql:simple-blog-project-schema.sql:328: NOTICE:  trigger "tasks_update_project_progress" for relation "public.tasks" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+Blog and Project Management schema created successfully!
+Added: posts, likes, comments, projects, project_members, tasks, project_invitations
+Features: Rich blog content, project management with Jira-like tasks, email invitations

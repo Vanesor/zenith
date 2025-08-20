@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from '@/lib/AuthMiddleware';
+import db from "@/lib/database";
+import { verifyAuth, withAuth } from "@/lib/auth-unified";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize the Google Generative AI
@@ -77,7 +77,7 @@ export async function GET(
     }
 
     // Get user details
-    const userResult = await db.executeRawSQL(
+    const userResult = await db.query(
       'SELECT id, email, name FROM users WHERE id = $1',
       [userId]
     );
@@ -89,7 +89,7 @@ export async function GET(
     const user = userResult.rows[0];
 
     // Get assignment details
-    const assignmentResult = await db.executeRawSQL(
+    const assignmentResult = await db.query(
       `SELECT 
         id, title, description, max_points, passing_score,
         show_results, time_limit, max_attempts, allow_review,
@@ -114,7 +114,7 @@ export async function GET(
     }
 
     // Get both submission data and attempt data
-    const submissionResult = await db.executeRawSQL(
+    const submissionResult = await db.query(
       `SELECT 
         s.id, s.started_at, s.completed_at, s.time_spent, 
         s.total_score, s.violation_count, s.auto_submitted, s.status,
@@ -131,7 +131,7 @@ export async function GET(
     
     if (submissionResult.rows.length === 0) {
       // Try to find attempt data even if there's no submission
-      const attemptResult = await db.executeRawSQL(
+      const attemptResult = await db.query(
         `SELECT 
           id, start_time, end_time, time_spent, score,
           max_score, attempt_number, status, submitted_at
@@ -157,7 +157,7 @@ export async function GET(
     const submission = submissionResult.rows[0];
 
     // Get the assignment questions
-    const questionsResult = await db.executeRawSQL(
+    const questionsResult = await db.query(
       `SELECT 
         id, title, description, question_type, marks,
         options, correct_answer, code_language, test_cases
@@ -170,7 +170,7 @@ export async function GET(
     const questions = questionsResult.rows;
     
     // Get the user's answers to these questions
-    const responsesResult = await db.executeRawSQL(
+    const responsesResult = await db.query(
       `SELECT 
         qr.question_id, qr.selected_options, qr.code_answer,
         qr.essay_answer, qr.is_correct, qr.score, qr.time_spent,
@@ -238,7 +238,7 @@ export async function GET(
           if ((response as any).id) {
             try {
               // Fetch test results from the code_results table
-              const codeResultsQuery = await db.executeRawSQL(
+              const codeResultsQuery = await db.query(
                 `SELECT 
                   test_case_index, passed, stdout, stderr, execution_time, memory_used 
                 FROM code_results 
@@ -325,7 +325,7 @@ export async function GET(
     const isPassing = percentage >= ((assignment as any).passing_score || 60);
     
     // Get submission count
-    const submissionCountResult = await db.executeRawSQL(
+    const submissionCountResult = await db.query(
       `SELECT COUNT(*) as count FROM assignment_submissions
       WHERE assignment_id = $1 AND user_id = $2`,
       [assignmentId, userId]
@@ -336,7 +336,7 @@ export async function GET(
     // Format violations if they exist
     let violations: unknown[] = [];
     if (submission.violation_count > 0) {
-      const violationsResult = await db.executeRawSQL(
+      const violationsResult = await db.query(
         `SELECT violation_type, details, occurred_at
          FROM assignment_violations
          WHERE submission_id = $1

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth, MANAGEMENT_ROLES } from "@/lib/AuthMiddleware";
+import { withAuth, MANAGEMENT_ROLES } from "@/lib/auth-unified";
 import { MonitoringService, SystemStats } from "@/lib/MonitoringService";
 import { CacheManager } from "@/lib/CacheManager";
 import { SessionManager } from "@/lib/SessionManager";

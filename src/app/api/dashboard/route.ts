@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { db } from '@/lib/database';
+import { verifyAuth } from "@/lib/auth-unified";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -51,17 +51,15 @@ export async function GET(request: NextRequest) {
               
               // Create a new session in the database
               try {
-                await db.$executeRaw`
+                await db.query(`
                   INSERT INTO sessions (user_id, token, expires_at, user_agent, ip_address, last_active_at)
-                  VALUES (
-                    ${decoded.userId}::uuid,
-                    ${sessionToken},
-                    NOW() + INTERVAL '24 hours',
-                    ${request.headers.get('user-agent') || 'Unknown'},
-                    ${request.headers.get('x-forwarded-for') || '127.0.0.1'},
-                    NOW()
-                  )
-                `;
+                  VALUES ($1, $2, NOW() + INTERVAL '24 hours', $3, $4, NOW())
+                `, [
+                  decoded.userId,
+                  sessionToken,
+                  request.headers.get('user-agent') || 'Unknown',
+                  request.headers.get('x-forwarded-for') || '127.0.0.1'
+                ]);
                 
                 console.log("Created new session for user:", decoded.userId);
                 
@@ -108,15 +106,10 @@ export async function GET(request: NextRequest) {
     );
   }
   
-  // Log if this is a trusted device
-  if (authResult.trustedDevice) {
-    console.log("Dashboard API - User is on a trusted device");
-  }
-  
   const userId = authResult.user!.id;
   try {
-    // Get all clubs with member counts and upcoming eventsd
-    const clubsResult = await db.$queryRaw`
+    // Get all clubs with member counts and upcoming events
+    const clubsResult = await db.query(`
       SELECT 
         c.id,
         c.name,
@@ -127,19 +120,20 @@ export async function GET(request: NextRequest) {
         COUNT(DISTINCT u.id) as member_count,
         COUNT(DISTINCT CASE WHEN e.event_date >= CURRENT_DATE THEN e.id END) as upcoming_events
       FROM clubs c
-      LEFT JOIN users u ON c.id = u.club_id
-      LEFT JOIN events e ON c.id = e.club_id
+      LEFT JOIN users u ON c.id = u.club_id AND u.deleted_at IS NULL
+      LEFT JOIN events e ON c.id = e.club_id AND e.deleted_at IS NULL
+      WHERE c.deleted_at IS NULL
       GROUP BY c.id, c.name, c.type, c.description, c.color, c.icon
       ORDER BY c.name
-    `;
+    `);
     
     // Get the current user's club information
-    const userClubQuery = await db.$queryRaw`
-      SELECT club_id FROM users WHERE id = ${userId}::uuid
-    `;
+    const userClubQuery = await db.query(`
+      SELECT club_id FROM users WHERE id = $1 AND deleted_at IS NULL
+    `, [userId]);
 
     // Get recent announcements
-    const announcementsResult = await db.$queryRaw`
+    const announcementsResult = await db.query(`
       SELECT 
         a.id,
         a.title,
@@ -152,45 +146,38 @@ export async function GET(request: NextRequest) {
       FROM announcements a
       LEFT JOIN clubs c ON a.club_id = c.id
       LEFT JOIN users u ON a.author_id = u.id
+      WHERE a.deleted_at IS NULL
       ORDER BY a.created_at DESC
       LIMIT 5
-    `;
+    `);
 
     // Get upcoming events - use a different approach with Prisma
-    let eventsResult = [];
+    let eventsResult: any[] = [];
     
     try {
-      // First try with prisma client functions instead of raw query
-      const events = await db.events.findMany({
-        where: {
-          event_date: {
-            gte: new Date()
-          }
-        },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          event_date: true,
-          event_time: true,
-          location: true,
-          image_url: true,
-          clubs: {
-            select: {
-              name: true,
-              color: true,
-              icon: true
-            }
-          }
-        },
-        orderBy: {
-          event_date: 'asc'
-        },
-        take: 5
-      });
+      // Get upcoming events using SQL query
+      const eventsQueryResult = await db.query(`
+        SELECT 
+          e.id,
+          e.title,
+          e.description,
+          e.event_date,
+          e.event_time,
+          e.location,
+          e.image_url,
+          c.name as club_name,
+          c.color as club_color,
+          c.icon as club_icon
+        FROM events e
+        LEFT JOIN clubs c ON e.club_id = c.id
+        WHERE e.event_date >= CURRENT_DATE
+          AND e.deleted_at IS NULL
+        ORDER BY e.event_date ASC
+        LIMIT 5
+      `);
       
       // Map to match the expected structure
-      eventsResult = events.map(event => ({
+      eventsResult = eventsQueryResult.rows.map((event: any) => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -198,58 +185,53 @@ export async function GET(request: NextRequest) {
         event_time: event.event_time,
         location: event.location,
         image_url: event.image_url,
-        club_name: event.clubs?.name || 'General',
-        club_color: event.clubs?.color || '#888888',
-        club_icon: event.clubs?.icon || 'calendar'
+        club_name: event.club_name || 'General',
+        club_color: event.club_color || '#888888',
+        club_icon: event.club_icon || 'calendar'
       }));
     } catch (eventError) {
-      console.error("Error fetching events with Prisma client:", eventError);
-      // Fallback to a simpler query if the complex one fails
-      try {
-        const simpleEvents = await db.$queryRaw`
-          SELECT id, title, description, event_date, location, image_url
-          FROM events
-          WHERE event_date >= CURRENT_DATE
-          ORDER BY event_date ASC
-          LIMIT 5
-        `;
-        
-        eventsResult = Array.isArray(simpleEvents) ? simpleEvents : [];
-      } catch (fallbackError) {
-        console.error("Fallback event query also failed:", fallbackError);
-        eventsResult = []; // Empty array as last resort
-      }
+      console.error("Error fetching events:", eventError);
+      eventsResult = []; // Empty array as fallback
     }
 
-    // Get recent posts
-    const postsResult = await db.$queryRaw`
-      SELECT 
-        p.id,
-        p.title,
-        p.content,
-        p.created_at,
-        u.name as author_name,
-        u.avatar as author_avatar,
-        c.name as club_name,
-        c.color as club_color,
-        c.icon as club_icon
-      FROM posts p
-      LEFT JOIN users u ON p.author_id = u.id
-      LEFT JOIN clubs c ON p.club_id = c.id
-      ORDER BY p.created_at DESC
-      LIMIT 5
-    `;
+    // Get recent posts using SQL query
+    let postsResult: any[] = [];
+    try {
+      const postsQueryResult = await db.query(`
+        SELECT 
+          p.id,
+          p.title,
+          p.content,
+          p.created_at,
+          u.name as author_name,
+          u.avatar as author_avatar,
+          c.name as club_name,
+          c.color as club_color,
+          c.icon as club_icon
+        FROM posts p
+        LEFT JOIN users u ON p.author_id = u.id
+        LEFT JOIN clubs c ON p.club_id = c.id
+        WHERE p.deleted_at IS NULL
+        ORDER BY p.created_at DESC
+        LIMIT 5
+      `);
+      
+      postsResult = postsQueryResult.rows;
+    } catch (postsError) {
+      console.error("Error fetching posts:", postsError);
+      postsResult = [];
+    }
 
-    // Get the user's club_id - Prisma returns array directly
-    const userClubId = Array.isArray(userClubQuery) && userClubQuery.length > 0 
-      ? userClubQuery[0].club_id 
+    // Get the user's club_id
+    const userClubId = userClubQuery.rows.length > 0 
+      ? userClubQuery.rows[0].club_id 
       : null;
 
-    // Type assertions to work with Prisma's return types
-    const clubs = clubsResult as any[];
-    const announcements = announcementsResult as any[];
-    const events = eventsResult as any[];
-    const posts = postsResult as any[];
+    // Extract data from query results
+    const clubs = clubsResult.rows;
+    const announcements = announcementsResult.rows;
+    const events = eventsResult;
+    const posts = postsResult;
 
     return NextResponse.json({
       userClubId: userClubId, // Add user's club ID directly in the response

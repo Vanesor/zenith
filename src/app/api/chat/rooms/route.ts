@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { db } from '@/lib/database';
+import { verifyAuth } from "@/lib/auth-unified";
+import AuditLogger from "@/lib/audit-logger";
 
 // GET /api/chat/rooms - Get all chat rooms or by club
 export async function GET(request: NextRequest) {
@@ -17,48 +18,43 @@ export async function GET(request: NextRequest) {
     
     const userId = authResult.user!.id;
 
-    // Get user info to determine accessible rooms using Prisma
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: { club_id: true, role: true }
-    });
+    // Get user info to determine accessible rooms using raw SQL
+    const userResult = await db.query(
+      `SELECT club_id, role FROM users WHERE id = $1`,
+      [userId]
+    );
     
-    if (!user) {
+    if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+    
+    const user = userResult.rows[0];
     const { searchParams } = new URL(request.url);
     const clubId = searchParams.get("club_id") || user.club_id;
 
-    // Use Prisma directly to avoid UUID casting issues
-    const rooms = await db.chat_rooms.findMany({
-      where: {
-        OR: [
-          { type: "public" },
-          { club_id: clubId },
-          { created_by: userId }
-        ]
-      },
-      include: {
-        clubs: {
-          select: {
-            name: true
-          }
-        },
-        users: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      },
-      orderBy: [
-        { type: 'desc' },
-        { name: 'asc' }
-      ]
-    });
+    // Get chat rooms with club and creator information using raw SQL
+    const roomsResult = await db.query(`
+      SELECT 
+        cr.id,
+        cr.name,
+        cr.description,
+        cr.club_id,
+        cr.type,
+        cr.created_by,
+        cr.created_at,
+        cr.updated_at,
+        cr.members,
+        c.name as club_name,
+        u.name as creator_name
+      FROM chat_rooms cr
+      LEFT JOIN clubs c ON cr.club_id = c.id
+      LEFT JOIN users u ON cr.created_by = u.id
+      WHERE (cr.type = 'public' OR cr.club_id = $1 OR cr.created_by = $2)
+      ORDER BY cr.type DESC, cr.name ASC
+    `, [clubId, userId]);
 
     // Transform the data to match expected format
-    const transformedRooms = rooms.map(room => ({
+    const transformedRooms = roomsResult.rows.map(room => ({
       id: room.id,
       name: room.name,
       description: room.description,
@@ -68,9 +64,8 @@ export async function GET(request: NextRequest) {
       created_at: room.created_at,
       updated_at: room.updated_at,
       members: room.members,
-      // Get name from the included relations
-      club_name: room.clubs ? room.clubs.name : null,
-      creator_name: room.users ? room.users.name : null,
+      club_name: room.club_name,
+      creator_name: room.creator_name,
       members_count: Array.isArray(room.members) ? room.members.length : 0
     }));
     
@@ -108,33 +103,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user info using Prisma
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: { club_id: true, role: true }
-    });
+    // Get user info using raw SQL
+    const userResult = await db.query(
+      `SELECT club_id, role FROM users WHERE id = $1`,
+      [userId]
+    );
     
-    if (!user) {
+    if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     
+    const user = userResult.rows[0];
+    
     // Check for duplicate room names within the same club
-    const existingRoom = await db.chat_rooms.findFirst({
-      where: {
-        name: {
-          equals: name.trim(),
-          mode: 'insensitive'
-        },
-        club_id: user.club_id
-      }
-    });
+    const existingRoomResult = await db.query(`
+      SELECT id FROM chat_rooms 
+      WHERE LOWER(name) = LOWER($1) AND club_id = $2
+    `, [name.trim(), user.club_id]);
 
-    if (existingRoom) {
+    if (existingRoomResult.rows.length > 0) {
       return NextResponse.json(
         { error: "A room with this name already exists in your club" },
         { status: 409 }
       );
     }
+    
     const isManager = [
       "coordinator",
       "co_coordinator", 
@@ -153,30 +146,23 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
 
-    // Create room using Prisma
-    const room = await db.chat_rooms.create({
-      data: {
-        name: name.trim(),
-        description: description || '',
-        club_id: user.club_id,
-        type: type,
-        created_by: userId,
-        members: []
-      },
-      include: {
-        clubs: {
-          select: {
-            name: true
-          }
-        },
-        users: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      }
-    });
+    // Create room using raw SQL
+    const roomResult = await db.query(`
+      INSERT INTO chat_rooms (name, description, club_id, type, created_by, members)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, name, description, club_id, type, created_by, created_at, updated_at, members
+    `, [name.trim(), description || '', user.club_id, type, userId, JSON.stringify([])]);
+    
+    const room = roomResult.rows[0];
+    
+    // Get club and creator names
+    const detailsResult = await db.query(`
+      SELECT c.name as club_name, u.name as creator_name
+      FROM clubs c, users u
+      WHERE c.id = $1 AND u.id = $2
+    `, [room.club_id, room.created_by]);
+    
+    const details = detailsResult.rows[0] || {};
     
     // Transform to match expected format
     const transformedRoom = {
@@ -189,11 +175,26 @@ export async function POST(request: NextRequest) {
       created_at: room.created_at,
       updated_at: room.updated_at,
       members: room.members,
-      // Get name from the included relations
-      club_name: room.clubs ? room.clubs.name : null,
-      creator_name: room.users ? room.users.name : null,
+      club_name: details.club_name,
+      creator_name: details.creator_name,
       members_count: Array.isArray(room.members) ? room.members.length : 0
     };
+
+    // Log audit event for chat room creation
+    await AuditLogger.logChatAction(
+      'room_create',
+      room.id,
+      userId,
+      undefined, // no old values
+      {
+        name: room.name,
+        description: room.description,
+        type: room.type,
+        club_id: room.club_id
+      },
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+      request.headers.get('user-agent') || undefined
+    );
 
     return NextResponse.json({ 
       message: "Chat room created successfully",

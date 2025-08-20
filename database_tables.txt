@@ -1,0 +1,49 @@
+                      List of relations
+ Schema |           Name            | Type  |     Owner      
+--------+---------------------------+-------+----------------
+ public | ai_assignment_generations | table | zenithpostgres
+ public | announcements             | table | zenithpostgres
+ public | assignment_attempts       | table | zenithpostgres
+ public | assignment_audit_log      | table | zenithpostgres
+ public | assignment_questions      | table | zenithpostgres
+ public | assignment_submissions    | table | zenithpostgres
+ public | assignment_templates      | table | zenithpostgres
+ public | assignment_violations     | table | zenithpostgres
+ public | assignments               | table | zenithpostgres
+ public | audit_logs                | table | zenithpostgres
+ public | chat_attachments          | table | zenithpostgres
+ public | chat_invitations          | table | zenithpostgres
+ public | chat_messages             | table | zenithpostgres
+ public | chat_room_members         | table | zenithpostgres
+ public | chat_rooms                | table | zenithpostgres
+ public | club_members              | table | zenithpostgres
+ public | club_statistics           | table | zenithpostgres
+ public | clubs                     | table | zenithpostgres
+ public | code_results              | table | zenithpostgres
+ public | coding_submissions        | table | zenithpostgres
+ public | committee_members         | table | zenithpostgres
+ public | committee_roles           | table | zenithpostgres
+ public | committees                | table | zenithpostgres
+ public | discussion_replies        | table | zenithpostgres
+ public | discussions               | table | zenithpostgres
+ public | email_logs                | table | zenithpostgres
+ public | event_attendees           | table | zenithpostgres
+ public | event_registrations       | table | zenithpostgres
+ public | events                    | table | zenithpostgres
+ public | media_files               | table | zenithpostgres
+ public | messages                  | table | zenithpostgres
+ public | notifications             | table | zenithpostgres
+ public | proctoring_sessions       | table | zenithpostgres
+ public | query_cache               | table | zenithpostgres
+ public | question_media            | table | zenithpostgres
+ public | question_options          | table | zenithpostgres
+ public | question_responses        | table | zenithpostgres
+ public | security_events           | table | zenithpostgres
+ public | sessions                  | table | zenithpostgres
+ public | system_statistics         | table | zenithpostgres
+ public | trusted_devices           | table | zenithpostgres
+ public | user_activities           | table | zenithpostgres
+ public | user_badges               | table | zenithpostgres
+ public | users                     | table | zenithpostgres
+(44 rows)
+

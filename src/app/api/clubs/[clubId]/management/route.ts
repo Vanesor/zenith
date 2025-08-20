@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
   params: Promise<{ clubId: string }>;
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: Props) {
     const userQuery = `
       SELECT role, club_id FROM users WHERE id = $1
     `;
-    const userResult = await db.executeRawSQL(userQuery, [userId]);
+    const userResult = await db.query(userQuery, [userId]);
 
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       SELECT id, name, description, type, color 
       FROM clubs WHERE id = $1
     `;
-    const clubResult = await db.executeRawSQL(clubQuery, [clubId]);
+    const clubResult = await db.query(clubQuery, [clubId]);
 
     if (clubResult.rows.length === 0) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest, { params }: Props) {
         END,
         name ASC
     `;
-    const membersResult = await db.executeRawSQL(membersQuery, [clubId]);
+    const membersResult = await db.query(membersQuery, [clubId]);
 
     // Get club events
     const eventsQuery = `
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       ORDER BY event_date DESC
       LIMIT 10
     `;
-    const eventsResult = await db.executeRawSQL(eventsQuery, [clubId]);
+    const eventsResult = await db.query(eventsQuery, [clubId]);
 
     // Get club assignments
     const assignmentsQuery = `
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       ORDER BY due_date DESC
       LIMIT 10
     `;
-    const assignmentsResult = await db.executeRawSQL(assignmentsQuery, [clubId]);
+    const assignmentsResult = await db.query(assignmentsQuery, [clubId]);
 
     // Get club stats
     const statsQuery = `
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest, { params }: Props) {
         (SELECT COUNT(*) FROM assignments WHERE club_id = $1 AND due_date > NOW()) as pending_assignments,
         (SELECT COUNT(*) FROM posts WHERE club_id = $1 AND created_at >= date_trunc('month', CURRENT_DATE)) as monthly_posts
     `;
-    const statsResult = await db.executeRawSQL(statsQuery, [clubId]);
+    const statsResult = await db.query(statsQuery, [clubId]);
 
     return NextResponse.json({
       club: clubResult.rows[0],

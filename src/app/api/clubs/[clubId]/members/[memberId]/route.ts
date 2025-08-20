@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
+import db from "@/lib/database";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -30,7 +30,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const userQuery = `
       SELECT role, club_id FROM users WHERE id = $1
     `;
-    const userResult = await db.executeRawSQL(userQuery, [userId]);
+    const userResult = await db.query(userQuery, [userId]);
 
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -57,7 +57,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const memberQuery = `
       SELECT id, role, club_id FROM users WHERE id = $1
     `;
-    const memberResult = await db.executeRawSQL(memberQuery, [memberId]);
+    const memberResult = await db.query(memberQuery, [memberId]);
 
     if (memberResult.rows.length === 0) {
       return NextResponse.json({ error: "Member not found" }, { status: 404 });
@@ -98,7 +98,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const updateQuery = `
       UPDATE users SET club_id = NULL WHERE id = $1
     `;
-    await db.executeRawSQL(updateQuery, [memberId]);
+    await db.query(updateQuery, [memberId]);
 
     return NextResponse.json({
       message: "Member removed successfully",

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
 
 export async function GET(
   request: NextRequest,
@@ -8,57 +8,64 @@ export async function GET(
   try {
     const { clubId } = await params;
 
-    const club = await PrismaDB.getClubById(clubId);
+    // Connect to Prisma if not already connected
+    await db.$connect();
+
+    const club = await db.clubs.findUnique({
+      where: { id: clubId },
+      include: {
+        users_clubs_coordinator_idTousers: {
+          select: { name: true, email: true }
+        },
+        users_clubs_co_coordinator_idTousers: {
+          select: { name: true, email: true }
+        }
+      }
+    });
+    
     if (!club) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
     // Properly handle promises
-    const [members, events, posts, leadership] = await Promise.all([
-      PrismaDB.getClubMembers(clubId),
-      PrismaDB.getEventsByClub(clubId),
-      PrismaDB.getPostsByClub(clubId, 10),
-      PrismaDB.getClubLeadership(clubId),
-    ]);
-
-    // Ensure arrays
-    const membersArray = Array.isArray(members) ? members : [];
-    const eventsArray = Array.isArray(events) ? events : [];
-    const postsArray = Array.isArray(posts) ? posts : [];
-
-    // Get post authors and comment counts
-    const postsWithDetails = await Promise.all(
-      postsArray.map(async (post: any) => {
-        const author = await PrismaDB.getUserById(post.author_id);
-        const comments = await PrismaDB.getCommentsByPost(post.id);
-        const commentsArray = Array.isArray(comments) ? comments : [];
-
-        return {
-          ...post,
-          author_name: author?.name || "Unknown",
-          author_avatar: author?.avatar,
-          author_role: author?.role,
-          comment_count: commentsArray.length,
-          like_count: post.like_count || 0,
-        };
+    const [memberCount, events, posts] = await Promise.all([
+      // Get club members count
+      db.users.count({
+        where: { club_id: clubId }
+      }),
+      // Get club events
+      db.events.findMany({
+        where: { club_id: clubId },
+        orderBy: { event_date: 'desc' },
+        take: 10
+      }),
+      // Get club posts
+      db.posts.findMany({
+        where: { club_id: clubId },
+        orderBy: { created_at: 'desc' },
+        take: 10,
+        include: {
+          users_posts_author_idTousers: {
+            select: { name: true }
+          }
+        }
       })
-    );
-
-    // Get upcoming events only
-    const upcomingEvents = eventsArray.filter(
-      (event: any) => new Date(event.event_date) >= new Date()
-    );
+    ]);
 
     return NextResponse.json({
       club: {
         ...club,
-        memberCount: membersArray.length,
-        leadership,
+        coordinator: club.users_clubs_coordinator_idTousers,
+        co_coordinator: club.users_clubs_co_coordinator_idTousers,
       },
-      members,
-      events: upcomingEvents,
-      posts: postsWithDetails,
+      member_count: memberCount,
+      events,
+      posts: posts.map(post => ({
+        ...post,
+        author_name: post.users_posts_author_idTousers?.name || "Unknown",
+      })),
     });
+
   } catch (error) {
     console.error("Error fetching club details:", error);
     return NextResponse.json(

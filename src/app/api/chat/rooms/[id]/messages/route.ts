@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { verifyAuth, AuthenticatedRequest } from "@/lib/AuthMiddleware";
+import { db } from '@/lib/database';
+import { verifyAuth, AuthenticatedRequest } from "@/lib/auth-unified";
 
 // GET /api/chat/rooms/[id]/messages - Get messages for a specific room
 export async function GET(
@@ -25,24 +25,29 @@ export async function GET(
 
     const userId = authResult.user!.id;
 
-    // Verify user has access to this room using Prisma
-    const room = await db.chat_rooms.findFirst({
-      where: { id: roomId }
-    });
+    // Verify user has access to this room using raw SQL
+    const roomResult = await db.query(
+      `SELECT id, type, club_id, created_by, members FROM chat_rooms WHERE id = $1`,
+      [roomId]
+    );
 
-    if (!room) {
+    if (roomResult.rows.length === 0) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Get user info to check access
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: { club_id: true, role: true }
-    });
+    const room = roomResult.rows[0];
 
-    if (!user) {
+    // Get user info to check access
+    const userResult = await db.query(
+      `SELECT club_id, role FROM users WHERE id = $1`,
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    const user = userResult.rows[0];
     
     // Check if user has access to the room
     const hasAccess = 
@@ -55,30 +60,41 @@ export async function GET(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Get messages for the room using Prisma
-    const messages = await db.chat_messages.findMany({
-      where: { room_id: roomId },
-      include: {
-        users_chat_messages_sender_idTousers: {
-          select: {
-            name: true,
-            role: true,
-            avatar: true
-          }
-        }
-      },
-      orderBy: { created_at: 'desc' },
-      take: limit,
-      skip: offset,
-    });
+    // Get messages for the room using raw SQL
+    const messagesResult = await db.query(`
+      SELECT 
+        cm.id,
+        cm.room_id,
+        cm.sender_id,
+        cm.user_id,
+        cm.message,
+        cm.content,
+        cm.created_at,
+        cm.updated_at,
+        cm.is_edited,
+        cm.reply_to_message_id,
+        cm.message_type,
+        cm.attachments,
+        cm.reactions,
+        u.name as sender_name,
+        u.role,
+        u.avatar
+      FROM chat_messages cm
+      LEFT JOIN users u ON cm.sender_id = u.id
+      WHERE cm.room_id = $1
+      ORDER BY cm.created_at DESC
+      LIMIT $2 OFFSET $3
+    `, [roomId, limit, offset]);
+
+    const messages = messagesResult.rows;
 
     // Transform messages for client
-    const formattedMessages = messages.map((msg) => ({
+    const formattedMessages = messages.map((msg: any) => ({
       id: msg.id,
       room_id: msg.room_id,
       user_id: msg.sender_id || msg.user_id,
       message: msg.message || msg.content || '',
-      sender_name: msg.users_chat_messages_sender_idTousers?.name || 'Unknown User',
+      sender_name: msg.sender_name || 'Unknown User',
       created_at: msg.created_at,
       updated_at: msg.updated_at,
       is_edited: msg.is_edited,
@@ -123,43 +139,45 @@ export async function POST(
 
     const userId = authResult.user!.id;
 
-    // Verify user has access to this room using Prisma
-    const room = await db.chat_rooms.findFirst({
-      where: { id: roomId }
-    });
+    // Verify user has access to this room using raw SQL
+    const roomResult = await db.query(
+      `SELECT id, type, club_id, created_by, members FROM chat_rooms WHERE id = $1`,
+      [roomId]
+    );
 
-    if (!room) {
+    if (roomResult.rows.length === 0) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Check if user is a member of the room
-    const isMember = await db.chat_room_members.findFirst({
-      where: {
-        chat_room_id: roomId,
-        user_id: userId
-      }
-    });
+    const room = roomResult.rows[0];
 
-    // Also allow room creator to send messages
-    const isCreator = room.created_by === userId;
+    // Check if user is a member of the room (simplified access check)
+    const hasAccess = 
+      room.type === 'public' || 
+      room.created_by === userId ||
+      (room.members && Array.isArray(room.members) && room.members.includes(userId));
 
-    if (!isMember && !isCreator) {
+    if (!hasAccess) {
       return NextResponse.json({ error: "You are not a member of this room" }, { status: 403 });
     }
 
-    // Create the message
-    const message = await db.chat_messages.create({
-      data: {
-        room_id: roomId,
-        sender_id: userId,
-        message: body.message,
-        content: body.message,
-        message_type: body.message_type || 'text',
-        reply_to_message_id: body.reply_to_message_id,
-        attachments: body.attachments || [],
-        message_images: body.message_images || []
-      }
-    });
+    // Create the message using raw SQL
+    const messageResult = await db.query(`
+      INSERT INTO chat_messages (room_id, sender_id, message, content, message_type, reply_to_message_id, attachments, message_images)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, room_id, sender_id, message, content, created_at, is_edited, reply_to_message_id, message_type, attachments
+    `, [
+      roomId,
+      userId,
+      body.message,
+      body.message,
+      body.message_type || 'text',
+      body.reply_to_message_id || null,
+      JSON.stringify(body.attachments || []),
+      JSON.stringify(body.message_images || [])
+    ]);
+
+    const message = messageResult.rows[0];
 
     // Format response
     const formattedMessage = {

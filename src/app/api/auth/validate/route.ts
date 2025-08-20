@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { verifyAuth } from "@/lib/auth-unified";
 
 export async function GET(request: NextRequest) {
   try {

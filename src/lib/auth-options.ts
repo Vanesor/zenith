@@ -2,9 +2,11 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { db, executeRawSQL, queryRawSQL } from "./database-service";
-import bcrypt from "bcryptjs";
+import DatabaseClient, { queryRawSQL, executeRawSQL } from "./database";
+import { hashPassword, verifyPassword } from "./auth-unified";
 import { v4 as uuidv4 } from "uuid";
+
+const db = DatabaseClient;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -60,7 +62,7 @@ export const authOptions: NextAuthOptions = {
           if (!user) return null;
 
           // Verify password
-          const isValidPassword = await bcrypt.compare(
+          const isValidPassword = await verifyPassword(
             password,
             user.password_hash
           );
@@ -83,9 +85,9 @@ export const authOptions: NextAuthOptions = {
             }
 
             // Verify TOTP code
-            const isValidTOTP = TwoFactorAuthService.verifyToken(
-              totpCode,
-              user.totp_secret
+            const isValidTOTP = await TwoFactorAuthService.verifyTotp(
+              user.id,
+              totpCode
             );
 
             if (!isValidTOTP) return null;
@@ -119,8 +121,7 @@ export const authOptions: NextAuthOptions = {
             const existingUserByOAuth = await queryRawSQL(
               `SELECT * FROM users 
                WHERE oauth_provider = $1 AND oauth_id = $2`,
-              account.provider, 
-              account.providerAccountId
+              [account.provider, account.providerAccountId]
             );
 
             // If user exists, use it
@@ -130,7 +131,7 @@ export const authOptions: NextAuthOptions = {
               // Try to find user by email
               const existingUserByEmail = await queryRawSQL(
                 `SELECT * FROM users WHERE email = $1`,
-                user.email
+                [user.email]
               );
 
               if (existingUserByEmail.rows.length > 0) {
@@ -160,16 +161,18 @@ export const authOptions: NextAuthOptions = {
                    (id, email, name, avatar, role, oauth_provider, oauth_id, oauth_data, email_verified, has_password) 
                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                    RETURNING *`,
-                  uuidv4(),
-                  user.email,
-                  user.name,
-                  user.image,
-                  "student", // Default role
-                  account.provider,
-                  account.providerAccountId,
-                  JSON.stringify(account),
-                  true, // Email already verified through OAuth
-                  false // User needs to set a password
+                  [
+                    uuidv4(),
+                    user.email,
+                    user.name,
+                    user.image,
+                    "student", // Default role
+                    account.provider,
+                    account.providerAccountId,
+                    JSON.stringify(account),
+                    true, // Email already verified through OAuth
+                    false // User needs to set a password
+                  ]
                 );
 
                 dbUser = result.rows[0];

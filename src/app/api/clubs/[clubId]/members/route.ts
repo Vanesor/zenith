@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
+import { db } from '@/lib/database';
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -12,9 +12,45 @@ interface Props {
   params: Promise<{ clubId: string }>;
 }
 
+// GET /api/clubs/[clubId]/members - Get club members
+export async function GET(request: NextRequest, { params }: Props) {
+  try {
+    // Connect to Prisma if not already connected
+    await db.$connect();
+    
+    const { clubId } = await params;
+
+    // Get club members
+    const members = await db.users.findMany({
+      where: { club_id: clubId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+
+    return NextResponse.json({ members });
+  } catch (error) {
+    console.error("Error fetching club members:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch club members" },
+      { status: 500 }
+    );
+  }
+}
+
 // POST /api/clubs/[clubId]/members - Add member to club
 export async function POST(request: NextRequest, { params }: Props) {
   try {
+    // Connect to Prisma if not already connected
+    await db.$connect();
+    
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -32,16 +68,15 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Check if user is a manager of this club
-    const userQuery = `
-      SELECT role, club_id FROM users WHERE id = $1
-    `;
-    const userResult = await db.executeRawSQL(userQuery, [userId]);
+    const user = await db.users.findUnique({
+      where: { id: userId },
+      select: { role: true, club_id: true }
+    });
     
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const user = userResult.rows[0];
     const isManager = [
       "coordinator",
       "co_coordinator", 
@@ -52,38 +87,43 @@ export async function POST(request: NextRequest, { params }: Props) {
       "innovation_head",
       "treasurer",
       "outreach",
-    ].includes(user.role);
+    ].includes(user.role || '');
 
     if (!isManager || user.club_id !== clubId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     // Check if user exists and is not already in a club
-    const targetUserQuery = `
-      SELECT id, name, email, club_id FROM users WHERE email = $1
-    `;
-    const targetUserResult = await db.executeRawSQL(targetUserQuery, [email]);
+    const targetUser = await db.users.findUnique({
+      where: { email },
+      select: { id: true, name: true, email: true, club_id: true }
+    });
     
-    if (targetUserResult.rows.length === 0) {
+    if (!targetUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    const targetUser = targetUserResult.rows[0];
     
     if (targetUser.club_id) {
       return NextResponse.json({ error: "User is already in a club" }, { status: 400 });
     }
 
     // Add user to club
-    const updateQuery = `
-      UPDATE users SET club_id = $1 WHERE id = $2
-      RETURNING id, name, email, role, created_at as joined_at, avatar
-    `;
-    const updateResult = await db.executeRawSQL(updateQuery, [clubId, targetUser.id]);
+    const updatedUser = await db.users.update({
+      where: { id: targetUser.id },
+      data: { club_id: clubId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true,
+        avatar: true
+      }
+    });
 
     return NextResponse.json({ 
       message: "Member added successfully",
-      member: updateResult.rows[0]
+      member: updatedUser
     });
   } catch (error) {
     console.error("Error adding club member:", error);

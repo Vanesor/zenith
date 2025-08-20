@@ -1,0 +1,81 @@
+import { NextRequest, NextResponse } from "next/server";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
+
+
+
+
+
+// POST /api/assignments/questions/options
+export async function POST(request: NextRequest) {
+  try {
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
+
+    // Parse request body
+    const body = await request.json();
+    const { questionId, optionText, isCorrect, ordering } = body;
+
+    // Validate required fields
+    if (!questionId || optionText === undefined) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check if the question exists and if user has permission
+    const questionCheck = await db.$executeRaw(
+      `SELECT q.id, a.created_by, u.role
+       FROM assignment_questions q
+       JOIN assignments a ON q.assignment_id = a.id
+       JOIN users u ON a.created_by = u.id
+       WHERE q.id = $1`,
+      [questionId]
+    );
+
+    if (questionCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Question not found" },
+        { status: 404 }
+      );
+    }
+
+    const question = questionCheck.rows[0];
+    const isCreator = question.created_by === userId;
+    const isAdmin = question.role === "admin";
+
+    if (!isCreator && !isAdmin) {
+      return NextResponse.json(
+        { error: "You don't have permission to modify this question" },
+        { status: 403 }
+      );
+    }
+
+    // Insert the option
+    const result = await db.$executeRaw(
+      `INSERT INTO question_options (
+        question_id, option_text, is_correct, ordering
+      )
+      VALUES ($1, $2, $3, $4)
+      RETURNING *`,
+      [questionId, optionText, isCorrect || false, ordering || 0]
+    );
+
+    return NextResponse.json(result.rows[0], { status: 201 });
+  } catch (error) {
+    console.error("Error adding option:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

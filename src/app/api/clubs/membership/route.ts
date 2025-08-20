@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/AuthMiddleware";
-import db, { prismaClient as prisma } from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
+import db from "@/lib/database";
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-fallback-secret";
@@ -16,7 +16,11 @@ async function getUserFromToken(request: NextRequest) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-    return await Database.getUserById(decoded.userId);
+    const userResult = await db.query(
+      `SELECT id, email, name, role, club_id FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [decoded.userId]
+    );
+    return userResult.rows.length > 0 ? userResult.rows[0] : null;
   } catch {
     return null;
   }
@@ -54,11 +58,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Join the club using the database function
-    await Database.joinClub(user.id, clubId);
+    await db.query(`UPDATE users SET club_id = $1, updated_at = NOW() WHERE id = $2`, [clubId, user.id]);
 
     // Get updated user info
-    const updatedUser = await Database.getUserById(user.id);
-    const club = await Database.getClubById(clubId);
+    const updatedUser = await db.query(`SELECT id, email, name, role, club_id FROM users WHERE id = $1 AND deleted_at IS NULL`, [user.id]).then(r => r.rows[0] || null);
+    const club = await db.query(`SELECT * FROM clubs WHERE id = $1 AND deleted_at IS NULL`, [clubId]).then(r => r.rows[0] || null);
 
     return NextResponse.json({
       success: true,
@@ -98,10 +102,10 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const currentClub = await Database.getClubById(user.club_id);
+    const currentClub = await db.query(`SELECT * FROM clubs WHERE id = $1 AND deleted_at IS NULL`, [user.club_id]).then(r => r.rows[0] || null);
 
     // Leave the club
-    await Database.leaveClub(user.id);
+    await db.query(`UPDATE users SET club_id = NULL, updated_at = NOW() WHERE id = $1`, [user.id]);
 
     return NextResponse.json({
       success: true,
@@ -137,9 +141,9 @@ export async function PUT(request: NextRequest) {
     }
 
     const oldClub = user.club_id
-      ? await Database.getClubById(user.club_id)
+      ? await db.query(`SELECT * FROM clubs WHERE id = $1 AND deleted_at IS NULL`, [user.club_id]).then(r => r.rows[0] || null)
       : null;
-    const newClub = await Database.getClubById(newClubId);
+    const newClub = await db.query(`SELECT * FROM clubs WHERE id = $1 AND deleted_at IS NULL`, [newClubId]).then(r => r.rows[0] || null);
 
     if (!newClub) {
       return NextResponse.json(
@@ -149,7 +153,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Switch clubs
-    await Database.switchClub(user.id, newClubId);
+    await db.query(`UPDATE users SET club_id = $1, updated_at = NOW() WHERE id = $2`, [newClubId, user.id]);
 
     return NextResponse.json({
       success: true,

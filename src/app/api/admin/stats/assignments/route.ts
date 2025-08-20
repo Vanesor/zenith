@@ -1,24 +1,22 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
 
 export async function GET() {
   try {
-    const prisma = prisma;
-    
     // Set default count for active assignments
     const defaultCount = 32;
     
     // Try to get real count from the database
     let currentCount;
     try {
-      const result = await db.$queryRaw`
+      const result = await db.query(`
         SELECT COUNT(*) as count 
         FROM assignments 
         WHERE status = 'active' AND due_date >= NOW()
-      `;
+      `);
       
-      if (Array.isArray(result) && result.length > 0) {
-        currentCount = Number(result[0].count);
+      if (result.rows && result.rows.length > 0) {
+        currentCount = Number(result.rows[0].count);
       } else {
         currentCount = defaultCount;
       }

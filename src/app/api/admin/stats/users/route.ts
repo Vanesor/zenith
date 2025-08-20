@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
 
 export async function GET() {
   try {
     // In a production environment, we would check authentication here
     // For now, we'll proceed without the check for demo purposes
     
-    const prisma = prisma;
-    
     // Simulate user count since we're having connection issues
     let currentCount;
     
     try {
       // Try to get actual count if database is accessible
-      const result: any = await db.$queryRaw`SELECT COUNT(*) as count FROM users`;
-      currentCount = parseInt(result[0]?.count) || 854;
+      const result = await db.query(`SELECT COUNT(*) as count FROM users`);
+      currentCount = parseInt(result.rows[0]?.count) || 854;
     } catch (error) {
       console.error('Error fetching user count, using default value:', error);
       currentCount = 854; // Default fallback value
@@ -27,8 +25,6 @@ export async function GET() {
     const change = ((currentCount - lastMonthCount) / lastMonthCount * 100).toFixed(0);
     const trend = currentCount > lastMonthCount ? 'up' : 
                  currentCount < lastMonthCount ? 'down' : 'neutral';
-    
-    await db.$disconnect();
     
     return new NextResponse(JSON.stringify({ 
       count: currentCount,

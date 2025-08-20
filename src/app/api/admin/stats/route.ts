@@ -1,7 +1,8 @@
 // Server-side file to handle API requests for the admin dashboard
 
+import { verifyAuth } from "@/lib/auth-unified";
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { db } from '@/lib/database';
 
 // Types for analytics data
 interface AdminStatsResponse {
@@ -9,301 +10,262 @@ interface AdminStatsResponse {
   totalClubs: number;
   totalEvents: number;
   totalAssignments: number;
-  activeUsers: number;
-  recentJoins: number;
-  pendingAssignments: number;
-  userGrowth: {
-    change: string;
-    trend: 'up' | 'down' | 'neutral';
+  totalComments: number;
+  totalPosts: number;
+  weeklyStats: {
+    newUsers: number;
+    newEvents: number;
+    newAssignments: number;
+    newPosts: number;
   };
-  assignmentGrowth: {
-    change: string;
-    trend: 'up' | 'down' | 'neutral';
+  usersByRole: {
+    admin: number;
+    coordinator: number;
+    committee_member: number;
+    student: number;
   };
-  eventGrowth: {
-    change: string;
-    trend: 'up' | 'down' | 'neutral';
-  };
-  engagementRate: {
-    value: string;
-    change: string;
-    trend: 'up' | 'down' | 'neutral';
-  };
+  recentActivities: Array<{
+    id: string;
+    action: string;
+    user: string;
+    timestamp: string;
+    details: string;
+  }>;
 }
 
-interface ClubStatistics {
-  id: string;
-  name: string;
-  memberCount: number;
-  eventCount: number;
-  assignmentCount: number;
-  engagement: number;
-  growthRate?: number;
+interface ClubStatsResponse {
+  members: number;
+  events: number;
+  assignments: number;
+  posts: number;
+  recentActivity: Array<{
+    type: string;
+    title: string;
+    date: string;
+  }>;
 }
 
-interface RecentActivity {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  action: string;
-  targetType: string;
-  targetId: string;
-  targetName: string;
-  timestamp: string;
-  details?: string;
-}
-
-// Handler for fetching admin dashboard statistics
-export async function GET(req: NextRequest) {
+async function fetchAdminStats(): Promise<AdminStatsResponse> {
   try {
-    // Verify user has admin permissions
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    // Get total counts using SQL queries
+    const totalCountsQuery = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM users WHERE deleted_at IS NULL) as total_users,
+        (SELECT COUNT(*) FROM clubs WHERE deleted_at IS NULL) as total_clubs,
+        (SELECT COUNT(*) FROM events WHERE deleted_at IS NULL) as total_events,
+        (SELECT COUNT(*) FROM assignments WHERE deleted_at IS NULL) as total_assignments,
+        (SELECT COUNT(*) FROM comments WHERE deleted_at IS NULL) as total_comments,
+        (SELECT COUNT(*) FROM posts WHERE deleted_at IS NULL) as total_posts
+    `);
+
+    const totals = totalCountsQuery.rows[0];
+
+    // Get weekly stats using SQL queries
+    const weeklyCountsQuery = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM users WHERE created_at >= $1 AND deleted_at IS NULL) as weekly_users,
+        (SELECT COUNT(*) FROM events WHERE created_at >= $1 AND deleted_at IS NULL) as weekly_events,
+        (SELECT COUNT(*) FROM assignments WHERE created_at >= $1 AND deleted_at IS NULL) as weekly_assignments,
+        (SELECT COUNT(*) FROM posts WHERE created_at >= $1 AND deleted_at IS NULL) as weekly_posts
+    `, [oneWeekAgo]);
+
+    const weekly = weeklyCountsQuery.rows[0];
+
+    // Get users by role using SQL query
+    const usersByRoleResult = await db.query(`
+      SELECT role, COUNT(*) as count
+      FROM users 
+      WHERE deleted_at IS NULL
+      GROUP BY role
+    `);
+
+    const roleStats = {
+      admin: 0,
+      coordinator: 0,
+      committee_member: 0,
+      student: 0
+    };
+
+    usersByRoleResult.rows.forEach((group: { role: string; count: string }) => {
+      if (group.role in roleStats) {
+        roleStats[group.role as keyof typeof roleStats] = parseInt(group.count);
+      }
+    });
+
+    // Get recent activities from user_activities table
+    const recentActivitiesResult = await db.query(`
+      SELECT 
+        ua.id,
+        ua.action,
+        ua.created_at,
+        ua.details,
+        ua.target_name,
+        u.name as user_name,
+        u.email as user_email
+      FROM user_activities ua
+      LEFT JOIN users u ON ua.user_id = u.id
+      WHERE ua.deleted_at IS NULL
+      ORDER BY ua.created_at DESC
+      LIMIT 10
+    `);
+
+    return {
+      totalUsers: parseInt(totals.total_users),
+      totalClubs: parseInt(totals.total_clubs),
+      totalEvents: parseInt(totals.total_events),
+      totalAssignments: parseInt(totals.total_assignments),
+      totalComments: parseInt(totals.total_comments),
+      totalPosts: parseInt(totals.total_posts),
+      weeklyStats: {
+        newUsers: parseInt(weekly.weekly_users),
+        newEvents: parseInt(weekly.weekly_events),
+        newAssignments: parseInt(weekly.weekly_assignments),
+        newPosts: parseInt(weekly.weekly_posts)
+      },
+      usersByRole: roleStats,
+      recentActivities: recentActivitiesResult.rows.map((activity: any) => ({
+        id: activity.id.toString(),
+        action: activity.action,
+        user: activity.user_name || 'Unknown User',
+        timestamp: activity.created_at?.toISOString() || '',
+        details: activity.details ? JSON.stringify(activity.details) : activity.target_name || ''
+      }))
+    };
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    throw error;
+  }
+}
+
+async function fetchClubStats(clubId: string): Promise<ClubStatsResponse> {
+  try {
+    // Get club stats using SQL queries
+    const clubStatsQuery = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM club_members WHERE club_id = $1 AND status = 'active') as members,
+        (SELECT COUNT(*) FROM events WHERE club_id = $1 AND deleted_at IS NULL) as events,
+        (SELECT COUNT(*) FROM assignments WHERE club_id = $1 AND deleted_at IS NULL) as assignments,
+        (SELECT COUNT(*) FROM posts WHERE club_id = $1 AND deleted_at IS NULL) as posts
+    `, [clubId]);
+
+    const stats = clubStatsQuery.rows[0];
+
+    // Get recent activity
+    const recentEventsResult = await db.query(`
+      SELECT title, created_at 
+      FROM events 
+      WHERE club_id = $1 AND deleted_at IS NULL
+      ORDER BY created_at DESC 
+      LIMIT 5
+    `, [clubId]);
+
+    const recentAssignmentsResult = await db.query(`
+      SELECT title, created_at 
+      FROM assignments 
+      WHERE club_id = $1 AND deleted_at IS NULL
+      ORDER BY created_at DESC 
+      LIMIT 5
+    `, [clubId]);
+
+    const recentActivity = [
+      ...recentEventsResult.rows.map((event: any) => ({
+        type: 'event',
+        title: event.title,
+        date: event.created_at?.toISOString() || ''
+      })),
+      ...recentAssignmentsResult.rows.map((assignment: any) => ({
+        type: 'assignment',
+        title: assignment.title,
+        date: assignment.created_at?.toISOString() || ''
+      }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
+
+    return {
+      members: parseInt(stats.members),
+      events: parseInt(stats.events),
+      assignments: parseInt(stats.assignments),
+      posts: parseInt(stats.posts),
+      recentActivity
+    };
+  } catch (error) {
+    console.error('Error fetching club stats:', error);
+    throw error;
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authResult.error || 'Unauthorized' },
         { status: 401 }
       );
     }
+
+    const user = authResult.user!;
     
-    // Get user role and permissions
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role, is_committee_member, is_coordinator')
-      .eq('id', user.id)
-      .single();
-      
-    if (userError || !(userData?.role === 'admin' || userData?.is_committee_member || userData?.is_coordinator)) {
+    // Check if user has admin permissions
+    if (!['admin', 'coordinator', 'committee_member'].includes(user.role)) {
       return NextResponse.json(
-        { error: 'Unauthorized access' },
+        { error: 'Forbidden: Admin access required' },
         { status: 403 }
       );
     }
-    
-    // Get URL parameters
-    const url = new URL(req.url);
-    const dataType = url.searchParams.get('data') || 'all';
-    const clubId = url.searchParams.get('clubId');
-    
-    let responseData: any = {};
-    
-    // Fetch appropriate data based on request parameters
-    if (dataType === 'all' || dataType === 'stats') {
-      const stats = await fetchAdminStats(supabase);
-      responseData.stats = stats;
+
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type') || 'admin';
+    const clubId = searchParams.get('clubId');
+    const limit = parseInt(searchParams.get('limit') || '10');
+
+    // Route to appropriate handler
+    switch (type) {
+      case 'admin':
+        if (user.role !== 'admin') {
+          return NextResponse.json(
+            { error: 'Forbidden: Admin role required' },
+            { status: 403 }
+          );
+        }
+        const stats = await fetchAdminStats();
+        return NextResponse.json(stats);
+        
+      case 'club':
+        if (!clubId) {
+          return NextResponse.json(
+            { error: 'Club ID is required for club stats' },
+            { status: 400 }
+          );
+        }
+        
+        // Check if user can access this club's stats
+        if (user.role !== 'admin' && user.club_id !== clubId) {
+          return NextResponse.json(
+            { error: 'Forbidden: Cannot access other club stats' },
+            { status: 403 }
+          );
+        }
+        
+        const clubStats = await fetchClubStats(clubId);
+        return NextResponse.json(clubStats);
+        
+      default:
+        return NextResponse.json(
+          { error: 'Invalid stats type' },
+          { status: 400 }
+        );
     }
-    
-    if (dataType === 'all' || dataType === 'clubs') {
-      const clubs = await fetchClubStats(supabase, clubId);
-      responseData.clubs = clubs;
-    }
-    
-    if (dataType === 'all' || dataType === 'activity') {
-      const limit = parseInt(url.searchParams.get('limit') || '10', 10);
-      const activities = await fetchRecentActivities(supabase, limit);
-      responseData.activities = activities;
-    }
-    
-    if (dataType === 'all' || dataType === 'assignments') {
-      const assignments = await fetchAssignmentStats(supabase, clubId);
-      responseData.assignments = assignments;
-    }
-    
-    return NextResponse.json(responseData);
-    
+
   } catch (error) {
-    console.error('Admin API error:', error);
+    console.error('API Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
-}
-
-// Function to fetch overall admin statistics
-async function fetchAdminStats(supabase: any): Promise<AdminStatsResponse> {
-  // Get total users
-  const { count: totalUsers } = await supabase
-    .from('users')
-    .select('*', { count: 'exact', head: true });
-  
-  // Get total clubs
-  const { count: totalClubs } = await supabase
-    .from('clubs')
-    .select('*', { count: 'exact', head: true });
-  
-  // Get total events
-  const { count: totalEvents } = await supabase
-    .from('events')
-    .select('*', { count: 'exact', head: true });
-  
-  // Get total assignments
-  const { count: totalAssignments } = await supabase
-    .from('assignments')
-    .select('*', { count: 'exact', head: true });
-    
-  // Get active users (logged in within last 7 days)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  
-  const { count: activeUsers } = await supabase
-    .from('users')
-    .select('*', { count: 'exact', head: true })
-    .gt('last_login', sevenDaysAgo.toISOString());
-    
-  // Get recent joins (last 30 days)
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
-  const { count: recentJoins } = await supabase
-    .from('users')
-    .select('*', { count: 'exact', head: true })
-    .gt('created_at', thirtyDaysAgo.toISOString());
-    
-  // Get pending assignments
-  const { count: pendingAssignments } = await supabase
-    .from('assignments')
-    .select('*', { count: 'exact', head: true })
-    .gt('due_date', new Date().toISOString());
-    
-  // Calculate growth percentages and trends
-  // Note: In a real implementation, you would compare with previous period data
-  
-  return {
-    totalUsers,
-    totalClubs,
-    totalEvents,
-    totalAssignments,
-    activeUsers,
-    recentJoins,
-    pendingAssignments,
-    userGrowth: {
-      change: '+12%', // This would be calculated from actual data
-      trend: 'up'
-    },
-    assignmentGrowth: {
-      change: '+5%',
-      trend: 'up'
-    },
-    eventGrowth: {
-      change: '-2%',
-      trend: 'down'
-    },
-    engagementRate: {
-      value: '73%',
-      change: '+8%',
-      trend: 'up'
-    }
-  };
-}
-
-// Function to fetch club statistics
-async function fetchClubStats(supabase: any, clubId?: string | null): Promise<ClubStatistics[]> {
-  let query = supabase.from('clubs').select(`
-    id,
-    name,
-    member_count,
-    created_at,
-    events (id),
-    assignments (id)
-  `);
-  
-  if (clubId) {
-    query = query.eq('id', clubId);
-  }
-  
-  const { data, error } = await query;
-  
-  if (error) throw error;
-  
-  return data.map((club: any) => ({
-    id: club.id,
-    name: club.name,
-    memberCount: club.member_count,
-    eventCount: club.events.length,
-    assignmentCount: club.assignments.length,
-    engagement: calculateClubEngagement(club), // Function to calculate engagement based on various metrics
-  }));
-}
-
-// Helper function to calculate club engagement
-function calculateClubEngagement(club: any): number {
-  // In a real implementation, this would be based on:
-  // - Event attendance rates
-  // - Assignment submission rates
-  // - Comment and interaction metrics
-  // - Active vs. inactive member ratio
-  
-  // For now, returning a random engagement score between 50-95%
-  return Math.floor(50 + Math.random() * 45);
-}
-
-// Function to fetch recent activities
-async function fetchRecentActivities(supabase: any, limit: number = 10): Promise<RecentActivity[]> {
-  const { data, error } = await supabase
-    .from('user_activities')
-    .select(`
-      id,
-      user_id,
-      action,
-      target_type,
-      target_id,
-      target_name,
-      created_at,
-      details,
-      users (name, avatar_url)
-    `)
-    .order('created_at', { ascending: false })
-    .limit(limit);
-    
-  if (error) throw error;
-  
-  return data.map((activity: any) => ({
-    id: activity.id,
-    userId: activity.user_id,
-    userName: activity.users?.name || 'Unknown User',
-    userAvatar: activity.users?.avatar_url,
-    action: activity.action,
-    targetType: activity.target_type,
-    targetId: activity.target_id,
-    targetName: activity.target_name,
-    timestamp: activity.created_at,
-    details: activity.details
-  }));
-}
-
-// Function to fetch assignment statistics
-async function fetchAssignmentStats(supabase: any, clubId?: string | null) {
-  let query = supabase.from('assignments').select(`
-    id,
-    title,
-    club_id,
-    clubs (name),
-    due_date,
-    submission_count,
-    total_members,
-    average_score
-  `);
-  
-  if (clubId) {
-    query = query.eq('club_id', clubId);
-  }
-  
-  const { data, error } = await query
-    .order('due_date', { ascending: true })
-    .limit(10);
-    
-  if (error) throw error;
-  
-  return data.map((assignment: any) => ({
-    id: assignment.id,
-    title: assignment.title,
-    clubId: assignment.club_id,
-    clubName: assignment.clubs.name,
-    dueDate: assignment.due_date,
-    submissionCount: assignment.submission_count || 0,
-    totalMembers: assignment.total_members || 0,
-    averageScore: assignment.average_score || 0
-  }));
 }

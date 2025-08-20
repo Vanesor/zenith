@@ -82,3 +82,69 @@ export const handleImageError = (
     }
   }
 };
+
+// Handle clipboard paste events for images
+export const handleClipboardPaste = async (
+  event: ClipboardEvent,
+  onImageCapture: (file: File) => void,
+  onTextCapture?: (text: string) => void
+): Promise<void> => {
+  if (!event.clipboardData) return;
+
+  // Handle images
+  const items = Array.from(event.clipboardData.items);
+  for (const item of items) {
+    // Handle image paste
+    if (item.type.indexOf('image') === 0) {
+      const file = item.getAsFile();
+      if (file && onImageCapture) {
+        // Prevent default to avoid duplicate paste
+        event.preventDefault();
+        onImageCapture(file);
+        return;
+      }
+    }
+    
+    // Handle text paste if no image is found and handler is provided
+    else if (item.type === 'text/plain' && onTextCapture) {
+      item.getAsString((text) => {
+        onTextCapture(text);
+      });
+    }
+  }
+};
+
+// Upload an image file to supabase storage
+export const uploadImageToStorage = async (
+  file: File, 
+  folderPath: string = 'chat'
+): Promise<string | null> => {
+  try {
+    // Generate a unique filename to avoid collisions
+    const timestamp = new Date().getTime();
+    const randomString = Math.random().toString(36).substring(2, 10);
+    const fileName = `${timestamp}_${randomString}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const fullPath = `${folderPath}/${fileName}`;
+    
+    // Create a FormData object
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', fullPath);
+    
+    // Send the upload request to our API route
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error('Upload failed');
+    }
+    
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return null;
+  }
+};

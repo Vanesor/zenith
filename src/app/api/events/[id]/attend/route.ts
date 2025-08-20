@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     const userId = authResult.user!.id;
     
     // Check if event exists
-    const eventCheck = await db.executeRawSQL(
+    const eventCheck = await db.query(
       `SELECT id, max_attendees FROM events WHERE id = $1`,
       [eventId]
     );
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     
     // Check if event has reached maximum attendees
     if (event.max_attendees) {
-      const attendeeCountResult = await db.executeRawSQL(
+      const attendeeCountResult = await db.query(
         `SELECT COUNT(*) as count FROM event_attendees WHERE event_id = $1`,
         [eventId]
       );
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
     
     // Check if user is already attending
-    const attendCheck = await db.executeRawSQL(
+    const attendCheck = await db.query(
       `SELECT * FROM event_attendees WHERE event_id = $1 AND user_id = $2`,
       [eventId, userId]
     );
@@ -65,13 +65,13 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
     
     // Add user to event attendees
-    await db.executeRawSQL(
+    await db.query(
       `INSERT INTO event_attendees (event_id, user_id) VALUES ($1, $2)`,
       [eventId, userId]
     );
     
     // Notify event organizer
-    await db.executeRawSQL(
+    await db.query(
       `INSERT INTO notifications (
         user_id,
         title,
@@ -116,7 +116,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const userId = authResult.user!.id;
     
     // Check if event exists
-    const eventCheck = await db.executeRawSQL(
+    const eventCheck = await db.query(
       `SELECT id FROM events WHERE id = $1`,
       [eventId]
     );
@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const event = eventCheck.rows[0];
     
     // Check if user is attending
-    const attendCheck = await db.executeRawSQL(
+    const attendCheck = await db.query(
       `SELECT id FROM event_attendees WHERE event_id = $1 AND user_id = $2`,
       [eventId, userId]
     );
@@ -141,13 +141,13 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
     
     // Remove user from event attendees
-    await db.executeRawSQL(
+    await db.query(
       `DELETE FROM event_attendees WHERE event_id = $1 AND user_id = $2`,
       [eventId, userId]
     );
     
     // Notify event organizer
-    await db.executeRawSQL(
+    await db.query(
       `INSERT INTO notifications (
         user_id,
         title,

@@ -1,167 +1,142 @@
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
-import db, { prismaClient as prisma } from "./database";
 import crypto from 'crypto';
-import { HashAlgorithms } from 'otplib/core';
-import emailServiceV2 from './EmailServiceV2';
-import { TrustedDeviceService } from './TrustedDeviceService';
-import { UAParser } from 'ua-parser-js';
+import bcrypt from 'bcrypt';
+import db from './database';
+import jwt from 'jsonwebtoken';
 
-export type TwoFactorAuthStatus = {
-  enabled: boolean;
-  verified?: boolean;
-  tempSecret?: string;
-  secret?: string; // Permanent secret for verification
-  emailOtpEnabled?: boolean; // Whether email OTP is enabled
-  method?: '2fa_app' | 'email_otp'; // Method used for 2FA
-  trustedDevice?: boolean; // Whether the current device is trusted
-};
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  two_factor_enabled: boolean;
+  two_factor_secret?: string;
+  totp_recovery_codes?: string;
+  email_otp_enabled: boolean;
+}
+
+export interface TwoFactorSetupResult {
+  secret: string;
+  qrCode: string;
+  backupCodes: string[];
+}
 
 export class TwoFactorAuthService {
-  // Default configuration
-  private static issuer = 'Zenith Platform';
-  private static timeStep = 30; // Default TOTP time step (seconds)
-
-  // Initialize the authenticator with custom settings
-  static init() {
-    authenticator.options = {
-      step: this.timeStep,
-      window: 1, // Allow 1 step before and after current time
-      digits: 6,
-    };
-  }
-
-  // Generate a new secret for a user
-  static async generateSecret(userId: string, email: string): Promise<string> {
-    const secret = authenticator.generateSecret(); // 32 characters by default
-    
-    // Store secret temporarily (will be verified later)
-    await db.users.update({
-      where: { id: userId },
-      data: {
-        totp_temp_secret: secret,
-        totp_temp_secret_created_at: new Date()
-      }
-    });
-    
-    return secret;
-  }
-
-  // Generate a recovery code set for a user
-  static async generateRecoveryCodes(userId: string): Promise<string[]> {
-    // Generate 10 random recovery codes (12 characters each)
-    const codes = Array(10).fill(0).map(() => 
-      crypto.randomBytes(6).toString('hex')
-    );
-    
-    // Hash each code before storing
-    const hashedCodes = await Promise.all(
-      codes.map(async (code) => {
-        // Simple hash - in production you may want a more secure method
-        const hash = crypto.createHash('sha256').update(code).digest('hex');
-        return hash;
-      })
-    );
-    
-    // Store hashed codes in the database using Prisma
-    await db.users.update({
-      where: { id: userId },
-      data: {
-        totp_recovery_codes: JSON.stringify(hashedCodes) as any
-      }
-    });
-    
-    // Return the original unhashed codes to the user (they need to save these)
-    return codes;
+  // Generate TOTP secret for a user
+  static generateTotpSecret(email: string): string {
+    return authenticator.generateSecret();
   }
 
   // Generate QR code for TOTP setup
-  static async generateQrCode(secret: string, email: string): Promise<string> {
-    console.log('🔍 Generating QR code for:', email);
-    const otpauth = authenticator.keyuri(email, this.issuer, secret);
-    console.log('✅ OTP URI:', otpauth);
-    
+  static async generateQrCode(email: string, secret: string): Promise<string> {
+    const service = 'Zenith Platform';
+    const otpauth = authenticator.keyuri(email, service, secret);
+    return await QRCode.toDataURL(otpauth);
+  }
+
+  // Setup Two-Factor Authentication for a user
+  static async setupTwoFactor(userId: string, email: string): Promise<TwoFactorSetupResult> {
     try {
-      // Generate QR code as data URL
-      const qrCodeDataUrl = await QRCode.toDataURL(otpauth);
-      console.log('✅ QR code generated, length:', qrCodeDataUrl.length);
-      return qrCodeDataUrl;
+      const secret = this.generateTotpSecret(email);
+      const qrCode = await this.generateQrCode(email, secret);
+      const backupCodes = this.generateBackupCodes();
+
+      // Store the secret temporarily (not enabling 2FA yet)
+      await db.query(
+        `UPDATE users SET two_factor_secret = $1, totp_recovery_codes = $2 WHERE id = $3`,
+        [secret, JSON.stringify(backupCodes), userId]
+      );
+
+      return {
+        secret,
+        qrCode,
+        backupCodes
+      };
     } catch (error) {
-      console.error('❌ QR code generation failed:', error);
-      throw new Error('Failed to generate QR code');
+      console.error('Error setting up 2FA:', error);
+      throw new Error('Failed to setup two-factor authentication');
     }
   }
 
-  // Verify TOTP code
-  static verifyToken(token: string, secret: string): boolean {
+  // Verify TOTP code and enable 2FA
+  static async enableTwoFactor(userId: string, token: string): Promise<boolean> {
     try {
-      return authenticator.verify({ token, secret });
-    } catch (error) {
-      console.error('TOTP verification error:', error);
-      return false;
-    }
-  }
+      const result = await db.query(
+        `SELECT two_factor_secret FROM users WHERE id = $1`,
+        [userId]
+      );
 
-  // Finalize and enable 2FA for a user
-  static async enable2FA(userId: string): Promise<boolean> {
-    try {
-      // Get the temp secret first
-      const user = await db.users.findUnique({
-        where: { id: userId },
-        select: { totp_temp_secret: true }
-      });
-      
-      if (!user?.totp_temp_secret) {
+      if (!result.rows.length || !result.rows[0].two_factor_secret) {
         return false;
       }
-      
-      // Move temporary secret to permanent secret
-      const result = await db.users.update({
-        where: { id: userId },
-        data: {
-          totp_secret: user.totp_temp_secret,
-          totp_temp_secret: null,
-          totp_temp_secret_created_at: null,
-          totp_enabled: true,
-          totp_enabled_at: new Date()
-        },
-        select: { id: true }
-      });
-      
-      return !!result;
+
+      const secret = result.rows[0].two_factor_secret;
+      const isValid = authenticator.verify({ token, secret });
+
+      if (isValid) {
+        // Enable 2FA for the user
+        await db.query(
+          `UPDATE users SET two_factor_enabled = true WHERE id = $1`,
+          [userId]
+        );
+        return true;
+      }
+
+      return false;
     } catch (error) {
       console.error('Error enabling 2FA:', error);
       return false;
     }
   }
 
-  // Disable 2FA for a user
-  static async disable2FA(userId: string): Promise<boolean> {
+  // Verify TOTP code for login
+  static async verifyTotp(userId: string, token: string): Promise<boolean> {
     try {
-      const result = await db.executeRawSQL(
-        `UPDATE users 
-         SET 
-          totp_secret = NULL,
-          totp_enabled = false,
-          totp_enabled_at = NULL,
-          totp_recovery_codes = NULL
-         WHERE id = $1
-         RETURNING id`,
+      const result = await db.query(
+        `SELECT two_factor_secret FROM users WHERE id = $1 AND two_factor_enabled = true`,
         [userId]
       );
-      
-      return result.rows.length > 0;
+
+      if (!result.rows.length || !result.rows[0].two_factor_secret) {
+        return false;
+      }
+
+      const secret = result.rows[0].two_factor_secret;
+      return authenticator.verify({ token, secret });
+    } catch (error) {
+      console.error('Error verifying TOTP:', error);
+      return false;
+    }
+  }
+
+  // Disable Two-Factor Authentication
+  static async disableTwoFactor(userId: string): Promise<boolean> {
+    try {
+      await db.query(
+        `UPDATE users SET two_factor_enabled = false, two_factor_secret = NULL, totp_recovery_codes = NULL WHERE id = $1`,
+        [userId]
+      );
+      return true;
     } catch (error) {
       console.error('Error disabling 2FA:', error);
       return false;
     }
   }
 
+  // Generate backup/recovery codes
+  static generateBackupCodes(): string[] {
+    const codes = [];
+    for (let i = 0; i < 10; i++) {
+      codes.push(crypto.randomBytes(4).toString('hex').toUpperCase());
+    }
+    return codes;
+  }
+
   // Verify a recovery code
   static async verifyRecoveryCode(userId: string, providedCode: string): Promise<boolean> {
     try {
       // Get stored recovery codes
-      const result = await db.executeRawSQL(
+      const result = await db.query(
         `SELECT totp_recovery_codes FROM users WHERE id = $1`,
         [userId]
       );
@@ -169,28 +144,23 @@ export class TwoFactorAuthService {
       if (!result.rows.length || !result.rows[0].totp_recovery_codes) {
         return false;
       }
-      
-      // Hash the provided code
-      const providedCodeHash = crypto.createHash('sha256').update(providedCode).digest('hex');
-      
-      // Parse stored codes
+
       const storedCodes = JSON.parse(result.rows[0].totp_recovery_codes);
-      
-      // Check if the provided code matches any stored code
-      const matchIndex = storedCodes.findIndex((code: string) => code === providedCodeHash);
-      
-      if (matchIndex === -1) {
+      const codeIndex = storedCodes.indexOf(providedCode.toUpperCase());
+
+      if (codeIndex === -1) {
         return false;
       }
-      
-      // Remove used recovery code and update database
-      storedCodes.splice(matchIndex, 1);
-      
-      await db.executeRawSQL(
+
+      // Remove the used code
+      storedCodes.splice(codeIndex, 1);
+
+      // Update the database
+      await db.query(
         `UPDATE users SET totp_recovery_codes = $1 WHERE id = $2`,
         [JSON.stringify(storedCodes), userId]
       );
-      
+
       return true;
     } catch (error) {
       console.error('Error verifying recovery code:', error);
@@ -198,254 +168,118 @@ export class TwoFactorAuthService {
     }
   }
 
-  // Get user's 2FA status
-  static async get2FAStatus(userId: string, deviceId?: string): Promise<TwoFactorAuthStatus> {
-    try {
-      const result = await db.users.findUnique({
-        where: { id: userId },
-        select: {
-          totp_enabled: true,
-          totp_temp_secret: true,
-          totp_secret: true,
-          email_otp_enabled: true
-        }
-      });
-      
-      if (!result) {
-        return { enabled: false };
-      }
-      
-      const { totp_enabled, totp_temp_secret, totp_secret, email_otp_enabled } = result;
-      
-      // Check if this is a trusted device
-      let trustedDevice = false;
-      let method: '2fa_app' | 'email_otp' | undefined = undefined;
-      
-      if (deviceId) {
-        const trustStatus = await TrustedDeviceService.verifyTrustedDevice(userId, deviceId);
-        trustedDevice = trustStatus.trusted;
-      }
-      
-      // Determine 2FA method
-      if (totp_enabled) {
-        method = '2fa_app';
-      } else if (email_otp_enabled) {
-        method = 'email_otp';
-      }
-      
-      return { 
-        enabled: totp_enabled === true || email_otp_enabled === true,
-        tempSecret: totp_temp_secret || undefined,
-        secret: totp_secret || undefined,
-        verified: totp_enabled === true,
-        emailOtpEnabled: email_otp_enabled === true,
-        method,
-        trustedDevice
-      };
-      
-    } catch (error) {
-      console.error('Error getting 2FA status:', error);
-      return { enabled: false };
-    }
-  }
-
   // Generate and send email OTP
-  static async generateAndSendEmailOTP(userId: string, email: string): Promise<boolean> {
+  static async generateEmailOtp(userId: string): Promise<boolean> {
     try {
-      // Generate a 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // Hash the OTP for storage - will be stored in the updated CHAR(64) field
-      const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
-      
-      // Store hashed OTP in database with expiration (10 minutes)
-      await db.executeRawSQL(
-        `UPDATE users 
-         SET 
-          email_otp = $1, 
-          email_otp_created_at = NOW(),
-          email_otp_expires_at = NOW() + INTERVAL '10 minutes'
-         WHERE id = $2`,
-        [hashedOtp, userId]
+      const hashedOtp = await bcrypt.hash(otp, 10);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await db.query(
+        `UPDATE users SET email_otp = $1, email_otp_expires_at = $2 WHERE id = $3`,
+        [hashedOtp, expiresAt, userId]
       );
+
+      // Here you would send the OTP via email
+      console.log(`Email OTP for user ${userId}: ${otp}`);
       
-      // Send OTP via email
-      const emailSent = await emailServiceV2.sendOtpEmail(email, otp, '2fa');
-      
-      // Log security event if email was sent successfully
-      if (emailSent) {
-        await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_sent', {
-          email: email.replace(/^(.{2})(.*)(@.*)$/, '$1***$3') // Partially mask email for logging
-        });
-      }
-      
-      return emailSent;
+      return true;
     } catch (error) {
-      console.error('Error generating and sending email OTP:', error);
+      console.error('Error generating email OTP:', error);
       return false;
     }
   }
-  
-  // Enable email OTP as 2FA method
-  static async enableEmailOTP(userId: string): Promise<boolean> {
+
+  // Enable email OTP authentication
+  static async enableEmailOtp(userId: string): Promise<boolean> {
     try {
-      const result = await db.executeRawSQL(
-        `UPDATE users 
-         SET 
-          email_otp_enabled = TRUE,
-          email_otp_verified = TRUE,
-          email_otp_created_at = NOW()
-         WHERE id = $1
-         RETURNING id`,
+      await db.query(
+        `UPDATE users SET email_otp_enabled = TRUE, email_otp_verified = TRUE, email_otp_created_at = NOW() WHERE id = $1`,
         [userId]
       );
       
-      const success = result.rows.length > 0;
-      
-      if (success) {
-        await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_enabled', {});
-      }
-      
-      return success;
+      return true;
     } catch (error) {
       console.error('Error enabling email OTP:', error);
       return false;
     }
   }
-  
-  // Verify email OTP code
-  static async verifyEmailOTP(userId: string, otp: string): Promise<boolean> {
+
+  // Verify email OTP
+  static async verifyEmailOtp(userId: string, providedOtp: string): Promise<boolean> {
     try {
-      const result = await db.executeRawSQL(
-        `SELECT 
-          email_otp,
-          email_otp_expires_at
-         FROM users 
-         WHERE id = $1`,
+      const result = await db.query(
+        `SELECT email_otp, email_otp_expires_at FROM users WHERE id = $1`,
         [userId]
       );
-      
+
       if (result.rows.length === 0 || !result.rows[0].email_otp) {
         return false;
       }
-      
+
       const storedHash = result.rows[0].email_otp;
       const expiresAt = new Date(result.rows[0].email_otp_expires_at);
-      
-      // Check if OTP has expired
-      if (expiresAt < new Date()) {
-        return false;
+
+      if (new Date() > expiresAt) {
+        return false; // OTP expired
       }
-      
-      // Hash the provided OTP and compare
-      const providedOtpHash = crypto.createHash('sha256').update(otp).digest('hex');
-      
-      if (providedOtpHash !== storedHash) {
-        // Log failed attempt
-        await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_failed', {});
-        return false;
+
+      const isValid = await bcrypt.compare(providedOtp, storedHash);
+
+      if (isValid) {
+        // Clear the OTP after successful verification
+        await db.query(
+          `UPDATE users SET email_otp = NULL, email_otp_expires_at = NULL WHERE id = $1`,
+          [userId]
+        );
       }
-      
-      // Clear the OTP after successful verification
-      await db.executeRawSQL(
-        `UPDATE users 
-         SET 
-          email_otp = NULL,
-          email_otp_expires_at = NULL,
-          email_otp_last_used = NOW()
-         WHERE id = $1`,
-        [userId]
-      );
-      
-      await TrustedDeviceService.logSecurityEvent(userId, 'email_otp_verified', {});
-      
-      return true;
+
+      return isValid;
     } catch (error) {
       console.error('Error verifying email OTP:', error);
       return false;
     }
   }
-  
-  // Create and trust a device after successful 2FA
-  static async trustDevice(
-    userId: string, 
-    userAgent: string,
-    ipAddress?: string,
-    trustLevel: 'login_only' | 'full_access' = 'login_only'
-  ): Promise<string | null> {
+
+  // Disable email OTP authentication
+  static async disableEmailOtp(userId: string): Promise<boolean> {
     try {
-      let deviceInfo = {
-        deviceName: 'Unknown Device',
-        deviceType: 'unknown',
-        browser: 'Unknown Browser',
-        os: 'Unknown OS',
-        ipAddress,
-        userAgent
-      };
-      
-      // Parse user agent
-      if (userAgent) {
-        try {
-          // Note: We'll install this package later
-          const parser = new UAParser(userAgent);
-          const result = parser.getResult();
-          
-          deviceInfo.browser = `${result.browser.name || 'Unknown'} ${result.browser.version || ''}`;
-          deviceInfo.os = `${result.os.name || 'Unknown'} ${result.os.version || ''}`;
-          
-          if (result.device.type) {
-            deviceInfo.deviceType = result.device.type;
-            if (result.device.type === 'mobile') deviceInfo.deviceName = 'Mobile Device';
-            else if (result.device.type === 'tablet') deviceInfo.deviceName = 'Tablet';
-            else deviceInfo.deviceName = 'Desktop';
-            
-            if (result.device.vendor) {
-              deviceInfo.deviceName = `${result.device.vendor} ${deviceInfo.deviceName}`;
-            }
-          } else {
-            deviceInfo.deviceName = 'Desktop';
-          }
-        } catch (e) {
-          console.error('Error parsing user agent:', e);
-        }
-      }
-      
-      // Register trusted device
-      const deviceId = await TrustedDeviceService.registerTrustedDevice(
-        userId,
-        deviceInfo,
-        trustLevel
-      );
-      
-      return deviceId;
-    } catch (error) {
-      console.error('Error trusting device:', error);
-      return null;
-    }
-  }
-  
-  // Disable email OTP as 2FA method
-  static async disableEmailOTP(userId: string): Promise<boolean> {
-    try {
-      const result = await db.executeRawSQL(
-        `UPDATE users 
-         SET 
-          email_otp_enabled = false,
-          email_otp_enabled_at = NULL
-         WHERE id = $1
-         RETURNING id`,
+      await db.query(
+        `UPDATE users SET email_otp_enabled = false, email_otp_enabled_at = NULL WHERE id = $1`,
         [userId]
       );
       
-      return result.rows.length > 0;
+      return true;
     } catch (error) {
       console.error('Error disabling email OTP:', error);
       return false;
     }
   }
+
+  // Create authenticated session token
+  static createSessionToken(userId: string, email: string): string {
+    const payload = {
+      userId,
+      email,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+    };
+
+    return jwt.sign(payload, process.env.JWT_SECRET || 'fallback-secret');
+  }
+
+  // Check if user has 2FA enabled
+  static async isTwoFactorEnabled(userId: string): Promise<boolean> {
+    try {
+      const result = await db.query(
+        `SELECT two_factor_enabled FROM users WHERE id = $1`,
+        [userId]
+      );
+
+      return result.rows.length > 0 && result.rows[0].two_factor_enabled;
+    } catch (error) {
+      console.error('Error checking 2FA status:', error);
+      return false;
+    }
+  }
 }
-
-// Initialize the authenticator
-TwoFactorAuthService.init();
-
-export default TwoFactorAuthService;

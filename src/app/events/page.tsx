@@ -76,7 +76,7 @@ interface CalendarDay {
 
 const EventsPage = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   
   const [events, setEvents] = useState<Event[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
@@ -140,7 +140,8 @@ const EventsPage = () => {
         throw new Error(`Error: ${response.status}`);
       }
       const data = await response.json();
-      setEvents(data);
+      // API returns { success, data, count } format, so we need data.data
+      setEvents(data.data || data || []);
     } catch (err: any) {
       setError(err.message || "Failed to fetch events");
       console.error("Error fetching events:", err);
@@ -182,7 +183,7 @@ const EventsPage = () => {
   };
 
   // Filter events based on search and club selection
-  const filteredEvents = events.filter((event) => {
+  const filteredEvents = (events || []).filter((event) => {
     const matchesSearch = 
       searchQuery === "" || 
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -303,6 +304,15 @@ const EventsPage = () => {
     setSelectedEvent(null);
   };
 
+  // Show loader while data is being fetched or authentication is loading
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black">
+        <UniversalLoader message="Loading events calendar..." />
+      </div>
+    );
+  }
+
   return (
     <MainLayout>
       <div className="pb-12">
@@ -365,11 +375,7 @@ const EventsPage = () => {
           </div>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <UniversalLoader fullScreen={false} message="Loading events..." />
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="bg-red-500 bg-opacity-10 border border-red-500 rounded-lg p-4 text-red-500">
             {error}
           </div>

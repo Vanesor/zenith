@@ -1,26 +1,24 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
 
 export async function GET() {
   try {
     // For engagement, we'll try to calculate from various sources
-    const prisma = prisma;
-    
     // Default value if no data
     let engagementValue = 73;
     
     try {
       // Try to get average engagement from club_statistics
-      const clubStatsResult = await db.$queryRaw`
+      const clubStatsResult = await db.query(`
         SELECT AVG(average_engagement) as avg_engagement
         FROM club_statistics
         WHERE average_engagement IS NOT NULL
-      `;
+      `);
       
-      if (Array.isArray(clubStatsResult) && 
-          clubStatsResult.length > 0 && 
-          clubStatsResult[0].avg_engagement) {
-        engagementValue = Math.round(Number(clubStatsResult[0].avg_engagement));
+      if (clubStatsResult.rows && 
+          clubStatsResult.rows.length > 0 && 
+          clubStatsResult.rows[0].avg_engagement) {
+        engagementValue = Math.round(Number(clubStatsResult.rows[0].avg_engagement));
       }
     } catch (error) {
       console.log('Error calculating engagement from club_statistics, using default:', error);

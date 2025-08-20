@@ -18,7 +18,7 @@ export class EmailNotificationService {
   ): Promise<boolean> {
     try {
       // Get user email
-      const userResult = await db.executeRawSQL(
+      const userResult = await db.query(
         `SELECT email, name FROM users WHERE id = $1`,
         [userId]
       );
@@ -87,7 +87,7 @@ export class EmailNotificationService {
   ): Promise<boolean> {
     try {
       // Get user email
-      const userResult = await db.executeRawSQL(
+      const userResult = await db.query(
         `SELECT email, name FROM users WHERE id = $1`,
         [userId]
       );
@@ -154,7 +154,7 @@ export class EmailNotificationService {
   ): Promise<boolean> {
     try {
       // Get user email
-      const userResult = await db.executeRawSQL(
+      const userResult = await db.query(
         `SELECT email, name FROM users WHERE id = $1`,
         [userId]
       );

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, executeRawSQL, queryRawSQL } from '@/lib/database-service';
+import { db, executeRawSQL, queryRawSQL } from '@/lib/database';
 
 // GET /api/home/stats - Get dashboard statistics
 export async function GET() {

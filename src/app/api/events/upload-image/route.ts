@@ -1,9 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { SupabaseStorageService } from '@/lib/supabaseStorage';
+import { LocalStorageService } from "@/lib/storage";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for event images
+
+// File validation function
+function validateFile(file: File, type: string, maxSize: number): { valid: boolean; error?: string } {
+  if (!file) {
+    return { valid: false, error: 'No file provided' };
+  }
+
+  // Check file size
+  if (file.size > maxSize) {
+    return { valid: false, error: `File size exceeds ${Math.round(maxSize / (1024 * 1024))}MB limit` };
+  }
+
+  // Check file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    return { valid: false, error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.' };
+  }
+
+  return { valid: true };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file
-    const validation = SupabaseStorageService.validateFile(file, 'event', MAX_FILE_SIZE);
+    const validation = validateFile(file, 'event', MAX_FILE_SIZE);
     if (!validation.valid) {
       return NextResponse.json({
         success: false,
@@ -62,17 +82,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload event image
-    const uploadResult = await SupabaseStorageService.uploadEventImage(
+    const uploadResult = await LocalStorageService.uploadFile(
       file,
-      file.name,
-      decoded.userId,
-      eventId
+      'events',
+      `${eventId}/${imageType || 'images'}`
     );
 
-    if (!uploadResult.success) {
+    if (!uploadResult) {
       return NextResponse.json({
          success: false,
-        error: uploadResult.error || 'Failed to upload event image'
+        error: 'Failed to upload event image'
        }, { status: 500 });
     }
 
@@ -80,10 +99,10 @@ export async function POST(request: NextRequest) {
     if (imageType === 'banner') {
       // Update banner_image_url in events table
       // This would require importing your Database module
-      console.log(`Setting banner image for event ${eventId}: ${uploadResult.fileUrl}`);
+      console.log(`Setting banner image for event ${eventId}: ${uploadResult.url}`);
     } else {
       // Add to gallery_images array in events table
-      console.log(`Adding gallery image for event ${eventId}: ${uploadResult.fileUrl}`);
+      console.log(`Adding gallery image for event ${eventId}: ${uploadResult.url}`);
     }
 
     console.log(`✅ Event image uploaded for event ${eventId} by user ${decoded.userId}`);
@@ -91,9 +110,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Event image uploaded successfully',
-      imageUrl: uploadResult.fileUrl,
-      fileId: uploadResult.fileId,
-      thumbnailUrl: uploadResult.thumbnailUrl,
+      imageUrl: uploadResult.url,
+      filePath: uploadResult.path,
       imageType: imageType
     });
 

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import TwoFactorAuthService from "@/lib/TwoFactorAuthService";
-import { db } from '@/lib/database-service';
-import FastAuth from "@/lib/FastAuth";
-import { db } from '@/lib/database-service';
+import { TwoFactorAuthService } from "@/lib/TwoFactorAuthService";
+import { generateToken } from "@/lib/auth-unified";
+import { db } from '@/lib/database';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +20,7 @@ export async function POST(request: NextRequest) {
     // Verify based on the chosen 2FA method
     if (method === "app") {
       // Get user's TOTP secret
-      const userResult = await db.executeRawSQL(
+      const userResult = await db.query(
         "SELECT totp_secret FROM users WHERE id = $1::uuid AND totp_enabled = true",
         [userId]
       );
@@ -35,11 +34,11 @@ export async function POST(request: NextRequest) {
       
       // Verify with app-based TOTP
       const secret = userResult.rows[0].totp_secret;
-      verificationResult = TwoFactorAuthService.verifyToken(otp, secret);
+      verificationResult = await TwoFactorAuthService.verifyTotp(userId, otp);
     } 
     else if (method === "email") {
       // Verify with email OTP
-      verificationResult = await TwoFactorAuthService.verifyEmailOTP(userId, otp);
+      verificationResult = await TwoFactorAuthService.verifyEmailOtp(userId, otp);
     }
     else {
       return NextResponse.json(
@@ -55,15 +54,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the user details to create a full session using FastAuth system
-    const user = await PrismaDB.findUserById(userId);
+    // Get the user details to create a full session
+    const userResult = await db.query(
+      `SELECT id, email, name, role, club_id FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [userId]
+    );
 
-    if (!user) {
+    if (userResult.rows.length === 0) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
+    
+    const user = userResult.rows[0];
 
     // Create session using FastAuth system (consistent with regular login)
     const sessionExpiry = new Date();
@@ -77,7 +81,15 @@ export async function POST(request: NextRequest) {
       ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1'
     };
 
-    const session = await PrismaDB.createSession(sessionData);
+    // Create session in database
+    const sessionResult = await db.query(
+      `INSERT INTO user_sessions (user_id, token, expires_at, user_agent, ip_address, created_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       RETURNING id, token`,
+      [user.id, sessionData.token, sessionData.expires_at, sessionData.user_agent, sessionData.ip_address]
+    );
+
+    const session = sessionResult.rows[0];
 
     // Generate JWT tokens using FastAuth
     const tokenPayload = {
@@ -87,11 +99,12 @@ export async function POST(request: NextRequest) {
       sessionId: session.id,
     };
 
-    const accessToken = FastAuth.generateAccessToken(tokenPayload, rememberMe);
-    const refreshToken = FastAuth.generateRefreshToken({
+    const accessToken = generateToken(tokenPayload, rememberMe ? '30d' : '24h');
+    const refreshToken = generateToken({
       userId: user.id,
       sessionId: session.id,
-    });
+      type: 'refresh'
+    }, '30d');
 
     // Create the response
     const response = NextResponse.json({
@@ -143,7 +156,7 @@ export async function POST(request: NextRequest) {
         const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
         
         // Use the correct schema column names (expires_at instead of trusted_until)
-        await db.executeRawSQL(`
+        await db.query(`
           INSERT INTO trusted_devices 
           (user_id, device_identifier, device_name, ip_address, browser)
           VALUES ($1::uuid, $2, $3, $4, $5)

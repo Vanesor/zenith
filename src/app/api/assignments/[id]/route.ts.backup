@@ -1,0 +1,336 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/database';
+import { verifyAuth, withAuth } from "@/lib/auth-unified";
+
+// Safe JSON parsing utility
+function safeJsonParse(jsonString: string, defaultValue: unknown) {
+  try {
+    // Check if it's already a valid object/array
+    if (typeof jsonString !== 'string') {
+      return jsonString;
+    }
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.error('Error parsing JSON:', e);
+    return defaultValue;
+  }
+}
+
+// Helper function to check if user is in a management role
+function isManagerRole(role: string): boolean {
+  return [
+    "coordinator",
+    "co_coordinator", 
+    "secretary",
+    "media",
+    "president",
+    "vice_president",
+    "innovation_head",
+    "treasurer",
+    "outreach",
+  ].includes(role);
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: assignmentId } = await params;
+    
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
+
+    // Use Prisma client directly to avoid type casting issues
+    const prisma = prisma;
+
+    // Get user details
+    const user = await db.users.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true }
+    });
+    
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Get assignment details with questions
+    const assignment = await db.assignments.findUnique({
+      where: { id: assignmentId },
+      include: {
+        questions: {
+          orderBy: { question_order: 'asc' },
+          include: {
+            question_options: true
+          }
+        }
+      }
+    });
+    
+    if (!assignment) {
+      return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
+    }
+
+    // Check if user has access to this assignment (for now, allow all users)
+    // In production, you might want to check if user is enrolled in the course, etc.
+
+    // Transform assignment data
+    const questions = assignment.questions.map((question: any) => ({
+      id: question.id,
+      type: question.type || question.question_type || 'multiple-choice',
+      title: question.title || 'Untitled Question',
+      description: question.description || question.question_text || '',
+      options: question.options ? (typeof question.options === 'string' ? safeJsonParse(question.options, []) : question.options) : question.question_options?.map((opt: any) => opt.option_text) || undefined,
+      correctAnswer: question.correct_answer,
+      points: question.points || question.marks || 1,
+      timeLimit: question.time_limit,
+      language: question.code_language,
+      starterCode: question.starter_code,
+      testCases: question.test_cases ? (typeof question.test_cases === 'string' ? safeJsonParse(question.test_cases, []) : question.test_cases) : undefined
+    }));
+
+    // Shuffle questions if required
+    if (assignment.shuffle_questions) {
+      for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+      }
+    }
+
+    const response = {
+      id: assignment.id,
+      title: assignment.title,
+      description: assignment.description,
+      timeLimit: assignment.time_limit || 60,
+      maxAttempts: assignment.max_attempts || 1,
+      dueDate: assignment.due_date.toISOString(),
+      allowNavigation: assignment.allow_navigation !== false,
+      isProctored: assignment.is_proctored === true,
+      shuffleQuestions: assignment.shuffle_questions === true,
+      allowCalculator: assignment.allow_calculator !== false,
+      showResults: assignment.show_results !== false,
+      allowReview: assignment.allow_review !== false,
+      instructions: assignment.instructions || '',
+      maxPoints: assignment.max_points || 100,
+      passingScore: assignment.passing_score || 60,
+      questions: questions
+    };
+
+    return NextResponse.json(response);
+
+  } catch (error) {
+    console.error('Error fetching assignment:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: assignmentId } = await params;
+    const authHeader = request.headers.get('authorization');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const body = await request.json();
+    
+    // Get user from token using FastAuth's verification system
+    const decoded = verifyAuth(token);
+    
+    if (!decoded || !decoded.userId) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    
+    // Get user details from database using the verified user ID
+    const userQuery = 'SELECT id, email, name, role FROM users WHERE id = $1';
+    const userResult = await db.$executeRaw(userQuery, [decoded.userId]);
+    
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if user has permission to update assignments
+    if (user.role !== 'instructor' && user.role !== 'admin') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
+    // Update assignment
+    const updateQuery = `
+      UPDATE assignments 
+      SET 
+        title = $1, description = $2, time_limit = $3, max_attempts = $4,
+        due_date = $5, allow_navigation = $6, is_proctored = $7, 
+        shuffle_questions = $8, allow_calculator = $9, show_results = $10,
+        allow_review = $11, instructions = $12, max_points = $13, 
+        passing_score = $14, updated_at = $15
+      WHERE id = $16
+      RETURNING *
+    `;
+    
+    const updateResult = await db.$executeRaw(updateQuery, [
+      body.title,
+      body.description,
+      body.timeLimit,
+      body.maxAttempts,
+      new Date(body.dueDate),
+      body.allowNavigation,
+      body.isProctored,
+      body.shuffleQuestions,
+      body.allowCalculator,
+      body.showResults,
+      body.allowReview,
+      body.instructions,
+      body.maxPoints,
+      body.passingScore,
+      new Date(),
+      assignmentId
+    ]);
+
+    if (updateResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ 
+      message: 'Assignment updated successfully',
+      assignment: updateResult.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error updating assignment:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: assignmentId } = await params;
+    
+    // Verify authentication using centralized AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
+    
+    // Check if user has permission to delete the assignment (must be a club manager)
+    const userCheck = await db.$executeRaw(
+      "SELECT role, club_id FROM users WHERE id = $1",
+      [userId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const user = userCheck.rows[0];
+    
+    // Check if user is in a management role
+    if (!isManagerRole(user.role)) {
+      return NextResponse.json(
+        { error: "Only management positions can delete assignments" },
+        { status: 403 }
+      );
+    }
+    
+    // Check if the assignment exists and belongs to the user's club
+    const assignmentCheck = await db.$executeRaw(
+      `SELECT a.*, a.start_date as "startDate" FROM assignments a 
+       WHERE a.id = $1 AND (a.created_by = $2 OR a.club_id = $3)`,
+      [assignmentId, userId, user.club_id]
+    );
+    
+    if (assignmentCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Assignment not found or you don't have permission to delete it" },
+        { status: 404 }
+      );
+    }
+
+    const assignment = assignmentCheck.rows[0];
+    
+    // Check if the assignment has already started (has submissions)
+    const submissionsCheck = await db.$executeRaw(
+      "SELECT COUNT(*) as submission_count FROM assignment_attempts WHERE assignment_id = $1",
+      [assignmentId]
+    );
+    
+    const submissionCount = parseInt(submissionsCheck.rows[0].submission_count);
+    
+    if (submissionCount > 0) {
+      return NextResponse.json(
+        { 
+          error: "Cannot delete assignment with existing submissions", 
+          message: "This assignment already has submissions and cannot be deleted."
+        },
+        { status: 400 }
+      );
+    }
+
+    // Begin transaction
+    await db.$executeRaw('BEGIN');
+    
+    // First delete all questions related to the assignment
+    await db.$executeRaw(
+      "DELETE FROM assignment_questions WHERE assignment_id = $1",
+      [assignmentId]
+    );
+    
+    // Then delete the assignment
+    const deleteResult = await db.$executeRaw(
+      "DELETE FROM assignments WHERE id = $1 RETURNING id",
+      [assignmentId]
+    );
+    
+    // Commit transaction
+    await db.$executeRaw('COMMIT');
+    
+    if (deleteResult.rows.length === 0) {
+      // Should not happen due to our previous check, but just in case
+      return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ 
+      message: 'Assignment deleted successfully',
+      deletedId: assignmentId
+    });
+
+  } catch (error) {
+    // Rollback transaction if there was an error
+    try {
+      await db.$executeRaw('ROLLBACK');
+    } catch (rollbackError) {
+      console.error("Error during rollback:", rollbackError);
+    }
+    
+    console.error('Error deleting assignment:', error);
+    return NextResponse.json({ 
+      error: "Error deleting assignment", 
+      details: (error as Error).message 
+    }, { status: 500 });
+  }
+}

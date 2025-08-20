@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import FastAuth from "@/lib/FastAuth";
+import { verifyAuth, withAuth, authenticateUser } from "@/lib/auth-unified";
 import { RateLimiter } from "@/lib/RateLimiter";
 import { CacheManager, CacheKeys } from "@/lib/CacheManager";
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 🚀 OPTIMIZED AUTHENTICATION - Replaces 5+ database queries with 1 optimized operation
-    const authResult = await FastAuth.authenticateUser(email, password, rememberMe);
+    const authResult = await authenticateUser(email, password);
 
     if (!authResult.success) {
       // Increment failed attempts
@@ -53,9 +53,9 @@ export async function POST(request: NextRequest) {
       if (authResult.requiresTwoFactor) {
         return NextResponse.json({
           requiresTwoFactor: true,
-          userId: authResult.userId,
-          email: authResult.email,
-          method: authResult.method,
+          userId: authResult.user?.id,
+          email: authResult.user?.email,
+          method: "totp", // Default method
           message: "Two-factor authentication required"
         });
       }
@@ -75,12 +75,11 @@ export async function POST(request: NextRequest) {
       token: authResult.token, // Include token in response for localStorage
       refreshToken: authResult.refreshToken, // Include refresh token too
       user: {
-        id: authResult.user.id,
-        email: authResult.user.email,
-        name: authResult.user.name,
-        avatar: authResult.user.avatar,
-        role: authResult.user.role,
-        club_id: authResult.user.club_id,
+        id: authResult.user!.id,
+        email: authResult.user!.email,
+        name: authResult.user!.name,
+        role: authResult.user!.role,
+        club_id: authResult.user!.club_id,
       },
       message: "Login successful"
     });

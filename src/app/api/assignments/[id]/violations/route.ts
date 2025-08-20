@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 export async function POST(
   request: NextRequest,
@@ -32,7 +32,7 @@ export async function POST(
     }
 
     // Get the user's active submission for this assignment
-    const submissionCheck = await db.executeRawSQL(
+    const submissionCheck = await db.query(
       `SELECT id FROM assignment_submissions 
        WHERE assignment_id = $1 AND user_id = $2
        ORDER BY created_at DESC
@@ -44,7 +44,7 @@ export async function POST(
     
     if (submissionCheck.rows.length === 0) {
       // No submission found, create a temporary one
-      const submissionResult = await db.executeRawSQL(
+      const submissionResult = await db.query(
         `INSERT INTO assignment_submissions (
           assignment_id, user_id, status, started_at
         )
@@ -59,7 +59,7 @@ export async function POST(
     }
 
     // Record the violation
-    await db.executeRawSQL(
+    await db.query(
       `INSERT INTO assignment_violations (
         submission_id, violation_type, details
       )
@@ -72,7 +72,7 @@ export async function POST(
     );
 
     // Update violation count in the submission
-    await db.executeRawSQL(
+    await db.query(
       `UPDATE assignment_submissions
        SET violation_count = violation_count + 1
        WHERE id = $1`,

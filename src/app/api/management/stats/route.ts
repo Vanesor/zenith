@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, queryRawSQL } from '@/lib/database-service';
+import { db, queryRawSQL } from '@/lib/database';
 import jwt from "jsonwebtoken";
 
 // GET /api/management/stats

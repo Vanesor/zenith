@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     const { id: commentId } = await params;
 
     // Check if comment exists
-    const commentCheck = await db.executeRawSQL(
+    const commentCheck = await db.query(
       "SELECT id FROM comments WHERE id = $1",
       [commentId]
     );
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Check if user already liked this comment
-    const existingLike = await db.executeRawSQL(
+    const existingLike = await db.query(
       "SELECT id FROM comment_likes WHERE comment_id = $1 AND user_id = $2",
       [commentId, userId]
     );
@@ -44,13 +44,13 @@ export async function POST(request: NextRequest, { params }: Props) {
 
     if (existingLike.rows.length > 0) {
       // Unlike - remove like
-      await db.executeRawSQL(
+      await db.query(
         "DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2",
         [commentId, userId]
       );
     } else {
       // Like - add like
-      await db.executeRawSQL(
+      await db.query(
         "INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES ($1, $2, NOW())",
         [commentId, userId]
       );
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Get updated like count
-    const likeCountResult = await db.executeRawSQL(
+    const likeCountResult = await db.query(
       "SELECT COUNT(*) as count FROM comment_likes WHERE comment_id = $1",
       [commentId]
     );

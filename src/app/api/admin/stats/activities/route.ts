@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
+
+interface Activity {
+  id: string;
+  user_id: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  target_name: string;
+  created_at: string;
+  user_name: string;
+}
 
 export async function GET() {
   try {
-    const prisma = prisma;
-    
     // Try to get recent user activities, but fallback to mock data if the table doesn't exist
-    let recentActivities = [];
+    let recentActivities: Activity[] = [];
     
     try {
       // Use raw query instead to handle cases where the table might not exist yet
-      const result = await db.$queryRaw`
+      const result = await db.query(`
         SELECT 
           ua.id, 
           ua.user_id, 
@@ -24,17 +33,17 @@ export async function GET() {
         LEFT JOIN users u ON ua.user_id = u.id
         ORDER BY ua.created_at DESC
         LIMIT 5
-      `;
+      `);
       
       // Ensure result is treated as an array
-      recentActivities = Array.isArray(result) ? result : [];
+      recentActivities = result.rows || [];
     } catch (error) {
       console.log('Error fetching activities, using mock data:', error);
       // We'll handle fallback in the next section
     }
     
     // Format the activities
-    const formattedActivities = Array.isArray(recentActivities) ? recentActivities.map((activity: any) => {
+    const formattedActivities = recentActivities.map((activity: Activity) => {
       // Calculate relative time
       const now = new Date();
       const activityTime = new Date(activity.created_at);
@@ -53,12 +62,12 @@ export async function GET() {
       
       return {
         id: activity.id.toString(),
-        user: activity.user_name || activity.user?.name || 'Unknown User',
+        user: activity.user_name || 'Unknown User',
         action: activity.action,
         target: activity.target_name || activity.target_id || '',
         time: relativeTime
       };
-    }) : [];
+    });
     
     // If no activities found, generate some placeholder activities
     if (formattedActivities.length === 0) {

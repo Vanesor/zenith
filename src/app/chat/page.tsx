@@ -35,7 +35,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useToast } from '@/contexts/ToastContext';
-import { WhatsAppChatRoom } from '@/components/chat/ModernWhatsAppChatRoom';
+import { WhatsAppChatRoom } from '@/components/chat/WhatsAppChatRoom';
 import { UniversalLoader } from '@/components/UniversalLoader';
 import TokenManager from '@/lib/TokenManager';
 import MainLayout from '@/components/MainLayout';
@@ -62,9 +62,7 @@ interface ChatRoom {
   unread_count?: number;
 }
 
-interface ChatPageProps {}
-
-export default function ChatPage({}: ChatPageProps) {
+export default function ChatPage() {
   const { user, isLoading } = useAuth();
   const { isAuthenticated } = useAuthGuard({ 
     redirectReason: "Please sign in to access the chat system",
@@ -78,7 +76,6 @@ export default function ChatPage({}: ChatPageProps) {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateRoom, setShowCreateRoom] = useState(false);
-  const [showRoomInfo, setShowRoomInfo] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [filterType, setFilterType] = useState<"all" | "public" | "private" | "club">("all");
@@ -257,7 +254,7 @@ export default function ChatPage({}: ChatPageProps) {
       'bg-gradient-to-br from-blue-500 to-blue-700',
       'bg-gradient-to-br from-cyan-500 to-cyan-700',
       'bg-gradient-to-br from-teal-500 to-teal-700',
-      'bg-gradient-to-br from-college-primary to-college-accent'
+      'bg-gradient-to-br from-indigo-500 to-indigo-700'
     ];
     
     return clubColors[index % clubColors.length];
@@ -266,7 +263,7 @@ export default function ChatPage({}: ChatPageProps) {
   if (isLoading || loading) {
     return (
       <MainLayout>
-        <div className="w-full h-[calc(100vh-4rem)] flex items-center justify-center">
+        <div className="w-full h-[calc(100vh-7rem)] flex items-center justify-center">
           <UniversalLoader 
             message="Loading your conversations..."
           />
@@ -277,388 +274,326 @@ export default function ChatPage({}: ChatPageProps) {
 
   return (
     <MainLayout>
-      <div className="flex h-[calc(100vh-4rem)] bg-college-dark">
-        {/* Chat Sidebar */}
-        <AnimatePresence>
-          {(!isMobile || (isMobile && sidebarOpen)) && (
-            <motion.div
-              initial={{ x: isMobile ? -300 : 0, opacity: isMobile ? 0 : 1 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -300, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full md:w-96 bg-college-medium border-r border-gray-700 flex flex-col z-10"
-            >
-              {/* Sidebar Header */}
-              <div className="p-4 bg-college-medium border-b border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                  <h1 className="text-xl font-bold text-white flex items-center">
-                    <MessageSquare className="w-6 h-6 mr-2 text-college-primary" />
-                    Chats
-                  </h1>
-                  <div className="flex items-center space-x-2">
-                    {isManager && (
-                      <button
-                        onClick={() => setShowCreateRoom(true)}
-                        className="p-2 rounded-full hover:bg-gray-700 transition-colors"
-                        title="Create new room"
-                      >
-                        <Plus className="w-5 h-5 text-white" />
+      <div className="fixed inset-0 top-16 bg-zenith-main overflow-hidden">
+        <div className="flex h-full">
+          {/* Mobile backdrop */}
+          {isMobile && sidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
+          {/* Chat Sidebar */}
+          <AnimatePresence>
+            {(!isMobile || (isMobile && sidebarOpen)) && (
+              <motion.div
+                initial={{ x: isMobile ? -400 : 0, opacity: isMobile ? 0 : 1 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -400, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className={`
+                  ${isMobile ? 'fixed w-4/5 max-w-sm' : 'w-80'} 
+                  h-full bg-zenith-card border-r border-zenith-border flex flex-col z-30
+                  shadow-xl
+                `}
+              >
+                {/* Sidebar Header */}
+                <div className="p-4 bg-zenith-card border-b border-zenith-border flex-shrink-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <h1 className="text-xl font-bold text-zenith-primary flex items-center">
+                      <MessageSquare className="w-6 h-6 mr-2 text-zenith-primary" />
+                      Chats
+                    </h1>
+                    <div className="flex items-center space-x-2">
+                      {isManager && (
+                        <button
+                          onClick={() => setShowCreateRoom(true)}
+                          className="p-2 rounded-full hover:bg-zenith-hover transition-colors"
+                          title="Create new room"
+                        >
+                          <Plus className="w-5 h-5 text-zenith-secondary" />
+                        </button>
+                      )}
+                      <button className="p-2 rounded-full hover:bg-zenith-hover transition-colors">
+                        <Bell className="w-5 h-5 text-zenith-secondary" />
                       </button>
-                    )}
-                    <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
-                      <Bell className="w-5 h-5 text-white" />
-                    </button>
-                    <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
-                      <MoreVertical className="w-5 h-5 text-white" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search conversations..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-college-dark border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-college-primary transition-colors"
-                  />
-                </div>
-              </div>
-
-              {/* Filter Tabs */}
-              <div className="flex border-b border-gray-700 bg-college-medium">
-                <button
-                  className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                    filterType === 'all' 
-                      ? 'text-college-primary border-b-2 border-college-primary' 
-                      : 'text-gray-300 hover:bg-gray-700/30'
-                  }`}
-                  onClick={() => setFilterType('all')}
-                >
-                  All
-                </button>
-                <button
-                  className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                    filterType === 'club' 
-                      ? 'text-college-primary border-b-2 border-college-primary' 
-                      : 'text-gray-300 hover:bg-gray-700/30'
-                  }`}
-                  onClick={() => setFilterType('club')}
-                >
-                  Club
-                </button>
-                <button
-                  className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                    filterType === 'public' 
-                      ? 'text-college-primary border-b-2 border-college-primary' 
-                      : 'text-gray-300 hover:bg-gray-700/30'
-                  }`}
-                  onClick={() => setFilterType('public')}
-                >
-                  Public
-                </button>
-
-              </div>
-
-              {/* Rooms List */}
-              <div className="flex-1 overflow-y-auto bg-college-medium">
-                {filteredRooms.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-college-dark rounded-full flex items-center justify-center">
-                      <MessageSquare className="w-8 h-8 text-gray-400" />
+                      <button className="p-2 rounded-full hover:bg-zenith-hover transition-colors">
+                        <MoreVertical className="w-5 h-5 text-zenith-secondary" />
+                      </button>
                     </div>
-                    <p className="text-gray-300 mb-3">No conversations found</p>
-                    <p className="text-gray-400 text-sm mb-4">
-                      {searchTerm ? "Try a different search term" : filterType !== 'all' ? "Try a different filter" : "Start a new conversation"}
-                    </p>
-                    {isManager && (
-                      <button
-                        onClick={() => setShowCreateRoom(true)}
-                        className="mx-auto px-4 py-2 bg-college-primary text-white rounded-lg hover:bg-college-primary/90 transition-colors inline-flex items-center"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create New Room
-                      </button>
-                    )}
                   </div>
-                ) : (
-                  <div className="space-y-0.5">
-                    {filteredRooms.map((room, index) => (
-                      <motion.div
-                        key={room.id}
-                        whileTap={{ scale: 0.98 }}
-                        className={`p-3 cursor-pointer transition-all ${
-                          selectedRoom?.id === room.id
-                            ? 'bg-college-dark border-l-4 border-college-primary'
-                            : 'hover:bg-gray-800 border-l-4 border-transparent'
-                        }`}
-                        onClick={() => handleRoomSelect(room)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          {/* Room Avatar */}
-                          <div className="relative flex-shrink-0">
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-semibold ${
-                              getRoomAvatarBg(room.type, index)
-                            }`}>
-                              {room.type === 'public' || room.type === 'private' ? (
-                                getRoomTypeIcon(room.type)
-                              ) : (
-                                <span className="text-xl">{room.name.charAt(0).toUpperCase()}</span>
-                              )}
-                            </div>
-                            {room.unread_count && room.unread_count > 0 && (
-                              <div className="absolute -top-1 -right-1 bg-college-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                {room.unread_count > 9 ? '9+' : room.unread_count}
-                              </div>
-                            )}
-                          </div>
 
-                          {/* Room Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-white truncate">
-                                {room.name}
-                              </h3>
-                              {room.last_message && (
-                                <span className="text-xs text-gray-400 whitespace-nowrap ml-2">
-                                  {formatTime(room.last_message.created_at)}
+                  {/* Search */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zenith-muted" />
+                    <input
+                      type="text"
+                      placeholder="Search conversations..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
+                               text-zenith-primary placeholder-zenith-muted 
+                               focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
+                               transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="flex border-b border-zenith-border bg-zenith-card flex-shrink-0">
+                  <button
+                    className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                      filterType === 'all' 
+                        ? 'text-zenith-primary border-b-2 border-zenith-primary bg-zenith-section' 
+                        : 'text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover'
+                    }`}
+                    onClick={() => setFilterType('all')}
+                  >
+                    All
+                  </button>
+                  <button
+                    className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                      filterType === 'club' 
+                        ? 'text-zenith-primary border-b-2 border-zenith-primary bg-zenith-section' 
+                        : 'text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover'
+                    }`}
+                    onClick={() => setFilterType('club')}
+                  >
+                    Club
+                  </button>
+                  <button
+                    className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
+                      filterType === 'public' 
+                        ? 'text-zenith-primary border-b-2 border-zenith-primary bg-zenith-section' 
+                        : 'text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover'
+                    }`}
+                    onClick={() => setFilterType('public')}
+                  >
+                    Public
+                  </button>
+                </div>
+
+                {/* Rooms List */}
+                <div className="flex-1 overflow-y-auto bg-zenith-card scrollbar-thin scrollbar-thumb-zenith-border">
+                  {filteredRooms.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-zenith-section rounded-full flex items-center justify-center">
+                        <MessageSquare className="w-8 h-8 text-zenith-muted" />
+                      </div>
+                      <p className="text-zenith-secondary mb-3">No conversations found</p>
+                      <p className="text-zenith-muted text-sm mb-4">
+                        {searchTerm ? "Try a different search term" : filterType !== 'all' ? "Try a different filter" : "Start a new conversation"}
+                      </p>
+                      {isManager && (
+                        <button
+                          onClick={() => setShowCreateRoom(true)}
+                          className="mx-auto px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors inline-flex items-center"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create New Room
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-0">
+                      {filteredRooms.map((room, index) => (
+                        <motion.div
+                          key={room.id}
+                          whileTap={{ scale: 0.98 }}
+                          className={`p-3 cursor-pointer transition-all border-l-4 ${
+                            selectedRoom?.id === room.id
+                              ? 'bg-zenith-section border-zenith-primary'
+                              : 'hover:bg-zenith-hover border-transparent'
+                          }`}
+                          onClick={() => handleRoomSelect(room)}
+                        >
+                          <div className="flex items-start space-x-3">
+                            {/* Room Avatar */}
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${getRoomAvatarBg(room.type, index)}`}>
+                              {room.type === 'club' ? (
+                                <span className="text-white font-semibold text-sm">
+                                  {room.name.charAt(0).toUpperCase()}
                                 </span>
+                              ) : (
+                                getRoomTypeIcon(room.type)
                               )}
                             </div>
                             
-                            <div className="flex items-center justify-between mt-0.5">
-                              <p className="text-sm text-gray-300 truncate flex items-center">
-                                {room.last_message ? (
-                                  <>
-                                    {room.last_message.sender_name === user?.name ? (
-                                      <span className="flex items-center text-gray-400">
-                                        <CheckCheck className="w-3 h-3 mr-1" />
-                                        You:
-                                      </span>
-                                    ) : (
-                                      <span className="font-medium mr-1">
-                                        {room.last_message.sender_name.split(' ')[0]}:
-                                      </span>
-                                    )}{' '}
-                                    <span className="truncate">{room.last_message.message}</span>
-                                  </>
-                                ) : (
-                                  <span className="text-gray-400 italic">
-                                    {room.description || 'No messages yet'}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <h3 className="font-semibold text-zenith-primary text-sm truncate">
+                                  {room.name}
+                                </h3>
+                                {room.last_message && (
+                                  <span className="text-xs text-zenith-muted flex-shrink-0">
+                                    {formatTime(room.last_message.created_at)}
                                   </span>
                                 )}
-                              </p>
-                              {room.last_message && !room.last_message.is_read && room.last_message.sender_name !== user?.name && (
-                                <div className="w-2.5 h-2.5 bg-college-primary rounded-full"></div>
-                              )}
-                            </div>
-
-                            {/* Club info */}
-                            {room.club_name && (
-                              <div className="text-xs text-gray-400 truncate mt-0.5">
-                                {room.club_name}
                               </div>
-                            )}
+                              
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs text-zenith-muted truncate">
+                                  {room.last_message 
+                                    ? `${room.last_message.sender_name}: ${room.last_message.message}` 
+                                    : room.description || 'No messages yet'
+                                  }
+                                </p>
+                                {room.unread_count && room.unread_count > 0 && (
+                                  <span className="bg-zenith-primary text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center flex-shrink-0 ml-2">
+                                    {room.unread_count > 99 ? '99+' : room.unread_count}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <div className="mt-1 flex items-center text-xs text-zenith-muted">
+                                <Users className="w-3 h-3 mr-1" />
+                                <span>{room.members_count} members</span>
+                                <span className="mx-2">•</span>
+                                <span className="capitalize">{room.type}</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col relative">
-          {isMobile && selectedRoom && !sidebarOpen && (
-            <button 
-              onClick={() => setSidebarOpen(true)} 
-              className="absolute top-4 left-4 z-20 p-2 bg-college-medium rounded-full shadow-lg"
-            >
-              <ChevronLeft className="w-5 h-5 text-white" />
-            </button>
-          )}
-          
-          {selectedRoom ? (
-            <WhatsAppChatRoom
-              roomId={selectedRoom.id}
-              roomName={selectedRoom.name}
-              currentUser={user!}
-              isPrivate={selectedRoom.type === 'private'}
-              onInviteUser={() => {}}
-              onBack={() => {
-                if (isMobile) {
-                  setSidebarOpen(true);
-                }
-                setSelectedRoom(null);
-              }}
-              showMobileBack={isMobile && !sidebarOpen}
-            />
-          ) : (
-            <div className="flex-1 flex items-center justify-center bg-college-dark">
-              <div className="text-center max-w-md mx-auto p-8">
-                <div className="w-32 h-32 bg-gradient-to-br from-college-primary to-blue-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-                  <MessageSquare className="w-16 h-16 text-white" />
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  Welcome to College Chat
-                </h2>
-                <p className="text-gray-300 mb-8 leading-relaxed">
-                  Connect with your classmates, participate in club discussions, and collaborate on projects in real-time.
-                </p>
-                {isManager && (
-                  <button
-                    onClick={() => setShowCreateRoom(true)}
-                    className="px-6 py-3 bg-college-primary text-white rounded-lg hover:bg-college-accent transition-colors flex items-center mx-auto"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Create Room
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {/* Create Room Modal */}
-      <AnimatePresence>
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col bg-zenith-main relative">
+            {selectedRoom ? (
+              <WhatsAppChatRoom 
+                roomId={selectedRoom.id}
+                roomName={selectedRoom.name}
+                currentUser={user || { id: '', name: '', email: '' }}
+                isPrivate={selectedRoom.type === 'private'}
+                onInviteUser={() => {
+                  // Handle invite user functionality
+                  console.log('Invite user clicked');
+                }}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center bg-zenith-section">
+                <div className="text-center p-8">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-zenith-card rounded-full flex items-center justify-center shadow-lg">
+                    <MessageSquare className="w-12 h-12 text-zenith-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-zenith-primary mb-2">
+                    Welcome to Zenith Chat
+                  </h2>
+                  <p className="text-zenith-secondary mb-4 max-w-md">
+                    Select a conversation from the sidebar to start chatting with your club members and colleagues.
+                  </p>
+                  {!isMobile && rooms.length === 0 && isManager && (
+                    <button
+                      onClick={() => setShowCreateRoom(true)}
+                      className="px-6 py-3 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors inline-flex items-center"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Create Your First Room
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Create Room Modal */}
         {showCreateRoom && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setShowCreateRoom(false)}
-          >
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="bg-college-medium border border-gray-700 rounded-xl p-6 w-full max-w-md shadow-xl"
-              onClick={(e) => e.stopPropagation()}
+              className="bg-zenith-card rounded-xl p-6 w-full max-w-md shadow-2xl"
             >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Create New Room</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-zenith-primary">Create New Room</h3>
                 <button
                   onClick={() => setShowCreateRoom(false)}
-                  className="p-1.5 rounded-full hover:bg-gray-700 transition-colors"
+                  className="p-2 hover:bg-zenith-hover rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-5 h-5 text-zenith-muted" />
                 </button>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
                     Room Name
                   </label>
                   <input
                     type="text"
                     value={newRoom.name}
                     onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-college-dark border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-college-primary transition-colors"
                     placeholder="Enter room name..."
-                    autoFocus
+                    className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
+                             text-zenith-primary placeholder-zenith-muted
+                             focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
+                             transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
                     Description (Optional)
                   </label>
                   <textarea
                     value={newRoom.description}
                     onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
-                    className="w-full px-4 py-3 bg-college-dark border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-college-primary transition-colors resize-none"
-                    placeholder="Room description..."
+                    placeholder="Describe this room..."
                     rows={3}
+                    className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
+                             text-zenith-primary placeholder-zenith-muted
+                             focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
+                             transition-all resize-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
                     Room Type
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {(['club', 'public'] as const).map((type) => (
-                      <div
-                        key={type}
-                        onClick={() => setNewRoom({ ...newRoom, type })}
-                        className={`flex flex-col items-center py-3 px-2 rounded-lg cursor-pointer transition-all ${
-                          newRoom.type === type
-                            ? 'bg-college-primary/20 border-2 border-college-primary'
-                            : 'bg-college-dark border-2 border-gray-700 hover:border-gray-500'
-                        }`}
-                      >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                          newRoom.type === type ? 'bg-college-primary' : 'bg-gray-700'
-                        }`}>
-                          {type === 'club' ? (
-                            <Users className="w-5 h-5 text-white" />
-                          ) : type === 'public' ? (
-                            <Hash className="w-5 h-5 text-white" />
-                          ) : (
-                            <Lock className="w-5 h-5 text-white" />
-                          )}
-                        </div>
-                        <span className={`text-sm font-medium capitalize ${
-                          newRoom.type === type ? 'text-college-primary' : 'text-gray-300'
-                        }`}>
-                          {type}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <select
+                    value={newRoom.type}
+                    onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value as "public" | "private" | "club" })}
+                    className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
+                             text-zenith-primary
+                             focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
+                             transition-all"
+                  >
+                    <option value="club">Club Room</option>
+                    <option value="public">Public Room</option>
+                    <option value="private">Private Room</option>
+                  </select>
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={handleCreateRoom}
+                    className="flex-1 px-4 py-2.5 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 
+                             transition-colors font-medium"
+                  >
+                    Create Room
+                  </button>
+                  <button
+                    onClick={() => setShowCreateRoom(false)}
+                    className="flex-1 px-4 py-2.5 bg-zenith-section text-zenith-secondary rounded-lg hover:bg-zenith-hover 
+                             transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
-
-              <div className="flex justify-end space-x-3 mt-8">
-                <button
-                  onClick={() => setShowCreateRoom(false)}
-                  className="px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateRoom}
-                  disabled={!newRoom.name.trim()}
-                  className="px-6 py-2.5 bg-college-primary text-white rounded-lg hover:bg-college-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Create Room
-                </button>
-              </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </MainLayout>
-  );
-}
-
-// Missing Lock icon component
-function Lock({ className = "w-6 h-6", ...props }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg"
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-      {...props}
-    >
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-    </svg>
   );
 }

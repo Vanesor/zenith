@@ -47,7 +47,7 @@ class EmailService {
       
       // Log the email in database
       try {
-        await db.executeRawSQL(
+        await db.$executeRaw(
           `INSERT INTO email_logs (recipient, subject, content_preview, status, message_id, category, related_id)
            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
           [to, subject, html.substring(0, 200), 'sent', info.messageId, category || null, relatedId || null]
@@ -67,7 +67,7 @@ class EmailService {
       
       // Try to log the failed email
       try {
-        await db.executeRawSQL(
+        await db.$executeRaw(
           `INSERT INTO email_logs (recipient, subject, content_preview, status)
            VALUES ($1, $2, $3, $4)`,
           [options.to, options.subject, options.html.substring(0, 200), 'failed']

@@ -1,4 +1,4 @@
-import { prismaClient as prisma } from "./database";
+import { db } from "./database";
 import emailServiceV2 from "./EmailServiceV2";
 
 export interface NotificationPreferences {
@@ -100,13 +100,13 @@ export class NotificationService {
       
       if (clubId) {
         // Get club name
-        const club = await db.clubs.findUnique({
-          where: { id: clubId },
-          select: { name: true }
-        });
+        const clubResult = await db.query(
+          `SELECT name FROM clubs WHERE id = $1`,
+          [clubId]
+        );
         
-        if (club) {
-          clubName = club.name;
+        if (clubResult.rows.length > 0) {
+          clubName = clubResult.rows[0].name;
         }
         
         // Get users from specific club
@@ -127,23 +127,24 @@ export class NotificationService {
       }
       
       // Query for assignment details
-      const assignment = await db.assignments.findUnique({
-        where: { id: assignmentId },
-        select: { title: true, due_date: true }
-      });
+      const assignmentResult = await db.query(
+        `SELECT title, due_date FROM assignments WHERE id = $1`,
+        [assignmentId]
+      );
       
-      if (!assignment) {
+      if (assignmentResult.rows.length === 0) {
         console.error(`Assignment ${assignmentId} not found`);
         return;
       }
       
+      const assignment = assignmentResult.rows[0];
       const dueDate = new Date(assignment.due_date).toLocaleDateString();
       
       // Get all relevant users
-      const usersResult = await db.$queryRawUnsafe(userQuery, ...queryParams) as any[];
+      const usersResult = await db.query(userQuery, queryParams);
       
       // Send notification to each user
-      for (const user of usersResult) {
+      for (const user of usersResult.rows) {
         // Skip if user has disabled assignment notifications
         const preferences = user.notification_preferences as NotificationPreferences;
         if (preferences?.email?.assignments === false) {
@@ -174,19 +175,17 @@ export class NotificationService {
   ): Promise<void> {
     try {
       // Get user details
-      const user = await db.users.findUnique({
-        where: { id: userId },
-        select: { 
-          name: true, 
-          email: true, 
-          notification_preferences: true 
-        }
-      });
+      const userResult = await db.query(
+        `SELECT name, email, notification_preferences FROM users WHERE id = $1`,
+        [userId]
+      );
       
-      if (!user) {
+      if (userResult.rows.length === 0) {
         console.error(`User ${userId} not found`);
         return;
       }
+      
+      const user = userResult.rows[0];
       
       // Skip if user has disabled result notifications
       const preferences = user.notification_preferences as unknown as NotificationPreferences;
@@ -195,30 +194,28 @@ export class NotificationService {
       }
       
       // Get assignment details
-      const assignment = await db.assignments.findUnique({
-        where: { id: assignmentId },
-        select: { title: true }
-      });
+      const assignmentResult = await db.query(
+        `SELECT title FROM assignments WHERE id = $1`,
+        [assignmentId]
+      );
       
-      if (!assignment) {
+      if (assignmentResult.rows.length === 0) {
         console.error(`Assignment ${assignmentId} not found`);
         return;
       }
       
+      const assignment = assignmentResult.rows[0];
+      
       // Get submission details
-      const submission = await db.assignment_submissions.findFirst({
-        where: {
-          user_id: userId,
-          assignment_id: assignmentId
-        },
-        select: {
-          total_score: true,
-          status: true
-        }
-      });
+      const submissionResult = await db.query(
+        `SELECT total_score, status FROM assignment_submissions 
+         WHERE user_id = $1 AND assignment_id = $2`,
+        [userId, assignmentId]
+      );
       
       let scoreText = undefined;
-      if (submission) {
+      if (submissionResult.rows.length > 0) {
+        const submission = submissionResult.rows[0];
         // Use status as grade if it contains a grade value (like "A", "B+", etc.)
         if (submission.status && !["submitted", "graded", "pending", "reviewing"].includes(submission.status)) {
           scoreText = submission.status;
@@ -254,13 +251,13 @@ export class NotificationService {
       
       if (clubId) {
         // Get club name
-        const club = await db.clubs.findUnique({
-          where: { id: clubId },
-          select: { name: true }
-        });
+        const clubResult = await db.query(
+          `SELECT name FROM clubs WHERE id = $1`,
+          [clubId]
+        );
         
-        if (club) {
-          clubName = club.name;
+        if (clubResult.rows.length > 0) {
+          clubName = clubResult.rows[0].name;
         }
         
         // Get users from specific club
@@ -281,29 +278,25 @@ export class NotificationService {
       }
       
       // Query for event details
-      const event = await db.events.findUnique({
-        where: { id: eventId },
-        select: { 
-          title: true, 
-          event_date: true, 
-          event_time: true, 
-          location: true 
-        }
-      });
+      const eventResult = await db.query(
+        `SELECT title, event_date, event_time, location FROM events WHERE id = $1`,
+        [eventId]
+      );
       
-      if (!event) {
+      if (eventResult.rows.length === 0) {
         console.error(`Event ${eventId} not found`);
         return;
       }
       
+      const event = eventResult.rows[0];
       const eventDate = new Date(event.event_date).toLocaleDateString();
       const formattedDate = `${eventDate} at ${event.event_time}`;
       
       // Get all relevant users
-      const usersResult = await db.$queryRawUnsafe(userQuery, ...queryParams) as any[];
+      const usersResult = await db.query(userQuery, queryParams);
       
       // Send notification to each user
-      for (const user of usersResult) {
+      for (const user of usersResult.rows) {
         // Skip if user has disabled event notifications
         const preferences = user.notification_preferences as unknown as NotificationPreferences;
         if (preferences?.email?.events === false) {
@@ -327,12 +320,10 @@ export class NotificationService {
     preferences: NotificationPreferences
   ): Promise<boolean> {
     try {
-      await db.users.update({
-        where: { id: userId },
-        data: { 
-          notification_preferences: preferences as any 
-        }
-      });
+      await db.query(
+        `UPDATE users SET notification_preferences = $1 WHERE id = $2`,
+        [JSON.stringify(preferences), userId]
+      );
       
       return true;
     } catch (error) {

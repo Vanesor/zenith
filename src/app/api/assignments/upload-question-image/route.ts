@@ -1,9 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { SupabaseStorageService } from '@/lib/supabaseStorage';
+import { LocalStorageService } from "@/lib/storage";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for question images
+
+// File validation function
+function validateFile(file: File, type: string, maxSize: number): { valid: boolean; error?: string } {
+  if (!file) {
+    return { valid: false, error: 'No file provided' };
+  }
+
+  // Check file size
+  if (file.size > maxSize) {
+    return { valid: false, error: `File size exceeds ${Math.round(maxSize / (1024 * 1024))}MB limit` };
+  }
+
+  // Check file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    return { valid: false, error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.' };
+  }
+
+  return { valid: true };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file
-    const validation = SupabaseStorageService.validateFile(file, 'question', MAX_FILE_SIZE);
+    const validation = validateFile(file, 'question', MAX_FILE_SIZE);
     if (!validation.valid) {
       return NextResponse.json({
         success: false,
@@ -60,18 +80,17 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Upload question image
-    const uploadResult = await SupabaseStorageService.uploadQuestionImage(
+    // Upload question image using LocalStorageService
+    const uploadResult = await LocalStorageService.uploadFile(
       file,
-      file.name,
-      decoded.userId,
-      questionId
+      'assignments',
+      `questions/${questionId}`
     );
 
-    if (!uploadResult.success) {
+    if (!uploadResult) {
       return NextResponse.json({
          success: false,
-        error: uploadResult.error || 'Failed to upload question image'
+        error: 'Failed to upload question image'
        }, { status: 500 });
     }
 
@@ -80,9 +99,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Question image uploaded successfully',
-      imageUrl: uploadResult.fileUrl,
-      fileId: uploadResult.fileId,
-      thumbnailUrl: uploadResult.thumbnailUrl
+      imageUrl: uploadResult.url,
+      filePath: uploadResult.path
     });
 
   } catch (error) {

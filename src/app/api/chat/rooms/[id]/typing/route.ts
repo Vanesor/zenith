@@ -1,65 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
-
-// Helper function to verify JWT token
-async function verifyToken(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
-  }
-
-  const token = authHeader.substring(7);
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
+// Placeholder API endpoint - needs implementation with new database
+export async function GET(request: NextRequest) {
+  return NextResponse.json(
+    { error: 'API endpoint not yet implemented with new database' },
+    { status: 501 }
+  );
 }
 
-// Send typing indicator
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await verifyToken(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // In a real-time system, you'd broadcast this to other users
-    // For now, we'll just acknowledge it
-    return NextResponse.json({ success: true });
-
-  } catch (error) {
-    console.error('Typing indicator error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+export async function POST(request: NextRequest) {
+  return NextResponse.json(
+    { error: 'API endpoint not yet implemented with new database' },
+    { status: 501 }
+  );
 }
 
-// Stop typing indicator
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await verifyToken(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export async function PUT(request: NextRequest) {
+  return NextResponse.json(
+    { error: 'API endpoint not yet implemented with new database' },
+    { status: 501 }
+  );
+}
 
-    // In a real-time system, you'd stop broadcasting typing indicator
-    return NextResponse.json({ success: true });
-
-  } catch (error) {
-    console.error('Stop typing error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+export async function DELETE(request: NextRequest) {
+  return NextResponse.json(
+    { error: 'API endpoint not yet implemented with new database' },
+    { status: 501 }
+  );
 }

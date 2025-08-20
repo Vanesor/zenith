@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { Prisma } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { db } from '@/lib/database';
+import { verifyAuth } from "@/lib/auth-unified";
 
 import { NotificationService } from "@/lib/NotificationService";
 
@@ -138,19 +137,19 @@ export async function GET(request: NextRequest) {
           created_at: 'desc'
         },
         include: {
-          club: {
+          clubs: {
             select: {
               id: true,
               name: true
             }
           },
-          creator: {
+          users: {
             select: {
               id: true,
               name: true
             }
           },
-          submissions: {
+          assignment_submissions: {
             where: {
               user_id: userId
             },
@@ -354,9 +353,9 @@ export async function POST(request: NextRequest) {
 
     // Begin Prisma transaction
     try {
-      const result = await db.$transaction(async (tx) => {
+      const result = await db.transaction(async (tx: any) => {
         // Create assignment
-        const createdAssignment = await tx.assignment.create({
+        const createdAssignment = await tx.assignments.create({
           data: {
             title,
             description,
@@ -441,7 +440,7 @@ export async function POST(request: NextRequest) {
             }
           }
           
-          await tx.assignmentQuestion.create({
+          await tx.assignment_questions.create({
             data: {
               assignment_id: createdAssignment.id,
               question_type: mapQuestionType(question.type),

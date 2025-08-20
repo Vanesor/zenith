@@ -1,0 +1,1741 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { useToast } from '@/contexts/ToastContext';
+import { useRouter } from 'next/navigation';
+import SafeAvatar from '@/components/SafeAvatar';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import ProfileModal from '@/components/ProfileModal';
+import TokenManager from '@/lib/TokenManager';
+import { 
+  Users, 
+  UserPlus, 
+  Crown, 
+  Star, 
+  Settings, 
+  Shield, 
+  Award,
+  Calendar,
+  TrendingUp,
+  BarChart3,
+  UserCheck,
+  UserX,
+  Edit3,
+  Trash2,
+  Search,
+  Filter,
+  ChevronDown,
+  MoreVertical,
+  Building2,
+  Globe,
+  Mail,
+  Phone,
+  MapPin,
+  ExternalLink,
+  ArrowLeft,
+  Activity,
+  Target,
+  Plus,
+  X,
+  Eye,
+  MessageSquare,
+  FileText,
+  UserMinus
+} from 'lucide-react';
+
+interface ClubMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  joined_at: string;
+  joinedAt?: string; // Alias for joined_at
+  lastActive?: string;
+  last_active?: string;
+  club_id: string;
+  status: 'active' | 'inactive' | 'pending';
+}
+
+interface ClubEvent {
+  id: string;
+  title: string;
+  description: string;
+  event_date: string;
+  event_time: string;
+  location: string;
+  attendees_count: number;
+  status: "upcoming" | "ongoing" | "completed";
+}
+
+interface ClubAssignment {
+  id: string;
+  title: string;
+  description: string;
+  due_date: string;
+  startDate?: string;
+  start_date?: string;
+  submissions_count: number;
+  max_points: number;
+  status: "pending" | "upcoming" | "overdue" | "submitted" | "active" | "draft" | "closed";
+}
+
+interface Club {
+  id: string;
+  name: string;
+  description: string;
+  memberCount: number;
+  coordinator: string;
+  coCoordinator?: string;
+  category: string;
+  type?: string;
+  color?: string;
+  status: 'active' | 'inactive';
+  lastActivity: string;
+  engagementRate?: number;
+  eventsThisMonth?: number;
+  activeAssignments?: number;
+}
+
+interface CommitteeMember {
+  id: string;
+  name: string;
+  position: 'President' | 'Vice President' | 'Innovation Head' | 'Secretary' | 'Treasurer' | 'Outreach Coordinator' | 'Media Coordinator';
+  avatar?: string;
+  email: string;
+  phone?: string;
+  department?: string;
+  year?: string;
+}
+
+interface ClubStats {
+  totalMembers: number;
+  activeEvents: number;
+  pendingAssignments: number;
+  monthlyPosts: number;
+  activeMembers?: number;
+  eventsThisMonth?: number;
+  assignmentsActive?: number;
+  engagementRate?: number;
+  weeklyGrowth?: number;
+}
+
+const ClubManagementPage = () => {
+  const { user, isLoading } = useAuth();
+  const { isAuthenticated } = useAuthGuard({ 
+    redirectReason: "Please sign in to access admin club management",
+    redirectOnClose: true,
+    redirectPath: "/login"
+  });
+  const { showToast } = useToast();
+  const router = useRouter();
+  
+  const [activeTab, setActiveTab] = useState<'overview' | 'clubs' | 'members' | 'events' | 'assignments' | 'committee' | 'analytics' | 'settings'>('overview');
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [members, setMembers] = useState<ClubMember[]>([]);
+  const [events, setEvents] = useState<ClubEvent[]>([]);
+  const [assignments, setAssignments] = useState<ClubAssignment[]>([]);
+  const [committee, setCommittee] = useState<CommitteeMember[]>([]);
+  const [analytics, setAnalytics] = useState<ClubStats | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedClub, setSelectedClub] = useState<string>('all');
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Modal states
+  const [showDeleteModal, setShowDeleteModal] = useState<{
+    show: boolean;
+    type: string;
+    id: string;
+    name: string;
+  }>({ show: false, type: "", id: "", name: "" });
+  
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  
+  const [showAssignmentActionModal, setShowAssignmentActionModal] = useState<{
+    show: boolean;
+    type: 'edit' | 'delete' | 'error';
+    id: string;
+    title: string;
+    message: string;
+    canProceed: boolean;
+  }>({ 
+    show: false,
+    type: 'delete',
+    id: '',
+    title: '',
+    message: '',
+    canProceed: true
+  });
+  
+  // Form states
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    description: "",
+    event_date: "",
+    event_time: "",
+    location: "",
+  });
+
+  // Determine user access level
+  const isZenithCommittee = user && [
+    'president', 'vice_president', 'innovation_head', 
+    'secretary', 'treasurer', 'outreach_coordinator', 'media_coordinator'
+  ].includes(user.role);
+  
+  const isClubManager = user && [
+    'coordinator', 'co_coordinator', 'secretary', 'media'
+  ].includes(user.role);
+
+  // Check if user has admin access
+  const hasAdminAccess = isZenithCommittee || isClubManager;
+
+  // Load initial data
+  useEffect(() => {
+    if (!isAuthenticated || !hasAdminAccess) return;
+    
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load clubs data
+        const tokenManager = TokenManager.getInstance();
+        const clubsResponse = await tokenManager.authenticatedFetch('/api/admin/clubs');
+        
+        if (clubsResponse.ok) {
+          const clubsData = await clubsResponse.json();
+          setClubs(clubsData.clubs || []);
+        }
+        
+        // Load committee data 
+        const committeeResponse = await tokenManager.authenticatedFetch('/api/admin/committee');
+        if (committeeResponse.ok) {
+          const committeeData = await committeeResponse.json();
+          setCommittee(committeeData.committee || []);
+        }
+        
+        // Set mock analytics data for now
+        setAnalytics({
+          totalMembers: 248,
+          activeMembers: 195,
+          activeEvents: 15,
+          pendingAssignments: 8,
+          monthlyPosts: 23,
+          eventsThisMonth: 15,
+          assignmentsActive: 8,
+          engagementRate: 73,
+          weeklyGrowth: 12
+        });
+        
+      } catch (error) {
+        console.error('Error loading admin data:', error);
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to load admin data'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [isAuthenticated, hasAdminAccess, showToast]);
+
+  // Handle assignment editing
+  const handleEditAssignment = (assignment: ClubAssignment) => {
+    if (new Date() > new Date(assignment.startDate || assignment.start_date || '2000-01-01')) {
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'error',
+        id: assignment.id,
+        title: 'Cannot Edit Assignment',
+        message: 'This assignment cannot be edited because it has already started or has submissions.',
+        canProceed: false
+      });
+    } else {
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'edit',
+        id: assignment.id,
+        title: 'Edit Assignment',
+        message: 'Are you sure you want to edit this assignment? Any changes will be applied immediately.',
+        canProceed: true
+      });
+    }
+  };
+
+  const handleConfirmEditAssignment = (assignmentId: string) => {
+    setShowAssignmentActionModal({
+      show: false,
+      type: 'edit',
+      id: '',
+      title: '',
+      message: '',
+      canProceed: true
+    });
+    router.push(`/assignments/${assignmentId}/edit`);
+  };
+  
+  const handleDeleteAssignmentModal = (assignment: ClubAssignment) => {
+    if (new Date() > new Date(assignment.startDate || assignment.start_date || '2000-01-01')) {
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'error',
+        id: assignment.id,
+        title: 'Cannot Delete Assignment',
+        message: 'This assignment cannot be deleted because it has already started or has submissions.',
+        canProceed: false
+      });
+    } else {
+      setShowAssignmentActionModal({
+        show: true,
+        type: 'delete',
+        id: assignment.id,
+        title: 'Delete Assignment',
+        message: 'Are you sure you want to delete this assignment? This action cannot be undone.',
+        canProceed: true
+      });
+    }
+  };
+
+  // Handle member addition
+  const handleAddMember = async () => {
+    if (!newMemberEmail.trim()) {
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Please enter a valid email address'
+      });
+      return;
+    }
+
+    try {
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch('/api/admin/club/members', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: newMemberEmail,
+          club_id: selectedClub
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Member added successfully!'
+        });
+        setNewMemberEmail('');
+        setShowAddMember(false);
+        // Refresh members list
+        // loadMembersData();
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: data.error || 'Failed to add member'
+        });
+      }
+    } catch (error) {
+      console.error('Error adding member:', error);
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to add member'
+      });
+    }
+  };
+
+  // Handle event creation
+  const handleCreateEvent = async () => {
+    if (!newEvent.title.trim() || !newEvent.event_date || !newEvent.event_time) {
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Please fill in all required fields'
+      });
+      return;
+    }
+
+    try {
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch('/api/admin/events', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...newEvent,
+          club_id: selectedClub
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Event created successfully!'
+        });
+        setNewEvent({
+          title: "",
+          description: "",
+          event_date: "",
+          event_time: "",
+          location: "",
+        });
+        setShowCreateEvent(false);
+        // Refresh events list
+        // loadEventsData();
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: data.error || 'Failed to create event'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to create event'
+      });
+    }
+  };
+
+  if (isLoading || loading) {
+    return (
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-zenith-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-zenith-secondary">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasAdminAccess) {
+    return (
+      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
+        <div className="text-center p-8">
+          <Shield className="w-16 h-16 text-zenith-muted mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-zenith-primary mb-2">Access Denied</h2>
+          <p className="text-zenith-secondary mb-4">You don't have permission to access this page.</p>
+          <button 
+            onClick={() => router.push('/dashboard')}
+            className="px-6 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isClubCoordinator = user && (user.role === 'coordinator' || user.role === 'co_coordinator');
+  const isAdmin = user && user.role === 'admin';
+
+  // Fetch data based on user role
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      
+      try {
+        // Fetch analytics data
+        const analyticsResponse = await fetch('/api/admin/stats/clubs');
+        if (analyticsResponse.ok) {
+          const analyticsData = await analyticsResponse.json();
+          setAnalytics({
+            totalMembers: 248,
+            activeMembers: 195,
+            eventsThisMonth: 15,
+            assignmentsActive: 8,
+            engagementRate: 73,
+            weeklyGrowth: 12
+          });
+        }
+
+        if (isZenithCommittee || isAdmin) {
+          // Fetch committee data for Zenith committee members
+          const response = await fetch('/api/committee');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.committee) {
+              // Transform committee data to match our UI structure
+              const committeeMembers: CommitteeMember[] = data.committee.roles?.flatMap((role: any) => 
+                role.members?.map((member: any) => ({
+                  id: member.id,
+                  name: member.user.name,
+                  position: role.name as any,
+                  email: member.user.email,
+                  avatar: member.user.avatar,
+                  phone: member.phone,
+                  department: member.department,
+                  year: member.year
+                })) || []
+              ) || [];
+              setCommittee(committeeMembers);
+            }
+          }
+
+          // Fetch all clubs data for Zenith committee
+          const clubsResponse = await fetch('/api/clubs');
+          if (clubsResponse.ok) {
+            const clubsData = await clubsResponse.json();
+            if (clubsData.success) {
+              setClubs(clubsData.clubs || []);
+            }
+          }
+        } else if (isClubCoordinator) {
+          // Fetch only specific club data for club coordinators
+          const userClubId = user?.club_id;
+          if (userClubId) {
+            const clubResponse = await fetch(`/api/clubs/${userClubId}`);
+            if (clubResponse.ok) {
+              const clubData = await clubResponse.json();
+              if (clubData.success) {
+                setClubs([clubData.club]);
+              }
+            }
+
+            // Fetch club members
+            const membersResponse = await fetch(`/api/clubs/${userClubId}/members`);
+            if (membersResponse.ok) {
+              const membersData = await membersResponse.json();
+              if (membersData.success) {
+                setMembers(membersData.members || []);
+              }
+            }
+          }
+        }
+
+        // Fallback to mock data if API fails
+        if (committee.length === 0 && (isZenithCommittee || isAdmin)) {
+          const mockCommittee: CommitteeMember[] = [
+            {
+              id: '1',
+              name: 'Alex Johnson',
+              position: 'President',
+              email: 'alex.johnson@college.edu',
+              phone: '+91 98765 43210',
+              department: 'Computer Science',
+              year: 'Final Year'
+            },
+            {
+              id: '2',
+              name: 'Sarah Wilson',
+              position: 'Vice President',
+              email: 'sarah.wilson@college.edu',
+              phone: '+91 98765 43211',
+              department: 'Information Technology',
+              year: 'Third Year'
+            },
+            {
+              id: '3',
+              name: 'Michael Chen',
+              position: 'Innovation Head',
+              email: 'michael.chen@college.edu',
+              phone: '+91 98765 43212',
+              department: 'Electronics',
+              year: 'Final Year'
+            },
+            {
+              id: '4',
+              name: 'Emily Davis',
+              position: 'Secretary',
+              email: 'emily.davis@college.edu',
+              phone: '+91 98765 43213',
+              department: 'Computer Science',
+              year: 'Second Year'
+            },
+            {
+              id: '5',
+              name: 'David Rodriguez',
+              position: 'Treasurer',
+              email: 'david.rodriguez@college.edu',
+              phone: '+91 98765 43214',
+              department: 'Management',
+              year: 'Third Year'
+            },
+            {
+              id: '6',
+              name: 'Lisa Thompson',
+              position: 'Outreach Coordinator',
+              email: 'lisa.thompson@college.edu',
+              phone: '+91 98765 43215',
+              department: 'Communications',
+              year: 'Second Year'
+            },
+            {
+              id: '7',
+              name: 'James Anderson',
+              position: 'Media Coordinator',
+              email: 'james.anderson@college.edu',
+              phone: '+91 98765 43216',
+              department: 'Design',
+              year: 'Third Year'
+            }
+          ];
+          setCommittee(mockCommittee);
+        }
+
+        if (clubs.length === 0 && isClubCoordinator) {
+          // Mock club data for club coordinators
+          const mockClub: Club = {
+            id: '1',
+            name: 'Tech Innovation Club',
+            description: 'Focused on emerging technologies and innovation',
+            memberCount: 45,
+            coordinator: user?.name || 'Coordinator',
+            category: 'Technology',
+            status: 'active',
+            lastActivity: new Date().toISOString(),
+            engagementRate: 78,
+            eventsThisMonth: 3,
+            activeAssignments: 2
+          };
+          setClubs([mockClub]);
+        }
+        
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+      
+      setLoading(false);
+    };
+
+    if (user) {
+      fetchData();
+    }
+  }, [user, isZenithCommittee, isClubCoordinator, isAdmin]);
+
+  const getPositionIcon = (position: string) => {
+    switch (position) {
+      case 'President':
+        return <Crown className="w-5 h-5 text-yellow-500" />;
+      case 'Vice President':
+        return <Star className="w-5 h-5 text-purple-500" />;
+      case 'Innovation Head':
+        return <TrendingUp className="w-5 h-5 text-blue-500" />;
+      case 'Secretary':
+        return <Edit3 className="w-5 h-5 text-green-500" />;
+      case 'Treasurer':
+        return <BarChart3 className="w-5 h-5 text-orange-500" />;
+      case 'Outreach Coordinator':
+        return <Users className="w-5 h-5 text-pink-500" />;
+      case 'Media Coordinator':
+        return <Globe className="w-5 h-5 text-indigo-500" />;
+      default:
+        return <Shield className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  const getPositionColor = (position: string) => {
+    switch (position) {
+      case 'President':
+        return 'from-yellow-500 to-orange-500';
+      case 'Vice President':
+        return 'from-purple-500 to-pink-500';
+      case 'Innovation Head':
+        return 'from-blue-500 to-cyan-500';
+      case 'Secretary':
+        return 'from-green-500 to-emerald-500';
+      case 'Treasurer':
+        return 'from-orange-500 to-red-500';
+      case 'Outreach Coordinator':
+        return 'from-pink-500 to-rose-500';
+      case 'Media Coordinator':
+        return 'from-indigo-500 to-blue-500';
+      default:
+        return 'from-gray-500 to-gray-600';
+    }
+  };
+
+  const renderCommitteeCard = (member: CommitteeMember) => (
+    <motion.div
+      key={member.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group"
+    >
+      {/* Header with gradient */}
+      <div className={`h-24 bg-gradient-to-r ${getPositionColor(member.position)} relative`}>
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div className="absolute bottom-3 left-4 text-white">
+          <div className="flex items-center space-x-2">
+            {getPositionIcon(member.position)}
+            <span className="font-semibold text-sm">{member.position}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Avatar */}
+      <div className="relative -mt-8 flex justify-center">
+        <div className="w-16 h-16 rounded-full bg-gray-700 border-4 border-gray-800 flex items-center justify-center text-white font-bold text-lg">
+          {member.avatar ? (
+            <img 
+              src={member.avatar} 
+              alt={member.name}
+              className="w-full h-full rounded-full object-cover"
+            />
+          ) : (
+            member.name.split(' ').map(n => n[0]).join('')
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 pt-2">
+        <h3 className="text-white font-semibold text-center mb-2">{member.name}</h3>
+        
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center text-gray-300">
+            <Mail className="w-4 h-4 mr-2 text-gray-400" />
+            <span className="truncate">{member.email}</span>
+          </div>
+          
+          {member.phone && (
+            <div className="flex items-center text-gray-300">
+              <Phone className="w-4 h-4 mr-2 text-gray-400" />
+              <span>{member.phone}</span>
+            </div>
+          )}
+          
+          {member.department && (
+            <div className="flex items-center text-gray-300">
+              <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+              <span>{member.department}</span>
+            </div>
+          )}
+          
+          {member.year && (
+            <div className="flex items-center text-gray-300">
+              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+              <span>{member.year}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Action button */}
+        <div className="mt-4 pt-3 border-t border-gray-700">
+          <button className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg transition-colors duration-200 text-sm flex items-center justify-center space-x-2">
+            <Edit3 className="w-4 h-4" />
+            <span>Edit Profile</span>
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderOverview = () => (
+    <div className="space-y-6">
+      {/* Back to Dashboard Button */}
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => window.history.back()}
+        className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Dashboard</span>
+      </motion.button>
+
+      {/* Role-based header */}
+      <div className="bg-gray-800 rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">
+              {isZenithCommittee || isAdmin ? 'Zenith Committee Dashboard' : 'Club Management Dashboard'}
+            </h2>
+            <p className="text-gray-400 mt-1">
+              {isZenithCommittee || isAdmin 
+                ? 'Manage all clubs and committee operations'
+                : `Manage your club: ${clubs[0]?.name || 'Your Club'}`
+              }
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-400">Role</p>
+            <p className="text-white font-semibold capitalize">{user?.role?.replace('_', ' ')}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { 
+            title: isZenithCommittee || isAdmin ? 'Total Clubs' : 'Club Members', 
+            value: isZenithCommittee || isAdmin ? '12' : clubs[0]?.memberCount?.toString() || '45', 
+            icon: Building2, 
+            color: 'blue',
+            trend: '+2 this month'
+          },
+          { 
+            title: 'Active Members', 
+            value: analytics?.activeMembers?.toString() || '195', 
+            icon: Users, 
+            color: 'green',
+            trend: `+${analytics?.weeklyGrowth || 12}% this week`
+          },
+          { 
+            title: isZenithCommittee || isAdmin ? 'Committee Members' : 'Events This Month', 
+            value: isZenithCommittee || isAdmin ? '7' : analytics?.eventsThisMonth?.toString() || '3', 
+            icon: isZenithCommittee || isAdmin ? Crown : Calendar, 
+            color: 'yellow',
+            trend: isZenithCommittee || isAdmin ? 'All positions filled' : '+1 from last month'
+          },
+          { 
+            title: isZenithCommittee || isAdmin ? 'Monthly Events' : 'Active Assignments', 
+            value: isZenithCommittee || isAdmin ? '15' : analytics?.assignmentsActive?.toString() || '2', 
+            icon: isZenithCommittee || isAdmin ? Calendar : Target, 
+            color: 'purple',
+            trend: isZenithCommittee || isAdmin ? 'Across all clubs' : 'Due this week'
+          }
+        ].map((stat, index) => (
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-3 rounded-lg bg-${stat.color}-500/20`}>
+                <stat.icon className={`w-6 h-6 text-${stat.color}-500`} />
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm mb-1">{stat.title}</p>
+              <p className="text-xs text-green-400">{stat.trend}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-gray-800 rounded-xl p-6">
+        <h3 className="text-white font-semibold mb-4 flex items-center">
+          <Settings className="w-5 h-5 mr-2" />
+          Quick Actions
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(isZenithCommittee || isAdmin ? [
+            { title: 'Add New Club', description: 'Create a new club with coordinators', icon: UserPlus, action: () => {} },
+            { title: 'Manage Committee', description: 'Update committee positions', icon: Crown, action: () => setActiveTab('committee') },
+            { title: 'View All Analytics', description: 'Check overall engagement', icon: BarChart3, action: () => setActiveTab('analytics') }
+          ] : [
+            { title: 'Add Club Member', description: 'Invite new members to your club', icon: UserPlus, action: () => setShowMemberModal(true) },
+            { title: 'Club Analytics', description: 'Check your club engagement', icon: BarChart3, action: () => setActiveTab('analytics') },
+            { title: 'Manage Events', description: 'Create and manage club events', icon: Calendar, action: () => {} }
+          ]).map((action) => (
+            <motion.button
+              key={action.title}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={action.action}
+              className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg text-left transition-all duration-200"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <action.icon className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <h4 className="text-white font-medium">{action.title}</h4>
+                  <p className="text-gray-400 text-sm">{action.description}</p>
+                </div>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAnalytics = () => (
+    <div className="space-y-6">
+      {/* Analytics Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        <div>
+          <h2 className="text-2xl font-bold text-white">
+            {isZenithCommittee || isAdmin ? 'Global Analytics' : 'Club Analytics'}
+          </h2>
+          <p className="text-gray-400 mt-1">
+            {isZenithCommittee || isAdmin 
+              ? 'Analytics across all clubs and committees'
+              : `Analytics for ${clubs[0]?.name || 'your club'}`
+            }
+          </p>
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[
+          {
+            title: 'Engagement Rate',
+            value: `${analytics?.engagementRate || 73}%`,
+            change: '+5.2%',
+            trend: 'up',
+            icon: Activity,
+            color: 'green'
+          },
+          {
+            title: 'Member Growth',
+            value: `+${analytics?.weeklyGrowth || 12}`,
+            change: 'This week',
+            trend: 'up',
+            icon: TrendingUp,
+            color: 'blue'
+          },
+          {
+            title: 'Active Events',
+            value: analytics?.eventsThisMonth || 15,
+            change: '+3 from last month',
+            trend: 'up',
+            icon: Calendar,
+            color: 'purple'
+          }
+        ].map((metric) => (
+          <motion.div
+            key={metric.title}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-800 rounded-xl p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-lg bg-${metric.color}-500/20`}>
+                <metric.icon className={`w-6 h-6 text-${metric.color}-500`} />
+              </div>
+              <span className={`text-sm px-2 py-1 rounded-full ${
+                metric.trend === 'up' ? 'text-green-400 bg-green-400/20' : 'text-red-400 bg-red-400/20'
+              }`}>
+                {metric.change}
+              </span>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-1">{metric.value}</h3>
+            <p className="text-gray-400 text-sm">{metric.title}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Detailed Analytics */}
+      <div className="bg-gray-800 rounded-xl p-6">
+        <h3 className="text-white font-semibold mb-4">
+          {isZenithCommittee || isAdmin ? 'Club Performance Overview' : 'Detailed Club Metrics'}
+        </h3>
+        <div className="text-center py-12">
+          <BarChart3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <h4 className="text-xl font-semibold text-gray-300 mb-2">Advanced Analytics</h4>
+          <p className="text-gray-500">Detailed analytics dashboard coming soon...</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCommittee = () => (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Zenith Committee</h2>
+          <p className="text-gray-400 mt-1">Manage the core committee members and their responsibilities</p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2"
+        >
+          <UserPlus className="w-5 h-5" />
+          <span>Add Committee Member</span>
+        </motion.button>
+      </div>
+
+      {/* Committee Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {committee.map((member) => renderCommitteeCard(member))}
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading club management...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {isZenithCommittee || isAdmin ? 'Zenith Committee Portal' : 'Club Management Portal'}
+          </h1>
+          <p className="text-gray-400">
+            {isZenithCommittee || isAdmin 
+              ? 'Manage clubs, members, and committee operations across Zenith'
+              : 'Manage your club members, events, and analytics'
+            }
+          </p>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-2 mb-8 bg-gray-800 p-1 rounded-lg">
+          {[
+            { id: 'overview', label: 'Overview', icon: BarChart3 },
+            ...(isZenithCommittee || isAdmin ? [
+              { id: 'clubs', label: 'All Clubs', icon: Building2 },
+              { id: 'committee', label: 'Committee', icon: Crown },
+            ] : []),
+            ...(isClubCoordinator ? [
+              { id: 'clubs', label: 'My Club', icon: Building2 },
+              { id: 'members', label: 'Members', icon: Users },
+            ] : []),
+            { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+            { id: 'settings', label: 'Settings', icon: Settings }
+          ].map((tab) => (
+            <motion.button
+              key={tab.id}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 ${
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span className="font-medium">{tab.label}</span>
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === 'overview' && renderOverview()}
+            {activeTab === 'analytics' && renderAnalytics()}
+            {activeTab === 'committee' && (isZenithCommittee || isAdmin) && renderCommittee()}
+            {activeTab === 'clubs' && (
+              <div className="text-center py-12">
+                <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">
+                  {isZenithCommittee || isAdmin ? 'All Clubs Management' : 'My Club Management'}
+                </h3>
+                <p className="text-gray-500">
+                  {isZenithCommittee || isAdmin 
+                    ? 'Comprehensive club management interface coming soon...'
+                    : 'Your club management interface coming soon...'
+                  }
+                </p>
+              </div>
+            )}
+            {activeTab === 'members' && isClubCoordinator && (
+              <div className="text-center py-12">
+                <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">Members Management</h3>
+                <p className="text-gray-500">Member management interface coming soon...</p>
+              </div>
+            )}
+            {activeTab === 'settings' && (
+              <div className="text-center py-12">
+                <Settings className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">Settings</h3>
+                <p className="text-gray-500">Settings panel coming soon...</p>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+// Tab Components
+const OverviewTab = ({ analytics, clubs }: { analytics: ClubStats | null; clubs: Club[] }) => (
+  <div className="space-y-6">
+    {/* Stats Cards */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-zenith-muted text-sm">Total Members</p>
+            <p className="text-2xl font-bold text-zenith-primary">{analytics?.totalMembers || 0}</p>
+          </div>
+          <Users className="w-8 h-8 text-blue-500" />
+        </div>
+      </div>
+      
+      <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-zenith-muted text-sm">Active Events</p>
+            <p className="text-2xl font-bold text-zenith-primary">{analytics?.activeEvents || 0}</p>
+          </div>
+          <Calendar className="w-8 h-8 text-green-500" />
+        </div>
+      </div>
+      
+      <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-zenith-muted text-sm">Pending Assignments</p>
+            <p className="text-2xl font-bold text-zenith-primary">{analytics?.pendingAssignments || 0}</p>
+          </div>
+          <FileText className="w-8 h-8 text-orange-500" />
+        </div>
+      </div>
+      
+      <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-zenith-muted text-sm">Monthly Posts</p>
+            <p className="text-2xl font-bold text-zenith-primary">{analytics?.monthlyPosts || 0}</p>
+          </div>
+          <MessageSquare className="w-8 h-8 text-purple-500" />
+        </div>
+      </div>
+    </div>
+
+    {/* Quick Actions */}
+    <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+      <h3 className="text-lg font-semibold text-zenith-primary mb-4">Quick Actions</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button className="flex items-center space-x-3 p-4 bg-zenith-section border border-zenith-border rounded-lg hover:bg-zenith-hover transition-colors">
+          <UserPlus className="w-5 h-5 text-blue-500" />
+          <span className="text-zenith-secondary">Add New Member</span>
+        </button>
+        <button className="flex items-center space-x-3 p-4 bg-zenith-section border border-zenith-border rounded-lg hover:bg-zenith-hover transition-colors">
+          <Calendar className="w-5 h-5 text-green-500" />
+          <span className="text-zenith-secondary">Create Event</span>
+        </button>
+        <button className="flex items-center space-x-3 p-4 bg-zenith-section border border-zenith-border rounded-lg hover:bg-zenith-hover transition-colors">
+          <FileText className="w-5 h-5 text-orange-500" />
+          <span className="text-zenith-secondary">New Assignment</span>
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const ClubsTab = ({ clubs, onEdit, onDelete }: { clubs: Club[]; onEdit: (club: Club) => void; onDelete: (club: Club) => void }) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-zenith-primary">Clubs Management</h2>
+      <button className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors">
+        <Plus className="w-4 h-4" />
+        <span>Add New Club</span>
+      </button>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {clubs.map((club) => (
+        <div key={club.id} className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-lg font-semibold text-zenith-primary">{club.name}</h3>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => onEdit(club)}
+                className="p-2 text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover rounded-lg transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => onDelete(club)}
+                className="p-2 text-red-500 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <p className="text-zenith-muted text-sm mb-4">{club.description}</p>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-zenith-muted">Members:</span>
+              <span className="text-zenith-secondary">{club.memberCount}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zenith-muted">Coordinator:</span>
+              <span className="text-zenith-secondary">{club.coordinator}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zenith-muted">Status:</span>
+              <span className={`px-2 py-1 rounded-full text-xs ${
+                club.status === 'active' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {club.status}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const MembersTab = ({ members, clubs, onAddMember, onEditMember, onDeleteMember }: {
+  members: ClubMember[];
+  clubs: Club[];
+  onAddMember: () => void;
+  onEditMember: (member: ClubMember) => void;
+  onDeleteMember: (member: ClubMember) => void;
+}) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-zenith-primary">Members Management</h2>
+      <button 
+        onClick={onAddMember}
+        className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+      >
+        <UserPlus className="w-4 h-4" />
+        <span>Add Member</span>
+      </button>
+    </div>
+    
+    <div className="bg-zenith-card border border-zenith-border rounded-xl overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-zenith-section border-b border-zenith-border">
+            <tr>
+              <th className="text-left py-3 px-4 font-medium text-zenith-secondary">Member</th>
+              <th className="text-left py-3 px-4 font-medium text-zenith-secondary">Role</th>
+              <th className="text-left py-3 px-4 font-medium text-zenith-secondary">Status</th>
+              <th className="text-left py-3 px-4 font-medium text-zenith-secondary">Joined</th>
+              <th className="text-right py-3 px-4 font-medium text-zenith-secondary">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zenith-border">
+            {members.map((member) => (
+              <tr key={member.id} className="hover:bg-zenith-hover transition-colors">
+                <td className="py-3 px-4">
+                  <div className="flex items-center space-x-3">
+                    <SafeAvatar
+                      src={member.avatar}
+                      fallbackName={member.name}
+                      size="sm"
+                      className="w-8 h-8"
+                    />
+                    <div>
+                      <p className="font-medium text-zenith-primary">{member.name}</p>
+                      <p className="text-sm text-zenith-muted">{member.email}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-zenith-secondary">{member.role}</td>
+                <td className="py-3 px-4">
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    member.status === 'active' 
+                      ? 'bg-green-100 text-green-800' 
+                      : member.status === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {member.status}
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-zenith-muted text-sm">
+                  {new Date(member.joined_at || member.joinedAt || '').toLocaleDateString()}
+                </td>
+                <td className="py-3 px-4 text-right">
+                  <div className="flex items-center justify-end space-x-2">
+                    <button 
+                      onClick={() => onEditMember(member)}
+                      className="p-2 text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover rounded-lg transition-colors"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => onDeleteMember(member)}
+                      className="p-2 text-red-500 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+);
+
+const EventsTab = ({ events, onCreateEvent, onEditEvent, onDeleteEvent }: {
+  events: ClubEvent[];
+  onCreateEvent: () => void;
+  onEditEvent: (event: ClubEvent) => void;
+  onDeleteEvent: (event: ClubEvent) => void;
+}) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-zenith-primary">Events Management</h2>
+      <button 
+        onClick={onCreateEvent}
+        className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+      >
+        <Plus className="w-4 h-4" />
+        <span>Create Event</span>
+      </button>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {events.map((event) => (
+        <div key={event.id} className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-lg font-semibold text-zenith-primary">{event.title}</h3>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => onEditEvent(event)}
+                className="p-2 text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover rounded-lg transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => onDeleteEvent(event)}
+                className="p-2 text-red-500 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <p className="text-zenith-muted text-sm mb-4">{event.description}</p>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center text-zenith-secondary">
+              <Calendar className="w-4 h-4 mr-2" />
+              <span>{new Date(event.event_date).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center text-zenith-secondary">
+              <MapPin className="w-4 h-4 mr-2" />
+              <span>{event.location}</span>
+            </div>
+            <div className="flex items-center text-zenith-secondary">
+              <Users className="w-4 h-4 mr-2" />
+              <span>{event.attendees_count} attendees</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const AssignmentsTab = ({ assignments, onEditAssignment, onDeleteAssignment }: {
+  assignments: ClubAssignment[];
+  onEditAssignment: (assignment: ClubAssignment) => void;
+  onDeleteAssignment: (assignment: ClubAssignment) => void;
+}) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-zenith-primary">Assignments Management</h2>
+      <button className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors">
+        <Plus className="w-4 h-4" />
+        <span>Create Assignment</span>
+      </button>
+    </div>
+    
+    <div className="space-y-4">
+      {assignments.map((assignment) => (
+        <div key={assignment.id} className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-zenith-primary mb-2">{assignment.title}</h3>
+              <p className="text-zenith-muted text-sm mb-4">{assignment.description}</p>
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center text-zenith-secondary">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center text-zenith-secondary">
+                  <FileText className="w-4 h-4 mr-2" />
+                  <span>{assignment.submissions_count} submissions</span>
+                </div>
+                <div className="flex items-center text-zenith-secondary">
+                  <Star className="w-4 h-4 mr-2" />
+                  <span>{assignment.max_points} points</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2 ml-4">
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                assignment.status === 'active' 
+                  ? 'bg-green-100 text-green-800'
+                  : assignment.status === 'pending'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : assignment.status === 'closed'
+                  ? 'bg-gray-100 text-gray-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {assignment.status}
+              </span>
+              <button 
+                onClick={() => onEditAssignment(assignment)}
+                className="p-2 text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover rounded-lg transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => onDeleteAssignment(assignment)}
+                className="p-2 text-red-500 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const CommitteeTab = ({ committee, onEdit, onRemove }: {
+  committee: CommitteeMember[];
+  onEdit: (member: CommitteeMember) => void;
+  onRemove: (member: CommitteeMember) => void;
+}) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-zenith-primary">Committee Management</h2>
+      <button className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors">
+        <UserPlus className="w-4 h-4" />
+        <span>Add Committee Member</span>
+      </button>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {committee.map((member) => (
+        <div key={member.id} className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+          <div className="flex items-center space-x-4 mb-4">
+            <SafeAvatar
+              src={member.avatar}
+              fallbackName={member.name}
+              size="lg"
+              className="w-12 h-12"
+            />
+            <div>
+              <h3 className="font-semibold text-zenith-primary">{member.name}</h3>
+              <p className="text-zenith-primary text-sm font-medium">{member.position}</p>
+            </div>
+          </div>
+          
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center text-zenith-secondary">
+              <Mail className="w-4 h-4 mr-2 text-zenith-muted" />
+              <span className="truncate">{member.email}</span>
+            </div>
+            
+            {member.phone && (
+              <div className="flex items-center text-zenith-secondary">
+                <Phone className="w-4 h-4 mr-2 text-zenith-muted" />
+                <span>{member.phone}</span>
+              </div>
+            )}
+            
+            {member.department && (
+              <div className="flex items-center text-zenith-secondary">
+                <Building2 className="w-4 h-4 mr-2 text-zenith-muted" />
+                <span>{member.department}</span>
+              </div>
+            )}
+            
+            {member.year && (
+              <div className="flex items-center text-zenith-secondary">
+                <Calendar className="w-4 h-4 mr-2 text-zenith-muted" />
+                <span>{member.year}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-zenith-border flex space-x-2">
+            <button 
+              onClick={() => onEdit(member)}
+              className="flex-1 bg-zenith-section hover:bg-zenith-hover text-zenith-secondary py-2 px-3 rounded-lg transition-colors text-sm flex items-center justify-center space-x-2"
+            >
+              <Edit3 className="w-4 h-4" />
+              <span>Edit</span>
+            </button>
+            <button 
+              onClick={() => onRemove(member)}
+              className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 px-3 rounded-lg transition-colors text-sm flex items-center justify-center space-x-2"
+            >
+              <UserMinus className="w-4 h-4" />
+              <span>Remove</span>
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const AnalyticsTab = ({ analytics, clubs }: { analytics: ClubStats | null; clubs: Club[] }) => (
+  <div className="space-y-6">
+    <h2 className="text-xl font-semibold text-zenith-primary">Analytics & Insights</h2>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-zenith-primary mb-4">Engagement Overview</h3>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-zenith-muted">Total Members</span>
+            <span className="text-zenith-primary font-semibold">{analytics?.totalMembers || 0}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-zenith-muted">Active Members</span>
+            <span className="text-zenith-primary font-semibold">{analytics?.activeMembers || 0}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-zenith-muted">Engagement Rate</span>
+            <span className="text-zenith-primary font-semibold">{analytics?.engagementRate || 0}%</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-zenith-primary mb-4">Activity Summary</h3>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-zenith-muted">Events This Month</span>
+            <span className="text-zenith-primary font-semibold">{analytics?.eventsThisMonth || 0}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-zenith-muted">Active Assignments</span>
+            <span className="text-zenith-primary font-semibold">{analytics?.assignmentsActive || 0}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-zenith-muted">Weekly Growth</span>
+            <span className="text-green-600 font-semibold">+{analytics?.weeklyGrowth || 0}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SettingsTab = () => (
+  <div className="space-y-6">
+    <h2 className="text-xl font-semibold text-zenith-primary">Settings</h2>
+    
+    <div className="bg-zenith-card border border-zenith-border rounded-xl p-6">
+      <h3 className="text-lg font-semibold text-zenith-primary mb-4">Club Management Settings</h3>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-zenith-secondary">Auto-approve member requests</p>
+            <p className="text-sm text-zenith-muted">Automatically approve new member requests</p>
+          </div>
+          <input type="checkbox" className="toggle toggle-primary" />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-zenith-secondary">Email notifications</p>
+            <p className="text-sm text-zenith-muted">Send email notifications for important events</p>
+          </div>
+          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-zenith-secondary">Public club visibility</p>
+            <p className="text-sm text-zenith-muted">Allow your club to be visible in public listings</p>
+          </div>
+          <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Modal Components
+const AddMemberModal = ({ onClose, onSubmit, email, setEmail, clubs, selectedClub, setSelectedClub }: {
+  onClose: () => void;
+  onSubmit: () => void;
+  email: string;
+  setEmail: (email: string) => void;
+  clubs: Club[];
+  selectedClub: string;
+  setSelectedClub: (club: string) => void;
+}) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className="bg-zenith-card rounded-xl p-6 w-full max-w-md"
+    >
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-zenith-primary">Add New Member</h3>
+        <button onClick={onClose} className="p-2 hover:bg-zenith-hover rounded-lg">
+          <X className="w-5 h-5 text-zenith-muted" />
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-zenith-secondary mb-2">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter member email..."
+            className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg text-zenith-primary"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zenith-secondary mb-2">Club</label>
+          <select
+            value={selectedClub}
+            onChange={(e) => setSelectedClub(e.target.value)}
+            className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg text-zenith-primary"
+          >
+            <option value="">Select a club</option>
+            {clubs.map((club) => (
+              <option key={club.id} value={club.id}>{club.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex space-x-3 pt-4">
+          <button
+            onClick={onSubmit}
+            className="flex-1 px-4 py-2.5 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+          >
+            Add Member
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 bg-zenith-section text-zenith-secondary rounded-lg hover:bg-zenith-hover transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  </div>
+);
+
+const CreateEventModal = ({ onClose, onSubmit, event, setEvent, clubs, selectedClub, setSelectedClub }: {
+  onClose: () => void;
+  onSubmit: () => void;
+  event: any;
+  setEvent: (event: any) => void;
+  clubs: Club[];
+  selectedClub: string;
+  setSelectedClub: (club: string) => void;
+}) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className="bg-zenith-card rounded-xl p-6 w-full max-w-md"
+    >
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-zenith-primary">Create New Event</h3>
+        <button onClick={onClose} className="p-2 hover:bg-zenith-hover rounded-lg">
+          <X className="w-5 h-5 text-zenith-muted" />
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-zenith-secondary mb-2">Title</label>
+          <input
+            type="text"
+            value={event.title}
+            onChange={(e) => setEvent({ ...event, title: e.target.value })}
+            placeholder="Enter event title..."
+            className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg text-zenith-primary"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zenith-secondary mb-2">Description</label>
+          <textarea
+            value={event.description}
+            onChange={(e) => setEvent({ ...event, description: e.target.value })}
+            placeholder="Enter event description..."
+            rows={3}
+            className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg text-zenith-primary resize-none"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-zenith-secondary mb-2">Date</label>
+            <input
+              type="date"
+              value={event.event_date}
+              onChange={(e) => setEvent({ ...event, event_date: e.target.value })}
+              className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg text-zenith-primary"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zenith-secondary mb-2">Time</label>
+            <input
+              type="time"
+              value={event.event_time}
+              onChange={(e) => setEvent({ ...event, event_time: e.target.value })}
+              className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg text-zenith-primary"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-zenith-secondary mb-2">Location</label>
+          <input
+            type="text"
+            value={event.location}
+            onChange={(e) => setEvent({ ...event, location: e.target.value })}
+            placeholder="Enter event location..."
+            className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg text-zenith-primary"
+          />
+        </div>
+
+        <div className="flex space-x-3 pt-4">
+          <button
+            onClick={onSubmit}
+            className="flex-1 px-4 py-2.5 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+          >
+            Create Event
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 bg-zenith-section text-zenith-secondary rounded-lg hover:bg-zenith-hover transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  </div>
+);
+
+export default ClubManagementPage;

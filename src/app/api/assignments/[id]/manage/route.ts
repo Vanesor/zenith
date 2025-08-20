@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 // Define interfaces for database rows
 interface QuestionRow {
@@ -57,7 +57,7 @@ export async function GET(
       WHERE a.id = $1
     `;
     
-    const assignmentResult = await db.executeRawSQL(assignmentQuery, [assignmentId]);
+    const assignmentResult = await db.query(assignmentQuery, [assignmentId]);
     
     if (assignmentResult.rows.length === 0) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
@@ -77,7 +77,7 @@ export async function GET(
       ORDER BY question_order
     `;
     
-    const questionsResult = await db.executeRawSQL(questionsQuery, [assignmentId]);
+    const questionsResult = await db.query(questionsQuery, [assignmentId]);
     const questions = questionsResult.rows;
     
     // Format the response
@@ -174,7 +174,7 @@ export async function PUT(
       WHERE id = $1
     `;
     
-    const userResult = await db.executeRawSQL(userQuery, [requestingUserId]);
+    const userResult = await db.query(userQuery, [requestingUserId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -188,7 +188,7 @@ export async function PUT(
       SELECT club_id, created_by FROM assignments WHERE id = $1
     `;
     
-    const assignmentResult = await db.executeRawSQL(assignmentQuery, [assignmentId]);
+    const assignmentResult = await db.query(assignmentQuery, [assignmentId]);
     
     if (assignmentResult.rows.length === 0) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
@@ -250,7 +250,7 @@ export async function PUT(
       RETURNING id
     `;
     
-    await db.executeRawSQL(updateQuery, [
+    await db.query(updateQuery, [
       data.title,
       data.description,
       data.instructions,
@@ -297,7 +297,7 @@ export async function PUT(
             WHERE id = $12 AND assignment_id = $13
           `;
           
-          await db.executeRawSQL(updateQuestionQuery, [
+          await db.query(updateQuestionQuery, [
             question.title,
             question.description,
             question.questionType,
@@ -324,7 +324,7 @@ export async function PUT(
             RETURNING id
           `;
           
-          await db.executeRawSQL(insertQuestionQuery, [
+          await db.query(insertQuestionQuery, [
             assignmentId,
             question.title,
             question.description,
@@ -350,7 +350,7 @@ export async function PUT(
         WHERE id = ANY($1) AND assignment_id = $2
       `;
       
-      await db.executeRawSQL(deleteQuestionsQuery, [data.questionsToDelete, assignmentId]);
+      await db.query(deleteQuestionsQuery, [data.questionsToDelete, assignmentId]);
     }
     
     return NextResponse.json({ 
@@ -392,7 +392,7 @@ export async function DELETE(
       WHERE id = $1
     `;
     
-    const userResult = await db.executeRawSQL(userQuery, [requestingUserId]);
+    const userResult = await db.query(userQuery, [requestingUserId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -406,7 +406,7 @@ export async function DELETE(
       SELECT club_id, created_by FROM assignments WHERE id = $1
     `;
     
-    const assignmentResult = await db.executeRawSQL(assignmentQuery, [assignmentId]);
+    const assignmentResult = await db.query(assignmentQuery, [assignmentId]);
     
     if (assignmentResult.rows.length === 0) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
@@ -436,12 +436,12 @@ export async function DELETE(
       WHERE assignment_id = $1
     `;
     
-    const submissionCountResult = await db.executeRawSQL(submissionCountQuery, [assignmentId]);
+    const submissionCountResult = await db.query(submissionCountQuery, [assignmentId]);
     const submissionCount = parseInt(submissionCountResult.rows[0].count);
     
     // If there are submissions, soft delete by changing status
     if (submissionCount > 0) {
-      await db.executeRawSQL(
+      await db.query(
         `UPDATE assignments SET status = 'deleted', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
         [assignmentId]
       );
@@ -455,13 +455,13 @@ export async function DELETE(
     
     // Hard delete if no submissions
     // First delete questions
-    await db.executeRawSQL(
+    await db.query(
       `DELETE FROM assignment_questions WHERE assignment_id = $1`,
       [assignmentId]
     );
     
     // Then delete the assignment
-    await db.executeRawSQL(
+    await db.query(
       `DELETE FROM assignments WHERE id = $1`,
       [assignmentId]
     );

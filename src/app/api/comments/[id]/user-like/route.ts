@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       WHERE comment_id = $1 AND user_id = $2
     `;
 
-    const result = await db.executeRawSQL(query, [commentId, userId]);
+    const result = await db.query(query, [commentId, userId]);
     const isLiked = parseInt(result.rows[0].count) > 0;
 
     return NextResponse.json({ isLiked });

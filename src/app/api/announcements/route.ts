@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { db } from '@/lib/database';
+import { verifyAuth } from "@/lib/auth-unified";
 import { NotificationService } from "@/lib/NotificationService";
 
 export async function GET(request: NextRequest) {
@@ -11,72 +11,51 @@ export async function GET(request: NextRequest) {
 
     let announcements;
     if (clubId) {
-      announcements = await db.announcement.findMany({
-        where: {
-          OR: [
-            { club_id: clubId },
-            { club_id: null }
-          ]
-        },
-        orderBy: {
-          created_at: 'desc'
-        },
-        take: limit ? parseInt(limit) : undefined,
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          priority: true,
-        }
-      });
+      const result = await db.query(`
+        SELECT 
+          id, title, content, priority, created_at, club_id, author_id
+        FROM announcements
+        WHERE (club_id = $1 OR club_id IS NULL)
+          AND deleted_at IS NULL
+        ORDER BY created_at DESC
+        ${limit ? 'LIMIT $2' : ''}
+      `, limit ? [clubId, parseInt(limit)] : [clubId]);
+      announcements = result.rows;
     } else {
-      announcements = await db.announcement.findMany({
-        orderBy: {
-          created_at: 'desc'
-        },
-        take: limit ? parseInt(limit) : undefined,
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          priority: true,
-        }
-      });
+      const result = await db.query(`
+        SELECT 
+          id, title, content, priority, created_at, club_id, author_id
+        FROM announcements
+        WHERE deleted_at IS NULL
+        ORDER BY created_at DESC
+        ${limit ? 'LIMIT $1' : ''}
+      `, limit ? [parseInt(limit)] : []);
+      announcements = result.rows;
     }
 
     // Get author and club details for each announcement
     const announcementsWithDetails = await Promise.all(
       announcements.map(async (announcement: any) => {
-        const [author, club] = await Promise.all([
-          announcement.author_id
-            ? db.users.findUnique({
-                where: { id: announcement.author_id },
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  avatar: true,
-                  role: true
-                }
-              })
-            : null,
-          announcement.club_id
-            ? db.clubs.findUnique({
-                where: { id: announcement.club_id },
-                select: {
-                  id: true,
-                  name: true,
-                  color: true,
-                  icon: true
-                }
-              })
-            : null,
-        ]);
+        const authorResult = announcement.author_id
+          ? await db.query(`
+              SELECT id, name, email, avatar, role 
+              FROM users 
+              WHERE id = $1 AND deleted_at IS NULL
+            `, [announcement.author_id])
+          : { rows: [null] };
+
+        const clubResult = announcement.club_id
+          ? await db.query(`
+              SELECT id, name, color, icon 
+              FROM clubs 
+              WHERE id = $1 AND deleted_at IS NULL
+            `, [announcement.club_id])
+          : { rows: [null] };
 
         return {
           ...announcement,
-          author,
-          club,
+          author: authorResult.rows[0],
+          club: clubResult.rows[0],
         };
       })
     );
@@ -119,46 +98,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const announcement = await db.announcement.create({
-      data: {
-        title,
-        content,
-        priority: priority || 'normal',
-      }
-    });
+    const announcement = await db.query(`
+      INSERT INTO announcements (title, content, priority, author_id, club_id, created_at)
+      VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+      RETURNING id, title, content, priority, author_id, club_id, created_at
+    `, [title, content, priority || 'normal', userId, clubId || null]);
+
+    const newAnnouncement = announcement.rows[0];
 
     // Get author and club details
-    const [author, club] = await Promise.all([
-      db.users.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          avatar: true,
-          role: true
-        }
-      }),
-      announcement.club_id
-        ? db.clubs.findUnique({
-            where: { id: announcement.club_id },
-            select: {
-              id: true,
-              name: true,
-              color: true,
-              icon: true
-            }
-          })
-        : null,
-    ]);
+    const authorResult = await db.query(`
+      SELECT id, name, email, avatar, role 
+      FROM users 
+      WHERE id = $1 AND deleted_at IS NULL
+    `, [userId]);
+
+    const clubResult = newAnnouncement.club_id
+      ? await db.query(`
+          SELECT id, name, color, icon 
+          FROM clubs 
+          WHERE id = $1 AND deleted_at IS NULL
+        `, [newAnnouncement.club_id])
+      : { rows: [null] };
 
     // Send notifications (optional - can be implemented later)
-    console.log(`Announcement created: ${announcement.id} by user ${userId}`);
+    console.log(`Announcement created: ${newAnnouncement.id} by user ${userId}`);
 
     return NextResponse.json({
-      ...announcement,
-      author,
-      club
+      ...newAnnouncement,
+      author: authorResult.rows[0],
+      club: clubResult.rows[0]
     }, { status: 201 });
   } catch (error) {
     console.error("Failed to create announcement:", error);

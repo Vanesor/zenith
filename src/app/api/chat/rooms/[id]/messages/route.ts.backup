@@ -1,0 +1,185 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from '@/lib/database';
+import { verifyAuth, AuthenticatedRequest } from "@/lib/auth-unified";
+
+// GET /api/chat/rooms/[id]/messages - Get messages for a specific room
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
+    const { id: roomId } = await params;
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "50");
+    const offset = parseInt(searchParams.get("offset") || "0");
+
+    // Verify authentication using the AuthMiddleware
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
+
+    // Verify user has access to this room using Prisma
+    const room = await db.chat_rooms.findFirst({
+      where: { id: roomId }
+    });
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    // Get user info to check access
+    const user = await db.users.findUnique({
+      where: { id: userId },
+      select: { club_id: true, role: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    
+    // Check if user has access to the room
+    const hasAccess = 
+      room.type === 'public' || 
+      room.club_id === user.club_id || 
+      room.created_by === userId ||
+      (room.members && room.members.includes(userId));
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    // Get messages for the room using Prisma
+    const messages = await db.chat_messages.findMany({
+      where: { room_id: roomId },
+      include: {
+        users_chat_messages_sender_idTousers: {
+          select: {
+            name: true,
+            role: true,
+            avatar: true
+          }
+        }
+      },
+      orderBy: { created_at: 'desc' },
+      take: limit,
+      skip: offset,
+    });
+
+    // Transform messages for client
+    const formattedMessages = messages.map((msg) => ({
+      id: msg.id,
+      room_id: msg.room_id,
+      user_id: msg.sender_id || msg.user_id,
+      message: msg.message || msg.content || '',
+      sender_name: msg.users_chat_messages_sender_idTousers?.name || 'Unknown User',
+      created_at: msg.created_at,
+      updated_at: msg.updated_at,
+      is_edited: msg.is_edited,
+      reply_to_message_id: msg.reply_to_message_id,
+      message_type: msg.message_type || 'text',
+      attachments: msg.attachments || [],
+      reactions: msg.reactions || {},
+    }));
+
+    return NextResponse.json({ 
+      messages: formattedMessages,
+      total: messages.length, 
+      hasMore: messages.length === limit 
+    });
+  } catch (error) {
+    console.error("Error fetching chat messages:", error);
+    return NextResponse.json(
+      { error: "Error fetching chat messages: " + error },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/chat/rooms/[id]/messages - Send a message to a room
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
+    const { id: roomId } = await params;
+    const body = await request.json();
+    
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const userId = authResult.user!.id;
+
+    // Verify user has access to this room using Prisma
+    const room = await db.chat_rooms.findFirst({
+      where: { id: roomId }
+    });
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    // Check if user is a member of the room
+    const isMember = await db.chat_room_members.findFirst({
+      where: {
+        chat_room_id: roomId,
+        user_id: userId
+      }
+    });
+
+    // Also allow room creator to send messages
+    const isCreator = room.created_by === userId;
+
+    if (!isMember && !isCreator) {
+      return NextResponse.json({ error: "You are not a member of this room" }, { status: 403 });
+    }
+
+    // Create the message
+    const message = await db.chat_messages.create({
+      data: {
+        room_id: roomId,
+        sender_id: userId,
+        message: body.message,
+        content: body.message,
+        message_type: body.message_type || 'text',
+        reply_to_message_id: body.reply_to_message_id,
+        attachments: body.attachments || [],
+        message_images: body.message_images || []
+      }
+    });
+
+    // Format response
+    const formattedMessage = {
+      id: message.id,
+      room_id: message.room_id,
+      user_id: message.sender_id,
+      message: message.message || message.content || '',
+      created_at: message.created_at,
+      is_edited: message.is_edited,
+      reply_to_message_id: message.reply_to_message_id,
+      message_type: message.message_type || 'text',
+      attachments: message.attachments || [],
+    };
+
+    return NextResponse.json(formattedMessage);
+  } catch (error) {
+    console.error("Error sending message:", error);
+    return NextResponse.json(
+      { error: "Error sending message: " + error },
+      { status: 500 }
+    );
+  }
+}

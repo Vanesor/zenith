@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth } from '@/lib/AuthMiddleware';
-import { db } from '@/lib/database-service';
+import { verifyAuth } from '@/lib/auth-unified';
+import { db } from '@/lib/database';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,43 +16,43 @@ export async function GET(request: NextRequest) {
     }
     
     // Get total clubs count
-    const clubsCount = await db.clubs.count();
+    const clubsResult = await db.query(`SELECT COUNT(*) as count FROM clubs`);
+    const clubsCount = parseInt(clubsResult.rows[0]?.count) || 0;
 
     // Get upcoming events count
-    const eventsCount = await db.events.count({
-      where: {
-        event_date: {
-          gte: new Date()
-        }
-      }
-    });
+    const eventsResult = await db.query(`
+      SELECT COUNT(*) as count 
+      FROM events 
+      WHERE event_date >= CURRENT_DATE
+    `);
+    const eventsCount = parseInt(eventsResult.rows[0]?.count) || 0;
 
     // Get total members count
-    const membersCount = await db.users.count();
+    const membersResult = await db.query(`SELECT COUNT(*) as count FROM users`);
+    const membersCount = parseInt(membersResult.rows[0]?.count) || 0;
 
     // Get user's joined clubs count
-    const userClubsCount = await db.club_members.count({
-      where: {
-        user_id: userId
-      }
-    });
+    const userClubsResult = await db.query(`
+      SELECT COUNT(*) as count 
+      FROM club_members 
+      WHERE user_id = $1 AND status = 'active'
+    `, [userId]);
+    const userClubsCount = parseInt(userClubsResult.rows[0]?.count) || 0;
 
     // Get user's assignments stats
-    const assignments = await db.assignments.findMany({
-      where: {
-        status: 'active'
-      }
-    });
+    const assignmentsResult = await db.query(`
+      SELECT COUNT(*) as count 
+      FROM assignments 
+      WHERE status = 'active'
+    `);
+    const totalAssignments = parseInt(assignmentsResult.rows[0]?.count) || 0;
 
-    const assignmentSubmissions = await db.assignment_submissions.count({
-      where: {
-        user_id: userId,
-        status: 'submitted'
-      }
-    });
-
-    const totalAssignments = assignments.length;
-    const completedAssignments = assignmentSubmissions;
+    const submissionsResult = await db.query(`
+      SELECT COUNT(*) as count 
+      FROM assignment_submissions 
+      WHERE user_id = $1
+    `, [userId]);
+    const completedAssignments = parseInt(submissionsResult.rows[0]?.count) || 0;
 
     // Calculate activity score (0-100)
     let activityScore = 0;

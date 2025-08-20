@@ -1,0 +1,96 @@
+BEGIN
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE FUNCTION
+psql:enhanced-blog-project-schema.sql:554: NOTICE:  trigger "posts_search_vector_update" for relation "public.posts" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+psql:enhanced-blog-project-schema.sql:585: NOTICE:  trigger "tasks_generate_key" for relation "public.tasks" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+psql:enhanced-blog-project-schema.sql:629: NOTICE:  trigger "tasks_update_project_progress" for relation "public.tasks" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+psql:enhanced-blog-project-schema.sql:668: NOTICE:  trigger "tasks_log_changes" for relation "public.tasks" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+psql:enhanced-blog-project-schema.sql:689: ERROR:  column "is_default" of relation "blog_categories" does not exist
+LINE 1: ...categories (name, slug, description, color, icon, is_default...
+                                                             ^
+psql:enhanced-blog-project-schema.sql:704: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:enhanced-blog-project-schema.sql:707: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:enhanced-blog-project-schema.sql:710: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+Enhanced database schema with blog system and project management created successfully!
+Blog Features: Rich content blocks, categories, tags, SEO, scheduling
+Project Management Features: Jira-like tasks, sprints, time tracking, invitations
+All indexes, triggers, and default data have been set up.

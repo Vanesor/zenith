@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import FastAuth from "@/lib/FastAuth";
+import { verifyAuth, withAuth, createUser } from "@/lib/auth-unified";
 import { RateLimiter } from "@/lib/RateLimiter";
 
 const registrationLimiter = RateLimiter.createAuthLimiter();
@@ -88,32 +88,32 @@ export async function POST(request: NextRequest) {
 
     console.log('Validation passed, attempting registration...');
 
-    // 7. Register user with optimized FastAuth
-    const registrationResult = await FastAuth.registerUser({
+    // 7. Register user with optimized auth system
+    const user = await createUser({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: password,
     });
 
-    if (!registrationResult.success) {
-      console.error('Registration failed:', registrationResult.error);
+    if (!user) {
+      console.error('Registration failed: User creation failed');
       return NextResponse.json(
-        { error: registrationResult.error || "Registration failed" },
+        { error: "Registration failed" },
         { status: 400 }
       );
     }
 
-    console.log('Registration successful for user:', registrationResult.user.email);
+    console.log('Registration successful for user:', user.email);
 
     // 8. Create response with secure cookies
     const response = NextResponse.json({
       success: true,
       user: {
-        id: registrationResult.user.id,
-        email: registrationResult.user.email,
-        name: registrationResult.user.name,
-        role: registrationResult.user.role,
-        verified: registrationResult.user.verified || false,
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        verified: false,
       },
       message: "Registration successful! Please check your email for verification."
     });
@@ -126,25 +126,8 @@ export async function POST(request: NextRequest) {
       path: '/',
     };
 
-    response.cookies.set('zenith-token', registrationResult.token!, {
-      ...cookieOptions,
-      maxAge: 24 * 60 * 60, // 24 hours
-    });
-
-    if (registrationResult.refreshToken) {
-      response.cookies.set('zenith-refresh-token', registrationResult.refreshToken, {
-        ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60, // 7 days
-      });
-    }
-
-    if (registrationResult.sessionId) {
-      response.cookies.set('zenith-session', registrationResult.sessionId, {
-        ...cookieOptions,
-        maxAge: 24 * 60 * 60, // 24 hours
-      });
-    }
-
+    // Note: User needs to login after registration to get tokens
+    
     return response;
 
   } catch (error) {

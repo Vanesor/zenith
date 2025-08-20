@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { db } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { db } from '@/lib/database';
+import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -12,16 +11,19 @@ export async function GET(request: NextRequest, { params }: Props) {
   try {
     const { id } = await params;
 
-    const announcement = await db.announcement.findUnique({
-      where: { id }
-    });
+    const result = await db.query(`
+      SELECT * FROM announcements 
+      WHERE id = $1 AND deleted_at IS NULL
+    `, [id]);
 
-    if (!announcement) {
+    if (result.rows.length === 0) {
       return NextResponse.json(
         { error: "Announcement not found" },
         { status: 404 }
       );
     }
+
+    const announcement = result.rows[0];
 
     return NextResponse.json(announcement);
   } catch (error) {
@@ -52,37 +54,44 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const { title, content, type, priority } = await request.json();
 
     // Get current announcement
-    const currentAnnouncement = await db.announcement.findUnique({
-      where: { id },
-      select: { id: true }
-    });
+    const currentResult = await db.query(`
+      SELECT id, author_id FROM announcements 
+      WHERE id = $1 AND deleted_at IS NULL
+    `, [id]);
 
-    if (!currentAnnouncement) {
+    if (currentResult.rows.length === 0) {
       return NextResponse.json(
         { error: "Announcement not found" },
         { status: 404 }
       );
     }
 
-    // Check if user is author or manager
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: { role: true }
-    });
+    const currentAnnouncement = currentResult.rows[0];
+
+    // Check if user is manager
+    const userResult = await db.query(`
+      SELECT role FROM users WHERE id = $1 AND deleted_at IS NULL
+    `, [userId]);
     
-    const isManager =
-      user &&
-      [
-        "coordinator",
-        "co_coordinator",
-        "secretary",
-        "media",
-        "president",
-        "vice_president",
-        "innovation_head",
-        "treasurer",
-        "outreach",
-      ].includes(user.role);
+    if (userResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const user = userResult.rows[0];
+    const isManager = [
+      "coordinator",
+      "co_coordinator", 
+      "secretary",
+      "media",
+      "president",
+      "vice_president",
+      "innovation_head",
+      "treasurer",
+      "outreach",
+    ].includes(user.role);
 
     if (!isManager) {
       return NextResponse.json(
@@ -91,14 +100,14 @@ export async function PUT(request: NextRequest, { params }: Props) {
       );
     }
 
-    const updatedAnnouncement = await db.announcement.update({
-      where: { id },
-      data: {
-        title,
-        content,
-        priority: priority || 'normal'
-      }
-    });
+    const updateResult = await db.query(`
+      UPDATE announcements 
+      SET title = $1, content = $2, priority = $3, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4 AND deleted_at IS NULL
+      RETURNING *
+    `, [title, content, priority || 'normal', id]);
+
+    const updatedAnnouncement = updateResult.rows[0];
 
     return NextResponse.json(updatedAnnouncement);
   } catch (error) {
@@ -128,12 +137,12 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const { id } = await params;
 
     // Get current announcement
-    const currentAnnouncement = await db.announcement.findUnique({
-      where: { id },
-      select: { id: true }
-    });
+    const currentResult = await db.query(`
+      SELECT id FROM announcements 
+      WHERE id = $1 AND deleted_at IS NULL
+    `, [id]);
 
-    if (!currentAnnouncement) {
+    if (currentResult.rows.length === 0) {
       return NextResponse.json(
         { error: "Announcement not found" },
         { status: 404 }
@@ -141,10 +150,11 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     // Check if user is manager
-    const user = await db.users.findUnique({
-      where: { id: userId },
-      select: { role: true }
-    });
+    const userDeleteResult = await db.query(`
+      SELECT role FROM users WHERE id = $1 AND deleted_at IS NULL
+    `, [userId]);
+    
+    const user = userDeleteResult.rows[0];
     const isManager =
       user &&
       [
@@ -167,9 +177,9 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     // Delete the announcement
-    await db.announcement.delete({
-      where: { id }
-    });
+    await db.query(`
+      DELETE FROM announcements WHERE id = $1
+    `, [id]);
 
     return NextResponse.json({ message: "Announcement deleted successfully" });
   } catch (error) {

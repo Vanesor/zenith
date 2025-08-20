@@ -1,0 +1,60 @@
+                                                    List of relations
+ Schema |           Name            |   Type   |     Owner      | Persistence | Access method |    Size    | Description 
+--------+---------------------------+----------+----------------+-------------+---------------+------------+-------------
+ public | ai_assignment_generations | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | announcements             | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | assignment_attempts       | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | assignment_audit_log      | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | assignment_questions      | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | assignment_submissions    | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | assignment_templates      | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | assignment_violations     | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | assignments               | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | audit_logs                | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | chat_attachments          | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | chat_invitations          | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | chat_messages             | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | chat_room_members         | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | chat_rooms                | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | club_members              | table    | zenithpostgres | permanent   | heap          | 0 bytes    | 
+ public | club_statistics           | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | club_statistics_id_seq    | sequence | zenithpostgres | permanent   |               | 8192 bytes | 
+ public | clubs                     | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | code_results              | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | coding_submissions        | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | comments                  | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | committee_members         | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | committee_roles           | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | committees                | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | discussion_replies        | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | discussions               | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | email_logs                | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | event_attendees           | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | event_registrations       | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | events                    | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | likes                     | table    | zenithpostgres | permanent   | heap          | 0 bytes    | 
+ public | media_files               | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | messages                  | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | notifications             | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | notifications_id_seq      | sequence | zenithpostgres | permanent   |               | 8192 bytes | 
+ public | posts                     | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | proctoring_sessions       | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | project_invitations       | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | project_members           | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | projects                  | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | query_cache               | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | question_media            | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | question_options          | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | question_responses        | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | security_events           | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | sessions                  | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | system_statistics         | table    | zenithpostgres | permanent   | heap          | 0 bytes    | 
+ public | system_statistics_id_seq  | sequence | zenithpostgres | permanent   |               | 8192 bytes | 
+ public | tasks                     | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | trusted_devices           | table    | zenithpostgres | permanent   | heap          | 16 kB      | 
+ public | user_activities           | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | user_activities_id_seq    | sequence | zenithpostgres | permanent   |               | 8192 bytes | 
+ public | user_badges               | table    | zenithpostgres | permanent   | heap          | 8192 bytes | 
+ public | users                     | table    | zenithpostgres | permanent   | heap          | 72 kB      | 
+(55 rows)
+

@@ -1,0 +1,78 @@
+.next/types/app/api/admin/clubs/[clubId]/route.ts(49,7): error TS2344: Type '{ __tag__: "GET"; __param_position__: "second"; __param_type__: { params: { clubId: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ clubId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/assignments/[id]/attempts/route.ts(166,7): error TS2344: Type '{ __tag__: "POST"; __param_position__: "second"; __param_type__: { params: { id: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/assignments/[id]/route.ts(205,7): error TS2344: Type '{ __tag__: "PUT"; __param_position__: "second"; __param_type__: { params: { id: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/assignments/[id]/route.ts(244,7): error TS2344: Type '{ __tag__: "DELETE"; __param_position__: "second"; __param_type__: { params: { id: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/events/[id]/join/route.ts(166,7): error TS2344: Type '{ __tag__: "POST"; __param_position__: "second"; __param_type__: { params: { id: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/events/[id]/join/route.ts(244,7): error TS2344: Type '{ __tag__: "DELETE"; __param_position__: "second"; __param_type__: { params: { id: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/events/[id]/route.ts(49,7): error TS2344: Type '{ __tag__: "GET"; __param_position__: "second"; __param_type__: Props; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/events/[id]/route.ts(205,7): error TS2344: Type '{ __tag__: "PUT"; __param_position__: "second"; __param_type__: Props; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/api/events/[id]/route.ts(244,7): error TS2344: Type '{ __tag__: "DELETE"; __param_position__: "second"; __param_type__: Props; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/chat/[id]/page.ts(34,29): error TS2344: Type '{ params: { id: string; }; }' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/security/page.ts(2,24): error TS2306: File '/media/vane/Movies/Projects/zenith/src/app/security/page.tsx' is not a module.
+.next/types/app/security/page.ts(5,29): error TS2306: File '/media/vane/Movies/Projects/zenith/src/app/security/page.tsx' is not a module.
+.next/types/app/settings/page.ts(2,24): error TS2306: File '/media/vane/Movies/Projects/zenith/src/app/settings/page.tsx' is not a module.
+.next/types/app/settings/page.ts(5,29): error TS2306: File '/media/vane/Movies/Projects/zenith/src/app/settings/page.tsx' is not a module.
+backup/AuthMiddleware-backup.ts(3,32): error TS2307: Cannot find module './SessionManager' or its corresponding type declarations.
+backup/AuthMiddleware-backup.ts(4,41): error TS2307: Cannot find module './CacheManager' or its corresponding type declarations.
+backup/AuthMiddleware-backup.ts(5,48): error TS2307: Cannot find module './database' or its corresponding type declarations.
+backup/AuthMiddleware-backup.ts(6,28): error TS2307: Cannot find module './database' or its corresponding type declarations.
+backup/AuthMiddleware-backup.ts(257,30): error TS2304: Cannot find name 'prisma'.
+backup/FastAuth-backup.ts(7,103): error TS2307: Cannot find module './database' or its corresponding type declarations.
+backup/auth-backup.ts(4,20): error TS2307: Cannot find module './database' or its corresponding type declarations.
+backup/auth-options-backup.ts(5,48): error TS2307: Cannot find module './database' or its corresponding type declarations.
+backup/auth-options-backup.ts(86,54): error TS2339: Property 'verifyToken' does not exist on type 'typeof TwoFactorAuthService'.
+backup/authUtils-backup.ts(19,24): error TS2304: Cannot find name 'prisma'.
+scripts/init-committee.ts(5,30): error TS2307: Cannot find module '@prisma/client' or its corresponding type declarations.
+src/app/api/chat/invite/route.ts(30,37): error TS2339: Property 'chatRoomMember' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/chat/invite/route.ts(52,33): error TS2339: Property 'chatInvitation' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/chat/invite/route.ts(105,34): error TS2339: Property 'chatInvitation' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/chat/messages/[id]/react/route.ts(40,44): error TS2339: Property 'findUnique' does not exist on type '{ deleteMany: (options: any) => Promise<{ count: number; }>; }'.
+src/app/api/chat/messages/[id]/react/route.ts(67,28): error TS2339: Property 'update' does not exist on type '{ deleteMany: (options: any) => Promise<{ count: number; }>; }'.
+src/app/api/chat/rooms/[id]/messages/route.ts(59,45): error TS2339: Property 'findMany' does not exist on type '{ deleteMany: (options: any) => Promise<{ count: number; }>; }'.
+src/app/api/chat/rooms/[id]/messages/route.ts(76,45): error TS7006: Parameter 'msg' implicitly has an 'any' type.
+src/app/api/chat/rooms/[id]/messages/route.ts(136,31): error TS2339: Property 'chat_room_members' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/chat/rooms/[id]/messages/route.ts(151,44): error TS2339: Property 'create' does not exist on type '{ deleteMany: (options: any) => Promise<{ count: number; }>; }'.
+src/app/api/chat/rooms/route.ts(33,39): error TS2339: Property 'findMany' does not exist on type '{ findFirst: (options: any) => Promise<any>; findUnique: (options: any) => Promise<any>; update: (options: any) => Promise<any>; delete: (options: any) => Promise<...>; }'.
+src/app/api/chat/rooms/route.ts(61,40): error TS7006: Parameter 'room' implicitly has an 'any' type.
+src/app/api/chat/rooms/route.ts(157,38): error TS2339: Property 'create' does not exist on type '{ findFirst: (options: any) => Promise<any>; findUnique: (options: any) => Promise<any>; update: (options: any) => Promise<any>; delete: (options: any) => Promise<...>; }'.
+src/app/api/clubs/[clubId]/members/route.ts(19,14): error TS2339: Property '$connect' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/clubs/[clubId]/members/route.ts(52,14): error TS2339: Property '$connect' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/clubs/[clubId]/route.ts(12,14): error TS2339: Property '$connect' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/clubs/[clubId]/route.ts(58,27): error TS2339: Property 'users_clubs_coordinator_idTousers' does not exist on type 'Club'.
+src/app/api/clubs/[clubId]/route.ts(59,30): error TS2339: Property 'users_clubs_co_coordinator_idTousers' does not exist on type 'Club'.
+src/app/api/clubs/[clubId]/route.ts(65,27): error TS2339: Property 'users_posts_author_idTousers' does not exist on type 'Post'.
+src/app/api/events/route-new.ts(31,39): error TS2339: Property 'getEventsByClub' does not exist on type 'EnhancedDatabaseClient'.
+src/app/api/management/stats/route.ts(22,7): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/management/stats/route.ts(64,7): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/[id]/profile/route.ts(33,53): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/[id]/profile/route.ts(85,59): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/[id]/profile/route.ts(101,55): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/[id]/submissions/route.ts(37,53): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/[id]/submissions/route.ts(48,65): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/[id]/submissions/route.ts(108,67): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/[id]/submissions/route.ts(124,55): error TS2345: Argument of type 'string' is not assignable to parameter of type 'any[]'.
+src/app/api/users/badges/route.ts(61,7): error TS2554: Expected 1-3 arguments, but got 5.
+src/lib/TwoFactorAuthService.ts(4,20): error TS7016: Could not find a declaration file for module 'bcrypt'. '/media/vane/Movies/Projects/zenith/node_modules/bcrypt/bcrypt.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/bcrypt` if it exists or add a new declaration (.d.ts) file containing `declare module 'bcrypt';`
+verify-db.ts(1,20): error TS2307: Cannot find module './src/lib/db' or its corresponding type declarations.
+verify-db.ts(52,34): error TS7006: Parameter 'tx' implicitly has an 'any' type.

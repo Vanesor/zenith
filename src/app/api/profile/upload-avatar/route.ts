@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { SupabaseStorageService } from '@/lib/supabaseStorage';
+import { LocalStorageService } from '@/lib/storage';
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -42,36 +42,42 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file using SupabaseStorageService
-    const validation = SupabaseStorageService.validateFile(file, 'profile', MAX_FILE_SIZE);
-    if (!validation.valid) {
-      return NextResponse.json({
-        success: false,
-        error: validation.error
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ 
+        error: 'File too large. Maximum size is 5MB.' 
       }, { status: 400 });
     }
 
-    // Upload new avatar using Supabase Storage
-    const uploadResult = await SupabaseStorageService.uploadUserAvatar(
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      return NextResponse.json({ 
+        error: 'Invalid file type. Only images are allowed.' 
+      }, { status: 400 });
+    }
+
+    // Upload new avatar using Local Storage
+    const uploadResult = await LocalStorageService.uploadFile(
       file,
-      file.name,
-      decoded.userId
+      'profiles',
+      'avatars'
     );
 
-    if (!uploadResult.success) {
+    if (!uploadResult) {
       return NextResponse.json({
          success: false,
-        error: uploadResult.error || 'Failed to upload to Supabase Storage'
+        error: 'Failed to upload file'
        }, { status: 500 });
     }
     
-    console.log(`✅ Profile image uploaded to Supabase Storage for user ${decoded.userId}: ${uploadResult.fileUrl}`);
+    console.log(`✅ Profile image uploaded for user ${decoded.userId}: ${uploadResult.url}`);
     
     return NextResponse.json({
       success: true,
-      message: 'Profile image uploaded successfully to Supabase Storage',
-      avatarUrl: uploadResult.fileUrl,
-      fileId: uploadResult.fileId,
-      thumbnailUrl: uploadResult.thumbnailUrl
+      message: 'Profile image uploaded successfully',
+      avatarUrl: uploadResult.url,
+      fileId: uploadResult.path,
+      thumbnailUrl: uploadResult.url
     });
 
   } catch (error) {

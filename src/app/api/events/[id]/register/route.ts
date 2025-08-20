@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,14 +19,13 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Check if already registered
-    const existingRegistration = await db.eventRegistration.findFirst({
-      where: {
-        event_id: id,
-        user_id: user_id
-      }
-    });
+    const existingResult = await db.query(`
+      SELECT id FROM event_registrations 
+      WHERE event_id = $1 AND user_id = $2
+      LIMIT 1
+    `, [id, user_id]);
 
-    if (existingRegistration) {
+    if (existingResult.rows.length > 0) {
       return NextResponse.json(
         { error: "User already registered for this event" },
         { status: 409 }
@@ -35,18 +33,22 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     // Register user
-    const registration = await db.eventRegistration.create({
-      data: {
-        event_id: id,
-        user_id: user_id,
-      }
-    });
+    const registrationResult = await db.query(`
+      INSERT INTO event_registrations (event_id, user_id, created_at)
+      VALUES ($1, $2, CURRENT_TIMESTAMP)
+      RETURNING *
+    `, [id, user_id]);
+
+    const registration = registrationResult.rows[0];
 
     // Get user info for response
-    const user = await db.users.findUnique({
-      where: { id: user_id },
-      select: { name: true, avatar: true, role: true }
-    });
+    const userResult = await db.query(`
+      SELECT name, avatar, role 
+      FROM users 
+      WHERE id = $1 AND deleted_at IS NULL
+    `, [user_id]);
+
+    const user = userResult.rows[0];
 
     return NextResponse.json(
       {
@@ -78,14 +80,13 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       );
     }
 
-    const deletedRegistration = await db.eventRegistration.deleteMany({
-      where: {
-        event_id: id,
-        user_id: userId
-      }
-    });
+    const deleteResult = await db.query(`
+      DELETE FROM event_registrations 
+      WHERE event_id = $1 AND user_id = $2
+      RETURNING id
+    `, [id, userId]);
 
-    if (deletedRegistration.count === 0) {
+    if (deleteResult.rows.length === 0) {
       return NextResponse.json(
         { error: "Registration not found" },
         { status: 404 }
@@ -112,14 +113,14 @@ export async function GET(request: NextRequest, { params }: Props) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const registrations = await db.eventRegistration.findMany({
-      where: { event_id: id },
-      orderBy: { id: 'desc' },
-      take: limit,
-      skip: offset
-    });
+    const registrationsResult = await db.query(`
+      SELECT * FROM event_registrations 
+      WHERE event_id = $1
+      ORDER BY id DESC
+      LIMIT $2 OFFSET $3
+    `, [id, limit, offset]);
 
-    return NextResponse.json({ registrations });
+    return NextResponse.json({ registrations: registrationsResult.rows });
   } catch (error) {
     console.error("Error fetching event registrations:", error);
     return NextResponse.json(

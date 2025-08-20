@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
+import db from "@/lib/database";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Find user with this token
-    const userResult = await db.executeRawSQL(
+    const userResult = await db.query(
       `SELECT id, email, email_verification_token_expires_at 
        FROM users 
        WHERE email_verification_token = $1`,
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Mark email as verified
-    await db.executeRawSQL(
+    await db.query(
       `UPDATE users 
        SET 
         email_verified = true,

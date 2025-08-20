@@ -55,6 +55,18 @@ module.exports = {
       env: {
         NODE_ENV: 'production'
       }
+    },
+    // Chat messages cleanup cron job - run weekly on Sunday at 3am
+    {
+      name: 'zenith-chat-cleanup',
+      script: 'node',
+      args: './scripts/chat-cleanup.js',
+      cron_restart: '0 3 * * 0', // Run at 3am every Sunday
+      autorestart: false,
+      watch: false,
+      env: {
+        NODE_ENV: 'production'
+      }
     }
   ]
 };

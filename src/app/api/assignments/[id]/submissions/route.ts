@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 export async function GET(
   request: NextRequest,
@@ -33,7 +33,7 @@ export async function GET(
       WHERE id = $1
     `;
     
-    const userResult = await db.executeRawSQL(userQuery, [requestingUserId]);
+    const userResult = await db.query(userQuery, [requestingUserId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -49,7 +49,7 @@ export async function GET(
       WHERE id = $1
     `;
     
-    const assignmentResult = await db.executeRawSQL(assignmentQuery, [assignmentId]);
+    const assignmentResult = await db.query(assignmentQuery, [assignmentId]);
     
     if (assignmentResult.rows.length === 0) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
@@ -120,7 +120,7 @@ export async function GET(
     submissionsQuery += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(limit.toString(), offset.toString());
     
-    const submissionsResult = await db.executeRawSQL(submissionsQuery, queryParams);
+    const submissionsResult = await db.query(submissionsQuery, queryParams);
     
     // Count total for pagination
     const countQuery = `
@@ -131,7 +131,7 @@ export async function GET(
     `;
     
     const countParams = status ? [assignmentId, status] : [assignmentId];
-    const countResult = await db.executeRawSQL(countQuery, countParams);
+    const countResult = await db.query(countQuery, countParams);
     const total = parseInt(countResult.rows[0].total);
     
     // Format each submission
@@ -167,7 +167,7 @@ export async function GET(
       WHERE assignment_id = $1
     `;
     
-    const statsResult = await db.executeRawSQL(statsQuery, [assignmentId]);
+    const statsResult = await db.query(statsQuery, [assignmentId]);
     const stats = statsResult.rows[0];
     
     // Return results
@@ -229,7 +229,7 @@ export async function PUT(
       WHERE id = $1
     `;
     
-    const userResult = await db.executeRawSQL(userQuery, [requestingUserId]);
+    const userResult = await db.query(userQuery, [requestingUserId]);
     
     if (userResult.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -262,7 +262,7 @@ export async function PUT(
       SELECT club_id FROM assignments WHERE id = $1
     `;
     
-    const assignmentResult = await db.executeRawSQL(assignmentQuery, [assignmentId]);
+    const assignmentResult = await db.query(assignmentQuery, [assignmentId]);
     
     if (assignmentResult.rows.length === 0) {
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
@@ -281,7 +281,7 @@ export async function PUT(
     }
     
     // Update the submission
-    await db.executeRawSQL(
+    await db.query(
       `UPDATE assignment_submissions 
        SET status = 'graded', grade = $1, feedback = $2, completed_at = CURRENT_TIMESTAMP
        WHERE id = $3 AND assignment_id = $4`,

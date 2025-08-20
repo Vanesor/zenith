@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, executeRawSQL, queryRawSQL } from '@/lib/database-service';
+import { db, executeRawSQL, queryRawSQL } from '@/lib/database';
 
 // GET /api/users/badges?user_id=<userId>
 export async function GET(request: NextRequest) {

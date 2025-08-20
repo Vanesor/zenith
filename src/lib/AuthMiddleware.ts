@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { SessionManager } from "./SessionManager";
 import { CacheManager, CacheKeys } from "./CacheManager";
-import { db, executeRawSQL, queryRawSQL } from "./database-service";
+import { db, executeRawSQL, queryRawSQL } from "./database";
+import DatabaseClient from "./database";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -21,23 +22,13 @@ async function checkTrustedDevice(userId: string, request: NextRequest): Promise
   if (!trustedDeviceId) return false;
   
   try {
-    // Use Prisma directly to avoid type casting issues with raw queries    
-    try {
-      const device = await db.trusted_devices.findFirst({
-        where: {
-          user_id: userId,
-          device_identifier: trustedDeviceId,
-          expires_at: {
-            gt: new Date()
-          }
-        }
-      });
-      
-      return !!device;
-    } catch (prismaError) {
-      console.error("Error in checkTrustedDevice with Prisma:", prismaError);
-      return false;
-    }
+    // Check if device exists in trusted_devices table
+    const result = await db.query(`
+      SELECT id FROM trusted_devices 
+      WHERE user_id = $1 AND device_identifier = $2 AND is_active = true
+    `, [userId, trustedDeviceId]);
+    
+    return result.rows.length > 0;
   } catch (error) {
     console.error('Error checking trusted device:', error);
     return false;
@@ -151,7 +142,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
                 
                 const userResult = await queryRawSQL(
                   "SELECT email, role FROM users WHERE id = $1::uuid",
-                  refreshDecoded.userId
+                  params
                 );
                 
                 if (userResult.rows.length > 0) {
@@ -263,14 +254,12 @@ export async function verifyAuth(request: NextRequest): Promise<{
         // We no longer need UUIDUtils with the new database interface
         
         try {
-          // Process parameters to handle UUID types correctly
-          const params = [decoded.userId];
-          
           const userResult = await queryRawSQL(
             "SELECT club_id FROM users WHERE id = $1::uuid",
-            decoded.userId
+            [decoded.userId]
           );
-          if (userResult && userResult.rows && userResult.rows.length > 0) {
+          
+          if (userResult.rows.length > 0) {
             club_id = userResult.rows[0].club_id;
           }
         } catch (queryError) {

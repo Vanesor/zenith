@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 // Helper function to handle errors consistently
 function handleApiError(error: any) {
@@ -8,10 +8,10 @@ function handleApiError(error: any) {
   
   // More detailed error logging
   if (error.code) {
-    console.error(`Database error code: ${error.code}`);
+    console.error(`Database error code: $1`);
   }
   if (error.stack) {
-    console.error(`Error stack: ${error.stack}`);
+    console.error(`Error stack: $1`);
   }
   
   return NextResponse.json(
@@ -65,8 +65,8 @@ export async function POST(
       );
     }
 
-    // Check if assignment exists and is still open
-    const assignmentCheck = await db.executeRawSQL(
+    // Check if assignment exists and is not past due
+    const assignmentCheck = await db.query(
       `SELECT id, due_date, status FROM assignments WHERE id = $1`,
       [assignmentId]
     );
@@ -91,7 +91,7 @@ export async function POST(
     }
 
     // Check if already submitted
-    const existingSubmission = await db.executeRawSQL(
+    const existingSubmission = await db.query(
       `SELECT id FROM assignment_submissions WHERE assignment_id = $1 AND user_id = $2`,
       [assignmentId, userId]
     );
@@ -110,7 +110,7 @@ export async function POST(
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // Create submission record
-    const submissionResult = await db.executeRawSQL(
+    const submissionResult = await db.query(
       `INSERT INTO assignment_submissions (
         assignment_id, user_id, started_at, completed_at,
         time_spent, violation_count, auto_submitted, status,
@@ -135,7 +135,7 @@ export async function POST(
 
     // Record proctoring session if proctoring data is provided
     if (assignment.is_proctored && Object.keys(proctoringData).length > 0) {
-      await db.executeRawSQL(
+      await db.query(
         `INSERT INTO proctoring_sessions (
           assignment_id, user_id, session_start, session_end,
           camera_enabled, microphone_enabled, face_verified,
@@ -160,7 +160,7 @@ export async function POST(
     // Record individual violations
     if (violations && violations.length > 0) {
       for (const violation of violations) {
-        await db.executeRawSQL(
+        await db.query(
           `INSERT INTO assignment_violations (
             submission_id, violation_type, occurred_at, details
           )
@@ -176,7 +176,7 @@ export async function POST(
     }
 
     // Get all questions for this assignment
-    const questionsResult = await db.executeRawSQL(
+    const questionsResult = await db.query(
       `SELECT id, question_type, marks FROM assignment_questions WHERE assignment_id = $1`,
       [assignmentId]
     );
@@ -195,7 +195,7 @@ export async function POST(
       }
       
       // Find the question in our fetched questions
-      const question = questions.find(q => q.id === questionId);
+      const question = questions.find((q: any) => q.id === questionId);
       if (!question) {
         console.warn('Question not found:', questionId);
         continue;
@@ -207,12 +207,12 @@ export async function POST(
       // For objective questions, check if the answer is correct
       if (question.question_type === 'single_choice' || question.question_type === 'multiple_choice') {
         // Get correct options
-        const optionsResult = await db.executeRawSQL(
+        const optionsResult = await db.query(
           `SELECT id FROM question_options WHERE question_id = $1 AND is_correct = true`,
           [questionId]
         );
         
-        const correctOptions = optionsResult.rows.map(row => row.id);
+        const correctOptions = optionsResult.rows.map((row: any) => row.id);
         
         // Validate and filter selectedOptions to ensure they are valid UUIDs
         const validSelectedOptions = (selectedOptions || []).filter((option: any) => {
@@ -251,7 +251,7 @@ export async function POST(
       }
 
       // Record this response
-      const responseResult = await db.executeRawSQL(
+      const responseResult = await db.query(
         `INSERT INTO question_responses (
           submission_id, question_id, selected_options,
           code_answer, essay_answer, is_correct, score, time_spent
@@ -277,13 +277,13 @@ export async function POST(
     }
 
     // Update submission with total score for auto-graded questions
-    await db.executeRawSQL(
+    await db.query(
       `UPDATE assignment_submissions SET total_score = $1 WHERE id = $2`,
       [totalScore, submissionId]
     );
 
     // Get the assignment's max points for reference
-    const maxPointsResult = await db.executeRawSQL(
+    const maxPointsResult = await db.query(
       `SELECT COALESCE(SUM(marks), 0) as max_points FROM assignment_questions WHERE assignment_id = $1`,
       [assignmentId]
     );

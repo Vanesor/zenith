@@ -1,0 +1,20 @@
+complete schema command
+  - PGPASSWORD=AtharvaAyush pg_dump -h localhost -U zenithpostgres -d zenith --schema-only --no-owner --no-privileges > complete_schema.txt 2>&1
+
+tables command 
+  PGPASSWORD=AtharvaAyush psql -h localhost -U zenithpostgres -d zenith -c "\dt" > database_tables.txt 2>&1
+
+
+image setup in database, data transfer from supabase to local db
+
+
+
+
+=============================
+go to api files one by one and fix them properly do not use scripts or npm build just go to files one by one and fix them manually 
+
+the database quesries shuold be proper and working they should be optimised fix all the files one after the other manually
+
+
+
+profile page

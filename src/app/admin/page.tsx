@@ -31,11 +31,12 @@ import {
   List,
   Eye,
   Loader2,
-  MapPin
+  MapPin,
+  Building2
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
-import db from "./database";
+import db from "@/lib/database";
 
 // Types
 interface AdminStatCard {
@@ -110,6 +111,26 @@ export default function AdminDashboard() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [userAccessLevel, setUserAccessLevel] = useState("");
+  
+  // Handle role-based redirection
+  useEffect(() => {
+    if (!isLoading && user) {
+      // Check if user is a club coordinator (not Zenith committee)
+      const isClubCoordinator = user.role === 'coordinator' || user.role === 'co_coordinator';
+      
+      // Check if user is Zenith committee member
+      const isZenithCommittee = [
+        'president', 'vice_president', 'innovation_head', 
+        'secretary', 'treasurer', 'outreach_coordinator', 'media_coordinator'
+      ].includes(user.role);
+
+      // Redirect club coordinators to club management page
+      if (isClubCoordinator && !isZenithCommittee) {
+        router.push('/admin/club-management');
+        return;
+      }
+    }
+  }, [user, isLoading, router]);
   
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -243,8 +264,14 @@ export default function AdminDashboard() {
         <TabButton 
           icon={Award} 
           title="Clubs" 
-          active={activeTab === "clubs"}
-          onClick={() => setActiveTab("clubs")}
+          active={false}
+          onClick={() => router.push("/admin/club-management")}
+        />
+        <TabButton 
+          icon={Building2} 
+          title="Club Management" 
+          active={false}
+          onClick={() => router.push("/admin/club-management")}
         />
         <TabButton 
           icon={Book} 

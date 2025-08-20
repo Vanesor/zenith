@@ -2,11 +2,10 @@
  * Admin Dashboard Data Service
  * 
  * This module provides functions to fetch and process data for the admin dashboard
- * with appropriate error handling and fallback data when the database is not available
+ * with optimized database queries and proper error handling
  */
 
-import db from "./database";
-import { Prisma } from '@/lib/database-service';
+import { db } from '@/lib/database';
 
 // Type definitions
 type ReportType = 'user' | 'club';
@@ -112,514 +111,518 @@ interface ClubEventStats {
   average_attendance: number;
 }
 
-// Get member statistics with fallback data
+// Get member statistics with real database data
 export async function getMemberStats() {
   try {
-    import { prismaClient as prisma } from "./database";
-    
-    // Check connection first to fail fast
-    await db.$queryRaw`SELECT 1`;
-    
     // Get member stats with their roles
-    const memberStats = await db.$queryRaw`
+    const memberStats = await db.query(`
       SELECT 
         role, 
         COUNT(*) as count
       FROM 
         users
+      WHERE 
+        deleted_at IS NULL
       GROUP BY 
         role
-    `;
+      ORDER BY 
+        count DESC
+    `);
     
     return {
       success: true,
-      data: memberStats,
+      data: memberStats.rows,
       source: 'database'
     };
   } catch (error) {
     console.error('Error fetching member statistics:', error);
-    
-    // Return fallback data
-    return {
-      success: false,
-      data: [
-        { role: 'student', count: 724 },
-        { role: 'coordinator', count: 15 },
-        { role: 'co_coordinator', count: 22 },
-        { role: 'committee_member', count: 8 },
-        { role: 'admin', count: 3 }
-      ],
-      source: 'fallback'
-    };
+    throw new Error('Failed to fetch member statistics');
   }
 }
 
-// Get club details with fallback data
+// Get club details with real database data
 export async function getClubDetails(clubId: string) {
   try {
-    import { prismaClient as prisma } from "./database";
-    
-    // Check connection first to fail fast
-    await db.$queryRaw`SELECT 1`;
-    
     // Get club data with coordinator
-    const clubData = await db.clubs.findUnique({
-      where: { id: clubId },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        description: true,
-        coordinator: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
+    const clubResult = await db.query(`
+      SELECT 
+        c.*,
+        u.id as coordinator_id,
+        u.name as coordinator_name,
+        u.email as coordinator_email
+      FROM 
+        clubs c
+      LEFT JOIN 
+        users u ON c.coordinator_id = u.id
+      WHERE 
+        c.id = $1 AND c.deleted_at IS NULL
+    `, [clubId]);
     
-    if (!clubData) {
+    if (clubResult.rows.length === 0) {
       throw new Error('Club not found');
     }
     
-    // Get member statistics
-    const memberStats = await db.$queryRaw<MemberStats[]>`
-      SELECT COUNT(*) as total_members
-      FROM club_members
-      WHERE club_id = ${clubId}
-    `;
+    const clubData = clubResult.rows[0];
     
-    // Get member list
-    const members = await db.$queryRaw`
+    // Get member statistics
+    const memberStats = await db.query(`
+      SELECT COUNT(*) as total_members
+      FROM club_members cm
+      JOIN users u ON cm.user_id = u.id
+      WHERE cm.club_id = $1 
+        AND cm.status = 'active'
+        AND u.deleted_at IS NULL
+    `, [clubId]);
+    
+    // Get member list with recent activity
+    const membersResult = await db.query(`
       SELECT 
         u.id,
         u.name,
         u.role,
-        cm.joined_at as joined_at
+        cm.joined_at,
+        cm.status,
+        u.last_login_at
       FROM 
         club_members cm
       JOIN 
         users u ON cm.user_id = u.id
       WHERE 
-        cm.club_id = ${clubId}
+        cm.club_id = $1
+        AND u.deleted_at IS NULL
       ORDER BY 
         cm.joined_at DESC
       LIMIT 20
-    `;
+    `, [clubId]);
     
     // Get upcoming events
-    const upcomingEvents = await db.$queryRaw`
+    const upcomingEventsResult = await db.query(`
       SELECT 
         id,
         title,
         event_date as date,
-        location
+        location,
+        max_attendees,
+        (SELECT COUNT(*) FROM event_attendees WHERE event_id = events.id) as current_attendees
       FROM 
         events
       WHERE 
-        club_id = ${clubId}
+        club_id = $1
         AND event_date >= CURRENT_DATE
+        AND deleted_at IS NULL
       ORDER BY 
         event_date ASC
       LIMIT 5
-    `;
+    `, [clubId]);
+    
+    // Get assignment statistics for this club
+    const assignmentStatsResult = await db.query(`
+      SELECT 
+        COUNT(*) as total_assignments,
+        COALESCE(AVG(
+          CASE 
+            WHEN a.max_participants > 0 
+            THEN (SELECT COUNT(*) FROM assignment_submissions WHERE assignment_id = a.id) * 100.0 / a.max_participants
+            ELSE 0
+          END
+        ), 0) as average_submission_rate
+      FROM 
+        assignments a
+      WHERE 
+        a.club_id = $1
+        AND a.deleted_at IS NULL
+    `, [clubId]);
+    
+    // Get event statistics for this club
+    const eventStatsResult = await db.query(`
+      SELECT 
+        COUNT(*) as total_events,
+        COALESCE(AVG(
+          (SELECT COUNT(*) FROM event_attendees WHERE event_id = e.id)
+        ), 0) as average_attendance
+      FROM 
+        events e
+      WHERE 
+        e.club_id = $1
+        AND e.deleted_at IS NULL
+    `, [clubId]);
     
     return {
       success: true,
       data: {
-        ...clubData,
-        memberCount: memberStats[0]?.total_members || 0,
-        members: Array.isArray(members) ? members : [],
-        upcomingEvents: Array.isArray(upcomingEvents) ? upcomingEvents : []
+        id: clubData.id,
+        name: clubData.name,
+        type: clubData.type,
+        description: clubData.description,
+        coordinator: clubData.coordinator_id ? {
+          id: clubData.coordinator_id,
+          name: clubData.coordinator_name,
+          email: clubData.coordinator_email
+        } : null,
+        memberCount: parseInt(memberStats.rows[0]?.total_members) || 0,
+        members: membersResult.rows,
+        upcomingEvents: upcomingEventsResult.rows,
+        stats: {
+          members: { total_members: parseInt(memberStats.rows[0]?.total_members) || 0 },
+          assignments: {
+            total_assignments: parseInt(assignmentStatsResult.rows[0]?.total_assignments) || 0,
+            average_submission_rate: parseFloat(assignmentStatsResult.rows[0]?.average_submission_rate) || 0
+          },
+          events: {
+            total_events: parseInt(eventStatsResult.rows[0]?.total_events) || 0,
+            average_attendance: parseFloat(eventStatsResult.rows[0]?.average_attendance) || 0
+          }
+        }
       },
       source: 'database'
     };
   } catch (error) {
     console.error(`Error fetching club details for ID ${clubId}:`, error);
-    
-    // Return fallback data
-    return {
-      success: false,
-      data: {
-        id: clubId || 'club1',
-        name: 'Achievers Club',
-        type: 'Technical',
-        description: 'A club for technology enthusiasts and innovators.',
-        coordinator: {
-          id: 'coord1',
-          name: 'Jane Smith',
-          email: 'jane.smith@example.com'
-        },
-        memberCount: 145,
-        members: [
-          { id: 'user1', name: 'John Doe', role: 'student', joinedAt: '2023-01-15T09:30:00Z' },
-          { id: 'user2', name: 'Sarah Johnson', role: 'student', joinedAt: '2023-02-10T14:20:00Z' },
-          { id: 'user3', name: 'Mike Wilson', role: 'student', joinedAt: '2023-03-05T11:15:00Z' }
-        ],
-        upcomingEvents: [
-          { id: 'event1', title: 'Tech Symposium 2025', date: '2025-08-15', location: 'Main Auditorium' },
-          { id: 'event2', title: 'Coding Competition', date: '2025-07-05', location: 'Computer Lab' }
-        ]
-      },
-      source: 'fallback'
-    };
+    throw new Error('Failed to fetch club details');
   }
 }
 
-// Get club statistics with fallback data
+// Get club statistics with real database data
 export async function getClubStats() {
   try {
-    import { prismaClient as prisma } from "./database";
-    
-    // Check connection first to fail fast
-    await db.$queryRaw`SELECT 1`;
-    
     // Get club stats with their member counts and engagement
-    const clubStats = await db.$queryRaw`
+    const clubStatsResult = await db.query(`
       SELECT 
         c.id, 
         c.name, 
         c.type,
+        c.created_at,
         u.name as coordinator_name,
-        (SELECT COUNT(*) FROM club_members WHERE club_id = c.id) as member_count,
-        COALESCE(
-          (SELECT AVG(cs.engagement_score) FROM club_statistics cs WHERE cs.club_id = c.id), 
-          FLOOR(RANDOM() * 30 + 60)
-        ) as engagement
+        COUNT(DISTINCT cm.user_id) as member_count,
+        COUNT(DISTINCT e.id) as event_count,
+        COUNT(DISTINCT a.id) as assignment_count,
+        COALESCE(AVG(cs.engagement_score), 0) as engagement_score
       FROM 
         clubs c
       LEFT JOIN 
         users u ON c.coordinator_id = u.id
+      LEFT JOIN 
+        club_members cm ON c.id = cm.club_id AND cm.status = 'active'
+      LEFT JOIN 
+        events e ON c.id = e.club_id AND e.deleted_at IS NULL
+      LEFT JOIN 
+        assignments a ON c.id = a.club_id AND a.deleted_at IS NULL
+      LEFT JOIN 
+        club_statistics cs ON c.id = cs.club_id
+      WHERE 
+        c.deleted_at IS NULL
+      GROUP BY 
+        c.id, c.name, c.type, c.created_at, u.name, cs.engagement_score
       ORDER BY 
-        member_count DESC
-      LIMIT 10
-    `;
+        member_count DESC, engagement_score DESC
+      LIMIT 20
+    `);
     
     return {
       success: true,
-      data: clubStats,
+      data: clubStatsResult.rows,
       source: 'database'
     };
   } catch (error) {
     console.error('Error fetching club statistics:', error);
-    
-    // Return fallback data
-    return {
-      success: false,
-      data: [
-        { id: 'achievers', name: 'Achievers Club', type: 'Technical', coordinator_name: 'Jane Smith', member_count: '145', engagement: 87 },
-        { id: 'altogether', name: 'Altogether Club', type: 'Sports', coordinator_name: 'Sarah Adams', member_count: '118', engagement: 92 },
-        { id: 'aster', name: 'Aster Club', type: 'Cultural', coordinator_name: 'Mike Wilson', member_count: '92', engagement: 75 },
-        { id: 'bookworms', name: 'Bookworms Club', type: 'Literary', coordinator_name: 'David Johnson', member_count: '78', engagement: 82 },
-        { id: 'dance', name: 'Dance Club', type: 'Cultural', coordinator_name: 'Emma Roberts', member_count: '56', engagement: 78 }
-      ],
-      source: 'fallback'
-    };
+    throw new Error('Failed to fetch club statistics');
   }
 }
 
-// Get assignment statistics with fallback data
+// Get assignment statistics with real database data
 export async function getAssignmentStats() {
   try {
-    import { prismaClient as prisma } from "./database";
-    
-    // Check connection first to fail fast
-    await db.$queryRaw`SELECT 1`;
-    
     // Get assignment stats with their submission rates
-    const assignmentStats = await db.$queryRaw`
+    const assignmentStatsResult = await db.query(`
       SELECT 
         a.id, 
         a.title, 
         c.name as club_name,
         a.due_date,
-        (SELECT COUNT(*) FROM assignment_submissions WHERE assignment_id = a.id) as submitted,
-        a.max_participants as total,
-        COALESCE(
-          (SELECT AVG(CAST(score AS FLOAT)) FROM assignment_submissions WHERE assignment_id = a.id),
-          FLOOR(RANDOM() * 20 + 70)
-        ) as average_score
+        a.created_at,
+        a.max_participants as total_slots,
+        COUNT(DISTINCT asub.id) as submitted_count,
+        CASE 
+          WHEN a.max_participants > 0 
+          THEN ROUND(COUNT(DISTINCT asub.id) * 100.0 / a.max_participants, 2)
+          ELSE 0
+        END as submission_rate,
+        COALESCE(AVG(CAST(asub.score AS NUMERIC)), 0) as average_score,
+        a.status
       FROM 
         assignments a
       JOIN 
         clubs c ON a.club_id = c.id
+      LEFT JOIN 
+        assignment_submissions asub ON a.id = asub.assignment_id
       WHERE 
-        a.due_date >= CURRENT_DATE - INTERVAL '30 days'
+        a.deleted_at IS NULL
+        AND c.deleted_at IS NULL
+        AND a.due_date >= CURRENT_DATE - INTERVAL '90 days'
+      GROUP BY 
+        a.id, a.title, c.name, a.due_date, a.created_at, a.max_participants, a.status
       ORDER BY 
-        a.due_date ASC
-      LIMIT 10
-    `;
+        a.due_date DESC
+      LIMIT 25
+    `);
     
     return {
       success: true,
-      data: assignmentStats,
+      data: assignmentStatsResult.rows,
       source: 'database'
     };
   } catch (error) {
     console.error('Error fetching assignment statistics:', error);
-    
-    // Return fallback data with realistic dates
-    const today = new Date();
-    const formatDate = (daysOffset: number): string => {
-      const date = new Date(today);
-      date.setDate(date.getDate() + daysOffset);
-      return date.toISOString().split('T')[0]; // YYYY-MM-DD
-    };
-    
-    return {
-      success: false,
-      data: [
-        { id: 'a1', title: 'Technical Report on Cloud Computing', club_name: 'Achievers Club', due_date: formatDate(14), submitted: 42, total: 50, average_score: 87 },
-        { id: 'a2', title: 'Cultural Event Proposal', club_name: 'Aster Club', due_date: formatDate(9), submitted: 28, total: 35, average_score: 92 },
-        { id: 'a3', title: 'Sports Day Planning Document', club_name: 'Altogether Club', due_date: formatDate(25), submitted: 15, total: 25, average_score: 78 },
-        { id: 'a4', title: 'Book Review Assignment', club_name: 'Bookworms Club', due_date: formatDate(4), submitted: 30, total: 40, average_score: 84 },
-        { id: 'a5', title: 'Dance Performance Preparation', club_name: 'Dance Club', due_date: formatDate(20), submitted: 12, total: 20, average_score: 89 }
-      ],
-      source: 'fallback'
-    };
+    throw new Error('Failed to fetch assignment statistics');
   }
 }
 
-// Get event statistics with fallback data
+// Get event statistics with real database data
 export async function getEventStats() {
   try {
-    import { prismaClient as prisma } from "./database";
-    
-    // Check connection first to fail fast
-    await db.$queryRaw`SELECT 1`;
-    
     // Get event stats with their attendee counts
-    const eventStats = await db.$queryRaw`
+    const eventStatsResult = await db.query(`
       SELECT 
         e.id, 
         e.title, 
         c.name as club_name,
         e.event_date,
         e.location,
-        (SELECT COUNT(*) FROM event_attendees WHERE event_id = e.id) as attendees,
+        e.max_attendees,
+        COUNT(DISTINCT ea.id) as attendee_count,
+        CASE 
+          WHEN e.max_attendees > 0 
+          THEN ROUND(COUNT(DISTINCT ea.id) * 100.0 / e.max_attendees, 2)
+          ELSE 0
+        END as attendance_rate,
         CASE 
           WHEN e.event_date < CURRENT_DATE THEN 'completed'
           WHEN e.event_date = CURRENT_DATE THEN 'ongoing'
           ELSE 'upcoming'
-        END as status
+        END as status,
+        e.created_at
       FROM 
         events e
       JOIN 
         clubs c ON e.club_id = c.id
+      LEFT JOIN 
+        event_attendees ea ON e.id = ea.event_id
       WHERE 
-        e.event_date BETWEEN CURRENT_DATE - INTERVAL '7 days' AND CURRENT_DATE + INTERVAL '30 days'
+        e.deleted_at IS NULL
+        AND c.deleted_at IS NULL
+        AND e.event_date BETWEEN CURRENT_DATE - INTERVAL '30 days' AND CURRENT_DATE + INTERVAL '90 days'
+      GROUP BY 
+        e.id, e.title, c.name, e.event_date, e.location, e.max_attendees, e.created_at
       ORDER BY 
-        e.event_date ASC
-      LIMIT 10
-    `;
+        e.event_date DESC
+      LIMIT 25
+    `);
     
     return {
       success: true,
-      data: eventStats,
+      data: eventStatsResult.rows,
       source: 'database'
     };
   } catch (error) {
     console.error('Error fetching event statistics:', error);
-    
-    // Return fallback data with realistic dates
-    const today = new Date();
-    const formatDate = (daysOffset: number): string => {
-      const date = new Date(today);
-      date.setDate(date.getDate() + daysOffset);
-      return date.toISOString().split('T')[0]; // YYYY-MM-DD
-    };
-    
-    return {
-      success: false,
-      data: [
-        { id: 'e1', title: 'Tech Symposium 2025', club_name: 'Achievers Club', event_date: formatDate(30), location: 'Main Auditorium', attendees: 120, status: 'upcoming' },
-        { id: 'e2', title: 'Annual Cultural Festival', club_name: 'Aster Club', event_date: formatDate(50), location: 'College Grounds', attendees: 350, status: 'upcoming' },
-        { id: 'e3', title: 'Sports Meet 2025', club_name: 'Altogether Club', event_date: formatDate(9), location: 'Sports Complex', attendees: 200, status: 'upcoming' },
-        { id: 'e4', title: 'Book Fair', club_name: 'Bookworms Club', event_date: formatDate(17), location: 'Library Hall', attendees: 85, status: 'upcoming' },
-        { id: 'e5', title: 'Dance Competition', club_name: 'Dance Club', event_date: formatDate(35), location: 'Cultural Center', attendees: 150, status: 'upcoming' }
-      ],
-      source: 'fallback'
-    };
+    throw new Error('Failed to fetch event statistics');
   }
 }
 
-// Get user profile data with fallback
+// Get user profile data with real database data
 export async function getUserProfile(userId: string) {
   try {
-    import { prismaClient as prisma } from "./database";
+    // Get user data with complete profile information
+    const userResult = await db.query(`
+      SELECT 
+        id, name, email, username, role, avatar, bio, 
+        created_at, updated_at, last_login_at, email_verified,
+        phone, location, website, github, linkedin, twitter
+      FROM 
+        users 
+      WHERE 
+        id = $1 AND deleted_at IS NULL
+    `, [userId]);
     
-    // Check connection first to fail fast
-    await db.$queryRaw`SELECT 1`;
-    
-    // Get user data with clubs and related statistics
-    const userData = await db.users.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        role: true,
-        avatar: true,
-        bio: true,
-        // Handle club members based on the actual schema
-        // If we don't have direct relationship, we'll need to query separately
-      }
-    });
-    
-    if (!userData) {
+    if (userResult.rows.length === 0) {
       throw new Error('User not found');
     }
     
-    // Get club memberships separately
-    interface ClubMembership {
-      id: string;
-      name: string;
-      type: string;
-    }
+    const userData = userResult.rows[0];
     
-    const clubMemberships = await db.$queryRaw<ClubMembership[]>`
+    // Get club memberships
+    const clubMembershipsResult = await db.query(`
       SELECT 
         c.id,
         c.name,
-        c.type
+        c.type,
+        cm.joined_at,
+        cm.status,
+        cm.role as membership_role
       FROM 
         club_members cm
       JOIN 
         clubs c ON cm.club_id = c.id
       WHERE 
-        cm.user_id = ${userId}
-    `;
+        cm.user_id = $1
+        AND c.deleted_at IS NULL
+      ORDER BY 
+        cm.joined_at DESC
+    `, [userId]);
     
-    // Get additional user stats
-    const assignmentStats = await db.$queryRaw<AssignmentStats[]>`
+    // Get assignment statistics
+    const assignmentStatsResult = await db.query(`
       SELECT 
         COUNT(*) as total_submissions,
-        AVG(CAST(score AS FLOAT)) as average_score
+        COALESCE(AVG(CAST(score AS NUMERIC)), 0) as average_score,
+        COUNT(CASE WHEN score >= 80 THEN 1 END) as high_scores,
+        MAX(submitted_at) as last_submission
       FROM 
         assignment_submissions
       WHERE 
-        user_id = ${userId}
-    `;
+        user_id = $1
+    `, [userId]);
     
-    const eventStats = await db.$queryRaw<EventStats[]>`
+    // Get event attendance statistics
+    const eventStatsResult = await db.query(`
       SELECT 
-        COUNT(*) as total_attendances
+        COUNT(*) as total_attendances,
+        COUNT(DISTINCT e.club_id) as clubs_participated,
+        MAX(ea.joined_at) as last_event_attendance
       FROM 
-        event_attendees
+        event_attendees ea
+      JOIN 
+        events e ON ea.event_id = e.id
       WHERE 
-        user_id = ${userId}
-    `;
+        ea.user_id = $1
+        AND e.deleted_at IS NULL
+    `, [userId]);
     
-    // Format for frontend consumption
-    const userWithClubs = {
+    // Get recent activities
+    const recentActivitiesResult = await db.query(`
+      (
+        SELECT 
+          'assignment' as type,
+          'Submitted: ' || a.title as description,
+          asub.submitted_at as timestamp,
+          asub.id as activity_id
+        FROM 
+          assignment_submissions asub
+        JOIN 
+          assignments a ON asub.assignment_id = a.id
+        WHERE 
+          asub.user_id = $1
+          AND a.deleted_at IS NULL
+      )
+      UNION ALL
+      (
+        SELECT 
+          'event' as type,
+          'Attended: ' || e.title as description,
+          ea.joined_at as timestamp,
+          ea.id as activity_id
+        FROM 
+          event_attendees ea
+        JOIN 
+          events e ON ea.event_id = e.id
+        WHERE 
+          ea.user_id = $1
+          AND e.deleted_at IS NULL
+      )
+      ORDER BY 
+        timestamp DESC
+      LIMIT 10
+    `, [userId]);
+    
+    // Format the response
+    const userWithStats = {
       ...userData,
-      clubMembers: Array.isArray(clubMemberships) ? clubMemberships.map((club: ClubMembership) => ({
+      clubMembers: clubMembershipsResult.rows.map(club => ({
         club: {
           id: club.id,
           name: club.name,
           type: club.type
+        },
+        joined_at: club.joined_at,
+        status: club.status,
+        role: club.membership_role
+      })),
+      statistics: {
+        assignments: {
+          total: parseInt(assignmentStatsResult.rows[0]?.total_submissions) || 0,
+          submissions: parseInt(assignmentStatsResult.rows[0]?.total_submissions) || 0,
+          averageScore: parseFloat(assignmentStatsResult.rows[0]?.average_score) || 0,
+          highScores: parseInt(assignmentStatsResult.rows[0]?.high_scores) || 0
+        },
+        events: {
+          total: parseInt(eventStatsResult.rows[0]?.total_attendances) || 0,
+          attended: parseInt(eventStatsResult.rows[0]?.total_attendances) || 0,
+          attendanceRate: parseInt(eventStatsResult.rows[0]?.total_attendances) || 0,
+          clubsParticipated: parseInt(eventStatsResult.rows[0]?.clubs_participated) || 0
         }
-      })) : []
+      },
+      recentActivities: recentActivitiesResult.rows
     };
     
     return {
       success: true,
-      data: {
-        ...userWithClubs,
-        stats: {
-          assignments: assignmentStats[0] || { total_submissions: 0, average_score: 0 },
-          events: eventStats[0] || { total_attendances: 0 }
-        }
-      },
+      data: userWithStats,
       source: 'database'
     };
   } catch (error) {
     console.error(`Error fetching user profile for ID ${userId}:`, error);
-    
-    // Return fallback data
-    return {
-      success: false,
-      data: {
-        id: userId || 'user1',
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        username: 'johndoe',
-        role: 'student',
-        status: 'active',
-        avatar: null,
-        bio: 'Computer Science student with interests in AI and web development.',
-        clubMembers: [
-          { club: { id: 'achievers', name: 'Achievers Club', type: 'Technical' } }
-        ],
-        stats: {
-          assignments: { total_submissions: 12, average_score: 87.5 },
-          events: { total_attendances: 5 }
-        },
-        recentActivities: [
-          { id: 'a1', type: 'submission', description: 'Submitted Web Development Project', timestamp: '2023-08-15T14:30:00Z' },
-          { id: 'a2', type: 'event', description: 'Attended Tech Symposium', timestamp: '2023-08-10T09:15:00Z' },
-          { id: 'a3', type: 'login', description: 'Logged into platform', timestamp: '2023-08-08T08:20:00Z' }
-        ],
-        statistics: {
-          assignments: {
-            total: 15,
-            submissions: 12, 
-            averageScore: 87.5
-          },
-          events: {
-            total: 8,
-            attended: 5,
-            attendanceRate: 62.5
-          }
-        }
-      },
-      source: 'fallback'
-    };
+    throw new Error('Failed to fetch user profile');
   }
 }
 
-// Generate report data for a user or club
+// Generate comprehensive report data for a user or club
 export async function generateReportData(type: ReportType, id: string) {
   try {
-    import { prismaClient as prisma } from "./database";
-    
-    // Check connection first to fail fast
-    await db.$queryRaw`SELECT 1`;
-    
     if (type === 'user') {
-      // Generate user report
+      // Generate comprehensive user report
       const userData = await getUserProfile(id);
       
-      // Get additional detailed information
-      const assignmentDetails = await db.$queryRaw`
+      // Get detailed assignment history
+      const assignmentDetailsResult = await db.query(`
         SELECT 
           a.title,
           a.due_date,
-          s.submitted_at,
-          s.score,
-          c.name as club_name
+          asub.submitted_at,
+          asub.score,
+          asub.feedback,
+          c.name as club_name,
+          a.max_score,
+          CASE 
+            WHEN asub.submitted_at <= a.due_date THEN 'on_time'
+            ELSE 'late'
+          END as submission_status
         FROM 
-          assignment_submissions s
+          assignment_submissions asub
         JOIN 
-          assignments a ON s.assignment_id = a.id
+          assignments a ON asub.assignment_id = a.id
         JOIN 
           clubs c ON a.club_id = c.id
         WHERE 
-          s.user_id = ${id}
+          asub.user_id = $1
+          AND a.deleted_at IS NULL
+          AND c.deleted_at IS NULL
         ORDER BY 
-          s.submitted_at DESC
-        LIMIT 10
-      `;
+          asub.submitted_at DESC
+        LIMIT 50
+      `, [id]);
       
-      const eventDetails = await db.$queryRaw`
+      // Get detailed event attendance history
+      const eventDetailsResult = await db.query(`
         SELECT 
           e.title,
           e.event_date,
           e.location,
-          c.name as club_name
+          c.name as club_name,
+          ea.joined_at as attendance_time,
+          CASE 
+            WHEN ea.joined_at <= e.event_date THEN 'attended'
+            ELSE 'registered'
+          END as attendance_status
         FROM 
           event_attendees ea
         JOIN 
@@ -627,88 +630,91 @@ export async function generateReportData(type: ReportType, id: string) {
         JOIN 
           clubs c ON e.club_id = c.id
         WHERE 
-          ea.user_id = ${id}
+          ea.user_id = $1
+          AND e.deleted_at IS NULL
+          AND c.deleted_at IS NULL
         ORDER BY 
           e.event_date DESC
-        LIMIT 10
-      `;
+        LIMIT 50
+      `, [id]);
       
       return {
         success: true,
         data: {
           user: userData.data,
           details: {
-            assignments: assignmentDetails,
-            events: eventDetails
+            assignments: assignmentDetailsResult.rows,
+            events: eventDetailsResult.rows
           }
         },
         source: 'database'
       };
+      
     } else if (type === 'club') {
-      // Generate club report
-      const clubData = await db.clubs.findUnique({
-        where: { id },
-        select: {
-          id: true,
-          name: true,
-          type: true,
-          description: true,
-          coordinator: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        }
-      });
+      // Generate comprehensive club report
+      const clubData = await getClubDetails(id);
       
-      if (!clubData) {
-        throw new Error('Club not found');
-      }
-      
-      // Get member statistics
-      const memberStats = await db.$queryRaw<MemberStats[]>`
-        SELECT COUNT(*) as total_members
-        FROM club_members
-        WHERE club_id = ${id}
-      `;
-      
-      // Get assignment statistics
-      const assignmentStats = await db.$queryRaw<ClubAssignmentStats[]>`
+      // Get detailed member analytics
+      const memberAnalyticsResult = await db.query(`
         SELECT 
-          COUNT(*) as total_assignments,
-          AVG(
-            (SELECT COUNT(*) FROM assignment_submissions WHERE assignment_id = a.id) * 100.0 / 
-            NULLIF(a.max_participants, 0)
-          ) as average_submission_rate
+          u.id,
+          u.name,
+          u.email,
+          u.role,
+          cm.joined_at,
+          cm.status,
+          COUNT(DISTINCT asub.id) as assignments_submitted,
+          COUNT(DISTINCT ea.id) as events_attended,
+          COALESCE(AVG(CAST(asub.score AS NUMERIC)), 0) as average_score
+        FROM 
+          club_members cm
+        JOIN 
+          users u ON cm.user_id = u.id
+        LEFT JOIN 
+          assignment_submissions asub ON u.id = asub.user_id
+        LEFT JOIN 
+          assignments a ON asub.assignment_id = a.id AND a.club_id = $1
+        LEFT JOIN 
+          event_attendees ea ON u.id = ea.user_id
+        LEFT JOIN 
+          events e ON ea.event_id = e.id AND e.club_id = $1
+        WHERE 
+          cm.club_id = $1
+          AND u.deleted_at IS NULL
+        GROUP BY 
+          u.id, u.name, u.email, u.role, cm.joined_at, cm.status
+        ORDER BY 
+          cm.joined_at DESC
+      `, [id]);
+      
+      // Get performance metrics
+      const performanceMetricsResult = await db.query(`
+        SELECT 
+          DATE_TRUNC('month', a.created_at) as month,
+          COUNT(DISTINCT a.id) as assignments_created,
+          COUNT(DISTINCT asub.id) as total_submissions,
+          COALESCE(AVG(CAST(asub.score AS NUMERIC)), 0) as average_score
         FROM 
           assignments a
+        LEFT JOIN 
+          assignment_submissions asub ON a.id = asub.assignment_id
         WHERE 
-          a.club_id = ${id}
-      `;
-      
-      // Get event statistics
-      const eventStats = await db.$queryRaw<ClubEventStats[]>`
-        SELECT 
-          COUNT(*) as total_events,
-          AVG(
-            (SELECT COUNT(*) FROM event_attendees WHERE event_id = e.id)
-          ) as average_attendance
-        FROM 
-          events e
-        WHERE 
-          e.club_id = ${id}
-      `;
+          a.club_id = $1
+          AND a.deleted_at IS NULL
+          AND a.created_at >= CURRENT_DATE - INTERVAL '12 months'
+        GROUP BY 
+          DATE_TRUNC('month', a.created_at)
+        ORDER BY 
+          month DESC
+      `, [id]);
       
       return {
         success: true,
         data: {
-          club: clubData,
-          stats: {
-            members: memberStats[0] || { total_members: 0 },
-            assignments: assignmentStats[0] || { total_assignments: 0, average_submission_rate: 0 },
-            events: eventStats[0] || { total_events: 0, average_attendance: 0 }
+          club: clubData.data,
+          analytics: {
+            members: memberAnalyticsResult.rows,
+            performance: performanceMetricsResult.rows
           }
         },
         source: 'database'
@@ -718,91 +724,53 @@ export async function generateReportData(type: ReportType, id: string) {
     throw new Error(`Invalid report type: ${type}`);
   } catch (error) {
     console.error(`Error generating ${type} report for ID ${id}:`, error);
-    
-    // Return fallback data based on type
-    if (type === 'user') {
-      return {
-        success: false,
-        data: {
-          user: {
-            id: id || 'user1',
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            username: 'johndoe',
-            role: 'student',
-            status: 'active',
-            avatar: null,
-            bio: 'Computer Science student with interests in AI and web development.',
-            clubMembers: [
-              { club: { id: 'achievers', name: 'Achievers Club', type: 'Technical' } }
-            ],
-            stats: {
-              assignments: { total_submissions: 12, average_score: 87.5 },
-              events: { total_attendances: 5 }
-            },
-            statistics: {
-              assignments: {
-                total: 15,
-                submissions: 12, 
-                averageScore: 87.5
-              },
-              events: {
-                total: 8,
-                attended: 5,
-                attendanceRate: 62.5
-              }
-            },
-            recentActivities: [
-              { id: 'a1', type: 'submission', description: 'Submitted Web Development Project', timestamp: '2023-08-15T14:30:00Z' },
-              { id: 'a2', type: 'event', description: 'Attended Tech Symposium', timestamp: '2023-08-10T09:15:00Z' },
-              { id: 'a3', type: 'login', description: 'Logged into platform', timestamp: '2023-08-08T08:20:00Z' }
-            ]
-          },
-          details: {
-            assignments: [
-              { title: 'Web Development Project', due_date: '2025-08-10', submitted_at: '2025-08-09', score: 92, club_name: 'Achievers Club' },
-              { title: 'AI Research Paper', due_date: '2025-07-20', submitted_at: '2025-07-18', score: 88, club_name: 'Achievers Club' },
-              { title: 'Database Design Challenge', due_date: '2025-06-15', submitted_at: '2025-06-14', score: 95, club_name: 'Achievers Club' }
-            ],
-            events: [
-              { title: 'Tech Symposium 2025', event_date: '2025-08-15', location: 'Main Auditorium', club_name: 'Achievers Club' },
-              { title: 'Coding Competition', event_date: '2025-07-05', location: 'Computer Lab', club_name: 'Achievers Club' },
-              { title: 'Industry Expert Talk', event_date: '2025-06-20', location: 'Seminar Hall', club_name: 'Achievers Club' }
-            ]
-          }
-        },
-        source: 'fallback'
-      };
-    } else if (type === 'club') {
-      return {
-        success: false,
-        data: {
-          club: {
-            id: id || 'achievers',
-            name: 'Achievers Club',
-            type: 'Technical',
-            description: 'A club for technology enthusiasts and innovators.',
-            coordinator: {
-              id: 'coord1',
-              name: 'Jane Smith',
-              email: 'jane.smith@example.com'
-            }
-          },
-          stats: {
-            members: { total_members: 145 },
-            assignments: { total_assignments: 8, average_submission_rate: 84.5 },
-            events: { total_events: 12, average_attendance: 78.3 }
-          }
-        },
-        source: 'fallback'
-      };
-    }
-    
-    return {
-      success: false,
-      data: null,
-      error: `Invalid report type: ${type}`,
-      source: 'fallback'
-    };
+    throw new Error(`Failed to generate ${type} report`);
   }
 }
+
+// Get dashboard overview statistics
+export async function getDashboardOverview() {
+  try {
+    // Get overall system statistics
+    const overviewResult = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM users WHERE deleted_at IS NULL) as total_users,
+        (SELECT COUNT(*) FROM clubs WHERE deleted_at IS NULL) as total_clubs,
+        (SELECT COUNT(*) FROM assignments WHERE deleted_at IS NULL) as total_assignments,
+        (SELECT COUNT(*) FROM events WHERE deleted_at IS NULL) as total_events,
+        (SELECT COUNT(*) FROM assignment_submissions) as total_submissions,
+        (SELECT COUNT(*) FROM event_attendees) as total_attendances,
+        (SELECT COUNT(*) FROM users WHERE last_login_at >= CURRENT_DATE - INTERVAL '7 days' AND deleted_at IS NULL) as active_users_week,
+        (SELECT COUNT(*) FROM users WHERE created_at >= CURRENT_DATE - INTERVAL '30 days' AND deleted_at IS NULL) as new_users_month
+    `);
+    
+    // Get growth metrics
+    const growthMetricsResult = await db.query(`
+      SELECT 
+        DATE_TRUNC('day', created_at) as date,
+        COUNT(*) as new_users
+      FROM 
+        users
+      WHERE 
+        created_at >= CURRENT_DATE - INTERVAL '30 days'
+        AND deleted_at IS NULL
+      GROUP BY 
+        DATE_TRUNC('day', created_at)
+      ORDER BY 
+        date DESC
+    `);
+    
+    return {
+      success: true,
+      data: {
+        overview: overviewResult.rows[0],
+        growth: growthMetricsResult.rows
+      },
+      source: 'database'
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard overview:', error);
+    throw new Error('Failed to fetch dashboard overview');
+  }
+}
+

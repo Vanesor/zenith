@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import { db } from '@/lib/database';
+import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
   params: { id: string };
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       GROUP BY p.id, u.name, u.avatar, c.name, c.color
     `;
 
-    const result = await db.executeRawSQL(query, [id]);
+    const result = await db.query(query, [id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       ORDER BY c.created_at ASC
     `;
 
-    const commentsResult = await db.executeRawSQL(commentsQuery, [id]);
+    const commentsResult = await db.query(commentsQuery, [id]);
 
     return NextResponse.json({
       ...post,
@@ -82,7 +82,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     const { title, content, tags } = await request.json();
 
     // Get current post
-    const currentPost = await db.executeRawSQL(
+    const currentPost = await db.query(
       "SELECT author_id, created_at FROM posts WHERE id = $1",
       [id]
     );
@@ -95,7 +95,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     }
 
     const post = currentPost.rows[0];
-    const user = await Database.getUserById(userId);
+    const user = await db.query(`SELECT id, email, name, role, club_id FROM users WHERE id = $1 AND deleted_at IS NULL`, [userId]).then(r => r.rows[0] || null);
     const isAuthor = post.author_id === userId;
 
     // Check if user can edit (author within 3 hours or manager/admin)
@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
       RETURNING *
     `;
 
-    const updateResult = await db.executeRawSQL(updateQuery, [title, content, tags, id]);
+    const updateResult = await db.query(updateQuery, [title, content, tags, id]);
 
     return NextResponse.json({
       message: "Post updated successfully",
@@ -151,7 +151,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     const { id } = await params;
 
     // Get current post
-    const currentPost = await db.executeRawSQL(
+    const currentPost = await db.query(
       "SELECT author_id FROM posts WHERE id = $1",
       [id]
     );
@@ -164,7 +164,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     const post = currentPost.rows[0];
-    const user = await Database.getUserById(userId);
+    const user = await db.query(`SELECT id, email, name, role, club_id FROM users WHERE id = $1 AND deleted_at IS NULL`, [userId]).then(r => r.rows[0] || null);
     const isAuthor = post.author_id === userId;
     const canDelete = isAuthor || user?.role === 'manager' || user?.role === 'admin';
 
@@ -176,7 +176,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     // Delete post (this will cascade delete comments and likes)
-    await db.executeRawSQL("DELETE FROM posts WHERE id = $1", [id]);
+    await db.query("DELETE FROM posts WHERE id = $1", [id]);
 
     return NextResponse.json({
       message: "Post deleted successfully"

@@ -16,16 +16,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Check if user has admin permissions
-  const isAdmin = user && (
-    user.role === 'admin' ||
-    user.role === 'coordinator' ||
-    user.role === 'co_coordinator' ||
+  // Check if user has admin permissions - only coordinators and Zenith committee members
+  const isZenithCommittee = user && (
+    user.role === 'president' ||
+    user.role === 'vice_president' ||
+    user.role === 'innovation_head' ||
     user.role === 'secretary' ||
-    user.role === 'committee_member'
+    user.role === 'treasurer' ||
+    user.role === 'outreach_coordinator' ||
+    user.role === 'media_coordinator'
   );
 
-  if (!isAdmin) {
+  const isClubCoordinator = user && (
+    user.role === 'coordinator' ||
+    user.role === 'co_coordinator'
+  );
+
+  const isAdmin = user && user.role === 'admin';
+
+  if (!isZenithCommittee && !isClubCoordinator && !isAdmin) {
     redirect("/dashboard");
     return null;
   }

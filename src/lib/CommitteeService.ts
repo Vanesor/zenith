@@ -1,5 +1,7 @@
 // Committee Database Service - uses consolidated database
-import { db, executeRawSQL, queryRawSQL } from "./database-service";
+import DatabaseClient from "./database";
+
+const db = DatabaseClient;
 
 export interface CommitteeData {
   id: string;
@@ -40,7 +42,7 @@ class CommitteeService {
   async getMainCommittee(): Promise<CommitteeData | null> {
     try {
       // Use the consolidated database method with views and indexes
-      const result = await queryRawSQL('SELECT * FROM committees WHERE name = $1 AND is_active = true', 'Main Committee');
+      const result = await db.query('SELECT * FROM committees WHERE name = $1 AND is_active = true', ['Main Committee']);
       const committee = result.rows[0];
       
       if (!committee) {
@@ -63,7 +65,7 @@ class CommitteeService {
         DO UPDATE SET status = 'active', term_start = $4, term_end = $5, updated_at = CURRENT_TIMESTAMP
       `;
       
-      await executeRawSQL(insertQuery, committeeId, roleId, userId, termStart || null, termEnd || null);
+      await db.query(insertQuery, [committeeId, roleId, userId, termStart || null, termEnd || null]);
       return true;
     } catch (error) {
       console.error('Error adding committee member:', error);
@@ -79,7 +81,7 @@ class CommitteeService {
         WHERE committee_id = $1 AND user_id = $2
       `;
       
-      await executeRawSQL(updateQuery, committeeId, userId);
+      await db.query(updateQuery, [committeeId, userId]);
       return true;
     } catch (error) {
       console.error('Error removing committee member:', error);
@@ -95,7 +97,7 @@ class CommitteeService {
         ORDER BY hierarchy ASC
       `;
       
-      const result = await queryRawSQL(rolesQuery, committeeId);
+      const result = await db.query(rolesQuery, [committeeId]);
       return result.rows;
     } catch (error) {
       console.error('Error getting committee roles:', error);
@@ -112,7 +114,7 @@ class CommitteeService {
         WHERE cm.user_id = $1 AND cm.status = 'active'
       `;
       
-      const result = await queryRawSQL(permissionsQuery, userId);
+      const result = await db.query(permissionsQuery, [userId]);
       return result.rows.map((row: any) => row.permission);
     } catch (error) {
       console.error('Error getting user permissions:', error);

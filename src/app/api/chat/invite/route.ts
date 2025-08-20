@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database-service';
+import { db } from '@/lib/database';
 
 // Simple email sending function (you can replace with your preferred service)
 async function sendInvitationEmail(to: string, inviterName: string, inviteUrl: string, message?: string) {

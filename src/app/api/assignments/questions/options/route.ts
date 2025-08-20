@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import db, { prismaClient as prisma } from "@/lib/database";
-import { verifyAuth } from "@/lib/AuthMiddleware";
+import db from "@/lib/database";
+import { verifyAuth } from "@/lib/auth-unified";
 
 
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if the question exists and if user has permission
-    const questionCheck = await db.executeRawSQL(
+    const questionCheck = await db.query(
       `SELECT q.id, a.created_by, u.role
        FROM assignment_questions q
        JOIN assignments a ON q.assignment_id = a.id
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the option
-    const result = await db.executeRawSQL(
+    const result = await db.query(
       `INSERT INTO question_options (
         question_id, option_text, is_correct, ordering
       )

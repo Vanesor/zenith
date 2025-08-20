@@ -1,0 +1,251 @@
+        table_name         | constraint_type |             constraint_name              |   column_name    |    foreign_table_name     | foreign_column_name 
+---------------------------+-----------------+------------------------------------------+------------------+---------------------------+---------------------
+ ai_assignment_generations | CHECK           | 2200_17634_1_not_null                    |                  |                           | 
+ ai_assignment_generations | CHECK           | 2200_17634_4_not_null                    |                  |                           | 
+ ai_assignment_generations | PRIMARY KEY     | ai_assignment_generations_pkey           | id               | ai_assignment_generations | id
+ announcements             | CHECK           | 2200_17916_1_not_null                    |                  |                           | 
+ announcements             | CHECK           | 2200_17916_3_not_null                    |                  |                           | 
+ announcements             | CHECK           | 2200_17916_2_not_null                    |                  |                           | 
+ announcements             | PRIMARY KEY     | announcements_pkey                       | id               | announcements             | id
+ assignment_attempts       | CHECK           | 2200_17710_4_not_null                    |                  |                           | 
+ assignment_attempts       | CHECK           | 2200_17710_1_not_null                    |                  |                           | 
+ assignment_attempts       | CHECK           | 2200_17710_2_not_null                    |                  |                           | 
+ assignment_attempts       | CHECK           | 2200_17710_3_not_null                    |                  |                           | 
+ assignment_attempts       | PRIMARY KEY     | assignment_attempts_pkey                 | id               | assignment_attempts       | id
+ assignment_audit_log      | CHECK           | 2200_17745_2_not_null                    |                  |                           | 
+ assignment_audit_log      | CHECK           | 2200_17745_1_not_null                    |                  |                           | 
+ assignment_audit_log      | CHECK           | 2200_17745_3_not_null                    |                  |                           | 
+ assignment_audit_log      | CHECK           | 2200_17745_5_not_null                    |                  |                           | 
+ assignment_audit_log      | PRIMARY KEY     | assignment_audit_log_pkey                | id               | assignment_audit_log      | id
+ assignment_questions      | CHECK           | 2200_17662_12_not_null                   |                  |                           | 
+ assignment_questions      | CHECK           | assignment_questions_question_type_check |                  | assignment_questions      | question_type
+ assignment_questions      | CHECK           | 2200_17662_3_not_null                    |                  |                           | 
+ assignment_questions      | CHECK           | 2200_17662_2_not_null                    |                  |                           | 
+ assignment_questions      | CHECK           | 2200_17662_1_not_null                    |                  |                           | 
+ assignment_questions      | CHECK           | 2200_17662_5_not_null                    |                  |                           | 
+ assignment_questions      | CHECK           | 2200_17662_4_not_null                    |                  |                           | 
+ assignment_questions      | PRIMARY KEY     | assignment_questions_pkey                | id               | assignment_questions      | id
+ assignment_submissions    | CHECK           | 2200_17687_1_not_null                    |                  |                           | 
+ assignment_submissions    | PRIMARY KEY     | assignment_submissions_pkey              | id               | assignment_submissions    | id
+ assignment_templates      | CHECK           | 2200_17616_1_not_null                    |                  |                           | 
+ assignment_templates      | CHECK           | 2200_17616_2_not_null                    |                  |                           | 
+ assignment_templates      | CHECK           | 2200_17616_4_not_null                    |                  |                           | 
+ assignment_templates      | CHECK           | 2200_17616_5_not_null                    |                  |                           | 
+ assignment_templates      | PRIMARY KEY     | assignment_templates_pkey                | id               | assignment_templates      | id
+ assignment_violations     | CHECK           | 2200_17770_1_not_null                    |                  |                           | 
+ assignment_violations     | CHECK           | 2200_17770_3_not_null                    |                  |                           | 
+ assignment_violations     | CHECK           | 2200_17770_2_not_null                    |                  |                           | 
+ assignment_violations     | PRIMARY KEY     | assignment_violations_pkey               | id               | assignment_violations     | id
+ assignments               | CHECK           | assignments_assignment_type_check        |                  | assignments               | assignment_type
+ assignments               | CHECK           | 2200_17567_1_not_null                    |                  |                           | 
+ assignments               | CHECK           | 2200_17567_2_not_null                    |                  |                           | 
+ assignments               | CHECK           | 2200_17567_3_not_null                    |                  |                           | 
+ assignments               | CHECK           | 2200_17567_6_not_null                    |                  |                           | 
+ assignments               | CHECK           | assignments_target_audience_check        |                  | assignments               | target_audience
+ assignments               | PRIMARY KEY     | assignments_pkey                         | id               | assignments               | id
+ audit_logs                | CHECK           | 2200_18312_3_not_null                    |                  |                           | 
+ audit_logs                | CHECK           | 2200_18312_4_not_null                    |                  |                           | 
+ audit_logs                | CHECK           | 2200_18312_1_not_null                    |                  |                           | 
+ audit_logs                | PRIMARY KEY     | audit_logs_pkey                          | id               | audit_logs                | id
+ chat_attachments          | CHECK           | 2200_18168_4_not_null                    |                  |                           | 
+ chat_attachments          | CHECK           | 2200_18168_1_not_null                    |                  |                           | 
+ chat_attachments          | CHECK           | 2200_18168_3_not_null                    |                  |                           | 
+ chat_attachments          | CHECK           | 2200_18168_5_not_null                    |                  |                           | 
+ chat_attachments          | CHECK           | 2200_18168_6_not_null                    |                  |                           | 
+ chat_attachments          | CHECK           | 2200_18168_7_not_null                    |                  |                           | 
+ chat_attachments          | CHECK           | 2200_18168_8_not_null                    |                  |                           | 
+ chat_attachments          | PRIMARY KEY     | chat_attachments_pkey                    | id               | chat_attachments          | id
+ chat_invitations          | CHECK           | 2200_18182_2_not_null                    |                  |                           | 
+ chat_invitations          | CHECK           | 2200_18182_3_not_null                    |                  |                           | 
+ chat_invitations          | CHECK           | 2200_18182_1_not_null                    |                  |                           | 
+ chat_invitations          | CHECK           | 2200_18182_8_not_null                    |                  |                           | 
+ chat_invitations          | CHECK           | 2200_18182_5_not_null                    |                  |                           | 
+ chat_invitations          | CHECK           | 2200_18182_4_not_null                    |                  |                           | 
+ chat_invitations          | PRIMARY KEY     | chat_invitations_pkey                    | id               | chat_invitations          | id
+ chat_invitations          | UNIQUE          | chat_invitations_invitation_token_key    | invitation_token | chat_invitations          | invitation_token
+ chat_messages             | CHECK           | 2200_18123_4_not_null                    |                  |                           | 
+ chat_messages             | CHECK           | 2200_18123_1_not_null                    |                  |                           | 
+ chat_messages             | PRIMARY KEY     | chat_messages_pkey                       | id               | chat_messages             | id
+ chat_room_members         | CHECK           | 2200_18103_1_not_null                    |                  |                           | 
+ chat_room_members         | PRIMARY KEY     | chat_room_members_pkey                   | id               | chat_room_members         | id
+ chat_rooms                | CHECK           | 2200_18077_2_not_null                    |                  |                           | 
+ chat_rooms                | CHECK           | 2200_18077_1_not_null                    |                  |                           | 
+ chat_rooms                | PRIMARY KEY     | chat_rooms_pkey                          | id               | chat_rooms                | id
+ club_members              | CHECK           | 2200_18204_1_not_null                    |                  |                           | 
+ club_members              | CHECK           | 2200_18204_2_not_null                    |                  |                           | 
+ club_members              | CHECK           | 2200_18204_3_not_null                    |                  |                           | 
+ club_members              | PRIMARY KEY     | club_members_pkey                        | id               | club_members              | id
+ club_statistics           | CHECK           | 2200_18212_1_not_null                    |                  |                           | 
+ club_statistics           | PRIMARY KEY     | club_statistics_pkey                     | id               | club_statistics           | id
+ clubs                     | CHECK           | 2200_17481_3_not_null                    |                  |                           | 
+ clubs                     | CHECK           | 2200_17481_7_not_null                    |                  |                           | 
+ clubs                     | CHECK           | 2200_17481_1_not_null                    |                  |                           | 
+ clubs                     | CHECK           | 2200_17481_4_not_null                    |                  |                           | 
+ clubs                     | CHECK           | 2200_17481_6_not_null                    |                  |                           | 
+ clubs                     | CHECK           | 2200_17481_2_not_null                    |                  |                           | 
+ clubs                     | PRIMARY KEY     | clubs_pkey                               | id               | clubs                     | id
+ code_results              | CHECK           | 2200_17822_1_not_null                    |                  |                           | 
+ code_results              | CHECK           | 2200_17822_2_not_null                    |                  |                           | 
+ code_results              | PRIMARY KEY     | code_results_pkey                        | id               | code_results              | id
+ coding_submissions        | CHECK           | 2200_17836_4_not_null                    |                  |                           | 
+ coding_submissions        | CHECK           | 2200_17836_1_not_null                    |                  |                           | 
+ coding_submissions        | CHECK           | 2200_17836_3_not_null                    |                  |                           | 
+ coding_submissions        | CHECK           | 2200_17836_2_not_null                    |                  |                           | 
+ coding_submissions        | PRIMARY KEY     | coding_submissions_pkey                  | id               | coding_submissions        | id
+ comments                  | CHECK           | 2200_19052_4_not_null                    |                  |                           | 
+ comments                  | CHECK           | 2200_19052_1_not_null                    |                  |                           | 
+ comments                  | PRIMARY KEY     | comments_pkey                            | id               | comments                  | id
+ committee_members         | CHECK           | 2200_17540_4_not_null                    |                  |                           | 
+ committee_members         | CHECK           | 2200_17540_2_not_null                    |                  |                           | 
+ committee_members         | CHECK           | 2200_17540_3_not_null                    |                  |                           | 
+ committee_members         | CHECK           | 2200_17540_1_not_null                    |                  |                           | 
+ committee_members         | PRIMARY KEY     | committee_members_pkey                   | id               | committee_members         | id
+ committee_roles           | CHECK           | 2200_17523_2_not_null                    |                  |                           | 
+ committee_roles           | CHECK           | 2200_17523_1_not_null                    |                  |                           | 
+ committee_roles           | CHECK           | 2200_17523_3_not_null                    |                  |                           | 
+ committee_roles           | CHECK           | 2200_17523_5_not_null                    |                  |                           | 
+ committee_roles           | PRIMARY KEY     | committee_roles_pkey                     | id               | committee_roles           | id
+ committees                | CHECK           | 2200_17467_1_not_null                    |                  |                           | 
+ committees                | CHECK           | 2200_17467_2_not_null                    |                  |                           | 
+ committees                | CHECK           | 2200_17467_4_not_null                    |                  |                           | 
+ committees                | PRIMARY KEY     | committees_pkey                          | id               | committees                | id
+ committees                | UNIQUE          | committees_name_key                      | name             | committees                | name
+ discussion_replies        | CHECK           | 2200_17997_1_not_null                    |                  |                           | 
+ discussion_replies        | CHECK           | 2200_17997_4_not_null                    |                  |                           | 
+ discussion_replies        | PRIMARY KEY     | discussion_replies_pkey                  | id               | discussion_replies        | id
+ discussions               | CHECK           | 2200_17971_2_not_null                    |                  |                           | 
+ discussions               | CHECK           | 2200_17971_1_not_null                    |                  |                           | 
+ discussions               | PRIMARY KEY     | discussions_pkey                         | id               | discussions               | id
+ email_logs                | CHECK           | 2200_18245_3_not_null                    |                  |                           | 
+ email_logs                | CHECK           | 2200_18245_2_not_null                    |                  |                           | 
+ email_logs                | CHECK           | 2200_18245_1_not_null                    |                  |                           | 
+ email_logs                | PRIMARY KEY     | email_logs_pkey                          | id               | email_logs                | id
+ event_attendees           | CHECK           | 2200_18046_1_not_null                    |                  |                           | 
+ event_attendees           | PRIMARY KEY     | event_attendees_pkey                     | id               | event_attendees           | id
+ event_registrations       | CHECK           | 2200_18066_1_not_null                    |                  |                           | 
+ event_registrations       | PRIMARY KEY     | event_registrations_pkey                 | id               | event_registrations       | id
+ events                    | CHECK           | 2200_18023_7_not_null                    |                  |                           | 
+ events                    | CHECK           | 2200_18023_8_not_null                    |                  |                           | 
+ events                    | CHECK           | 2200_18023_1_not_null                    |                  |                           | 
+ events                    | CHECK           | 2200_18023_3_not_null                    |                  |                           | 
+ events                    | CHECK           | 2200_18023_2_not_null                    |                  |                           | 
+ events                    | CHECK           | 2200_18023_6_not_null                    |                  |                           | 
+ events                    | PRIMARY KEY     | events_pkey                              | id               | events                    | id
+ likes                     | CHECK           | 2200_19033_1_not_null                    |                  |                           | 
+ likes                     | PRIMARY KEY     | likes_pkey                               | id               | likes                     | id
+ likes                     | UNIQUE          | unique_post_user_like                    | post_id          | likes                     | post_id
+ likes                     | UNIQUE          | unique_post_user_like                    | post_id          | likes                     | user_id
+ likes                     | UNIQUE          | unique_post_user_like                    | user_id          | likes                     | post_id
+ likes                     | UNIQUE          | unique_post_user_like                    | user_id          | likes                     | user_id
+ media_files               | CHECK           | 2200_17852_2_not_null                    |                  |                           | 
+ media_files               | CHECK           | 2200_17852_1_not_null                    |                  |                           | 
+ media_files               | CHECK           | 2200_17852_6_not_null                    |                  |                           | 
+ media_files               | CHECK           | 2200_17852_5_not_null                    |                  |                           | 
+ media_files               | CHECK           | 2200_17852_4_not_null                    |                  |                           | 
+ media_files               | CHECK           | 2200_17852_3_not_null                    |                  |                           | 
+ media_files               | PRIMARY KEY     | media_files_pkey                         | id               | media_files               | id
+ messages                  | CHECK           | 2200_18374_4_not_null                    |                  |                           | 
+ messages                  | CHECK           | 2200_18374_2_not_null                    |                  |                           | 
+ messages                  | CHECK           | 2200_18374_1_not_null                    |                  |                           | 
+ messages                  | CHECK           | 2200_18374_3_not_null                    |                  |                           | 
+ messages                  | PRIMARY KEY     | messages_pkey                            | id               | messages                  | id
+ notifications             | CHECK           | 2200_18232_2_not_null                    |                  |                           | 
+ notifications             | CHECK           | 2200_18232_5_not_null                    |                  |                           | 
+ notifications             | CHECK           | 2200_18232_1_not_null                    |                  |                           | 
+ notifications             | CHECK           | 2200_18232_3_not_null                    |                  |                           | 
+ notifications             | PRIMARY KEY     | notifications_pkey                       | id               | notifications             | id
+ posts                     | CHECK           | 2200_18994_3_not_null                    |                  |                           | 
+ posts                     | CHECK           | 2200_18994_1_not_null                    |                  |                           | 
+ posts                     | CHECK           | 2200_18994_2_not_null                    |                  |                           | 
+ posts                     | PRIMARY KEY     | posts_pkey                               | id               | posts                     | id
+ posts                     | UNIQUE          | posts_slug_key                           | slug             | posts                     | slug
+ proctoring_sessions       | CHECK           | 2200_17890_1_not_null                    |                  |                           | 
+ proctoring_sessions       | CHECK           | 2200_17890_3_not_null                    |                  |                           | 
+ proctoring_sessions       | CHECK           | 2200_17890_2_not_null                    |                  |                           | 
+ proctoring_sessions       | PRIMARY KEY     | proctoring_sessions_pkey                 | id               | proctoring_sessions       | id
+ project_invitations       | CHECK           | 2200_19173_6_not_null                    |                  |                           | 
+ project_invitations       | CHECK           | 2200_19173_3_not_null                    |                  |                           | 
+ project_invitations       | CHECK           | 2200_19173_2_not_null                    |                  |                           | 
+ project_invitations       | CHECK           | 2200_19173_1_not_null                    |                  |                           | 
+ project_invitations       | CHECK           | 2200_19173_10_not_null                   |                  |                           | 
+ project_invitations       | CHECK           | 2200_19173_4_not_null                    |                  |                           | 
+ project_invitations       | PRIMARY KEY     | project_invitations_pkey                 | id               | project_invitations       | id
+ project_invitations       | UNIQUE          | project_invitations_invitation_token_key | invitation_token | project_invitations       | invitation_token
+ project_members           | CHECK           | 2200_19107_1_not_null                    |                  |                           | 
+ project_members           | CHECK           | 2200_19107_3_not_null                    |                  |                           | 
+ project_members           | CHECK           | 2200_19107_2_not_null                    |                  |                           | 
+ project_members           | PRIMARY KEY     | project_members_pkey                     | id               | project_members           | id
+ project_members           | UNIQUE          | unique_project_member                    | user_id          | project_members           | user_id
+ project_members           | UNIQUE          | unique_project_member                    | project_id       | project_members           | project_id
+ project_members           | UNIQUE          | unique_project_member                    | project_id       | project_members           | user_id
+ project_members           | UNIQUE          | unique_project_member                    | user_id          | project_members           | project_id
+ projects                  | CHECK           | 2200_19078_5_not_null                    |                  |                           | 
+ projects                  | CHECK           | 2200_19078_2_not_null                    |                  |                           | 
+ projects                  | CHECK           | 2200_19078_1_not_null                    |                  |                           | 
+ projects                  | CHECK           | 2200_19078_6_not_null                    |                  |                           | 
+ projects                  | CHECK           | 2200_19078_4_not_null                    |                  |                           | 
+ projects                  | PRIMARY KEY     | projects_pkey                            | id               | projects                  | id
+ projects                  | UNIQUE          | unique_project_key_club                  | club_id          | projects                  | project_key
+ projects                  | UNIQUE          | unique_project_key_club                  | club_id          | projects                  | club_id
+ projects                  | UNIQUE          | unique_project_key_club                  | project_key      | projects                  | project_key
+ projects                  | UNIQUE          | unique_project_key_club                  | project_key      | projects                  | club_id
+ query_cache               | CHECK           | 2200_18366_4_not_null                    |                  |                           | 
+ query_cache               | CHECK           | 2200_18366_2_not_null                    |                  |                           | 
+ query_cache               | CHECK           | 2200_18366_1_not_null                    |                  |                           | 
+ query_cache               | PRIMARY KEY     | query_cache_pkey                         | cache_key        | query_cache               | cache_key
+ question_media            | CHECK           | 2200_17869_2_not_null                    |                  |                           | 
+ question_media            | CHECK           | 2200_17869_3_not_null                    |                  |                           | 
+ question_media            | CHECK           | 2200_17869_4_not_null                    |                  |                           | 
+ question_media            | CHECK           | 2200_17869_1_not_null                    |                  |                           | 
+ question_media            | PRIMARY KEY     | question_media_pkey                      | id               | question_media            | id
+ question_options          | CHECK           | 2200_17784_5_not_null                    |                  |                           | 
+ question_options          | CHECK           | 2200_17784_3_not_null                    |                  |                           | 
+ question_options          | CHECK           | 2200_17784_2_not_null                    |                  |                           | 
+ question_options          | CHECK           | 2200_17784_1_not_null                    |                  |                           | 
+ question_options          | PRIMARY KEY     | question_options_pkey                    | id               | question_options          | id
+ question_responses        | CHECK           | 2200_17800_2_not_null                    |                  |                           | 
+ question_responses        | CHECK           | 2200_17800_1_not_null                    |                  |                           | 
+ question_responses        | CHECK           | 2200_17800_3_not_null                    |                  |                           | 
+ question_responses        | PRIMARY KEY     | question_responses_pkey                  | id               | question_responses        | id
+ security_events           | CHECK           | 2200_18296_1_not_null                    |                  |                           | 
+ security_events           | CHECK           | 2200_18296_3_not_null                    |                  |                           | 
+ security_events           | CHECK           | 2200_18296_2_not_null                    |                  |                           | 
+ security_events           | PRIMARY KEY     | security_events_pkey                     | id               | security_events           | id
+ sessions                  | CHECK           | 2200_18258_4_not_null                    |                  |                           | 
+ sessions                  | CHECK           | 2200_18258_1_not_null                    |                  |                           | 
+ sessions                  | CHECK           | 2200_18258_3_not_null                    |                  |                           | 
+ sessions                  | PRIMARY KEY     | sessions_pkey                            | id               | sessions                  | id
+ sessions                  | UNIQUE          | sessions_token_key                       | token            | sessions                  | token
+ system_statistics         | CHECK           | 2200_18350_1_not_null                    |                  |                           | 
+ system_statistics         | PRIMARY KEY     | system_statistics_pkey                   | id               | system_statistics         | id
+ tasks                     | CHECK           | 2200_19136_3_not_null                    |                  |                           | 
+ tasks                     | CHECK           | 2200_19136_1_not_null                    |                  |                           | 
+ tasks                     | CHECK           | 2200_19136_2_not_null                    |                  |                           | 
+ tasks                     | CHECK           | 2200_19136_5_not_null                    |                  |                           | 
+ tasks                     | CHECK           | 2200_19136_10_not_null                   |                  |                           | 
+ tasks                     | PRIMARY KEY     | tasks_pkey                               | id               | tasks                     | id
+ tasks                     | UNIQUE          | unique_task_key_project                  | project_id       | tasks                     | project_id
+ tasks                     | UNIQUE          | unique_task_key_project                  | project_id       | tasks                     | task_key
+ tasks                     | UNIQUE          | unique_task_key_project                  | task_key         | tasks                     | project_id
+ tasks                     | UNIQUE          | unique_task_key_project                  | task_key         | tasks                     | task_key
+ trusted_devices           | CHECK           | 2200_18279_3_not_null                    |                  |                           | 
+ trusted_devices           | CHECK           | 2200_18279_1_not_null                    |                  |                           | 
+ trusted_devices           | CHECK           | 2200_18279_2_not_null                    |                  |                           | 
+ trusted_devices           | CHECK           | 2200_18279_4_not_null                    |                  |                           | 
+ trusted_devices           | PRIMARY KEY     | trusted_devices_pkey                     | id               | trusted_devices           | id
+ user_activities           | CHECK           | 2200_18327_1_not_null                    |                  |                           | 
+ user_activities           | CHECK           | 2200_18327_3_not_null                    |                  |                           | 
+ user_activities           | CHECK           | 2200_18327_4_not_null                    |                  |                           | 
+ user_activities           | PRIMARY KEY     | user_activities_pkey                     | id               | user_activities           | id
+ user_badges               | CHECK           | 2200_18341_1_not_null                    |                  |                           | 
+ user_badges               | CHECK           | 2200_18341_3_not_null                    |                  |                           | 
+ user_badges               | PRIMARY KEY     | user_badges_pkey                         | id               | user_badges               | id
+ users                     | CHECK           | 2200_17493_7_not_null                    |                  |                           | 
+ users                     | CHECK           | 2200_17493_4_not_null                    |                  |                           | 
+ users                     | CHECK           | 2200_17493_3_not_null                    |                  |                           | 
+ users                     | CHECK           | 2200_17493_2_not_null                    |                  |                           | 
+ users                     | CHECK           | 2200_17493_1_not_null                    |                  |                           | 
+ users                     | PRIMARY KEY     | users_pkey                               | id               | users                     | id
+ users                     | UNIQUE          | users_email_key                          | email            | users                     | email
+(247 rows)
+

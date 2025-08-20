@@ -1,0 +1,55 @@
+ schemaname |         tablename         |    size    | inserts | updates | deletes 
+------------+---------------------------+------------+---------+---------+---------
+ public     | users                     | 184 kB     |     118 |       0 |       7
+ public     | posts                     | 152 kB     |       4 |       0 |       0
+ public     | assignment_questions      | 120 kB     |      22 |       0 |       0
+ public     | assignment_submissions    | 112 kB     |       4 |       0 |       0
+ public     | assignment_attempts       | 96 kB      |       0 |       0 |       0
+ public     | chat_messages             | 80 kB      |      78 |       0 |       0
+ public     | events                    | 80 kB      |      26 |       0 |       0
+ public     | notifications             | 80 kB      |      18 |       0 |       6
+ public     | event_attendees           | 64 kB      |      16 |       0 |       0
+ public     | committee_members         | 64 kB      |      18 |       0 |       0
+ public     | clubs                     | 64 kB      |      14 |       0 |       0
+ public     | comments                  | 64 kB      |       8 |       0 |       0
+ public     | assignments               | 56 kB      |      10 |       0 |       0
+ public     | tasks                     | 56 kB      |       0 |       0 |       0
+ public     | trusted_devices           | 48 kB      |       8 |       0 |       0
+ public     | committee_roles           | 48 kB      |      26 |       0 |       0
+ public     | assignment_templates      | 48 kB      |       0 |       0 |       0
+ public     | ai_assignment_generations | 48 kB      |       0 |       0 |       0
+ public     | committees                | 48 kB      |      10 |       0 |       4
+ public     | sessions                  | 48 kB      |       0 |       0 |       0
+ public     | projects                  | 48 kB      |       0 |       0 |       0
+ public     | email_logs                | 40 kB      |       0 |       0 |       0
+ public     | audit_logs                | 40 kB      |       0 |       0 |       0
+ public     | project_members           | 40 kB      |       0 |       0 |       0
+ public     | likes                     | 32 kB      |       0 |       0 |       0
+ public     | question_responses        | 32 kB      |       0 |       0 |       0
+ public     | media_files               | 32 kB      |       0 |       0 |       0
+ public     | security_events           | 32 kB      |       0 |       0 |       0
+ public     | chat_rooms                | 32 kB      |      36 |       0 |       0
+ public     | user_activities           | 32 kB      |       0 |       0 |       0
+ public     | chat_room_members         | 32 kB      |       0 |       0 |       0
+ public     | chat_invitations          | 24 kB      |       0 |       0 |       0
+ public     | coding_submissions        | 24 kB      |       0 |       0 |       0
+ public     | project_invitations       | 24 kB      |       0 |       0 |       0
+ public     | assignment_audit_log      | 24 kB      |       0 |       0 |       0
+ public     | assignment_violations     | 24 kB      |       0 |       0 |       0
+ public     | club_members              | 24 kB      |       0 |       0 |       0
+ public     | user_badges               | 16 kB      |       0 |       0 |       0
+ public     | query_cache               | 16 kB      |       0 |       0 |       0
+ public     | messages                  | 16 kB      |       0 |       0 |       0
+ public     | event_registrations       | 16 kB      |       0 |       0 |       0
+ public     | discussions               | 16 kB      |       0 |       0 |       0
+ public     | code_results              | 16 kB      |       0 |       0 |       0
+ public     | proctoring_sessions       | 16 kB      |       0 |       0 |       0
+ public     | announcements             | 16 kB      |       0 |       0 |       0
+ public     | discussion_replies        | 16 kB      |       0 |       0 |       0
+ public     | question_media            | 16 kB      |       0 |       0 |       0
+ public     | chat_attachments          | 16 kB      |       0 |       0 |       0
+ public     | club_statistics           | 16 kB      |       0 |       0 |       0
+ public     | question_options          | 16 kB      |       0 |       0 |       0
+ public     | system_statistics         | 8192 bytes |       0 |       0 |       0
+(51 rows)
+

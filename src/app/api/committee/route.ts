@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import CommitteeService from '@/lib/CommitteeService';
-import FastAuth from '@/lib/FastAuth';
+import { verifyAuth, getUserIdFromRequest } from '@/lib/auth-unified';
 
 // GET /api/committee - Get main committee information
 export async function GET(request: NextRequest) {
   try {
     // Optional: Add authentication if needed
-    // const user = await FastAuth.getUserFromRequest(request);
+    // const user = await verifyAuth(request);
     // if (!user) {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
@@ -81,11 +81,13 @@ export async function GET(request: NextRequest) {
 // POST /api/committee - Create or update committee structure
 export async function POST(request: NextRequest) {
   try {
-    const user = await FastAuth.getUserFromRequest(request);
+    const authResult = await verifyAuth(request);
     
-    if (!user) {
+    if (!authResult.success || !authResult.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const user = authResult.user;
 
     // Check if user has permission to manage committee
     const managementRoles = ['president', 'vice_president', 'admin'];
