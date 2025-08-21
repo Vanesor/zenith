@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, KeyboardEvent } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Calendar as CalendarIcon,
@@ -14,29 +14,18 @@ import {
   ChevronRight,
   Grid3X3,
   List,
-  X,
-  Calendar,
-  Check,
-  Info,
+  Edit,
+  Trash2,
+  Eye,
+  UserCheck,
+  Settings
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import MainLayout from "@/components/MainLayout";
-import { UniversalLoader } from "@/components/UniversalLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Club color palette for consistent styling
-const CLUB_COLORS = [
-  "#3b82f6", // Blue
-  "#8b5cf6", // Purple
-  "#ec4899", // Pink
-  "#ef4444", // Red
-  "#f97316", // Orange
-  "#f59e0b", // Amber
-  "#10b981", // Emerald
-  "#14b8a6", // Teal
-  "#06b6d4", // Cyan
-];
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import EventModal from "@/components/events/EventModal";
 
 interface Event {
   id: string;
@@ -45,807 +34,1119 @@ interface Event {
   date: string;
   event_date: string; // Server returns this format
   startTime: string;
+  start_time: string; // For EventModal compatibility
   endTime?: string;
-  location?: string;
-  createdBy?: string;
-  club?: {
-    id: string;
-    name: string;
-    color?: string;
-  };
-  attendees?: number;
-  isRegistered?: boolean;
+  end_time?: string; // For EventModal compatibility
+  location: string;
+  club: string;
+  organizer: string;
+  attendees: number;
+  maxAttendees?: number;
+  max_attendees?: number; // For EventModal compatibility
+  isAttending: boolean;
+  event_incharge?: string;
+  event_coordinator?: string;
+  category?: string;
+  priority?: 'low' | 'medium' | 'high';
+  status?: 'draft' | 'published' | 'cancelled';
+  club_id?: string;
+  created_by?: string;
 }
 
-interface Club {
-  id: string;
-  name: string;
-  color?: string;
-}
-
-interface EventsByDay {
-  [date: string]: Event[];
-}
-
-interface CalendarDay {
-  date: Date;
-  events: Event[];
-  isCurrentMonth: boolean;
-  isToday: boolean;
-}
-
-const EventsPage = () => {
+export default function EventsPage() {
+  const { user, isLoading } = useAuth();
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
-  
   const [events, setEvents] = useState<Event[]>([]);
-  const [clubs, setClubs] = useState<Club[]>([]);
-  const [clubColors, setClubColors] = useState<{[clubId: string]: string}>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedClub, setSelectedClub] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
-  
-  // Calendar state
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [viewSwitching, setViewSwitching] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  
-  // Function to format date as YYYY-MM-DD
-  const formatDate = (date: Date): string => {
-    return date.toISOString().split('T')[0];
-  };
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'view' | 'create' | 'edit'>('view');
 
-  // Function to assign consistent colors to clubs
   useEffect(() => {
-    if (clubs.length) {
-      const colorMap: {[clubId: string]: string} = {};
-      
-      clubs.forEach((club, index) => {
-        if (club.color) {
-          colorMap[club.id] = club.color;
-        } else {
-          colorMap[club.id] = CLUB_COLORS[index % CLUB_COLORS.length];
-        }
-      });
-      
-      setClubColors(colorMap);
+    if (!isLoading && !user) {
+      router.push("/login");
     }
-  }, [clubs]);
+  }, [user, isLoading, router]);
 
-  // Function to get event color based on club
-  const getEventColor = (event: Event): string => {
-    // If the event has a club with a color, use that
-    if (event.club?.color) {
-      return event.club.color;
-    }
-    
-    // If we have the clubs list and this event is associated with a club
-    if (event.club?.id && clubColors[event.club.id]) {
-      return clubColors[event.club.id];
-    }
-    
-    // Default color
-    return "#3b82f6"; // Blue
-  };
-
-  // Function to get all events
   const fetchEvents = async () => {
-    setLoading(true);
+    if (!user) return;
+
     try {
-      const response = await fetch("/api/events");
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+      setLoading(true);
+      setError(null);
+      const token = localStorage.getItem("zenith-token");
+      const response = await fetch("/api/events", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Events API response:', result);
+        
+        // Check if the response has the expected structure
+        if (result.success && Array.isArray(result.data)) {
+          setEvents(result.data);
+          console.log('Events loaded successfully:', result.data.length, 'events');
+        } else if (Array.isArray(result)) {
+          // Fallback: if the API returns an array directly
+          setEvents(result);
+          console.log('Events loaded successfully (direct array):', result.length, 'events');
+        } else {
+          console.error('API returned unexpected data structure:', result);
+          setEvents([]);
+        }
+      } else if (response.status === 401 || response.status === 403) {
+        // Token expired or invalid, redirect to login
+        console.error("Authentication failed, redirecting to login");
+        localStorage.removeItem("zenith-token");
+        router.push("/login");
+        return;
+      } else {
+        console.error("Failed to fetch events", response.status);
+        setError("Failed to load events. Please try again.");
+        setEvents([]);
       }
-      const data = await response.json();
-      // API returns { success, data, count } format, so we need data.data
-      setEvents(data.data || data || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch events");
-      console.error("Error fetching events:", err);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setError("Network error. Please check your connection and try again.");
+      setEvents([]);
     } finally {
       setLoading(false);
     }
   };
-
-  // Function to get all clubs
-  const fetchClubs = async () => {
+  
+  // Join or leave an event
+  const toggleEventAttendance = async (eventId: string, isAttending: boolean) => {
     try {
-      const response = await fetch("/api/clubs");
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+      const token = localStorage.getItem("zenith-token");
+      const url = `/api/events/${eventId}/attend`;
+      const method = isAttending ? "DELETE" : "POST";
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Update local state to reflect the change
+          setEvents((prevEvents) => {
+            const safeEvents = Array.isArray(prevEvents) ? prevEvents : [];
+            return safeEvents.map(event => 
+              event.id === eventId 
+                ? { 
+                    ...event, 
+                    isAttending: !isAttending,
+                    // If joining, increment attendees, if leaving, decrement
+                    attendees: isAttending ? event.attendees - 1 : event.attendees + 1
+                } 
+              : event
+            );
+          });
+          
+          // Success message will be reflected in UI state change, no need for alert
+        } else {
+          throw new Error(result.error || "Unknown error occurred");
+        }
+      } else if (response.status === 401 || response.status === 403) {
+        // Token expired or invalid, redirect to login
+        console.error("Authentication failed, redirecting to login");
+        localStorage.removeItem("zenith-token");
+        router.push("/login");
+        return;
+      } else {
+        const error = await response.json();
+        console.error("Failed to update event attendance:", error);
+        alert(error.error || "Failed to update event attendance");
       }
-      const data = await response.json();
-      setClubs(data);
-    } catch (err: any) {
-      console.error("Error fetching clubs:", err);
+    } catch (error) {
+      console.error("Error updating event attendance:", error);
+      alert("An error occurred while trying to update event attendance");
     }
   };
 
-  // Load events and clubs on mount
+  // Event Modal Handlers
+  const openEventModal = (mode: 'view' | 'create' | 'edit', event?: Event) => {
+    setModalMode(mode);
+    setSelectedEvent(event || null);
+    setIsEventModalOpen(true);
+  };
+
+  const closeEventModal = () => {
+    setIsEventModalOpen(false);
+    setSelectedEvent(null);
+    setModalMode('view');
+  };
+
+  const handleEventSaved = (savedEvent: any) => {
+    if (modalMode === 'create') {
+      // Convert the saved event to our format
+      const newEvent: Event = {
+        ...savedEvent,
+        startTime: savedEvent.start_time,
+        endTime: savedEvent.end_time,
+        club: savedEvent.club?.name || 'Unknown Club',
+        organizer: savedEvent.created_by || user?.name || 'Unknown',
+        attendees: 0,
+        isAttending: false
+      };
+      setEvents(prev => [...prev, newEvent]);
+    } else if (modalMode === 'edit') {
+      // Update existing event
+      const updatedEvent: Event = {
+        ...savedEvent,
+        startTime: savedEvent.start_time,
+        endTime: savedEvent.end_time,
+        club: savedEvent.club?.name || 'Unknown Club',
+        organizer: savedEvent.created_by || user?.name || 'Unknown',
+        attendees: savedEvent.attendees || 0,
+        isAttending: savedEvent.isRegistered || false
+      };
+      setEvents(prev => prev.map(event => 
+        event.id === updatedEvent.id ? updatedEvent : event
+      ));
+    }
+    closeEventModal();
+  };
+
+  const handleEventDeleted = (eventId: string) => {
+    setEvents(prev => prev.filter(event => event.id !== eventId));
+    closeEventModal();
+  };
+
+  // Mock clubs data for the modal - replace with actual API call
+  const clubs = [
+    { id: '1', name: 'Tech Club', color: '#8B5CF6' },
+    { id: '2', name: 'Sports Club', color: '#3B82F6' },
+    { id: '3', name: 'Arts Club', color: '#EC4899' },
+    { id: '4', name: 'Science Club', color: '#06B6D4' },
+  ];
+
+  // Convert event for modal
+  const convertEventForModal = (event: Event) => {
+    return {
+      ...event,
+      start_time: event.startTime,
+      end_time: event.endTime,
+      max_attendees: event.maxAttendees,
+      club: {
+        id: event.club_id || '1',
+        name: event.club || 'Unknown Club'
+      }
+    };
+  };
+
+  // Check if user can manage events
+  const canManageEvents = user && [
+    "coordinator", "co_coordinator", "secretary", "president", "vice_president",
+    "club_coordinator", "innovation_head", "outreach_coordinator", "media_head", "treasurer"
+  ].includes(user.role);
+
   useEffect(() => {
     fetchEvents();
-    fetchClubs();
-  }, []);
+  }, [user]);
 
-  // Generate calendar days whenever the month changes
-  useEffect(() => {
-    generateCalendarDays(currentMonth);
-  }, [currentMonth, events]);
-
-  // Handle search input keydown (Enter to switch to list view)
-  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      setViewMode('list');
-    }
+  // Get color styling for different clubs - updated to purple/blue/pink theme
+  const getEventColor = (club: string) => {
+    // Handle undefined or null club names
+    const safeName = club || 'default';
+    
+    // Create a hash from the club name for consistent colors
+    const hash = safeName.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const colors = [
+      {
+        bg: 'bg-gradient-to-r from-purple-500 to-purple-600',
+        text: 'text-white',
+        shadow: 'shadow-purple-200 dark:shadow-purple-800/30',
+        border: 'border-purple-300 dark:border-purple-600',
+        highlight: 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-700',
+        solid: 'bg-purple-500'
+      },
+      {
+        bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
+        text: 'text-white',
+        shadow: 'shadow-blue-200 dark:shadow-blue-800/30',
+        border: 'border-blue-300 dark:border-blue-600',
+        highlight: 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700',
+        solid: 'bg-blue-500'
+      },
+      {
+        bg: 'bg-gradient-to-r from-pink-500 to-pink-600',
+        text: 'text-white',
+        shadow: 'shadow-pink-200 dark:shadow-pink-800/30',
+        border: 'border-pink-300 dark:border-pink-600',
+        highlight: 'bg-pink-50 border-pink-200 dark:bg-pink-900/20 dark:border-pink-700',
+        solid: 'bg-pink-500'
+      },
+      {
+        bg: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+        text: 'text-white',
+        shadow: 'shadow-indigo-200 dark:shadow-indigo-800/30',
+        border: 'border-indigo-300 dark:border-indigo-600',
+        highlight: 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-700',
+        solid: 'bg-indigo-500'
+      },
+      {
+        bg: 'bg-gradient-to-r from-violet-500 to-violet-600',
+        text: 'text-white',
+        shadow: 'shadow-violet-200 dark:shadow-violet-800/30',
+        border: 'border-violet-300 dark:border-violet-600',
+        highlight: 'bg-violet-50 border-violet-200 dark:bg-violet-900/20 dark:border-violet-700',
+        solid: 'bg-violet-500'
+      },
+      {
+        bg: 'bg-gradient-to-r from-fuchsia-500 to-fuchsia-600',
+        text: 'text-white',
+        shadow: 'shadow-fuchsia-200 dark:shadow-fuchsia-800/30',
+        border: 'border-fuchsia-300 dark:border-fuchsia-600',
+        highlight: 'bg-fuchsia-50 border-fuchsia-200 dark:bg-fuchsia-900/20 dark:border-fuchsia-700',
+        solid: 'bg-fuchsia-500'
+      },
+      {
+        bg: 'bg-gradient-to-r from-cyan-500 to-cyan-600',
+        text: 'text-white',
+        shadow: 'shadow-cyan-200 dark:shadow-cyan-800/30',
+        border: 'border-cyan-300 dark:border-cyan-600',
+        highlight: 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/20 dark:border-cyan-700',
+        solid: 'bg-cyan-500'
+      },
+      {
+        bg: 'bg-gradient-to-r from-teal-500 to-teal-600',
+        text: 'text-white',
+        shadow: 'shadow-teal-200 dark:shadow-teal-800/30',
+        border: 'border-teal-300 dark:border-teal-600',
+        highlight: 'bg-teal-50 border-teal-200 dark:bg-teal-900/20 dark:border-teal-700',
+        solid: 'bg-teal-500'
+      }
+    ];
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+  
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
 
-  // Filter events based on search and club selection
-  const filteredEvents = (events || []).filter((event) => {
-    const matchesSearch = 
-      searchQuery === "" || 
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesClub = 
-      selectedClub === "all" || 
-      event.club?.id === selectedClub;
-    
-    return matchesSearch && matchesClub;
-  });
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
 
-  // Group events by day for list view
-  const eventsByDay = filteredEvents.reduce((acc: EventsByDay, event) => {
-    // Use event_date if available, otherwise fall back to date
-    const eventDate = event.event_date || event.date;
-    if (!acc[eventDate]) {
-      acc[eventDate] = [];
-    }
-    acc[eventDate].push(event);
-    return acc;
-  }, {});
+  const formatMonthYear = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
 
-  // Sort days in reverse chronological order
-  const sortedDays = Object.keys(eventsByDay).sort((a, b) => {
-    return new Date(b).getTime() - new Date(a).getTime();
-  });
+  const formatMonth = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+    });
+  };
 
-  // Generate calendar days for the given month
-  const generateCalendarDays = (month: Date) => {
-    const year = month.getFullYear();
-    const monthIndex = month.getMonth();
-    
-    const firstDay = new Date(year, monthIndex, 1);
-    const lastDay = new Date(year, monthIndex + 1, 0);
-    
-    // Get first day to display (could be from previous month)
-    const startDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const startDate = new Date(firstDay);
-    startDate.setDate(firstDay.getDate() - startDayOfWeek);
-    
-    const days: CalendarDay[] = [];
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (time: string) => {
+    if (!time) return "Time not specified";
+    const [hours, minutes] = time.split(":");
+    if (!hours || !minutes) return time;
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  const isToday = (dateString: string) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const eventDate = new Date(dateString);
+    return today.toDateString() === eventDate.toDateString();
+  };
+
+  const isTomorrow = (dateString: string) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const eventDate = new Date(dateString);
+    return tomorrow.toDateString() === eventDate.toDateString();
+  };
+
+  const getDateLabel = (dateString: string) => {
+    if (isToday(dateString)) return "Today";
+    if (isTomorrow(dateString)) return "Tomorrow";
+    return formatDate(dateString);
+  };
+
+  const getEventsForDate = (date: Date) => {
+    const dateString = date.toISOString().split('T')[0];
+    return filteredEvents.filter(event => {
+      const eventDate = new Date(event.event_date);
+      const eventDateString = eventDate.toISOString().split('T')[0];
+      return eventDateString === dateString;
+    });
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const handleViewSwitch = async (newView: "calendar" | "list") => {
+    if (newView === view) return;
     
-    // Generate 42 days (6 weeks)
-    for (let i = 0; i < 42; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      
-      // Get events for this day
-      const dayEvents = events.filter(event => {
-        const eventDate = new Date(event.event_date || event.date);
-        return eventDate.getDate() === date.getDate() &&
-               eventDate.getMonth() === date.getMonth() &&
-               eventDate.getFullYear() === date.getFullYear();
-      });
-      
-      days.push({
-        date,
-        events: dayEvents,
-        isCurrentMonth: date.getMonth() === monthIndex,
-        isToday: date.getTime() === today.getTime()
-      });
-    }
+    setViewSwitching(true);
+    // Add a small delay to show the loading state
+    await new Promise(resolve => setTimeout(resolve, 300));
+    setView(newView);
+    setViewSwitching(false);
+  };
+  
+  const handleDayClick = (date: Date) => {
+    setSelectedDay(date);
+    handleViewSwitch('list');
+  };
+
+  // Filtered events based on search and selected day
+  const filteredEvents = useMemo(() => {
+    const safeEvents = Array.isArray(events) ? events : [];
+    return safeEvents.filter((event) => {
+      // Filter by search term
+      const matchesSearch = searchTerm === "" || 
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.club.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Filter by selected day
+      const matchesSelectedDay = !selectedDay || (() => {
+        const eventDate = new Date(event.event_date);
+        const selectedDayDate = new Date(selectedDay);
+        return eventDate.toDateString() === selectedDayDate.toDateString();
+      })();
+
+      return matchesSearch && matchesSelectedDay;
+    });
+  }, [events, searchTerm, selectedDay]);
+
+  const upcomingEvents = filteredEvents
+    .filter((event) => {
+      const eventDate = new Date(event.event_date);
+      const today = new Date();
+      // Set time to start of day for comparison to include all events for today
+      today.setHours(0, 0, 0, 0);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= today;
+    })
+    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+
+  const attendingEvents = useMemo(() => {
+    const safeEvents = Array.isArray(events) ? events : [];
+    return safeEvents.filter((event) => event.isAttending);
+  }, [events]);
+
+  const weeklyEvents = useMemo(() => {
+    const safeEvents = Array.isArray(events) ? events : [];
+    return safeEvents.filter((event) => {
+      const eventDate = new Date(event.event_date);
+      const today = new Date();
+      const weekFromNow = new Date(
+        today.getTime() + 7 * 24 * 60 * 60 * 1000
+      );
+      return eventDate >= today && eventDate <= weekFromNow;
+    });
+  }, [events]);
+
+  const renderCalendarView = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDayOfMonth = getFirstDayOfMonth(currentDate);
+    const today = new Date();
     
-    setCalendarDays(days);
-  };
+    const days = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Navigate to previous month
-  const goToPreviousMonth = () => {
-    setCurrentMonth(prev => {
-      const newMonth = new Date(prev);
-      newMonth.setMonth(prev.getMonth() - 1);
-      return newMonth;
-    });
-  };
-
-  // Navigate to next month
-  const goToNextMonth = () => {
-    setCurrentMonth(prev => {
-      const newMonth = new Date(prev);
-      newMonth.setMonth(prev.getMonth() + 1);
-      return newMonth;
-    });
-  };
-
-  // Handle day click in calendar view
-  const handleDayClick = (day: CalendarDay) => {
-    setSelectedDate(day.date);
-  };
-
-  // Handle event click
-  const handleEventClick = (event: Event, e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    setSelectedEvent(event);
-  };
-
-  // Format a date for display
-  const formatDisplayDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      month: 'long', 
-      day: 'numeric',
-      year: 'numeric' 
-    });
-  };
-
-  // Close the day detail modal
-  const closeDayDetail = () => {
-    setSelectedDate(null);
-  };
-
-  // Close the event detail modal
-  const closeEventDetail = () => {
-    setSelectedEvent(null);
-  };
-
-  // Show loader while data is being fetched or authentication is loading
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black">
-        <UniversalLoader message="Loading events calendar..." />
+    // Add day names header
+    const dayHeaders = dayNames.map((day, index) => (
+      <div key={day} className={`p-3 text-center text-sm font-semibold border-b-2 ${
+        index === 0 
+          ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700' 
+          : 'text-zenith-primary dark:text-blue-400 bg-zenith-section/50 dark:bg-gray-800/50 border-zenith-primary/20 dark:border-gray-600'
+      }`}>
+        {day}
       </div>
+    ));
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(
+        <div key={`empty-${i}`} className="p-3 h-28 border border-zenith-border/50 dark:border-gray-700/50 bg-zenith-section/30 dark:bg-gray-800/30"></div>
+      );
+    }
+
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const dayEvents = getEventsForDate(date);
+      const isCurrentDay = today.toDateString() === date.toDateString();
+      const isSunday = date.getDay() === 0;
+
+      days.push(
+        <motion.div
+          key={day}
+          whileHover={{ scale: 1.02 }}
+          onClick={() => handleDayClick(date)}
+          className={`p-3 h-28 border transition-all duration-200 relative overflow-hidden cursor-pointer ${
+            isSunday 
+              ? 'border-red-200 dark:border-red-700 bg-red-50/50 dark:bg-red-900/20 hover:bg-red-100/50 dark:hover:bg-red-900/30' 
+              : 'border-zenith-border/50 dark:border-gray-700/50 bg-zenith-card dark:bg-gray-800/50 hover:bg-zenith-hover dark:hover:bg-gray-700/50'
+          } ${
+            isCurrentDay ? 'ring-2 ring-zenith-primary dark:ring-blue-400 bg-zenith-primary/5 dark:bg-blue-900/20' : ''
+          }`}
+        >
+          <div className={`text-sm font-semibold mb-2 ${
+            isSunday ? 'text-red-600 dark:text-red-400' : isCurrentDay ? 'text-zenith-primary dark:text-blue-400' : 'text-zenith-secondary dark:text-gray-300'
+          }`}>
+            {day}
+            {isCurrentDay && (
+              <div className="w-2 h-2 bg-zenith-primary dark:bg-blue-400 rounded-full mt-1"></div>
+            )}
+            {isSunday && !isCurrentDay && (
+              <div className="w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full mt-1"></div>
+            )}
+          </div>
+          <div className="space-y-1">
+            {dayEvents.slice(0, 2).map((event, index) => {
+              const eventColor = getEventColor(event.club);
+              return (
+                <div
+                  key={event.id}
+                  className={`text-xs p-1.5 rounded-md font-medium truncate ${eventColor.solid} text-white`}
+                  title={`${event.title} - ${formatTime(event.startTime)} at ${event.location} (${event.club})`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white/80"></div>
+                    <span className="truncate">{event.title}</span>
+                  </div>
+                </div>
+              );
+            })}
+            {dayEvents.length > 2 && (
+              <div className="text-xs font-medium text-zenith-primary dark:text-blue-400 bg-zenith-primary/10 dark:bg-blue-900/30 rounded px-2 py-1 border border-zenith-primary/20 dark:border-blue-700/50">
+                +{dayEvents.length - 2} more
+              </div>
+            )}
+          </div>
+        </motion.div>
+      );
+    }
+
+    return (
+      <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
+        {/* Loading Overlay for Calendar - shows when events array is empty but not in error state */}
+        {events.length === 0 && !loading && !error && (
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-4"></div>
+              <p className="text-sm text-zenith-muted dark:text-gray-400">Loading events...</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between p-6 border-b border-zenith-border dark:border-gray-600">
+          <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
+            {formatMonthYear(currentDate)}
+          </h2>
+          <div className="flex items-center space-x-2">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigateMonth('prev')}
+              className="p-2 hover:bg-zenith-hover dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+            >
+              <ChevronLeft size={20} className="text-zenith-secondary dark:text-gray-400" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setCurrentDate(new Date())}
+              className="px-3 py-1 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors shadow-md"
+            >
+              Today
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigateMonth('next')}
+              className="p-2 hover:bg-zenith-hover dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+            >
+              <ChevronRight size={20} className="text-zenith-secondary dark:text-gray-400" />
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7">
+          {dayHeaders}
+          {days}
+        </div>
+      </div>
+    );
+  };
+
+  if (isLoading || !user) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
+      </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <div className="pb-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold text-white">Events</h1>
-          
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            {/* Search Box */}
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search events..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                className="pl-10 pr-4 py-2 w-full rounded-lg bg-college-medium border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-college-primary"
-              />
-            </div>
-            
-            {/* Club Filter */}
-            <select
-              value={selectedClub}
-              onChange={(e) => setSelectedClub(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-college-medium border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-college-primary"
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header with Theme Toggle */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+          <div className="flex-1">
+            <motion.h1 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-3xl font-bold text-zenith-primary dark:text-white mb-2"
             >
-              <option value="all">All Clubs</option>
-              {clubs.map((club) => (
-                <option key={club.id} value={club.id}>
-                  {club.name}
-                </option>
-              ))}
-            </select>
+              Calendar & Events
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-zenith-secondary dark:text-gray-300"
+            >
+              Stay updated with club events and activities
+              {attendingEvents.length > 0 && (
+                <span className="ml-2 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm rounded-full border border-purple-200 dark:border-purple-700">
+                  {attendingEvents.length} attending
+                </span>
+              )}
+            </motion.p>
+          </div>
+          
+          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+            {/* Theme Toggle */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <ThemeToggle />
+            </motion.div>
             
-            {/* View Toggles */}
-            <div className="flex border border-gray-700 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setViewMode("calendar")}
-                className={`px-4 py-2 flex items-center gap-2 ${
-                  viewMode === "calendar" 
-                    ? "bg-college-primary text-white" 
-                    : "bg-college-medium text-gray-300 hover:bg-gray-700"
-                }`}
+            {/* Create Event Button - Only show for managers */}
+            {canManageEvents && (
+              <motion.button 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => openEventModal('create')}
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                <CalendarIcon size={18} />
-                <span className="hidden sm:inline">Calendar</span>
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`px-4 py-2 flex items-center gap-2 ${
-                  viewMode === "list" 
-                    ? "bg-college-primary text-white" 
-                    : "bg-college-medium text-gray-300 hover:bg-gray-700"
-                }`}
-              >
-                <List size={18} />
-                <span className="hidden sm:inline">List</span>
-              </button>
-            </div>
+                <Plus size={16} className="mr-2" />
+                Create Event
+              </motion.button>
+            )}
           </div>
         </div>
 
-        {error ? (
-          <div className="bg-red-500 bg-opacity-10 border border-red-500 rounded-lg p-4 text-red-500">
-            {error}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-zenith-muted dark:text-gray-400">
+                  Total Events
+                </p>
+                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                  {events.length}
+                </p>
+              </div>
+              <CalendarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-zenith-muted dark:text-gray-400">
+                  Upcoming
+                </p>
+                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                  {upcomingEvents.length}
+                </p>
+              </div>
+              <Clock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-zenith-muted dark:text-gray-400">
+                  Attending
+                </p>
+                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                  {attendingEvents.length}
+                </p>
+              </div>
+              <Users className="w-8 h-8 text-pink-600 dark:text-pink-400" />
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
+            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-zenith-muted dark:text-gray-400">
+                  This Week
+                </p>
+                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                  {weeklyEvents.length}
+                </p>
+              </div>
+              <CalendarIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Filters and Controls */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-6 mb-8 border border-gray-200 dark:border-gray-700"
+        >
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 w-5 h-5 text-zenith-muted dark:text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search events..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-zenith-muted dark:placeholder-gray-400"
+                />
+              </div>
+            </div>
+
+            {/* View Toggle */}
+            <div className="flex rounded-lg border border-zenith-border dark:border-gray-600 overflow-hidden">
+              <button
+                onClick={() => handleViewSwitch("list")}
+                disabled={viewSwitching}
+                className={`flex items-center space-x-2 px-4 py-3 font-medium transition-colors disabled:opacity-50 ${
+                  view === "list"
+                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                    : "bg-zenith-card dark:bg-gray-700 text-zenith-secondary dark:text-gray-300 hover:bg-zenith-hover dark:hover:bg-gray-600"
+                }`}
+              >
+                {viewSwitching && view !== "list" ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600 dark:border-gray-500 dark:border-t-gray-300"></div>
+                ) : (
+                  <List size={16} />
+                )}
+                <span>List View</span>
+              </button>
+              <button
+                onClick={() => handleViewSwitch("calendar")}
+                disabled={viewSwitching}
+                className={`flex items-center space-x-2 px-4 py-3 font-medium transition-colors disabled:opacity-50 ${
+                  view === "calendar"
+                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                    : "bg-zenith-card dark:bg-gray-700 text-zenith-secondary dark:text-gray-300 hover:bg-zenith-hover dark:hover:bg-gray-600"
+                }`}
+              >
+                {viewSwitching && view !== "calendar" ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600 dark:border-gray-500 dark:border-t-gray-300"></div>
+                ) : (
+                  <Grid3X3 size={16} />
+                )}
+                <span>Calendar View</span>
+              </button>
+            </div>
           </div>
-        ) : (
-          <AnimatePresence mode="wait">
+        </motion.div>
+
+        {/* Main Content */}
+        <AnimatePresence mode="wait">
+          {viewSwitching ? (
             <motion.div
-              key={viewMode}
+              key="loading"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3 }}
+              className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700"
             >
-              {viewMode === "calendar" ? (
-                <div className="bg-college-medium rounded-lg border border-gray-700 overflow-hidden shadow-xl">
-                  {/* Calendar Header */}
-                  <div className="p-4 flex items-center justify-between border-b border-gray-700">
-                    <h2 className="text-lg font-bold text-white">
-                      {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </h2>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={goToPreviousMonth}
-                        className="p-2 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white"
-                      >
-                        <ChevronLeft size={18} />
-                      </button>
-                      <button
-                        onClick={() => setCurrentMonth(new Date())}
-                        className="px-3 py-1 rounded-lg bg-gray-700 text-white text-sm hover:bg-gray-600 transition-colors"
-                      >
-                        Today
-                      </button>
-                      <button 
-                        onClick={goToNextMonth}
-                        className="p-2 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white"
-                      >
-                        <ChevronRight size={18} />
-                      </button>
-                    </div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
+              <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+                Switching views...
+              </h3>
+              <p className="text-zenith-muted dark:text-gray-400">
+                Please wait while we prepare the {view === "calendar" ? "list" : "calendar"} view.
+              </p>
+            </motion.div>
+          ) : view === "calendar" ? (
+            <motion.div
+              key="calendar"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              {loading ? (
+                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
+                  <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+                    Loading calendar events...
+                  </h3>
+                  <p className="text-zenith-muted dark:text-gray-400">
+                    Please wait while we fetch your events for the calendar view.
+                  </p>
+                </div>
+              ) : error ? (
+                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
+                  <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CalendarIcon className="w-10 h-10 text-white" />
                   </div>
-                  
-                  {/* Calendar Grid */}
-                  <div className="grid grid-cols-7 text-center border-b border-gray-700">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                      <div key={day} className="py-2 text-sm font-medium text-gray-400">
-                        {day}
-                      </div>
-                    ))}
+                  <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+                    Error Loading Calendar
+                  </h3>
+                  <p className="text-zenith-muted dark:text-gray-400 mb-4">
+                    {error}
+                  </p>
+                  <button 
+                    onClick={() => fetchEvents()}
+                    className="px-6 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                renderCalendarView()
+              )}
+            </motion.div>
+          ) : (
+            /* Events List */
+            <motion.div
+              key="list"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-6"
+            >
+              {selectedDay && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg mb-6 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <CalendarIcon className="mr-3 text-blue-600 dark:text-blue-400" />
+                    <span className="font-semibold text-blue-700 dark:text-blue-300">
+                      Showing events for {selectedDay.toLocaleDateString("en-US", { 
+                        weekday: 'long', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </span>
                   </div>
-                  
-                  <div className="grid grid-cols-7 gap-px bg-gray-700">
-                    {calendarDays.map((day, i) => (
-                      <div 
-                        key={i} 
-                        className={`min-h-[100px] p-1 ${
-                          day.isCurrentMonth 
-                            ? 'bg-college-medium hover:bg-gray-800 cursor-pointer' 
-                            : 'bg-gray-800 text-gray-500'
-                        } ${
-                          day.isToday 
-                            ? 'ring-2 ring-inset ring-college-primary' 
-                            : ''
-                        } transition-colors`}
-                        onClick={() => handleDayClick(day)}
-                      >
-                        <div className="flex justify-between items-center mb-1">
-                          <div className={`text-xs font-medium p-1 ${
-                            day.events.length > 0 && day.isCurrentMonth
-                              ? 'bg-college-primary/20 rounded-full w-6 h-6 flex items-center justify-center'
-                              : ''
-                          }`}>
-                            {day.date.getDate()}
-                          </div>
-                          {day.events.length > 0 && (
-                            <div className="bg-college-primary/30 rounded-full px-1.5 text-xs text-white">
-                              {day.events.length}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="mt-1 space-y-1 max-h-[80px] overflow-hidden">
-                          {day.events.slice(0, 3).map((event) => (
-                            <div 
-                              key={event.id} 
-                              className="text-xs px-1 py-1 rounded transition-all hover:opacity-80 cursor-pointer"
-                              style={{ 
-                                backgroundColor: `${getEventColor(event)}30`,
-                                borderLeft: `3px solid ${getEventColor(event)}`
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEventClick(event, e);
-                              }}
-                            >
-                              <div className="flex items-center gap-1">
-                                <span className="truncate text-white font-medium">{event.title}</span>
-                              </div>
-                            </div>
-                          ))}
-                          {day.events.length > 3 && (
-                            <div className="text-xs text-gray-400 px-1 mt-1">
-                              +{day.events.length - 3} more
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <button 
+                    onClick={() => setSelectedDay(null)}
+                    className="text-sm text-blue-700 dark:text-blue-400 hover:underline"
+                  >
+                    Show all events
+                  </button>
+                </div>
+              )}
+              
+              {loading ? (
+                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
+                  <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+                    Loading events...
+                  </h3>
+                  <p className="text-zenith-muted dark:text-gray-400">
+                    Please wait while we fetch your events.
+                  </p>
+                </div>
+              ) : error ? (
+                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
+                  <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CalendarIcon className="w-10 h-10 text-white" />
                   </div>
-                  
-                  {/* Club Color Legend */}
-                  {clubs.length > 0 && (
-                    <div className="p-4 border-t border-gray-700 bg-gray-800">
-                      <h3 className="text-sm font-medium text-gray-300 mb-2">Clubs:</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {clubs.map((club) => (
-                          <div 
-                            key={club.id} 
-                            className="flex items-center gap-1.5 bg-gray-700 rounded-full px-3 py-1"
-                            onClick={() => setSelectedClub(club.id)}
-                          >
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: clubColors[club.id] || "#3b82f6" }}
-                            ></div>
-                            <span className="text-xs text-white">{club.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+                    Error Loading Events
+                  </h3>
+                  <p className="text-zenith-muted dark:text-gray-400 mb-4">
+                    {error}
+                  </p>
+                  <button 
+                    onClick={() => fetchEvents()}
+                    className="px-6 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : filteredEvents.length === 0 ? (
+                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CalendarIcon className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+                    No events found
+                  </h3>
+                  <p className="text-zenith-muted dark:text-gray-400 mb-4">
+                    {searchTerm
+                      ? "Try adjusting your search terms."
+                      : selectedDay
+                        ? `No events scheduled for ${selectedDay.toLocaleDateString()}.`
+                        : "No events match your current criteria."}
+                  </p>
+                  {(searchTerm || selectedDay) && (
+                    <button 
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSelectedDay(null);
+                      }}
+                      className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors font-medium"
+                    >
+                      Clear Filters
+                    </button>
                   )}
                 </div>
               ) : (
-                // List View
-                <div className="space-y-6">
-                  {sortedDays.length > 0 ? (
-                    sortedDays.map((day) => (
-                      <div key={day} className="rounded-lg overflow-hidden bg-college-medium border border-gray-700 shadow-lg">
-                        <div className="bg-gray-800 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
-                          <h3 className="font-semibold text-white flex items-center gap-2">
-                            <Calendar size={18} className="text-college-primary" />
-                            {new Date(day).toLocaleDateString('en-US', {
-                              weekday: 'long',
-                              month: 'long',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </h3>
-                          <div className="bg-college-primary/20 text-college-primary px-2 py-0.5 rounded-full text-xs font-medium">
-                            {eventsByDay[day].length} {eventsByDay[day].length === 1 ? 'event' : 'events'}
+                upcomingEvents.map((event, index) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className={`bg-white dark:bg-gray-800/90 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 ${
+                      isToday(event.event_date) ? "border-l-4 !border-l-blue-500" : ""
+                    }`}
+                  >
+                    {/* Event Header with Color Strip */}
+                    <div className={`h-2 ${getEventColor(event.club).solid}`}></div>
+                    
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-start space-x-4 flex-1">
+                          <div className={`w-12 h-12 rounded-full ${getEventColor(event.club).solid} flex items-center justify-center shadow-md`}>
+                            <CalendarIcon size={20} className="text-white" />
                           </div>
-                        </div>
-                        <div className="divide-y divide-gray-700">
-                          {eventsByDay[day].map((event) => (
-                            <div 
-                              key={event.id} 
-                              className="p-4 hover:bg-gray-800 transition-colors cursor-pointer"
-                              onClick={() => handleEventClick(event)}
-                            >
-                              <div className="flex items-start">
-                                <div 
-                                  className="w-1 h-full self-stretch rounded-full flex-shrink-0 mr-3"
-                                  style={{ backgroundColor: getEventColor(event) }}
-                                ></div>
-                                <div className="flex-1">
-                                  <h4 className="text-lg font-medium text-white">{event.title}</h4>
-                                  <div className="mt-1 space-y-1">
-                                    <div className="flex items-center text-gray-300">
-                                      <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                                      <span>
-                                        {event.startTime}
-                                        {event.endTime ? ` - ${event.endTime}` : ''}
-                                      </span>
-                                    </div>
-                                    {event.location && (
-                                      <div className="flex items-center text-gray-300">
-                                        <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span>{event.location}</span>
-                                      </div>
-                                    )}
-                                    {event.club?.name && (
-                                      <div className="flex items-center text-gray-300">
-                                        <Users className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span>{event.club.name}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {event.description && (
-                                    <p className="mt-2 text-gray-400 line-clamp-2">{event.description}</p>
-                                  )}
-                                  <div className="mt-3">
-                                    <button 
-                                      className="inline-flex items-center text-college-primary hover:text-college-accent"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        router.push(`/events/${event.id}`);
-                                      }}
-                                    >
-                                      <span className="mr-1">View Details</span>
-                                      <ExternalLink className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-3 mb-2 flex-wrap">
+                              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                {event.title}
+                              </h3>
+                              <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-700">
+                                {event.club}
+                              </span>
+                              {event.isAttending && (
+                                <span className="px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium rounded-full border border-green-200 dark:border-green-700">
+                                  ✓ Attending
+                                </span>
+                              )}
+                              {isToday(event.event_date) && (
+                                <span className="px-3 py-1 bg-orange-50 dark:bg-blue-900/30 text-orange-700 dark:text-blue-300 text-xs font-medium rounded-full border border-orange-200 dark:border-blue-700 animate-pulse">
+                                  Today
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                              {event.description}
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                              <div className="flex items-center text-zenith-secondary dark:text-gray-300">
+                                <CalendarIcon size={16} className="mr-3 text-blue-500" />
+                                <span className="font-medium">{getDateLabel(event.event_date)}</span>
+                              </div>
+                              <div className="flex items-center text-zenith-secondary dark:text-gray-300">
+                                <Clock size={16} className="mr-3 text-green-500" />
+                                <span className="font-medium">
+                                  {formatTime(event.startTime)}
+                                  {event.endTime && ` - ${formatTime(event.endTime)}`}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-zenith-secondary dark:text-gray-300">
+                                <MapPin size={16} className="mr-3 text-orange-500" />
+                                <span className="font-medium">{event.location}</span>
                               </div>
                             </div>
-                          ))}
+                          </div>
+                        </div>
+                        <div className="text-right ml-6">
+                          <div className="text-center">
+                            <div className="text-xs text-zenith-muted dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">
+                              Attendees
+                            </div>
+                            <div className="text-2xl font-bold text-zenith-primary dark:text-white">
+                              {event.attendees}
+                              {event.maxAttendees && (
+                                <span className="text-sm text-zenith-muted dark:text-gray-400 font-normal">
+                                  /{event.maxAttendees}
+                                </span>
+                              )}
+                            </div>
+                            {event.maxAttendees && (
+                              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-3">
+                                <div 
+                                  className={`h-2 rounded-full ${getEventColor(event.club).solid} transition-all duration-300`}
+                                  style={{ width: `${(event.attendees / event.maxAttendees) * 100}%` }}
+                                ></div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="bg-college-medium p-8 rounded-lg border border-gray-700 text-center">
-                      <p className="text-gray-400">No events found matching your criteria.</p>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-zenith-border dark:border-gray-600">
+                        <div className="flex items-center space-x-4">
+                          <span className="text-sm text-zenith-muted dark:text-gray-400 font-medium">
+                            Organized by <span className="text-zenith-primary dark:text-white font-semibold">{event.organizer}</span>
+                          </span>
+                          {event.event_incharge && (
+                            <span className="text-sm text-zenith-muted dark:text-gray-400 font-medium">
+                              • In-charge: <span className="text-zenith-primary dark:text-white font-semibold">{event.event_incharge}</span>
+                            </span>
+                          )}
+                          {event.event_coordinator && (
+                            <span className="text-sm text-zenith-muted dark:text-gray-400 font-medium">
+                              • Coordinator: <span className="text-zenith-primary dark:text-white font-semibold">{event.event_coordinator}</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <button 
+                            onClick={() => openEventModal('view', event)}
+                            className="flex items-center px-4 py-2 text-zenith-muted dark:text-gray-400 hover:text-zenith-primary dark:hover:text-white transition-colors rounded-lg hover:bg-zenith-section/50 dark:hover:bg-gray-700/50"
+                          >
+                            <Eye size={16} className="mr-2" />
+                            View Details
+                          </button>
+                          
+                          {canManageEvents && (
+                            <>
+                              <button 
+                                onClick={() => openEventModal('edit', event)}
+                                className="flex items-center px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              >
+                                <Edit size={16} className="mr-2" />
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete this event?')) {
+                                    handleEventDeleted(event.id);
+                                  }
+                                }}
+                                className="flex items-center px-4 py-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                <Trash2 size={16} className="mr-2" />
+                                Delete
+                              </button>
+                            </>
+                          )}
+                          
+                          {event.isAttending ? (
+                            <button 
+                              onClick={() => toggleEventAttendance(event.id, true)}
+                              className="px-6 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium border border-red-200 dark:border-red-700"
+                            >
+                              Leave Event
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => toggleEventAttendance(event.id, false)}
+                              className={`px-6 py-2 text-white rounded-lg font-medium transition-colors shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none ${getEventColor(event.club).solid} hover:opacity-90`}
+                              disabled={event.maxAttendees ? (event.attendees >= event.maxAttendees) : false}
+                            >
+                              {event.maxAttendees && event.attendees >= event.maxAttendees 
+                                ? '🔒 Event Full' 
+                                : '🎫 Join Event'
+                              }
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </motion.div>
+                ))
               )}
             </motion.div>
-          </AnimatePresence>
-        )}
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Day Detail Modal */}
-      <AnimatePresence>
-        {selectedDate && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-            onClick={closeDayDetail}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-college-medium rounded-xl max-w-xl w-full max-h-[80vh] overflow-hidden shadow-2xl border border-gray-700"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="bg-gray-800 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                <h3 className="font-bold text-white flex items-center gap-2 text-lg">
-                  <Calendar className="text-college-primary" size={20} />
-                  {formatDisplayDate(selectedDate)}
-                </h3>
-                <button 
-                  className="p-1.5 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
-                  onClick={closeDayDetail}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              
-              <div className="overflow-y-auto p-5 max-h-[calc(80vh-70px)]">
-                {calendarDays
-                  .find(day => 
-                    day.date.getDate() === selectedDate.getDate() &&
-                    day.date.getMonth() === selectedDate.getMonth() &&
-                    day.date.getFullYear() === selectedDate.getFullYear()
-                  )?.events.length ? (
-                  <div className="divide-y divide-gray-700">
-                    {calendarDays
-                      .find(day => 
-                        day.date.getDate() === selectedDate.getDate() &&
-                        day.date.getMonth() === selectedDate.getMonth() &&
-                        day.date.getFullYear() === selectedDate.getFullYear()
-                      )
-                      ?.events.map((event) => (
-                        <div 
-                          key={event.id} 
-                          className="py-4 first:pt-0 last:pb-0 hover:bg-gray-800/50 rounded-lg p-2 cursor-pointer transition-colors"
-                          onClick={() => handleEventClick(event)}
-                        >
-                          <div className="flex items-start">
-                            <div 
-                              className="w-2 self-stretch rounded-full flex-shrink-0 mr-4"
-                              style={{ backgroundColor: getEventColor(event) }}
-                            ></div>
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between">
-                                <h4 className="text-lg font-medium text-white">{event.title}</h4>
-                                {event.club?.name && (
-                                  <span 
-                                    className="text-xs py-1 px-2 rounded-full text-white"
-                                    style={{ backgroundColor: getEventColor(event) + "50" }}
-                                  >
-                                    {event.club.name}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="mt-2 space-y-2">
-                                <div className="flex items-center text-gray-300 text-sm">
-                                  <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                                  <span>
-                                    {event.startTime}
-                                    {event.endTime ? ` - ${event.endTime}` : ''}
-                                  </span>
-                                </div>
-                                {event.location && (
-                                  <div className="flex items-center text-gray-300 text-sm">
-                                    <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                                    <span>{event.location}</span>
-                                  </div>
-                                )}
-                              </div>
-                              {event.description && (
-                                <p className="mt-3 text-gray-400 text-sm bg-gray-800/50 p-2 rounded-lg border-l-2 border-gray-700">
-                                  {event.description}
-                                </p>
-                              )}
-                              <div className="mt-4 flex space-x-3">
-                                <button 
-                                  className="flex items-center gap-1 text-sm bg-college-primary/10 hover:bg-college-primary/20 text-college-primary px-3 py-1.5 rounded-lg transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    router.push(`/events/${event.id}`);
-                                  }}
-                                >
-                                  <ExternalLink className="w-3.5 h-3.5" />
-                                  <span>Details</span>
-                                </button>
-                                {user && (
-                                  <button 
-                                    className="flex items-center gap-1 text-sm bg-green-500/10 hover:bg-green-500/20 text-green-500 px-3 py-1.5 rounded-lg transition-colors"
-                                  >
-                                    <Check className="w-3.5 h-3.5" />
-                                    <span>RSVP</span>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    }
-                  </div>
-                ) : (
-                  <div className="text-center py-10 flex flex-col items-center">
-                    <Calendar className="w-12 h-12 text-gray-500 mb-2" />
-                    <p className="text-gray-400">No events scheduled for this day.</p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Event Modal */}
+      <EventModal
+        isOpen={isEventModalOpen}
+        onClose={closeEventModal}
+        mode={modalMode}
+        event={selectedEvent ? convertEventForModal(selectedEvent) : null}
+        onSave={handleEventSaved}
+        onDelete={handleEventDeleted}
+        clubs={clubs}
+      />
 
-      {/* Event Detail Modal */}
-      <AnimatePresence>
-        {selectedEvent && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-            onClick={closeEventDetail}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-college-medium rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl border border-gray-700"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative">
-                <div 
-                  className="h-32 w-full bg-gradient-to-r" 
-                  style={{ 
-                    backgroundImage: `linear-gradient(to right, ${getEventColor(selectedEvent)}50, ${getEventColor(selectedEvent)}20)`
-                  }}
-                ></div>
-                <button 
-                  className="absolute top-4 right-4 p-1.5 rounded-full bg-black/30 hover:bg-black/50 text-white transition-colors"
-                  onClick={closeEventDetail}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              
-              <div className="px-6 py-5 -mt-6">
-                <div className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <h2 className="text-2xl font-bold text-white mb-3">{selectedEvent.title}</h2>
-                    {selectedEvent.club?.name && (
-                      <span 
-                        className="text-xs py-1 px-3 rounded-full text-white font-medium"
-                        style={{ backgroundColor: getEventColor(selectedEvent) }}
-                      >
-                        {selectedEvent.club.name}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                    <div className="flex items-center text-gray-300">
-                      <Calendar className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>{new Date(selectedEvent.event_date || selectedEvent.date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        month: 'long',
-                        day: 'numeric',
-                      })}</span>
-                    </div>
-                    <div className="flex items-center text-gray-300">
-                      <Clock className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>
-                        {selectedEvent.startTime}
-                        {selectedEvent.endTime ? ` - ${selectedEvent.endTime}` : ''}
-                      </span>
-                    </div>
-                    {selectedEvent.location && (
-                      <div className="flex items-center text-gray-300 md:col-span-2">
-                        <MapPin className="w-5 h-5 mr-3 text-gray-400" />
-                        <span>{selectedEvent.location}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {selectedEvent.description && (
-                    <div className="mb-5">
-                      <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                        <Info className="w-4 h-4" />
-                        About
-                      </h3>
-                      <p className="text-gray-300 bg-gray-800/50 p-3 rounded-lg border-l-2 border-gray-700">
-                        {selectedEvent.description}
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-3 mt-6">
-                    <button 
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-college-primary hover:bg-college-primary/80 text-white py-2 px-4 rounded-lg transition-colors"
-                      onClick={() => router.push(`/events/${selectedEvent.id}`)}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      <span>View Details</span>
-                    </button>
-                    
-                    {user && (
-                      <>
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
-                          <Check className="w-4 h-4" />
-                          <span>RSVP</span>
-                        </button>
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 border border-gray-600 hover:bg-gray-800 text-gray-300 py-2 px-4 rounded-lg transition-colors">
-                          <Calendar className="w-4 h-4" />
-                          <span>Add to Calendar</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Add Button for authorized users */}
-      {user && (user.role === 'admin' || user.role === 'coordinator' || user.role === 'committee_member') && (
-        <button 
-          className="fixed bottom-8 right-8 bg-college-primary hover:bg-college-accent text-white p-3 rounded-full shadow-lg transition-colors z-30"
-          onClick={() => router.push('/events/create')}
-        >
-          <Plus size={24} />
-        </button>
-      )}
-      
-      {/* Floating Chatbot */}
       <ZenChatbot />
     </MainLayout>
   );
-};
-
-export default EventsPage;
+}

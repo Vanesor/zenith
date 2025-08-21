@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
     const clubsResult = await db.query(clubsQuery);
     const clubs = clubsResult.rows;
 
+    console.log(`📊 Found ${clubs.length} clubs in database`);
+
     // Get leadership info for each club in a separate optimized query
     const clubsWithStats = await Promise.all(
       clubs.map(async (club: any) => {
@@ -71,11 +73,14 @@ export async function GET(request: NextRequest) {
           eventCount: parseInt(club.eventcount) || 0,
           postCount: parseInt(club.postcount) || 0,
           leadership,
+          coordinator_id: leadership.find(l => l.role === 'coordinator')?.id || null,
+          coordinator_name: leadership.find(l => l.role === 'coordinator')?.name || 'TBA',
         };
       })
     );
 
-    return NextResponse.json(clubsWithStats);
+    console.log(`📋 Returning ${clubsWithStats.length} clubs with full data`);
+    return NextResponse.json({ success: true, clubs: clubsWithStats });
   } catch (error) {
     console.error("Error fetching clubs:", error);
     return NextResponse.json(

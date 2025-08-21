@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from '@/lib/database';
+import db from '@/lib/database';
 
 export async function GET(
   request: NextRequest,
@@ -8,62 +8,67 @@ export async function GET(
   try {
     const { clubId } = await params;
 
-    // Connect to Prisma if not already connected
-    await db.$connect();
-
-    const club = await db.clubs.findUnique({
-      where: { id: clubId },
-      include: {
-        users_clubs_coordinator_idTousers: {
-          select: { name: true, email: true }
-        },
-        users_clubs_co_coordinator_idTousers: {
-          select: { name: true, email: true }
-        }
-      }
-    });
+    // Get club details with members and content
+    const clubQuery = `
+      SELECT 
+        c.*,
+        coord.name as coordinator_name,
+        coord.email as coordinator_email,
+        co_coord.name as co_coordinator_name,
+        co_coord.email as co_coordinator_email
+      FROM clubs c
+      LEFT JOIN users coord ON c.coordinator_id = coord.id
+      LEFT JOIN users co_coord ON c.co_coordinator_id = co_coord.id
+      WHERE c.id = $1
+    `;
     
-    if (!club) {
+    const clubResult = await db.query(clubQuery, [clubId]);
+    
+    if (clubResult.rows.length === 0) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    // Properly handle promises
-    const [memberCount, events, posts] = await Promise.all([
+    const club = clubResult.rows[0];
+
+    // Get additional stats
+    const [memberCountResult, eventsResult, postsResult] = await Promise.all([
       // Get club members count
-      db.users.count({
-        where: { club_id: clubId }
-      }),
+      db.query('SELECT COUNT(*) as count FROM users WHERE club_id = $1', [clubId]),
+      
       // Get club events
-      db.events.findMany({
-        where: { club_id: clubId },
-        orderBy: { event_date: 'desc' },
-        take: 10
-      }),
-      // Get club posts
-      db.posts.findMany({
-        where: { club_id: clubId },
-        orderBy: { created_at: 'desc' },
-        take: 10,
-        include: {
-          users_posts_author_idTousers: {
-            select: { name: true }
-          }
-        }
-      })
+      db.query(`
+        SELECT * FROM events 
+        WHERE club_id = $1 
+        ORDER BY event_date DESC 
+        LIMIT 10
+      `, [clubId]),
+      
+      // Get club posts with author info
+      db.query(`
+        SELECT p.*, u.name as author_name 
+        FROM posts p
+        LEFT JOIN users u ON p.author_id = u.id
+        WHERE p.club_id = $1 
+        ORDER BY p.created_at DESC 
+        LIMIT 10
+      `, [clubId])
     ]);
 
     return NextResponse.json({
       club: {
         ...club,
-        coordinator: club.users_clubs_coordinator_idTousers,
-        co_coordinator: club.users_clubs_co_coordinator_idTousers,
+        coordinator: {
+          name: club.coordinator_name,
+          email: club.coordinator_email
+        },
+        co_coordinator: {
+          name: club.co_coordinator_name,
+          email: club.co_coordinator_email
+        }
       },
-      member_count: memberCount,
-      events,
-      posts: posts.map(post => ({
-        ...post,
-        author_name: post.users_posts_author_idTousers?.name || "Unknown",
-      })),
+      member_count: parseInt(memberCountResult.rows[0].count),
+      events: eventsResult.rows,
+      posts: postsResult.rows
     });
 
   } catch (error) {

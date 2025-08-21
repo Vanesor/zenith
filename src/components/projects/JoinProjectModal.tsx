@@ -73,7 +73,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-gradient-to-br from-black/60 via-green-900/30 to-blue-900/40 backdrop-blur-md"
+            className="absolute inset-0 bg-gradient-to-br from-black/50 via-blue-900/30 to-purple-900/40 backdrop-blur-md"
             onClick={onClose}
           />
 
@@ -85,10 +85,11 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="relative z-10 w-full max-w-lg"
           >
-            <div className="bg-gradient-to-br from-white/95 via-white/90 to-green-50/90 dark:from-gray-800/95 dark:via-gray-800/90 dark:to-green-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-br from-white/95 via-white/90 to-blue-50/90 dark:from-gray-800/95 dark:via-gray-800/90 dark:to-blue-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-3xl shadow-2xl overflow-hidden">
               
               {/* Header with gradient */}
-              <div className="relative px-8 py-6 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500">
+              <div className="relative px-8 py-6">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500"></div>
                 <div className="flex items-center justify-between">
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -100,15 +101,15 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: 0.3, type: "spring", damping: 15 }}
-                      className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
+                      className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-800 dark:to-purple-800 rounded-xl flex items-center justify-center"
                     >
-                      <UserPlus className="w-6 h-6 text-white" />
+                      <UserPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </motion.div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white">
+                      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                         Join Project
                       </h2>
-                      <p className="text-white/80 text-sm">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
                         Enter the access code to collaborate
                       </p>
                     </div>
@@ -118,9 +119,9 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={onClose}
-                    className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors"
+                    className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
                   >
-                    <X className="w-5 h-5 text-white" />
+                    <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   </motion.button>
                 </div>
               </div>
@@ -154,16 +155,16 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
-                      className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-2xl"
+                      className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-2xl"
                     >
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", damping: 15 }}
                       >
-                        <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                       </motion.div>
-                      <span className="text-green-600 dark:text-green-400 font-medium">{success}</span>
+                      <span className="text-purple-600 dark:text-purple-400 font-medium">{success}</span>
                     </motion.div>
                   )}
 
@@ -183,7 +184,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                         initial={{ width: 0 }}
                         animate={{ width: "100%" }}
                         transition={{ delay: 0.4, duration: 0.5 }}
-                        className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-green-500/20 rounded-2xl blur-lg"
+                        className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-lg"
                       />
                       <div className="relative">
                         <Input
@@ -236,7 +237,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                       <Button
                         type="submit"
                         disabled={loading || !accessCode.trim()}
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 hover:from-green-700 hover:via-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         {loading ? (
                           <motion.div className="flex items-center">
@@ -265,7 +266,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                   transition={{ delay: 0.7 }}
                   className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700"
                 >
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
+                  <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
                     <div className="flex items-start space-x-3">
                       <motion.div
                         animate={{ rotate: [0, 10, -10, 0] }}

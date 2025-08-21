@@ -341,7 +341,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                         <motion.div
                           animate={{ scale: [1, 1.1, 1] }}
                           transition={{ duration: 0.3, delay: 0.1 }}
-                          className="w-2 h-2 bg-green-500 rounded-full mr-2"
+                          className="w-2 h-2 bg-purple-500 rounded-full mr-2"
                         />
                         Available Users
                       </h4>
@@ -513,7 +513,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                           <motion.div
                             animate={{ scale: [1, 1.2, 1] }}
                             transition={{ duration: 2, repeat: Infinity }}
-                            className="w-2 h-2 bg-green-500 rounded-full mr-2"
+                            className="w-2 h-2 bg-purple-500 rounded-full mr-2"
                           />
                           Anyone with this key can join the project
                         </p>

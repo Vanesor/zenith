@@ -1,0 +1,14 @@
+                  id                  |                             title                              |  club_id   |  status   
+--------------------------------------+----------------------------------------------------------------+------------+-----------
+ 550e8400-4001-41d4-a716-446655440001 | Getting Started with React Hooks                               | ascend     | draft
+ 550e8400-4002-41d4-a716-446655440001 | Effective Communication in Teams                               | aster      | draft
+ 550e8400-4003-41d4-a716-446655440001 | PhD Application Tips                                           | achievers  | draft
+ 550e8400-4004-41d4-a716-446655440001 | Balancing Technical and Soft Skills                            | altogether | draft
+ 0aa4697c-e3de-4097-a7ba-c72d7ab2777c | The Future of Artificial Intelligence in Education             | cs         | published
+ b96d8a44-35bd-43c8-a98b-5365f7f65a61 | Building Your First Arduino Robot: A Complete Guide            | robotics   | published
+ 2012b548-dc72-4f0f-9adc-767b69dd3f92 | The Art of Method Acting: Techniques for Authentic Performance | drama      | published
+ 876734eb-f439-46ca-ae21-d4bd11e612dd | Jazz Improvisation: Finding Your Voice Through Musical Freedom | music      | published
+ 19996dd7-d767-4332-9a23-0d889a7d9b1c | Digital Art vs Traditional Art: Bridging Two Worlds            | art        | published
+ 9c2e0737-d2ad-4ba7-b077-683e275f0ff4 | The Science of Athletic Performance: Training Mind and Body    | sports     | published
+(10 rows)
+

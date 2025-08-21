@@ -4,7 +4,7 @@ import { verifyAuth, withAuth } from "@/lib/auth-unified";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize the Google Generative AI
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Helper function to safely parse JSON
 function safeJsonParse(jsonString: string, defaultValue: unknown = null) {

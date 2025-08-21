@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { UnifiedHeader } from "@/components/UnifiedHeader";
 import { Footer } from "@/components/NewFooter";
 import { useAuth } from "@/contexts/AuthContext";
 import { SessionExpirationHandler } from "@/components/SessionExpirationHandler";
@@ -25,27 +24,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   // Don't render content for excluded paths (login, etc.)
   const isExcludedPath = noHeaderPaths.includes(pathname);
   
-  // Check if current path should hide header (like test-taking interfaces)
-  // Special handling for assignment taking pages
-  const shouldHideHeader = hideHeaderPaths.some(path => {
-    if (path === "/assignments/") {
-      // Only hide header for assignment taking pages, not listing or viewing
-      return pathname.includes("/assignments/") && pathname.includes("/take");
-    }
-    return pathname.startsWith(path);
-  });
-  
-  // Show header when:
-  // 1. Not on excluded paths AND
-  // 2. Not on test-taking paths 
-  // (Always show header regardless of auth status - the header components handle auth state internally)
-  const shouldShowHeader = !isExcludedPath && !shouldHideHeader;
-  
   // Don't show footer on special paths like login/register or during tests
-  const shouldShowFooter = !noFooterPaths.includes(pathname) && !shouldHideHeader;
-
-  // Calculate top padding based on reduced header height (college banner + nav)
-  const topPadding = shouldShowHeader ? "pt-40 md:pt-36" : "";
+  const shouldShowFooter = !noFooterPaths.includes(pathname);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -56,12 +36,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {shouldShowHeader && (
-        <header className="z-50 fixed top-0 left-0 right-0 w-full">
-          <UnifiedHeader />
-        </header>
-      )}
-      <main className={`${topPadding} flex-grow pb-8`}>
+      <main className="flex-grow pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
           {/* Only wrap with SessionExpirationHandler if authenticated */}
           {user && !isExcludedPath ? (
