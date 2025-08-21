@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { verifyAuth } from '@/lib/auth-unified';
+import { verifyAuth } from '@/lib/AuthMiddleware';
 
 // Initialize PostgreSQL connection
 const pool = new Pool({

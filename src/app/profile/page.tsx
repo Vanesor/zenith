@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
   Mail, 
@@ -22,65 +22,159 @@ import {
   Activity,
   Target,
   CheckCircle,
-  MessageSquare
+  MessageSquare,
+  Settings,
+  Upload,
+  BadgeCheck,
+  Briefcase,
+  GraduationCap
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 export default function ModernProfilePage() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
   const [editData, setEditData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
-    phone: (user as any)?.phone || '',
-    bio: (user as any)?.bio || '',
-    location: (user as any)?.location || ''
+    phone: '',
+    bio: '',
+    location: '',
+    department: '',
+    year: '',
+    interests: ''
   });
 
-  const handleSave = async () => {
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
+
+  const fetchProfileData = async () => {
     try {
-      // TODO: API call to update profile
-      console.log('Saving profile data:', editData);
-      setIsEditing(false);
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData(data.profile);
+        setEditData({
+          firstName: data.profile.firstName || '',
+          lastName: data.profile.lastName || '',
+          email: data.profile.email || '',
+          phone: data.profile.phone || '',
+          bio: data.profile.bio || '',
+          location: data.profile.location || '',
+          department: data.profile.department || '',
+          year: data.profile.year || '',
+          interests: data.profile.interests || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(editData),
+      });
+
+      if (response.ok) {
+        await fetchProfileData();
+        setIsEditing(false);
+      } else {
+        alert('Failed to update profile');
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
+      alert('Failed to update profile');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    setEditData({
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      email: user?.email || '',
-      phone: (user as any)?.phone || '',
-      bio: (user as any)?.bio || '',
-      location: (user as any)?.location || ''
-    });
+    if (profileData) {
+      setEditData({
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        email: profileData.email || '',
+        phone: profileData.phone || '',
+        bio: profileData.bio || '',
+        location: profileData.location || '',
+        department: profileData.department || '',
+        year: profileData.year || '',
+        interests: profileData.interests || ''
+      });
+    }
     setIsEditing(false);
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/profile/upload-avatar', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        await fetchProfileData();
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    }
   };
 
   const stats = [
     {
       title: 'Clubs Joined',
-      value: '3',
+      value: profileData?.clubsCount || '0',
       icon: Users,
       color: 'from-blue-500 to-cyan-500',
-      description: 'Active member'
+      description: 'Active memberships'
     },
     {
       title: 'Events Attended',
-      value: '12',
+      value: profileData?.eventsCount || '0',
       icon: Calendar,
       color: 'from-green-500 to-emerald-500',
       description: 'This semester'
     },
     {
-      title: 'Achievements',
-      value: '8',
-      icon: Award,
+      title: 'Projects',
+      value: profileData?.projectsCount || '0',
+      icon: Target,
       color: 'from-purple-500 to-pink-500',
-      description: 'Earned badges'
+      description: 'Active projects'
     },
     {
       title: 'Activity Score',

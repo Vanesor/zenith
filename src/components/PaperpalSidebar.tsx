@@ -28,10 +28,14 @@ import {
   Zap,
   Target,
   Award,
-  Code2
+  Code2,
+  FolderOpen,
+  UserPlus,
+  Key
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
+import JoinProjectModal from '@/components/projects/JoinProjectModal';
 
 interface PaperpalSidebarProps {
   isOpen: boolean;
@@ -46,6 +50,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
   const [isDesktop, setIsDesktop] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -72,6 +77,12 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
       href: "/dashboard", 
       icon: Home,
       description: "Overview & insights"
+    },
+    { 
+      name: "Projects", 
+      href: "/projects", 
+      icon: Target,
+      description: "Manage your projects"
     },
     { 
       name: "Clubs", 
@@ -356,6 +367,51 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                     </motion.div>
                   )}
 
+                  {/* Workspace Section */}
+                  {!isCollapsed && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.45 }}
+                    >
+                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                        Workspace
+                      </h3>
+                      <div className="space-y-2">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.45 }}
+                        >
+                          <Link
+                            href="/projects"
+                            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                          >
+                            <FolderOpen className="w-4 h-4 mr-3 text-blue-600" />
+                            <span className="group-hover:text-gray-900 dark:group-hover:text-white">
+                              My Projects
+                            </span>
+                          </Link>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          <button
+                            onClick={() => setShowJoinModal(true)}
+                            className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                          >
+                            <UserPlus className="w-4 h-4 mr-3 text-green-600" />
+                            <span className="group-hover:text-gray-900 dark:group-hover:text-white">
+                              Join Project
+                            </span>
+                          </button>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Admin Section */}
                   {hasAdminAccess && (
                     <motion.div
@@ -484,6 +540,9 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
           )}
         </AnimatePresence>
       </motion.aside>
+
+      {/* Join Project Modal */}
+      <JoinProjectModal isOpen={showJoinModal} onClose={() => setShowJoinModal(false)} />
     </>
   );
 }

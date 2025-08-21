@@ -11,28 +11,15 @@ import AuditLogger from '@/lib/audit-logger';
 export async function GET(request: NextRequest) {
   try {
     // Extract IP and User Agent for audit logging
-    const ipAddress = request.headers.get('x-forwarded-for') || 
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
                      request.headers.get('x-real-ip') || 
-                     'unknown';
+                     '127.0.0.1';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // Verify authentication
     const authResult = await verifyAuth(request);
 
     if (!authResult.success || !authResult.user) {
-      // Log failed auth check
-      await AuditLogger.logAuth(
-        'login',
-        undefined,
-        'failure',
-        { 
-          reason: 'Invalid or expired token',
-          endpoint: '/api/auth/check'
-        },
-        ipAddress,
-        userAgent
-      );
-
       return NextResponse.json(
         { 
           authenticated: false, 
@@ -49,7 +36,6 @@ export async function GET(request: NextRequest) {
         await AuditLogger.logAuth(
           'login',
           authResult.user.id,
-          'failure',
           { 
             reason: 'Invalid session',
             sessionId: authResult.sessionId,
@@ -108,7 +94,6 @@ export async function GET(request: NextRequest) {
     await AuditLogger.logAuth(
       'login',
       authResult.user.id,
-      'success',
       { 
         endpoint: '/api/auth/check',
         tokenRefreshed: !!newTokens
@@ -153,14 +138,24 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Auth check error:', error);
 
+    // Extract IP and User Agent for audit logging
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     request.headers.get('x-real-ip') || 
+                     '127.0.0.1';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+
     // Log system error
     await AuditLogger.logSystemAction(
       'auth_check_error',
-      'failure',
+      'auth',
+      undefined,
+      undefined,
       { 
         error: error instanceof Error ? error.message : 'Unknown error',
         endpoint: '/api/auth/check'
-      }
+      },
+      ipAddress,
+      userAgent
     );
 
     return NextResponse.json(
@@ -204,7 +199,6 @@ export async function POST(request: NextRequest) {
           await AuditLogger.logAuth(
             'login',
             authResult.user.id,
-            extended ? 'success' : 'failure',
             { 
               action: 'extend_session',
               sessionId: authResult.sessionId
@@ -235,7 +229,6 @@ export async function POST(request: NextRequest) {
         await AuditLogger.logAuth(
           'login',
           authResult.user.id,
-          refreshResult.success ? 'success' : 'failure',
           { 
             action: 'refresh_token'
           },
@@ -294,13 +287,23 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Auth check POST error:', error);
 
+    // Extract IP and User Agent for audit logging
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     request.headers.get('x-real-ip') || 
+                     '127.0.0.1';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+
     await AuditLogger.logSystemAction(
       'auth_check_post_error',
-      'failure',
+      'auth',
+      undefined,
+      undefined,
       { 
         error: error instanceof Error ? error.message : 'Unknown error',
         endpoint: '/api/auth/check'
-      }
+      },
+      ipAddress,
+      userAgent
     );
 
     return NextResponse.json(

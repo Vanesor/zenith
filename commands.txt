@@ -5,8 +5,7 @@ tables command
   PGPASSWORD=AtharvaAyush psql -h localhost -U zenithpostgres -d zenith -c "\dt" > database_tables.txt 2>&1
 
 
-image setup in database, data transfer from supabase to local db
-
+image setup in database
 
 
 
@@ -18,3 +17,25 @@ the database quesries shuold be proper and working they should be optimised fix 
 
 
 profile page
+admin portal
+project/workspace
+ass test ui changes
+clean up
+
+
+as you can see i have new project managemenet system so want to make it like a jira dashboard where only club coordinator, co-coordinators, zenith committee members namely president , vice president, innovation head,  secretary , outreach coordinator, media head, treasurer will have permission or option to create/delete/edit a project module, then they can invite members via email and project passkey random string, then the project dashboard will have a nice interface with present task past tasks and upcoming tasks, ability to create tasks then delete edit tasks in a project, then visual like scratching ext then task descriptions you know what i mean like a project management system 
+
+so make the ui proper modern stylish focus on visuals have more card and grid based layouts and go with the currenet theme look dashboard page or login page for theme and make proper databse quesries for that first fullly create the frontend and backend functionality properly then at last test it
+
++++++
+i do not see the create project button and make sure to allow create/edit/delete option to coordinator cocoordinators of all clubs and zenith committee memebrs 
+
+ui 's of chat assignement like settings *****
+
+change the greenish part in join project model and other models to purple or bluish or pinkish and also mordernise the events claneder and pop up page and similarly give a create edit delete events ui with same permissions and also add eevent incharge and event coordinator feild their with proper detail when the day in calender is clicked
+and also make all the pages have same theme toggle theme like in the new setting ui use the same light theme for all pages and make it proper
+
+
+change the greenish part in join project model and other models to purple or bluish or pinkish and also mordernise the events claneder and pop up page and similarly give a create edit delete events ui with same permissions and also add eevent incharge and event coordinator feild their with proper detail when the day in calender is clicked
+
+then change the ui of chats and make it proper and modern like other pages and yes use universal loader eevrywhere except loading messages of chat 

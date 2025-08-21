@@ -50,7 +50,9 @@ export default function LoginPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [verificationMethod, setVerificationMethod] = useState<'app' | 'email'>('app');
   const [userEmail, setUserEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [emailVerificationSent, setEmailVerificationSent] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
@@ -98,6 +100,7 @@ export default function LoginPage() {
         if (result.requiresTwoFactor) {
           setShowTwoFactor(true);
           setUserEmail(data.email); // Store email for verification options
+          setUserId(result.userId); // Store userId for 2FA verification
           toast.success('Please enter your 2FA code', {
             icon: '🔐',
           });
@@ -142,9 +145,9 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          userId: userId, // Use userId instead of email
           code: twoFactorCode,
-          method: verificationMethod, // Include verification method
+          trustDevice: trustDevice, // Include trusted device preference
         }),
       });
 
@@ -197,10 +200,10 @@ export default function LoginPage() {
   const handleEmailVerification = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/send-email-verification', {
+      const response = await fetch('/api/auth/send-email-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail }),
+        body: JSON.stringify({ userId: userId, email: userEmail }),
       });
 
       const result = await response.json();
@@ -600,6 +603,23 @@ export default function LoginPage() {
                       maxLength={6}
                       required
                     />
+
+                    {/* Trust device checkbox */}
+                    <div className="flex items-center space-x-3 p-4 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-200/30 dark:border-blue-700/30">
+                      <input
+                        type="checkbox"
+                        id="trustDevice"
+                        checked={trustDevice}
+                        onChange={(e) => setTrustDevice(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <label 
+                        htmlFor="trustDevice" 
+                        className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer select-none"
+                      >
+                        Remember this device for 30 days (skip 2FA on this device)
+                      </label>
+                    </div>
 
                     <Button
                       type="submit"
