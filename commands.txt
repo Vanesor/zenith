@@ -39,3 +39,6 @@ and also make all the pages have same theme toggle theme like in the new setting
 change the greenish part in join project model and other models to purple or bluish or pinkish and also mordernise the events claneder and pop up page and similarly give a create edit delete events ui with same permissions and also add eevent incharge and event coordinator feild their with proper detail when the day in calender is clicked
 
 then change the ui of chats and make it proper and modern like other pages and yes use universal loader eevrywhere except loading messages of chat 
+
+
+assignment submissions reports

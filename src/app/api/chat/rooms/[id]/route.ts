@@ -1,19 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/database";
+import { db } from '@/lib/database';
 import { verifyAuth } from "@/lib/auth-unified";
 import AuditLogger from "@/lib/audit-logger";
 
-// GET /api/chat/rooms/[id] - Get room details
+// Helper function to check permissions
+async function checkChatRoomPermissions(userId: string, roomId?: string) {
+  const userResult = await db.query(
+    `SELECT u.role, u.club_id, cm.role as committee_role,
+            c.coordinator_id, c.co_coordinator_id
+     FROM users u
+     LEFT JOIN committee_members cm ON u.id = cm.user_id
+     LEFT JOIN clubs c ON u.club_id = c.id
+     WHERE u.id = $1`,
+    [userId]
+  );
+
+  if (userResult.rows.length === 0) {
+    return { hasPermission: false, reason: "User not found" };
+  }
+
+  const user = userResult.rows[0];
+  
+  // Check if user has special permissions
+  const hasSpecialPermission = 
+    user.committee_role || 
+    user.coordinator_id === userId || 
+    user.co_coordinator_id === userId ||
+    user.role === 'admin' ||
+    user.role === 'coordinator';
+
+  if (roomId) {
+    // For specific room operations, also check if user created the room
+    const roomResult = await db.query(
+      `SELECT created_by FROM chat_rooms WHERE id = $1`,
+      [roomId]
+    );
+    
+    if (roomResult.rows.length === 0) {
+      return { hasPermission: false, reason: "Room not found" };
+    }
+    
+    const isCreator = roomResult.rows[0].created_by === userId;
+    return { hasPermission: hasSpecialPermission || isCreator, user };
+  }
+
+  return { hasPermission: hasSpecialPermission, user };
+}
+
+// GET /api/chat/rooms/[id] - Get specific room details
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  // In Next.js 13+, params needs to be accessed from context
-  const { id } = await context.params;
-  console.log('GET /api/chat/rooms/[id] called with ID:', id);
-
+  const { id: roomId } = await context.params;
+  
   try {
-    // Use centralized authentication system
     const authResult = await verifyAuth(request);
     
     if (!authResult.success) {
@@ -25,16 +66,18 @@ export async function GET(
     
     const userId = authResult.user!.id;
 
-    // Find room with member details using raw SQL
+    // Get room details with access check
     const roomResult = await db.query(`
       SELECT 
-        cr.id, cr.name, cr.description, cr.type, cr.created_by, 
-        cr.created_at, cr.updated_at, cr.club_id, cr.members,
-        c.name as club_name
+        cr.*,
+        c.name as club_name,
+        u.name as creator_name,
+        (SELECT COUNT(*) FROM chat_messages WHERE room_id = cr.id) as message_count
       FROM chat_rooms cr
       LEFT JOIN clubs c ON cr.club_id = c.id
+      LEFT JOIN users u ON cr.created_by = u.id
       WHERE cr.id = $1
-    `, [id]);
+    `, [roomId]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
@@ -42,63 +85,29 @@ export async function GET(
 
     const room = roomResult.rows[0];
 
-    // Get room members using raw SQL
-    const membersResult = await db.query(`
-      SELECT 
-        u.id, u.name, u.email, u.avatar, u.role
-      FROM chat_room_members crm
-      JOIN users u ON crm.user_id = u.id
-      WHERE crm.chat_room_id = $1
-    `, [id]);
+    // Check access permissions
+    const userResult = await db.query(
+      `SELECT club_id FROM users WHERE id = $1`,
+      [userId]
+    );
 
-    // Transform to match expected format
-    const transformedRoom = {
-      id: room.id,
-      name: room.name,
-      description: room.description,
-      type: room.type,
-      created_by: room.created_by,
-      created_at: room.created_at,
-      updated_at: room.updated_at,
-      club_id: room.club_id,
-      members: room.members,
-      club_name: room.club_name,
-      chat_room_members: membersResult.rows.map(member => ({
-        users: {
-          id: member.id,
-          name: member.name,
-          email: member.email,
-          avatar: member.avatar,
-          role: member.role
-        }
-      }))
-    };
-
-    // Check if user has access to the room
-    const isMember = (room as any).chat_room_members.some((member: any) => member.user_id === userId);
-    const isPublic = room.type === 'public';
-    
-    if (!isMember && !isPublic) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Format response
-    return NextResponse.json({
-      id: room.id,
-      name: room.name,
-      description: room.description,
-      type: room.type,
-      created_at: room.created_at,
-      club_id: room.club_id,
-      users: (room as any).chat_room_members.map((member: any) => ({
-        id: member.users.id,
-        name: member.users.name,
-        avatar_url: member.users.avatar,
-        role: member.role
-      }))
-    });
+    const userClubId = userResult.rows[0].club_id;
+
+    if (room.type === 'club' && room.club_id !== userClubId) {
+      return NextResponse.json(
+        { error: "You don't have access to this room" },
+        { status: 403 }
+      );
+    }
+
+    return NextResponse.json({ room });
+
   } catch (error) {
-    console.error('Error fetching room details:', error);
+    console.error("Error fetching room details:", error);
     return NextResponse.json(
       { error: "Failed to fetch room details" },
       { status: 500 }
@@ -106,16 +115,14 @@ export async function GET(
   }
 }
 
-// PUT /api/chat/rooms/[id] - Update room name (managers only)
+// PUT /api/chat/rooms/[id] - Update room
 export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  // In Next.js 13+, params needs to be accessed from context
-  const { id } = await context.params;
-  console.log('PUT /api/chat/rooms/[id] called with ID:', id);
+  const { id: roomId } = await context.params;
+  
   try {
-    // Use centralized authentication system
     const authResult = await verifyAuth(request);
     
     if (!authResult.success) {
@@ -127,7 +134,16 @@ export async function PUT(
     
     const userId = authResult.user!.id;
 
-    const { name } = await request.json();
+    // Check permissions
+    const permissionCheck = await checkChatRoomPermissions(userId, roomId);
+    if (!permissionCheck.hasPermission) {
+      return NextResponse.json(
+        { error: "Insufficient permissions to edit this room" },
+        { status: 403 }
+      );
+    }
+
+    const { name, description, profile_picture_url } = await request.json();
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -136,82 +152,41 @@ export async function PUT(
       );
     }
 
-    // Check if user is a manager and owns the room
-    const roomResult = await db.query(
-      `SELECT id, name, description, type, created_by, club_id FROM chat_rooms WHERE id = $1`,
-      [id]
-    );
-    
-    const userResult = await db.query(
-      `SELECT role, club_id FROM users WHERE id = $1`,
-      [userId]
-    );
-
-    if (roomResult.rows.length === 0 || userResult.rows.length === 0) {
-      return NextResponse.json({ error: "Room or user not found" }, { status: 404 });
-    }
-    
-    const room = roomResult.rows[0];
-    const user = userResult.rows[0];
-
-    // Check if user is a manager
-    const isManager = [
-      "coordinator",
-      "co_coordinator",
-      "secretary", 
-      "media",
-      "president",
-      "vice_president",
-      "innovation_head",
-      "treasurer",
-      "outreach",
-    ].includes(user.role);
-
-    if (!isManager || room.created_by !== userId) {
-      return NextResponse.json(
-        { error: "Only the room creator can rename this room" },
-        { status: 403 }
-      );
-    }
-
-    // Check for duplicate room names within the same club
-    const duplicateResult = await db.query(`
-      SELECT id FROM chat_rooms 
-      WHERE LOWER(name) = LOWER($1) AND club_id = $2 AND id != $3
-    `, [name.trim(), user.club_id, id]);
-
-    if (duplicateResult.rows.length > 0) {
-      return NextResponse.json(
-        { error: "A room with this name already exists in your club" },
-        { status: 409 }
-      );
-    }
-
-    // Update the room name
+    // Update room
     const updateResult = await db.query(`
       UPDATE chat_rooms 
-      SET name = $1, updated_at = NOW()
-      WHERE id = $2
-      RETURNING id, name, description, type, created_by, created_at, updated_at, club_id
-    `, [name.trim(), id]);
+      SET name = $1, description = $2, profile_picture_url = $3, updated_at = NOW(), edited_by = $4
+      WHERE id = $5
+      RETURNING *
+    `, [name.trim(), description || '', profile_picture_url || null, userId, roomId]);
+
+    if (updateResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Room not found or update failed" },
+        { status: 404 }
+      );
+    }
 
     const updatedRoom = updateResult.rows[0];
 
-    // Log audit event for chat room update
-    await AuditLogger.logChatAction(
-      'room_update',
-      id,
-      userId,
-      { name: room.name }, // old values
-      { name: updatedRoom.name }, // new values
-      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-      request.headers.get('user-agent') || undefined
-    );
-
-    return NextResponse.json({
-      message: "Room renamed successfully",
-      room: updatedRoom,
+    // Log audit event
+    await AuditLogger.log({
+      user_id: userId,
+      action: 'chat_room_updated',
+      resource_type: 'chat_room',
+      resource_id: roomId,
+      metadata: { 
+        newName: name.trim(),
+        newDescription: description || '',
+        updatedAt: new Date().toISOString()
+      }
     });
+
+    return NextResponse.json({ 
+      room: updatedRoom,
+      message: "Room updated successfully" 
+    });
+
   } catch (error) {
     console.error("Error updating room:", error);
     return NextResponse.json(
@@ -221,16 +196,14 @@ export async function PUT(
   }
 }
 
-// DELETE /api/chat/rooms/[id] - Delete room (managers only)
+// DELETE /api/chat/rooms/[id] - Delete room
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  // In Next.js 13+, params needs to be accessed from context
-  const { id } = await context.params;
-  console.log('DELETE /api/chat/rooms/[id] called with ID:', id);
+  const { id: roomId } = await context.params;
+  
   try {
-    // Use centralized authentication system
     const authResult = await verifyAuth(request);
     
     if (!authResult.success) {
@@ -242,68 +215,64 @@ export async function DELETE(
     
     const userId = authResult.user!.id;
 
-    // Check if user is a manager and owns the room
-    const roomResult = await db.query(
-      `SELECT id, name, created_by FROM chat_rooms WHERE id = $1`,
-      [id]
-    );
-    
-    const userResult = await db.query(
-      `SELECT role FROM users WHERE id = $1`,
-      [userId]
-    );
-
-    if (roomResult.rows.length === 0 || userResult.rows.length === 0) {
-      return NextResponse.json({ error: "Room or user not found" }, { status: 404 });
-    }
-    
-    const room = roomResult.rows[0];
-    const user = userResult.rows[0];
-
-    // Check if user is a manager
-    const isManager = [
-      "coordinator",
-      "co_coordinator",
-      "secretary",
-      "media", 
-      "president",
-      "vice_president",
-      "innovation_head",
-      "treasurer",
-      "outreach",
-    ].includes(user.role);
-
-    if (!isManager || room.created_by !== userId) {
+    // Check permissions
+    const permissionCheck = await checkChatRoomPermissions(userId, roomId);
+    if (!permissionCheck.hasPermission) {
       return NextResponse.json(
-        { error: "Only the room creator can delete this room" },
+        { error: "Insufficient permissions to delete this room" },
         { status: 403 }
       );
     }
 
-    // Delete associated messages first (if chat_messages table exists)
-    try {
-      await db.query(`DELETE FROM chat_messages WHERE room_id = $1`, [id]);
-    } catch (error) {
-      console.log("No chat_messages table or no messages to delete");
-    }
-
-    // Delete the room
-    await db.query(`DELETE FROM chat_rooms WHERE id = $1`, [id]);
-
-    // Log audit event for chat room deletion
-    await AuditLogger.logChatAction(
-      'room_delete',
-      id,
-      userId,
-      { name: room.name }, // old values
-      undefined, // no new values
-      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-      request.headers.get('user-agent') || undefined
+    // Get room details for audit log
+    const roomResult = await db.query(
+      `SELECT name, type, club_id FROM chat_rooms WHERE id = $1`,
+      [roomId]
     );
 
-    return NextResponse.json({
-      message: "Room deleted successfully",
+    if (roomResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Room not found" },
+        { status: 404 }
+      );
+    }
+
+    const room = roomResult.rows[0];
+
+    // Delete associated messages first
+    await db.query(`DELETE FROM chat_messages WHERE room_id = $1`, [roomId]);
+
+    // Delete the room
+    const deleteResult = await db.query(
+      `DELETE FROM chat_rooms WHERE id = $1 RETURNING id`,
+      [roomId]
+    );
+
+    if (deleteResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Failed to delete room" },
+        { status: 500 }
+      );
+    }
+
+    // Log audit event
+    await AuditLogger.log({
+      user_id: userId,
+      action: 'chat_room_deleted',
+      resource_type: 'chat_room',
+      resource_id: roomId,
+      metadata: { 
+        roomName: room.name,
+        roomType: room.type,
+        clubId: room.club_id,
+        deletedAt: new Date().toISOString()
+      }
     });
+
+    return NextResponse.json({ 
+      message: "Room and all its messages deleted successfully" 
+    });
+
   } catch (error) {
     console.error("Error deleting room:", error);
     return NextResponse.json(

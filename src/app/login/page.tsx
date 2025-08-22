@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,6 +54,7 @@ export default function LoginPage() {
   const [emailVerificationSent, setEmailVerificationSent] = useState(false);
   const [trustDevice, setTrustDevice] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
 
   const {
@@ -116,7 +117,14 @@ export default function LoginPage() {
           await login(result.token, result.user);
           
           setTimeout(() => {
-            router.push('/dashboard');
+            // Check for returnTo parameter
+            const returnTo = searchParams.get('returnTo');
+            if (returnTo && returnTo.startsWith('/')) {
+              console.log('Redirecting to:', returnTo);
+              router.push(returnTo);
+            } else {
+              router.push('/dashboard');
+            }
           }, 1500);
         }
       } else {
@@ -163,7 +171,14 @@ export default function LoginPage() {
         await login(result.token, result.user);
         
         setTimeout(() => {
-          router.push('/dashboard');
+          // Check for returnTo parameter
+          const returnTo = searchParams.get('returnTo');
+          if (returnTo && returnTo.startsWith('/')) {
+            console.log('Redirecting to:', returnTo);
+            router.push(returnTo);
+          } else {
+            router.push('/dashboard');
+          }
         }, 1500);
       } else {
         toast.error(result.error || 'Invalid verification code');

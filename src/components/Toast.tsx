@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { CheckCircle, XCircle, AlertCircle, Info, X } from "lucide-react";
 
 export interface Toast {
@@ -17,12 +17,16 @@ interface ToastProps {
 export function ToastItem({ toast, onClose }: ToastProps) {
   const { id, type, title, message, duration = 5000 } = toast;
 
+  const handleClose = useCallback(() => {
+    onClose(id);
+  }, [id, onClose]);
+
   useEffect(() => {
     if (duration > 0) {
-      const timer = setTimeout(() => onClose(id), duration);
+      const timer = setTimeout(handleClose, duration);
       return () => clearTimeout(timer);
     }
-  }, [id, duration, onClose]);
+  }, [duration, handleClose]);
 
   const getIcon = () => {
     switch (type) {
@@ -63,7 +67,7 @@ export function ToastItem({ toast, onClose }: ToastProps) {
         </div>
         <div className="flex-shrink-0">
           <button
-            onClick={() => onClose(id)}
+            onClick={handleClose}
             className="inline-flex items-center justify-center w-8 h-8 text-zenith-muted hover:text-zenith-secondary dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-zenith-primary rounded-full hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
           >
             <X className="w-4 h-4" />

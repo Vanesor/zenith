@@ -25,13 +25,15 @@ import {
   XCircle,
   Hash,
   BarChart3,
-  PieChart
+  PieChart,
+  Brain
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useToast } from "@/contexts/ToastContext";
 import { PaperpalHeader } from "@/components/PaperpalHeader";
 import { UniversalLoader } from '@/components/UniversalLoader';
+import ZenAssistant from '@/components/assignments/ZenAssistant';
 import TokenManager from "@/lib/TokenManager";
 
 interface Assignment {
@@ -85,6 +87,7 @@ export default function AssignmentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showZenAssistant, setShowZenAssistant] = useState(false);
   const [stats, setStats] = useState<AssignmentStats>({
     total: 0,
     pending: 0,
@@ -218,6 +221,24 @@ export default function AssignmentsPage() {
     }
   };
 
+  const handleAssignmentGenerated = (assignment: any) => {
+    // This function now only handles the final save after the user reviews/edits
+    // The ZEN Assistant will stay open for preview/edit and only call this when user clicks "Save"
+    
+    // Close the ZEN Assistant modal only after user has reviewed and saved
+    setShowZenAssistant(false);
+    
+    // Redirect to create page with the generated assignment data
+    const assignmentData = encodeURIComponent(JSON.stringify(assignment));
+    router.push(`/assignments/create?zenData=${assignmentData}`);
+    
+    showToast({
+      type: 'success',
+      title: 'Assignment Generated!',
+      message: 'ZEN Assistant has created your assignment. Review and publish when ready.'
+    });
+  };
+
   const isOverdue = (dueDate: string) => {
     return new Date(dueDate) < new Date();
   };
@@ -338,6 +359,16 @@ export default function AssignmentsPage() {
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Assignment
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowZenAssistant(true)}
+                className="flex items-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-purple-500/20"
+              >
+                <Brain className="w-4 h-4 mr-2" />
+                ZEN Assistant
               </motion.button>
               
               <motion.button
@@ -722,6 +753,13 @@ export default function AssignmentsPage() {
           )}
         </div>
       </div>
+
+      {/* ZEN Assistant Modal */}
+      <ZenAssistant
+        isOpen={showZenAssistant}
+        onClose={() => setShowZenAssistant(false)}
+        onAssignmentGenerated={handleAssignmentGenerated}
+      />
     </div>
   );
 }

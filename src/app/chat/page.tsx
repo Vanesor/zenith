@@ -1,599 +1,1301 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  MessageSquare,
-  Search,
-  MoreVertical,
-  Plus,
-  Settings,
-  Users,
-  Hash,
-  Send,
-  Smile,
-  Paperclip,
-  Phone,
-  Video,
-  Info,
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Reply,
-  Copy,
-  Star,
-  Clock,
-  Check,
-  CheckCheck,
-  X,
-  Image,
-  FileText,
-  ChevronLeft,
-  Filter,
-  Bell
+import { 
+  Send, MoreVertical, Search, ArrowLeft, Check, CheckCheck, 
+  Plus, User, Users, Settings, MessageCircle, Trash2, X, Reply, 
+  Edit3, ChevronDown, Smile, Paperclip, Image as ImageIcon, File,
+  Clock, Star, Volume2, PhoneCall, VideoIcon, Calendar, Shield,
+  AlertCircle, Target
 } from 'lucide-react';
+import { formatDistanceToNow, format, isToday, isYesterday, isSameDay } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { useToast } from '@/contexts/ToastContext';
-import { WhatsAppChatRoom } from '@/components/chat/WhatsAppChatRoom';
-import { UniversalLoader } from '@/components/UniversalLoader';
-import TokenManager from '@/lib/TokenManager';
-import MainLayout from '@/components/MainLayout';
 
-export const dynamic = 'force-dynamic';
+interface Message {
+  id: string;
+  content: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  timestamp: Date | string;
+  isRead: boolean;
+  isDelivered: boolean;
+  isEdited?: boolean;
+  editedAt?: Date | string;
+  type: 'text' | 'image' | 'file';
+  canEdit?: boolean;
+  canDelete?: boolean;
+  replyTo?: {
+    id: string;
+    content: string;
+    senderName: string;
+  };
+}
 
 interface ChatRoom {
   id: string;
   name: string;
-  description: string;
-  club_id: string;
-  club_name: string;
-  type: "public" | "private" | "club";
-  created_by: string;
-  members_count: number;
-  created_at: string;
+  type: 'public' | 'club';
+  description?: string;
+  profile_picture_url?: string;
+  member_count: number;
+  created_by?: string;
   last_message?: {
-    id: string;
-    message: string;
+    content: string;
     sender_name: string;
-    created_at: string;
-    is_read: boolean;
+    timestamp: Date | string;
   };
   unread_count?: number;
 }
 
-export default function ChatPage() {
-  const { user, isLoading } = useAuth();
-  const { isAuthenticated } = useAuthGuard({ 
-    redirectReason: "Please sign in to access the chat system",
-    redirectOnClose: true,
-    redirectPath: "/login"
-  });
-  const { showToast } = useToast();
-  
-  const [rooms, setRooms] = useState<ChatRoom[]>([]);
-  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showCreateRoom, setShowCreateRoom] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [filterType, setFilterType] = useState<"all" | "public" | "private" | "club">("all");
-  
-  // New room form
-  const [newRoom, setNewRoom] = useState({
-    name: "",
-    description: "",
-    type: "club" as "public" | "private" | "club",
-  });
+// Edit Message Modal
+interface EditMessageModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  message: Message | null;
+  onMessageEdited: () => void;
+}
 
-  // Check if mobile view
+function EditMessageModal({ isOpen, onClose, message, onMessageEdited }: EditMessageModalProps) {
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const isManager = user && [
-    "coordinator", "co_coordinator", "secretary", "media", "president",
-    "vice_president", "innovation_head", "treasurer", "outreach"
-  ].includes(user.role);
-
-  // Fetch chat rooms
-  useEffect(() => {
-    const fetchChatRooms = async () => {
-      if (!user || !isAuthenticated) return;
-
-      try {
-        setLoading(true);
-        const tokenManager = TokenManager.getInstance();
-        const response = await tokenManager.authenticatedFetch("/api/chat/rooms");
-
-        if (response.ok) {
-          const data = await response.json();
-          setRooms(data.rooms || []);
-          // Auto-select first room if available and not mobile
-          if (data.rooms && data.rooms.length > 0 && !isMobile) {
-            setSelectedRoom(data.rooms[0]);
-          }
-        } else {
-          showToast({
-            type: 'error',
-            title: 'Error',
-            message: 'Failed to load chat rooms'
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching chat rooms:', error);
-        showToast({
-          type: 'error',
-          title: 'Error',
-          message: 'Failed to load chat rooms'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchChatRooms();
-  }, [user, isAuthenticated, showToast, isMobile]);
-
-  // Filter rooms based on search and type
-  const filteredRooms = rooms.filter(room => {
-    const matchesSearch = 
-      room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.club_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesType = filterType === "all" || room.type === filterType;
-    
-    return matchesSearch && matchesType;
-  });
-
-  // Create new room
-  const handleCreateRoom = async () => {
-    if (!newRoom.name.trim()) {
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Room name is required'
-      });
-      return;
+    if (isOpen && message) {
+      setContent(message.content);
+      setError('');
     }
+  }, [isOpen, message]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message || !content.trim()) return;
+
+    setLoading(true);
+    setError('');
 
     try {
-      const tokenManager = TokenManager.getInstance();
-      const response = await tokenManager.authenticatedFetch('/api/chat/rooms', {
-        method: 'POST',
-        body: JSON.stringify(newRoom)
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/chat/messages', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          messageId: message.id,
+          content: content.trim()
+        })
       });
 
       const data = await response.json();
 
-      if (data.success) {
-        setRooms([data.room, ...rooms]);
-        setShowCreateRoom(false);
-        setNewRoom({ name: "", description: "", type: "club" });
-        showToast({
-          type: 'success',
-          title: 'Success',
-          message: 'Chat room created successfully!'
-        });
-        // Select the new room
-        setSelectedRoom(data.room);
+      if (response.ok) {
+        onMessageEdited();
+        onClose();
       } else {
-        showToast({
-          type: 'error',
-          title: 'Error',
-          message: data.error || 'Failed to create room'
-        });
+        setError(data.error || 'Failed to edit message');
       }
     } catch (error) {
-      console.error('Error creating room:', error);
-      showToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to create room'
-      });
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Format time for last message
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (days === 1) {
-      return 'Yesterday';
-    } else if (days < 7) {
-      return date.toLocaleDateString([], { weekday: 'long' });
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-  };
-
-  // Room selection handler
-  const handleRoomSelect = (room: ChatRoom) => {
-    setSelectedRoom(room);
-    if (isMobile) {
-      // On mobile, hide the sidebar when selecting a room
-      setSidebarOpen(false);
-    }
-  };
-
-  // Get room type icon
-  const getRoomTypeIcon = (type: string) => {
-    switch (type) {
-      case 'public':
-        return <Hash className="w-full h-full p-3 text-white" />;
-      case 'private':
-        return <Users className="w-full h-full p-3 text-white" />;
-      default:
-        return null;
-    }
-  };
-
-  // Get room avatar background color
-  const getRoomAvatarBg = (type: string, index: number) => {
-    const colors = [
-      'bg-gradient-to-br from-blue-500 to-blue-700',  // Club
-      'bg-gradient-to-br from-green-500 to-green-700', // Public
-      'bg-gradient-to-br from-purple-500 to-purple-700' // Private
-    ];
-    
-    if (type === 'public') return colors[1];
-    if (type === 'private') return colors[2];
-    
-    // For club type, alternate colors
-    const clubColors = [
-      'bg-gradient-to-br from-blue-500 to-blue-700',
-      'bg-gradient-to-br from-cyan-500 to-cyan-700',
-      'bg-gradient-to-br from-teal-500 to-teal-700',
-      'bg-gradient-to-br from-indigo-500 to-indigo-700'
-    ];
-    
-    return clubColors[index % clubColors.length];
-  };
-
-  if (isLoading || loading) {
-    return (
-      <MainLayout>
-        <div className="w-full h-[calc(100vh-7rem)] flex items-center justify-center">
-          <UniversalLoader 
-            message="Loading your conversations..."
-          />
-        </div>
-      </MainLayout>
-    );
-  }
+  if (!isOpen) return null;
 
   return (
-    <MainLayout>
-      <div className="fixed inset-0 top-16 bg-zenith-main overflow-hidden">
-        <div className="flex h-full">
-          {/* Mobile backdrop */}
-          {isMobile && sidebarOpen && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
-
-          {/* Chat Sidebar */}
-          <AnimatePresence>
-            {(!isMobile || (isMobile && sidebarOpen)) && (
-              <motion.div
-                initial={{ x: isMobile ? -400 : 0, opacity: isMobile ? 0 : 1 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -400, opacity: 0 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className={`
-                  ${isMobile ? 'fixed w-4/5 max-w-sm' : 'w-80'} 
-                  h-full bg-zenith-card border-r border-zenith-border flex flex-col z-30
-                  shadow-xl
-                `}
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-purple-500/20"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="relative p-6 border-b border-purple-500/20">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10"></div>
+            <div className="relative flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                  Edit Message
+                </h2>
+                <p className="text-gray-400 mt-1">Make changes to your message</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="rounded-full p-2 h-auto text-gray-400 hover:text-white hover:bg-white/10"
               >
-                {/* Sidebar Header */}
-                <div className="p-4 bg-zenith-card border-b border-zenith-border flex-shrink-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-xl font-bold text-zenith-primary flex items-center">
-                      <MessageSquare className="w-6 h-6 mr-2 text-zenith-primary" />
-                      Chats
-                    </h1>
-                    <div className="flex items-center space-x-2">
-                      {isManager && (
-                        <button
-                          onClick={() => setShowCreateRoom(true)}
-                          className="p-2 rounded-full hover:bg-zenith-hover transition-colors"
-                          title="Create new room"
-                        >
-                          <Plus className="w-5 h-5 text-zenith-secondary" />
-                        </button>
-                      )}
-                      <button className="p-2 rounded-full hover:bg-zenith-hover transition-colors">
-                        <Bell className="w-5 h-5 text-zenith-secondary" />
-                      </button>
-                      <button className="p-2 rounded-full hover:bg-zenith-hover transition-colors">
-                        <MoreVertical className="w-5 h-5 text-zenith-secondary" />
-                      </button>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6">
+            {error && (
+              <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <p className="text-red-300">{error}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-purple-300 mb-3">
+                <Edit3 className="h-4 w-4 inline mr-2" />
+                Message
+              </label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Type your message..."
+                className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end space-x-4 pt-4 border-t border-purple-500/20">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || !content.trim()}
+                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// Delete Message Modal
+interface DeleteMessageModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  message: Message | null;
+  onMessageDeleted: () => void;
+}
+
+function DeleteMessageModal({ isOpen, onClose, message, onMessageDeleted }: DeleteMessageModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleDelete = async () => {
+    if (!message) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/chat/messages', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ messageId: message.id })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onMessageDeleted();
+        onClose();
+      } else {
+        setError(data.error || 'Failed to delete message');
+      }
+    } catch (error) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="bg-gradient-to-br from-slate-900 via-red-900/30 to-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-red-500/20"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="relative p-6 border-b border-red-500/20">
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-pink-600/10"></div>
+            <div className="relative flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
+                  Delete Message
+                </h2>
+                <p className="text-gray-400 mt-1">This action cannot be undone</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="rounded-full p-2 h-auto text-gray-400 hover:text-white hover:bg-white/10"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {error && (
+              <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <p className="text-red-300">{error}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6 bg-slate-800/30 border border-slate-600 rounded-xl p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Trash2 className="h-5 w-5 text-red-400" />
+                <p className="text-red-300 font-medium">Warning</p>
+              </div>
+              <p className="text-gray-300">
+                Are you sure you want to delete this message? This action cannot be undone and the message will be permanently removed.
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-4 pt-4 border-t border-red-500/20">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDelete}
+                disabled={loading}
+                className="px-6 py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-xl font-semibold"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Message'
+                )}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// Create Room Modal Component
+interface CreateRoomModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onRoomCreated: () => void;
+}
+
+function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    type: 'public' as 'public' | 'club',
+    club_id: '',
+    profile_picture_url: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [clubs, setClubs] = useState<any[]>([]);
+  const [permissions, setPermissions] = useState<any>(null);
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
+  const [clubsLoading, setClubsLoading] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchClubs();
+      checkPermissions();
+    }
+  }, [isOpen]);
+
+  const fetchClubs = async () => {
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/clubs', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setClubs(data.clubs || []);
+      }
+    } catch (error) {
+      console.error('Error fetching clubs:', error);
+    } finally {
+      setClubsLoading(false);
+    }
+  };
+
+  const checkPermissions = async () => {
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/projects/permissions', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPermissions(data.permissions);
+      }
+    } catch (error) {
+      console.error('Error checking permissions:', error);
+    } finally {
+      setPermissionsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/chat/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onRoomCreated();
+        onClose();
+        setFormData({
+          name: '',
+          description: '',
+          type: 'public',
+          club_id: '',
+          profile_picture_url: ''
+        });
+      } else {
+        setError(data.error || 'Failed to create room');
+      }
+    } catch (error) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-purple-500/20"
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="relative p-6 border-b border-purple-500/20">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10"></div>
+            <div className="relative flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                  Create Chat Room
+                </h2>
+                <p className="text-gray-400 mt-1">
+                  Set up a new chat room with team collaboration features
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="rounded-full p-2 h-auto text-gray-400 hover:text-white hover:bg-white/10"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+            {permissionsLoading ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
+                <p className="mt-4 text-gray-400">Checking permissions...</p>
+              </div>
+            ) : !permissions?.canCreateProject ? (
+              <div className="p-6">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                      <Shield className="h-6 w-6 text-red-400" />
                     </div>
-                  </div>
-
-                  {/* Search */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zenith-muted" />
-                    <input
-                      type="text"
-                      placeholder="Search conversations..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
-                               text-zenith-primary placeholder-zenith-muted 
-                               focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
-                               transition-all duration-200"
-                    />
-                  </div>
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex border-b border-zenith-border bg-zenith-card flex-shrink-0">
-                  <button
-                    className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                      filterType === 'all' 
-                        ? 'text-zenith-primary border-b-2 border-zenith-primary bg-zenith-section' 
-                        : 'text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover'
-                    }`}
-                    onClick={() => setFilterType('all')}
-                  >
-                    All
-                  </button>
-                  <button
-                    className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                      filterType === 'club' 
-                        ? 'text-zenith-primary border-b-2 border-zenith-primary bg-zenith-section' 
-                        : 'text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover'
-                    }`}
-                    onClick={() => setFilterType('club')}
-                  >
-                    Club
-                  </button>
-                  <button
-                    className={`flex-1 py-3 text-center text-sm font-medium transition-colors ${
-                      filterType === 'public' 
-                        ? 'text-zenith-primary border-b-2 border-zenith-primary bg-zenith-section' 
-                        : 'text-zenith-muted hover:text-zenith-secondary hover:bg-zenith-hover'
-                    }`}
-                    onClick={() => setFilterType('public')}
-                  >
-                    Public
-                  </button>
-                </div>
-
-                {/* Rooms List */}
-                <div className="flex-1 overflow-y-auto bg-zenith-card scrollbar-thin scrollbar-thumb-zenith-border">
-                  {filteredRooms.length === 0 ? (
-                    <div className="p-8 text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-zenith-section rounded-full flex items-center justify-center">
-                        <MessageSquare className="w-8 h-8 text-zenith-muted" />
-                      </div>
-                      <p className="text-zenith-secondary mb-3">No conversations found</p>
-                      <p className="text-zenith-muted text-sm mb-4">
-                        {searchTerm ? "Try a different search term" : filterType !== 'all' ? "Try a different filter" : "Start a new conversation"}
+                    <div>
+                      <h3 className="font-semibold text-red-400 text-lg">
+                        Permission Required
+                      </h3>
+                      <p className="text-red-300 mt-1">
+                        You don't have permission to create chat rooms. Contact an administrator.
                       </p>
-                      {isManager && (
-                        <button
-                          onClick={() => setShowCreateRoom(true)}
-                          className="mx-auto px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors inline-flex items-center"
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="p-6">
+                {error && (
+                  <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircle className="h-5 w-5 text-red-400" />
+                      <p className="text-red-300">{error}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Left Column */}
+                  <div className="space-y-6">
+                    {/* Room Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                        <MessageCircle className="h-4 w-4 inline mr-2" />
+                        Room Name *
+                      </label>
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Enter an exciting room name..."
+                          required
+                          className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400 focus:border-purple-400 focus:ring-purple-400/20 rounded-xl h-12"
+                        />
+                        <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10 pointer-events-none"></div>
+                      </div>
+                    </div>
+
+                    {/* Room Type */}
+                    <div>
+                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                        <Target className="h-4 w-4 inline mr-2" />
+                        Room Type *
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div
+                          onClick={() => setFormData(prev => ({ ...prev, type: 'public' }))}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                            formData.type === 'public'
+                              ? 'border-purple-400 bg-purple-500/10'
+                              : 'border-slate-600 bg-slate-800/50 hover:border-slate-500'
+                          }`}
                         >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create New Room
-                        </button>
+                          <div className="text-center">
+                            <Users className="h-6 w-6 mx-auto mb-2 text-purple-400" />
+                            <div className="font-medium text-white">Public</div>
+                            <div className="text-xs text-gray-400 mt-1">Open to all members</div>
+                          </div>
+                        </div>
+                        <div
+                          onClick={() => setFormData(prev => ({ ...prev, type: 'club' }))}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                            formData.type === 'club'
+                              ? 'border-purple-400 bg-purple-500/10'
+                              : 'border-slate-600 bg-slate-800/50 hover:border-slate-500'
+                          }`}
+                        >
+                          <div className="text-center">
+                            <Shield className="h-6 w-6 mx-auto mb-2 text-blue-400" />
+                            <div className="font-medium text-white">Club</div>
+                            <div className="text-xs text-gray-400 mt-1">Club members only</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Club Selection */}
+                    {formData.type === 'club' && (
+                      <div>
+                        <label className="block text-sm font-medium text-purple-300 mb-3">
+                          <Users className="h-4 w-4 inline mr-2" />
+                          Select Club *
+                        </label>
+                        {clubsLoading ? (
+                          <div className="bg-slate-800/50 rounded-xl p-4 text-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400 mx-auto"></div>
+                          </div>
+                        ) : clubs.length > 0 ? (
+                          <select
+                            value={formData.club_id}
+                            onChange={(e) => setFormData(prev => ({ ...prev, club_id: e.target.value }))}
+                            className="w-full bg-slate-800/50 border border-slate-600 text-white rounded-xl h-12 px-4 focus:border-purple-400 focus:ring-purple-400/20"
+                            required
+                          >
+                            <option value="">Choose your club...</option>
+                            {clubs.map((club) => (
+                              <option key={club.id} value={club.id}>
+                                {club.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="bg-slate-800/50 rounded-xl p-4 text-center">
+                            <p className="text-gray-400">No clubs available</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-6">
+                    {/* Description */}
+                    <div>
+                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                        Description *
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Describe your room goals, objectives, and expected outcomes..."
+                        className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
+                        required
+                      />
+                    </div>
+
+                    {/* Profile Picture */}
+                    <div>
+                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                        Profile Picture URL
+                      </label>
+                      <Input
+                        type="url"
+                        value={formData.profile_picture_url}
+                        onChange={(e) => setFormData(prev => ({ ...prev, profile_picture_url: e.target.value }))}
+                        placeholder="https://example.com/avatar.jpg"
+                        className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400 focus:border-purple-400 focus:ring-purple-400/20 rounded-xl h-12"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-purple-500/20">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={loading}
+                    className="px-8 py-3 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={loading || !formData.name.trim() || !formData.description.trim()}
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Creating Room...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Room
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+export default function ChatPage() {
+  const { user } = useAuth();
+  const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState<Message | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
+    if (selectedRoom) {
+      fetchMessages(selectedRoom.id);
+    }
+  }, [selectedRoom]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`message-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight-message');
+      setTimeout(() => element.classList.remove('highlight-message'), 2000);
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/chat/rooms', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRooms(data.rooms || []);
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (roomId: string) => {
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch(`/api/chat/messages?roomId=${roomId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages || []);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedRoom || sending) return;
+
+    setSending(true);
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          roomId: selectedRoom.id,
+          content: newMessage.trim(),
+          messageType: 'text',
+          replyToMessageId: replyingTo?.id
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(prev => [...prev, data.message]);
+        setNewMessage('');
+        setReplyingTo(null);
+        fetchRooms(); // Refresh room list to update last message
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const formatMessageTime = (timestamp: Date | string) => {
+    try {
+      const date = new Date(timestamp);
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      
+      if (isToday(date)) {
+        return format(date, 'HH:mm');
+      } else if (isYesterday(date)) {
+        return 'Yesterday';
+      } else {
+        return format(date, 'dd/MM/yyyy');
+      }
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const formatDateSeparator = (timestamp: Date | string) => {
+    try {
+      const date = new Date(timestamp);
+      
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      
+      if (isToday(date)) {
+        return 'Today';
+      } else if (isYesterday(date)) {
+        return 'Yesterday';
+      } else {
+        return format(date, 'EEEE, MMMM d, yyyy');
+      }
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const shouldShowDateSeparator = (currentMessage: Message, previousMessage?: Message) => {
+    if (!previousMessage) return true;
+    
+    const currentDate = new Date(currentMessage.timestamp);
+    const prevDate = new Date(previousMessage.timestamp);
+    
+    return !isSameDay(currentDate, prevDate);
+  };
+
+  const filteredRooms = rooms.filter(room =>
+    room.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleEditMessage = (message: Message) => {
+    setEditingMessage(message);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteMessage = (message: Message) => {
+    setDeletingMessage(message);
+    setShowDeleteModal(true);
+  };
+
+  const handleMessageEdited = () => {
+    if (selectedRoom) {
+      fetchMessages(selectedRoom.id);
+    }
+  };
+
+  const handleMessageDeleted = () => {
+    if (selectedRoom) {
+      fetchMessages(selectedRoom.id);
+    }
+  };
+
+  return (
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Sidebar - Room List */}
+      <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Chats</h1>
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="rounded-full p-2 h-10 w-10 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search chats..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Room List */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="p-4 text-center text-gray-500">Loading chats...</div>
+          ) : filteredRooms.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">
+              {searchTerm ? 'No chats found' : 'No chats available'}
+            </div>
+          ) : (
+            filteredRooms.map((room) => (
+              <motion.div
+                key={room.id}
+                onClick={() => setSelectedRoom(room)}
+                className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                  selectedRoom?.id === room.id ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''
+                }`}
+                whileHover={{ x: 4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      {room.profile_picture_url ? (
+                        <img
+                          src={room.profile_picture_url}
+                          alt={room.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-white font-semibold text-lg">
+                          {room.name.charAt(0).toUpperCase()}
+                        </span>
                       )}
                     </div>
-                  ) : (
-                    <div className="space-y-0">
-                      {filteredRooms.map((room, index) => (
-                        <motion.div
-                          key={room.id}
-                          whileTap={{ scale: 0.98 }}
-                          className={`p-3 cursor-pointer transition-all border-l-4 ${
-                            selectedRoom?.id === room.id
-                              ? 'bg-zenith-section border-zenith-primary'
-                              : 'hover:bg-zenith-hover border-transparent'
-                          }`}
-                          onClick={() => handleRoomSelect(room)}
-                        >
-                          <div className="flex items-start space-x-3">
-                            {/* Room Avatar */}
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${getRoomAvatarBg(room.type, index)}`}>
-                              {room.type === 'club' ? (
-                                <span className="text-white font-semibold text-sm">
-                                  {room.name.charAt(0).toUpperCase()}
-                                </span>
+                    {room.type === 'club' && (
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                        {room.name}
+                      </h3>
+                      {room.last_message && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatMessageTime(room.last_message.timestamp)}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        {room.last_message
+                          ? `${room.last_message.sender_name}: ${room.last_message.content}`
+                          : room.description || 'No messages yet'
+                        }
+                      </p>
+                      {room.unread_count && room.unread_count > 0 && (
+                        <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                          {room.unread_count > 99 ? '99+' : room.unread_count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
+        {selectedRoom ? (
+          <>
+            {/* Chat Header */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    {selectedRoom.profile_picture_url ? (
+                      <img
+                        src={selectedRoom.profile_picture_url}
+                        alt={selectedRoom.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold">
+                        {selectedRoom.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-gray-900 dark:text-white">
+                      {selectedRoom.name}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {selectedRoom.member_count} members • {selectedRoom.type} room
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" className="rounded-full p-2">
+                    <Search className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="rounded-full p-2">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Reply Bar */}
+            <AnimatePresence>
+              {replyingTo && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Reply className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm text-blue-600 dark:text-blue-400">
+                        Replying to {replyingTo.senderName}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReplyingTo(null)}
+                      className="p-1 h-auto"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
+                    {replyingTo.content}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <AnimatePresence initial={false}>
+                {messages.map((message, index) => {
+                  const isOwn = message.senderId === user?.id;
+                  const previousMessage = index > 0 ? messages[index - 1] : undefined;
+                  const showDateSeparator = shouldShowDateSeparator(message, previousMessage);
+                  const showAvatar = !isOwn && (index === 0 || messages[index - 1].senderId !== message.senderId || showDateSeparator);
+                  const showName = !isOwn && showAvatar;
+
+                  return (
+                    <div key={message.id}>
+                      {/* Date Separator */}
+                      {showDateSeparator && (
+                        <div className="flex items-center justify-center my-4">
+                          <div className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">
+                            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                              {formatDateSeparator(message.timestamp)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Message */}
+                      <motion.div
+                        id={`message-${message.id}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
+                      >
+                        <div className={`flex ${isOwn ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2 max-w-xs md:max-w-md lg:max-w-lg`}>
+                          {showAvatar && (
+                            <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                              {message.senderAvatar ? (
+                                <img
+                                  src={message.senderAvatar}
+                                  alt={message.senderName}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
                               ) : (
-                                getRoomTypeIcon(room.type)
+                                <span className="text-white text-sm font-semibold">
+                                  {message.senderName.charAt(0).toUpperCase()}
+                                </span>
                               )}
                             </div>
+                          )}
+                          
+                          <div className={`${!showAvatar && !isOwn ? 'ml-10' : ''}`}>
+                            {showName && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 px-3">
+                                {message.senderName}
+                              </p>
+                            )}
                             
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-semibold text-zenith-primary text-sm truncate">
-                                  {room.name}
-                                </h3>
-                                {room.last_message && (
-                                  <span className="text-xs text-zenith-muted flex-shrink-0">
-                                    {formatTime(room.last_message.created_at)}
-                                  </span>
+                            <div
+                              className={`relative px-4 py-2 rounded-2xl break-words ${
+                                isOwn
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600'
+                              }`}
+                            >
+                              {message.replyTo && (
+                                <div
+                                  className={`mb-2 pb-2 border-l-4 pl-3 cursor-pointer ${
+                                    isOwn ? 'border-blue-300' : 'border-gray-300 dark:border-gray-500'
+                                  }`}
+                                  onClick={() => scrollToMessage(message.replyTo!.id)}
+                                >
+                                  <p className={`text-xs font-semibold ${isOwn ? 'text-blue-100' : 'text-blue-600 dark:text-blue-400'}`}>
+                                    {message.replyTo.senderName}
+                                  </p>
+                                  <p className={`text-xs ${isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'} truncate`}>
+                                    {message.replyTo.content}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              <p className="text-sm">{message.content}</p>
+                              
+                              <div className={`flex items-center justify-end space-x-1 mt-1 ${isOwn ? 'text-blue-100' : 'text-gray-400'}`}>
+                                {message.isEdited && (
+                                  <span className="text-xs opacity-70">edited</span>
+                                )}
+                                <span className="text-xs">
+                                  {formatMessageTime(message.timestamp)}
+                                </span>
+                                {isOwn && (
+                                  <div className="flex">
+                                    {message.isDelivered && <Check className="h-3 w-3" />}
+                                    {message.isRead && <Check className="h-3 w-3 -ml-1" />}
+                                  </div>
                                 )}
                               </div>
                               
-                              <div className="flex items-center justify-between">
-                                <p className="text-xs text-zenith-muted truncate">
-                                  {room.last_message 
-                                    ? `${room.last_message.sender_name}: ${room.last_message.message}` 
-                                    : room.description || 'No messages yet'
-                                  }
-                                </p>
-                                {room.unread_count && room.unread_count > 0 && (
-                                  <span className="bg-zenith-primary text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center flex-shrink-0 ml-2">
-                                    {room.unread_count > 99 ? '99+' : room.unread_count}
-                                  </span>
-                                )}
-                              </div>
-                              
-                              <div className="mt-1 flex items-center text-xs text-zenith-muted">
-                                <Users className="w-3 h-3 mr-1" />
-                                <span>{room.members_count} members</span>
-                                <span className="mx-2">•</span>
-                                <span className="capitalize">{room.type}</span>
+                              {/* Message Actions */}
+                              <div className={`absolute top-0 ${isOwn ? 'left-0 -translate-x-full' : 'right-0 translate-x-full'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                <div className="flex items-center space-x-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-1 shadow-lg">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setReplyingTo(message)}
+                                    className="p-1 h-auto"
+                                  >
+                                    <Reply className="h-4 w-4" />
+                                  </Button>
+                                  {message.canEdit && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEditMessage(message)}
+                                      className="p-1 h-auto"
+                                    >
+                                      <Edit3 className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  {message.canDelete && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteMessage(message)}
+                                      className="p-1 h-auto text-red-500 hover:text-red-700"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </motion.div>
-                      ))}
+                        </div>
+                      </motion.div>
                     </div>
-                  )}
+                  );
+                })}
+              </AnimatePresence>
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Message Input */}
+            <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-end space-x-3">
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="sm" className="rounded-full p-2">
+                    <Paperclip className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="rounded-full p-2">
+                    <ImageIcon className="h-5 w-5" />
+                  </Button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col bg-zenith-main relative">
-            {selectedRoom ? (
-              <WhatsAppChatRoom 
-                roomId={selectedRoom.id}
-                roomName={selectedRoom.name}
-                currentUser={user || { id: '', name: '', email: '' }}
-                isPrivate={selectedRoom.type === 'private'}
-                onInviteUser={() => {
-                  // Handle invite user functionality
-                  console.log('Invite user clicked');
-                }}
-              />
-            ) : (
-              <div className="flex-1 flex items-center justify-center bg-zenith-section">
-                <div className="text-center p-8">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-zenith-card rounded-full flex items-center justify-center shadow-lg">
-                    <MessageSquare className="w-12 h-12 text-zenith-primary" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-zenith-primary mb-2">
-                    Welcome to Zenith Chat
-                  </h2>
-                  <p className="text-zenith-secondary mb-4 max-w-md">
-                    Select a conversation from the sidebar to start chatting with your club members and colleagues.
-                  </p>
-                  {!isMobile && rooms.length === 0 && isManager && (
-                    <button
-                      onClick={() => setShowCreateRoom(true)}
-                      className="px-6 py-3 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors inline-flex items-center"
-                    >
-                      <Plus className="w-5 h-5 mr-2" />
-                      Create Your First Room
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Create Room Modal */}
-        {showCreateRoom && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-zenith-card rounded-xl p-6 w-full max-w-md shadow-2xl"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-zenith-primary">Create New Room</h3>
-                <button
-                  onClick={() => setShowCreateRoom(false)}
-                  className="p-2 hover:bg-zenith-hover rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-zenith-muted" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
-                    Room Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newRoom.name}
-                    onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
-                    placeholder="Enter room name..."
-                    className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
-                             text-zenith-primary placeholder-zenith-muted
-                             focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
-                             transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
-                    Description (Optional)
-                  </label>
+                
+                <div className="flex-1 relative">
                   <textarea
-                    value={newRoom.description}
-                    onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
-                    placeholder="Describe this room..."
-                    rows={3}
-                    className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
-                             text-zenith-primary placeholder-zenith-muted
-                             focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
-                             transition-all resize-none"
+                    ref={messageInputRef}
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type a message..."
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white max-h-32"
+                    rows={1}
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zenith-secondary mb-2">
-                    Room Type
-                  </label>
-                  <select
-                    value={newRoom.type}
-                    onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value as "public" | "private" | "club" })}
-                    className="w-full px-4 py-2.5 bg-zenith-section border border-zenith-border rounded-lg 
-                             text-zenith-primary
-                             focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent
-                             transition-all"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full p-2"
                   >
-                    <option value="club">Club Room</option>
-                    <option value="public">Public Room</option>
-                    <option value="private">Private Room</option>
-                  </select>
+                    <Smile className="h-5 w-5" />
+                  </Button>
                 </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    onClick={handleCreateRoom}
-                    className="flex-1 px-4 py-2.5 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 
-                             transition-colors font-medium"
-                  >
-                    Create Room
-                  </button>
-                  <button
-                    onClick={() => setShowCreateRoom(false)}
-                    className="flex-1 px-4 py-2.5 bg-zenith-section text-zenith-secondary rounded-lg hover:bg-zenith-hover 
-                             transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                
+                <Button
+                  onClick={sendMessage}
+                  disabled={!newMessage.trim() || sending}
+                  className="rounded-full p-3 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
               </div>
-            </motion.div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
+            <div className="text-center">
+              <MessageCircle className="h-24 w-24 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Welcome to Zenith Chat
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                Select a chat room to start messaging with your community
+              </p>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create Room
+              </Button>
+            </div>
           </div>
         )}
       </div>
-    </MainLayout>
+
+      {/* Modals */}
+      <CreateRoomModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onRoomCreated={fetchRooms}
+      />
+      
+      <EditMessageModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        message={editingMessage}
+        onMessageEdited={handleMessageEdited}
+      />
+      
+      <DeleteMessageModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        message={deletingMessage}
+        onMessageDeleted={handleMessageDeleted}
+      />
+
+      <style jsx>{`
+        .highlight-message {
+          animation: highlight 2s ease-in-out;
+        }
+        
+        @keyframes highlight {
+          0%, 100% { background-color: transparent; }
+          50% { background-color: rgba(59, 130, 246, 0.1); }
+        }
+      `}</style>
+    </div>
   );
 }
