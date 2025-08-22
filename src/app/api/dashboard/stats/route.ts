@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const userClubsResult = await db.query(`
       SELECT COUNT(*) as count 
       FROM club_members 
-      WHERE user_id = $1 AND status = 'active'
+      WHERE user_id = $1
     `, [userId]);
     const userClubsCount = parseInt(userClubsResult.rows[0]?.count) || 0;
 

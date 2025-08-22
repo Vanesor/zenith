@@ -118,7 +118,7 @@ export default function ConfirmationModal({
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-xl font-bold text-gray-900 dark:text-white mb-2"
+                      className="text-xl font-bold text-gray-900 dark:text-primary mb-2"
                     >
                       {title}
                     </motion.h3>
@@ -166,7 +166,7 @@ export default function ConfirmationModal({
                   whileTap={{ scale: 0.95 }}
                   onClick={onConfirm}
                   disabled={isLoading}
-                  className={`px-6 py-3 text-sm font-medium text-white bg-gradient-to-r ${config.buttonGradient} rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`px-6 py-3 text-sm font-medium text-primary bg-gradient-to-r ${config.buttonGradient} rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isLoading ? (
                     <motion.div 

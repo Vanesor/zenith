@@ -6,7 +6,7 @@ import { UnifiedHeader } from '@/components/UnifiedHeader';
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-zenith-main dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-main transition-colors duration-300">
       <UnifiedHeader showNavigation={true} />
       
       <div className="pt-40 pb-12 px-4">
@@ -14,32 +14,32 @@ export default function PrivacyPage() {
           {/* Back Link */}
           <Link
             href="/register"
-            className="inline-flex items-center text-zenith-secondary dark:text-gray-300 hover:text-zenith-primary dark:hover:text-white mb-8 transition-colors duration-200"
+            className="inline-flex items-center text-secondary hover:text-primary mb-8 transition-colors duration-200"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Registration
           </Link>
 
           {/* Privacy Content */}
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-zenith-border dark:border-gray-600 transition-colors duration-200">
+          <div className="bg-card rounded-2xl shadow-xl p-8 border border-custom transition-colors duration-200">
             <div className="prose prose-gray dark:prose-invert max-w-none">
-              <h1 className="text-3xl font-bold text-zenith-primary dark:text-white mb-6 transition-colors duration-200">
+              <h1 className="text-3xl font-bold text-primary mb-6 transition-colors duration-200">
                 Privacy Policy
               </h1>
               
-              <p className="text-zenith-secondary dark:text-gray-300 mb-6 transition-colors duration-200">
+              <p className="text-secondary mb-6 transition-colors duration-200">
                 <strong>Last updated:</strong> August 13, 2025
               </p>
 
-              <p className="text-zenith-secondary dark:text-gray-300 mb-6 transition-colors duration-200">
+              <p className="text-secondary mb-6 transition-colors duration-200">
                 This Privacy Policy describes how St. Vincent Pallotti College of Engineering & Technology ("we", "our", or "us") collects, uses, and shares your personal information when you use the Zenith platform.
               </p>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 1. Information We Collect
               </h2>
               
-              <h3 className="text-xl font-medium text-zenith-primary dark:text-white mt-6 mb-3 transition-colors duration-200">
+              <h3 className="text-xl font-medium text-primary mt-6 mb-3 transition-colors duration-200">
                 Information You Provide
               </h3>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
                 <li>Send us messages or feedback</li>
               </ul>
 
-              <h3 className="text-xl font-medium text-zenith-primary dark:text-white mt-6 mb-3 transition-colors duration-200">
+              <h3 className="text-xl font-medium text-primary mt-6 mb-3 transition-colors duration-200">
                 Information We Collect Automatically
               </h3>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
                 <li>Browser type and version</li>
               </ul>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 2. How We Use Your Information
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
@@ -83,18 +83,18 @@ export default function PrivacyPage() {
                 <li>Ensure platform security and prevent fraud</li>
               </ul>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 3. Information Sharing and Disclosure
               </h2>
               
-              <h3 className="text-xl font-medium text-zenith-primary dark:text-white mt-6 mb-3 transition-colors duration-200">
+              <h3 className="text-xl font-medium text-primary mt-6 mb-3 transition-colors duration-200">
                 We Do Not Sell Your Information
               </h3>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
                 We do not sell, rent, or trade your personal information to third parties.
               </p>
 
-              <h3 className="text-xl font-medium text-zenith-primary dark:text-white mt-6 mb-3 transition-colors duration-200">
+              <h3 className="text-xl font-medium text-primary mt-6 mb-3 transition-colors duration-200">
                 We May Share Information:
               </h3>
               <ul className="list-disc list-inside text-zenith-secondary dark:text-gray-300 mb-4 ml-4 transition-colors duration-200">
@@ -104,7 +104,7 @@ export default function PrivacyPage() {
                 <li><strong>In Emergencies:</strong> To protect the safety of users or the public</li>
               </ul>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 4. Data Security
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
                 <li>Access controls and authentication measures</li>
               </ul>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 5. Data Retention
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
@@ -130,7 +130,7 @@ export default function PrivacyPage() {
                 <li><strong>Usage Logs:</strong> Up to 2 years for security purposes</li>
               </ul>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 6. Your Rights and Choices
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
@@ -143,7 +143,7 @@ export default function PrivacyPage() {
                 <li><strong>Opt-out:</strong> Unsubscribe from non-essential notifications</li>
               </ul>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 7. Cookies and Tracking
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
@@ -155,35 +155,35 @@ export default function PrivacyPage() {
                 <li>Improve platform performance and user experience</li>
               </ul>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 8. Third-Party Services
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
                 Our platform may integrate with third-party services (like Google for authentication). These services have their own privacy policies, and we encourage you to review them.
               </p>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 9. Children's Privacy
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
                 Our platform is designed for college students (18+ years). We do not knowingly collect personal information from children under 18. If we become aware of such collection, we will delete the information immediately.
               </p>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 10. Changes to This Policy
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
                 We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.
               </p>
 
-              <h2 className="text-2xl font-semibold text-zenith-primary dark:text-white mt-8 mb-4 transition-colors duration-200">
+              <h2 className="text-2xl font-semibold text-primary mt-8 mb-4 transition-colors duration-200">
                 11. Contact Us
               </h2>
               <p className="text-zenith-secondary dark:text-gray-300 mb-4 transition-colors duration-200">
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <div className="bg-zenith-section dark:bg-gray-700 p-4 rounded-lg mt-4 transition-colors duration-200">
-                <p className="text-zenith-primary dark:text-white font-medium">
+                <p className="text-primary font-medium">
                   Privacy Officer<br />
                   St. Vincent Pallotti College of Engineering & Technology<br />
                   Department of Computer Engineering<br />

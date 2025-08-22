@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
           type: club.type,
           icon: club.icon,
           color: club.color,
-          member_count: club.member_count,
+          member_count: parseInt(club.membercount) || 0,
           memberCount: parseInt(club.membercount) || 0,
           eventCount: parseInt(club.eventcount) || 0,
           postCount: parseInt(club.postcount) || 0,

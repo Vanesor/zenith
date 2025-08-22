@@ -1,1152 +1,878 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import {
-  Calendar as CalendarIcon,
-  Clock,
-  MapPin,
-  Users,
-  Plus,
-  Search,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight,
-  Grid3X3,
-  List,
-  Edit,
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Calendar, 
+  Users, 
+  MapPin, 
+  Clock, 
+  Plus, 
+  Search, 
+  Filter, 
+  Eye, 
+  Edit, 
   Trash2,
-  Eye,
-  UserCheck,
-  Settings
-} from "lucide-react";
-import ZenChatbot from "@/components/ZenChatbot";
-import MainLayout from "@/components/MainLayout";
-import { useAuth } from "@/contexts/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
-import ThemeToggle from "@/components/ui/ThemeToggle";
-import EventModal from "@/components/events/EventModal";
+  Star,
+  Share2,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  Tag,
+  User,
+  X
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
+import CreateEventModal from '@/components/events/CreateEventModal';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, isToday, parseISO } from 'date-fns';
 
 interface Event {
   id: string;
   title: string;
   description: string;
-  date: string;
-  event_date: string; // Server returns this format
-  startTime: string;
-  start_time: string; // For EventModal compatibility
-  endTime?: string;
-  end_time?: string; // For EventModal compatibility
-  location: string;
-  club: string;
-  organizer: string;
-  attendees: number;
-  maxAttendees?: number;
-  max_attendees?: number; // For EventModal compatibility
-  isAttending: boolean;
-  event_incharge?: string;
-  event_coordinator?: string;
-  category?: string;
-  priority?: 'low' | 'medium' | 'high';
-  status?: 'draft' | 'published' | 'cancelled';
-  club_id?: string;
-  created_by?: string;
+  start_time: string;
+  end_time: string;
+  location?: string;
+  club_id: string;
+  club_name: string;
+  creator_id: string;
+  creator_name: string;
+  max_attendees?: number;
+  attendees_count: number;
+  category: string;
+  status: 'draft' | 'published' | 'cancelled';
+  featured_image?: string;
+  tags: string[];
+  is_attending?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Club {
+  id: string;
+  name: string;
+  type: string;
+}
+
+// Calendar View Component
+interface CalendarViewProps {
+  events: Event[];
+  currentDate: Date;
+  setCurrentDate: (date: Date) => void;
+  selectedDate: Date | null;
+  setSelectedDate: (date: Date | null) => void;
+  setShowDayDetails: (show: boolean) => void;
+  clubColors: Record<string, string>;
+  clubs: Club[];
+}
+
+function CalendarView({ 
+  events, 
+  currentDate, 
+  setCurrentDate, 
+  selectedDate, 
+  setSelectedDate, 
+  setShowDayDetails, 
+  clubColors,
+  clubs 
+}: CalendarViewProps) {
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+
+  const getEventsForDay = (date: Date) => {
+    return events.filter(event => {
+      const eventDate = parseISO(event.start_time);
+      return isSameDay(eventDate, date);
+    });
+  };
+
+  const getClubColor = (clubId: string) => {
+    const club = clubs.find(c => c.id === clubId);
+    const clubType = club?.type?.toLowerCase() || 'default';
+    return clubColors[clubType] || clubColors.default;
+  };
+
+  const handleDayClick = (date: Date) => {
+    const dayEvents = getEventsForDay(date);
+    if (dayEvents.length > 0) {
+      setSelectedDate(date);
+      setShowDayDetails(true);
+    }
+  };
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+  };
+
+  return (
+    <Card className="zenith-bg-card border zenith-border">
+      <CardHeader className="zenith-bg-section border-b zenith-border">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="zenith-text-primary">
+              {format(currentDate, 'MMMM yyyy')}
+            </CardTitle>
+            <p className="zenith-text-secondary text-sm mt-1">
+              Click on a day with events to see details
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPreviousMonth}
+              className="zenith-bg-card zenith-border hover:zenith-bg-hover"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNextMonth}
+              className="zenith-bg-card zenith-border hover:zenith-bg-hover"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-0">
+          {/* Day Headers */}
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="p-4 text-center border-b zenith-border zenith-bg-section">
+              <span className="text-sm font-medium zenith-text-primary">{day}</span>
+            </div>
+          ))}
+          
+          {/* Calendar Days */}
+          {calendarDays.map((day, index) => {
+            const dayEvents = getEventsForDay(day);
+            const isCurrentMonth = isSameMonth(day, currentDate);
+            const isTodayDate = isToday(day);
+            
+            return (
+              <div
+                key={index}
+                onClick={() => handleDayClick(day)}
+                className={`min-h-[120px] p-2 border-b border-r zenith-border cursor-pointer transition-colors ${
+                  isCurrentMonth ? 'zenith-bg-card hover:zenith-bg-hover' : 'zenith-bg-section'
+                } ${isTodayDate ? 'ring-2 ring-blue-500' : ''}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-sm font-medium ${
+                    isCurrentMonth 
+                      ? isTodayDate 
+                        ? 'text-blue-600 font-bold' 
+                        : 'zenith-text-primary'
+                      : 'zenith-text-muted'
+                  }`}>
+                    {format(day, 'd')}
+                  </span>
+                  {dayEvents.length > 0 && (
+                    <span className="text-xs zenith-text-secondary">
+                      {dayEvents.length}
+                    </span>
+                  )}
+                </div>
+                
+                {/* Event Dots */}
+                <div className="space-y-1">
+                  {dayEvents.slice(0, 3).map((event, eventIndex) => (
+                    <div
+                      key={eventIndex}
+                      className={`w-2 h-2 rounded-full ${getClubColor(event.club_id)}`}
+                      title={event.title}
+                    />
+                  ))}
+                  {dayEvents.length > 3 && (
+                    <div className="text-xs zenith-text-muted">
+                      +{dayEvents.length - 3} more
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Legend */}
+        <div className="p-4 border-t zenith-border zenith-bg-section">
+          <h4 className="text-sm font-medium zenith-text-primary mb-2">Club Colors</h4>
+          <div className="flex flex-wrap gap-4">
+            {clubs.map(club => (
+              <div key={club.id} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${getClubColor(club.id)}`} />
+                <span className="text-sm zenith-text-secondary">{club.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function EventsPage() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  
+  // Club colors mapping
+  const clubColors: Record<string, string> = {
+    'innovation': 'bg-blue-500',
+    'web-development': 'bg-green-500', 
+    'app-development': 'bg-purple-500',
+    'cybersecurity': 'bg-red-500',
+    'default': 'bg-gray-500'
+  };
+  
   const [events, setEvents] = useState<Event[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"calendar" | "list">("calendar");
-  const [viewSwitching, setViewSwitching] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedClub, setSelectedClub] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('calendar');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [permissions, setPermissions] = useState<any>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'view' | 'create' | 'edit'>('view');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showDayDetails, setShowDayDetails] = useState(false);
 
+  // Fetch events
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, isLoading, router]);
+    fetchEvents();
+    fetchClubs();
+    checkPermissions();
+  }, []);
 
   const fetchEvents = async () => {
-    if (!user) return;
-
     try {
-      setLoading(true);
-      setError(null);
-      const token = localStorage.getItem("zenith-token");
-      const response = await fetch("/api/events", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
+      const response = await fetch('/api/events');
       if (response.ok) {
-        const result = await response.json();
-        console.log('Events API response:', result);
-        
-        // Check if the response has the expected structure
-        if (result.success && Array.isArray(result.data)) {
-          setEvents(result.data);
-          console.log('Events loaded successfully:', result.data.length, 'events');
-        } else if (Array.isArray(result)) {
-          // Fallback: if the API returns an array directly
-          setEvents(result);
-          console.log('Events loaded successfully (direct array):', result.length, 'events');
-        } else {
-          console.error('API returned unexpected data structure:', result);
-          setEvents([]);
-        }
-      } else if (response.status === 401 || response.status === 403) {
-        // Token expired or invalid, redirect to login
-        console.error("Authentication failed, redirecting to login");
-        localStorage.removeItem("zenith-token");
-        router.push("/login");
-        return;
-      } else {
-        console.error("Failed to fetch events", response.status);
-        setError("Failed to load events. Please try again.");
-        setEvents([]);
+        const data = await response.json();
+        setEvents(data.events || []);
       }
     } catch (error) {
-      console.error("Error fetching events:", error);
-      setError("Network error. Please check your connection and try again.");
-      setEvents([]);
+      console.error('Error fetching events:', error);
     } finally {
       setLoading(false);
     }
   };
-  
-  // Join or leave an event
-  const toggleEventAttendance = async (eventId: string, isAttending: boolean) => {
+
+  const fetchClubs = async () => {
     try {
-      const token = localStorage.getItem("zenith-token");
-      const url = `/api/events/${eventId}/attend`;
-      const method = isAttending ? "DELETE" : "POST";
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      
+      const response = await fetch('/api/clubs');
       if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          // Update local state to reflect the change
-          setEvents((prevEvents) => {
-            const safeEvents = Array.isArray(prevEvents) ? prevEvents : [];
-            return safeEvents.map(event => 
-              event.id === eventId 
-                ? { 
-                    ...event, 
-                    isAttending: !isAttending,
-                    // If joining, increment attendees, if leaving, decrement
-                    attendees: isAttending ? event.attendees - 1 : event.attendees + 1
-                } 
-              : event
-            );
-          });
-          
-          // Success message will be reflected in UI state change, no need for alert
-        } else {
-          throw new Error(result.error || "Unknown error occurred");
-        }
-      } else if (response.status === 401 || response.status === 403) {
-        // Token expired or invalid, redirect to login
-        console.error("Authentication failed, redirecting to login");
-        localStorage.removeItem("zenith-token");
-        router.push("/login");
-        return;
-      } else {
-        const error = await response.json();
-        console.error("Failed to update event attendance:", error);
-        alert(error.error || "Failed to update event attendance");
+        const data = await response.json();
+        setClubs(data.clubs || []);
       }
     } catch (error) {
-      console.error("Error updating event attendance:", error);
-      alert("An error occurred while trying to update event attendance");
+      console.error('Error fetching clubs:', error);
     }
   };
 
-  // Event Modal Handlers
-  const openEventModal = (mode: 'view' | 'create' | 'edit', event?: Event) => {
-    setModalMode(mode);
-    setSelectedEvent(event || null);
-    setIsEventModalOpen(true);
-  };
-
-  const closeEventModal = () => {
-    setIsEventModalOpen(false);
-    setSelectedEvent(null);
-    setModalMode('view');
-  };
-
-  const handleEventSaved = (savedEvent: any) => {
-    if (modalMode === 'create') {
-      // Convert the saved event to our format
-      const newEvent: Event = {
-        ...savedEvent,
-        startTime: savedEvent.start_time,
-        endTime: savedEvent.end_time,
-        club: savedEvent.club?.name || 'Unknown Club',
-        organizer: savedEvent.created_by || user?.name || 'Unknown',
-        attendees: 0,
-        isAttending: false
-      };
-      setEvents(prev => [...prev, newEvent]);
-    } else if (modalMode === 'edit') {
-      // Update existing event
-      const updatedEvent: Event = {
-        ...savedEvent,
-        startTime: savedEvent.start_time,
-        endTime: savedEvent.end_time,
-        club: savedEvent.club?.name || 'Unknown Club',
-        organizer: savedEvent.created_by || user?.name || 'Unknown',
-        attendees: savedEvent.attendees || 0,
-        isAttending: savedEvent.isRegistered || false
-      };
-      setEvents(prev => prev.map(event => 
-        event.id === updatedEvent.id ? updatedEvent : event
-      ));
+  const checkPermissions = async () => {
+    if (!user) return;
+    try {
+      const response = await fetch('/api/events/permissions');
+      if (response.ok) {
+        const data = await response.json();
+        setPermissions(data.permissions);
+      }
+    } catch (error) {
+      console.error('Error checking permissions:', error);
     }
-    closeEventModal();
   };
 
-  const handleEventDeleted = (eventId: string) => {
-    setEvents(prev => prev.filter(event => event.id !== eventId));
-    closeEventModal();
-  };
+  const toggleAttendance = async (eventId: string, isAttending: boolean) => {
+    if (!user) {
+      showToast({
+        title: "Authentication Required",
+        message: "Please sign in to register for events.",
+        type: "error"
+      });
+      return;
+    }
 
-  // Mock clubs data for the modal - replace with actual API call
-  const clubs = [
-    { id: '1', name: 'Tech Club', color: '#8B5CF6' },
-    { id: '2', name: 'Sports Club', color: '#3B82F6' },
-    { id: '3', name: 'Arts Club', color: '#EC4899' },
-    { id: '4', name: 'Science Club', color: '#06B6D4' },
-  ];
+    try {
+      const response = await fetch(`/api/events/${eventId}/attend`, {
+        method: isAttending ? 'DELETE' : 'POST',
+      });
 
-  // Convert event for modal
-  const convertEventForModal = (event: Event) => {
-    return {
-      ...event,
-      start_time: event.startTime,
-      end_time: event.endTime,
-      max_attendees: event.maxAttendees,
-      club: {
-        id: event.club_id || '1',
-        name: event.club || 'Unknown Club'
+      if (response.ok) {
+        setEvents(prev => prev.map(event => 
+          event.id === eventId 
+            ? { 
+                ...event, 
+                is_attending: !isAttending,
+                attendees_count: isAttending ? event.attendees_count - 1 : event.attendees_count + 1
+              } 
+            : event
+        ));
+        
+        showToast({
+          title: isAttending ? "Left Event" : "Joined Event",
+          message: isAttending ? "You have left the event." : "You have joined the event!",
+          type: "success"
+        });
       }
-    };
+    } catch (error) {
+      console.error('Error toggling attendance:', error);
+      showToast({
+        title: "Error",
+        message: "Failed to update attendance. Please try again.",
+        type: "error"
+      });
+    }
   };
 
-  // Check if user can manage events
-  const canManageEvents = user && [
-    "coordinator", "co_coordinator", "secretary", "president", "vice_president",
-    "club_coordinator", "innovation_head", "outreach_coordinator", "media_head", "treasurer"
-  ].includes(user.role);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [user]);
-
-  // Get color styling for different clubs - updated to purple/blue/pink theme
-  const getEventColor = (club: string) => {
-    // Handle undefined or null club names
-    const safeName = club || 'default';
+  // Filter events
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         event.club_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory;
+    const matchesClub = selectedClub === 'all' || event.club_id === selectedClub;
     
-    // Create a hash from the club name for consistent colors
-    const hash = safeName.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
-    const colors = [
-      {
-        bg: 'bg-gradient-to-r from-purple-500 to-purple-600',
-        text: 'text-white',
-        shadow: 'shadow-purple-200 dark:shadow-purple-800/30',
-        border: 'border-purple-300 dark:border-purple-600',
-        highlight: 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-700',
-        solid: 'bg-purple-500'
-      },
-      {
-        bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
-        text: 'text-white',
-        shadow: 'shadow-blue-200 dark:shadow-blue-800/30',
-        border: 'border-blue-300 dark:border-blue-600',
-        highlight: 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700',
-        solid: 'bg-blue-500'
-      },
-      {
-        bg: 'bg-gradient-to-r from-pink-500 to-pink-600',
-        text: 'text-white',
-        shadow: 'shadow-pink-200 dark:shadow-pink-800/30',
-        border: 'border-pink-300 dark:border-pink-600',
-        highlight: 'bg-pink-50 border-pink-200 dark:bg-pink-900/20 dark:border-pink-700',
-        solid: 'bg-pink-500'
-      },
-      {
-        bg: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
-        text: 'text-white',
-        shadow: 'shadow-indigo-200 dark:shadow-indigo-800/30',
-        border: 'border-indigo-300 dark:border-indigo-600',
-        highlight: 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-700',
-        solid: 'bg-indigo-500'
-      },
-      {
-        bg: 'bg-gradient-to-r from-violet-500 to-violet-600',
-        text: 'text-white',
-        shadow: 'shadow-violet-200 dark:shadow-violet-800/30',
-        border: 'border-violet-300 dark:border-violet-600',
-        highlight: 'bg-violet-50 border-violet-200 dark:bg-violet-900/20 dark:border-violet-700',
-        solid: 'bg-violet-500'
-      },
-      {
-        bg: 'bg-gradient-to-r from-fuchsia-500 to-fuchsia-600',
-        text: 'text-white',
-        shadow: 'shadow-fuchsia-200 dark:shadow-fuchsia-800/30',
-        border: 'border-fuchsia-300 dark:border-fuchsia-600',
-        highlight: 'bg-fuchsia-50 border-fuchsia-200 dark:bg-fuchsia-900/20 dark:border-fuchsia-700',
-        solid: 'bg-fuchsia-500'
-      },
-      {
-        bg: 'bg-gradient-to-r from-cyan-500 to-cyan-600',
-        text: 'text-white',
-        shadow: 'shadow-cyan-200 dark:shadow-cyan-800/30',
-        border: 'border-cyan-300 dark:border-cyan-600',
-        highlight: 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/20 dark:border-cyan-700',
-        solid: 'bg-cyan-500'
-      },
-      {
-        bg: 'bg-gradient-to-r from-teal-500 to-teal-600',
-        text: 'text-white',
-        shadow: 'shadow-teal-200 dark:shadow-teal-800/30',
-        border: 'border-teal-300 dark:border-teal-600',
-        highlight: 'bg-teal-50 border-teal-200 dark:bg-teal-900/20 dark:border-teal-700',
-        solid: 'bg-teal-500'
-      }
-    ];
-    
-    return colors[Math.abs(hash) % colors.length];
-  };
-  
-  // Calendar helper functions
-  const getDaysInMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  };
+    return matchesSearch && matchesCategory && matchesClub;
+  });
 
-  const getFirstDayOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  };
+  // Get unique categories
+  const categories = Array.from(new Set(events.map(event => event.category))).filter(Boolean);
 
-  const formatMonthYear = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  const formatMonth = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-    });
-  };
-
+  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
-  const formatTime = (time: string) => {
-    if (!time) return "Time not specified";
-    const [hours, minutes] = time.split(":");
-    if (!hours || !minutes) return time;
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-  };
-
-  const isToday = (dateString: string) => {
-    const today = new Date();
-    const eventDate = new Date(dateString);
-    return today.toDateString() === eventDate.toDateString();
-  };
-
-  const isTomorrow = (dateString: string) => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const eventDate = new Date(dateString);
-    return tomorrow.toDateString() === eventDate.toDateString();
-  };
-
-  const getDateLabel = (dateString: string) => {
-    if (isToday(dateString)) return "Today";
-    if (isTomorrow(dateString)) return "Tomorrow";
-    return formatDate(dateString);
-  };
-
-  const getEventsForDate = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
-    return filteredEvents.filter(event => {
-      const eventDate = new Date(event.event_date);
-      const eventDateString = eventDate.toISOString().split('T')[0];
-      return eventDateString === dateString;
-    });
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(newDate.getMonth() - 1);
-      } else {
-        newDate.setMonth(newDate.getMonth() + 1);
-      }
-      return newDate;
-    });
-  };
-
-  const handleViewSwitch = async (newView: "calendar" | "list") => {
-    if (newView === view) return;
-    
-    setViewSwitching(true);
-    // Add a small delay to show the loading state
-    await new Promise(resolve => setTimeout(resolve, 300));
-    setView(newView);
-    setViewSwitching(false);
-  };
-  
-  const handleDayClick = (date: Date) => {
-    setSelectedDay(date);
-    handleViewSwitch('list');
-  };
-
-  // Filtered events based on search and selected day
-  const filteredEvents = useMemo(() => {
-    const safeEvents = Array.isArray(events) ? events : [];
-    return safeEvents.filter((event) => {
-      // Filter by search term
-      const matchesSearch = searchTerm === "" || 
-        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.club.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Filter by selected day
-      const matchesSelectedDay = !selectedDay || (() => {
-        const eventDate = new Date(event.event_date);
-        const selectedDayDate = new Date(selectedDay);
-        return eventDate.toDateString() === selectedDayDate.toDateString();
-      })();
-
-      return matchesSearch && matchesSelectedDay;
-    });
-  }, [events, searchTerm, selectedDay]);
-
-  const upcomingEvents = filteredEvents
-    .filter((event) => {
-      const eventDate = new Date(event.event_date);
-      const today = new Date();
-      // Set time to start of day for comparison to include all events for today
-      today.setHours(0, 0, 0, 0);
-      eventDate.setHours(0, 0, 0, 0);
-      return eventDate >= today;
-    })
-    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
-
-  const attendingEvents = useMemo(() => {
-    const safeEvents = Array.isArray(events) ? events : [];
-    return safeEvents.filter((event) => event.isAttending);
-  }, [events]);
-
-  const weeklyEvents = useMemo(() => {
-    const safeEvents = Array.isArray(events) ? events : [];
-    return safeEvents.filter((event) => {
-      const eventDate = new Date(event.event_date);
-      const today = new Date();
-      const weekFromNow = new Date(
-        today.getTime() + 7 * 24 * 60 * 60 * 1000
-      );
-      return eventDate >= today && eventDate <= weekFromNow;
-    });
-  }, [events]);
-
-  const renderCalendarView = () => {
-    const daysInMonth = getDaysInMonth(currentDate);
-    const firstDayOfMonth = getFirstDayOfMonth(currentDate);
-    const today = new Date();
-    
-    const days = [];
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-    // Add day names header
-    const dayHeaders = dayNames.map((day, index) => (
-      <div key={day} className={`p-3 text-center text-sm font-semibold border-b-2 ${
-        index === 0 
-          ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700' 
-          : 'text-zenith-primary dark:text-blue-400 bg-zenith-section/50 dark:bg-gray-800/50 border-zenith-primary/20 dark:border-gray-600'
-      }`}>
-        {day}
-      </div>
-    ));
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(
-        <div key={`empty-${i}`} className="p-3 h-28 border border-zenith-border/50 dark:border-gray-700/50 bg-zenith-section/30 dark:bg-gray-800/30"></div>
-      );
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'published': return 'bg-green-100 text-green-800 border-green-200';
+      case 'draft': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
-
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-      const dayEvents = getEventsForDate(date);
-      const isCurrentDay = today.toDateString() === date.toDateString();
-      const isSunday = date.getDay() === 0;
-
-      days.push(
-        <motion.div
-          key={day}
-          whileHover={{ scale: 1.02 }}
-          onClick={() => handleDayClick(date)}
-          className={`p-3 h-28 border transition-all duration-200 relative overflow-hidden cursor-pointer ${
-            isSunday 
-              ? 'border-red-200 dark:border-red-700 bg-red-50/50 dark:bg-red-900/20 hover:bg-red-100/50 dark:hover:bg-red-900/30' 
-              : 'border-zenith-border/50 dark:border-gray-700/50 bg-zenith-card dark:bg-gray-800/50 hover:bg-zenith-hover dark:hover:bg-gray-700/50'
-          } ${
-            isCurrentDay ? 'ring-2 ring-zenith-primary dark:ring-blue-400 bg-zenith-primary/5 dark:bg-blue-900/20' : ''
-          }`}
-        >
-          <div className={`text-sm font-semibold mb-2 ${
-            isSunday ? 'text-red-600 dark:text-red-400' : isCurrentDay ? 'text-zenith-primary dark:text-blue-400' : 'text-zenith-secondary dark:text-gray-300'
-          }`}>
-            {day}
-            {isCurrentDay && (
-              <div className="w-2 h-2 bg-zenith-primary dark:bg-blue-400 rounded-full mt-1"></div>
-            )}
-            {isSunday && !isCurrentDay && (
-              <div className="w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full mt-1"></div>
-            )}
-          </div>
-          <div className="space-y-1">
-            {dayEvents.slice(0, 2).map((event, index) => {
-              const eventColor = getEventColor(event.club);
-              return (
-                <div
-                  key={event.id}
-                  className={`text-xs p-1.5 rounded-md font-medium truncate ${eventColor.solid} text-white`}
-                  title={`${event.title} - ${formatTime(event.startTime)} at ${event.location} (${event.club})`}
-                >
-                  <div className="flex items-center space-x-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/80"></div>
-                    <span className="truncate">{event.title}</span>
-                  </div>
-                </div>
-              );
-            })}
-            {dayEvents.length > 2 && (
-              <div className="text-xs font-medium text-zenith-primary dark:text-blue-400 bg-zenith-primary/10 dark:bg-blue-900/30 rounded px-2 py-1 border border-zenith-primary/20 dark:border-blue-700/50">
-                +{dayEvents.length - 2} more
-              </div>
-            )}
-          </div>
-        </motion.div>
-      );
-    }
-
-    return (
-      <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
-        {/* Loading Overlay for Calendar - shows when events array is empty but not in error state */}
-        {events.length === 0 && !loading && !error && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm z-10 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-4"></div>
-              <p className="text-sm text-zenith-muted dark:text-gray-400">Loading events...</p>
-            </div>
-          </div>
-        )}
-        
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zenith-border dark:border-gray-600">
-          <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
-            {formatMonthYear(currentDate)}
-          </h2>
-          <div className="flex items-center space-x-2">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigateMonth('prev')}
-              className="p-2 hover:bg-zenith-hover dark:hover:bg-gray-700/50 rounded-lg transition-colors"
-            >
-              <ChevronLeft size={20} className="text-zenith-secondary dark:text-gray-400" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-1 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors shadow-md"
-            >
-              Today
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigateMonth('next')}
-              className="p-2 hover:bg-zenith-hover dark:hover:bg-gray-700/50 rounded-lg transition-colors"
-            >
-              <ChevronRight size={20} className="text-zenith-secondary dark:text-gray-400" />
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7">
-          {dayHeaders}
-          {days}
-        </div>
-      </div>
-    );
   };
 
-  if (isLoading || !user) {
+  if (loading) {
     return (
-      <MainLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-        </div>
-      </MainLayout>
+      <div className="min-h-screen bg-main flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header with Theme Toggle */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div className="flex-1">
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-3xl font-bold text-zenith-primary dark:text-white mb-2"
-            >
-              Calendar & Events
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-zenith-secondary dark:text-gray-300"
-            >
-              Stay updated with club events and activities
-              {attendingEvents.length > 0 && (
-                <span className="ml-2 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm rounded-full border border-purple-200 dark:border-purple-700">
-                  {attendingEvents.length} attending
-                </span>
-              )}
-            </motion.p>
-          </div>
-          
-          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-            {/* Theme Toggle */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <ThemeToggle />
-            </motion.div>
-            
-            {/* Create Event Button - Only show for managers */}
-            {canManageEvents && (
-              <motion.button 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => openEventModal('create')}
-                className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Plus size={16} className="mr-2" />
-                Create Event
-              </motion.button>
-            )}
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted dark:text-gray-400">
-                  Total Events
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
-                  {events.length}
-                </p>
-              </div>
-              <CalendarIcon className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted dark:text-gray-400">
-                  Upcoming
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
-                  {upcomingEvents.length}
-                </p>
-              </div>
-              <Clock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted dark:text-gray-400">
-                  Attending
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
-                  {attendingEvents.length}
-                </p>
-              </div>
-              <Users className="w-8 h-8 text-pink-600 dark:text-pink-400" />
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
-            className="bg-zenith-card dark:bg-gray-800/90 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-zenith-muted dark:text-gray-400">
-                  This Week
-                </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
-                  {weeklyEvents.length}
-                </p>
-              </div>
-              <CalendarIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Filters and Controls */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+    <div className="min-h-screen bg-main">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-6 mb-8 border border-gray-200 dark:border-gray-700"
+          className="mb-8"
         >
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 w-5 h-5 text-zenith-muted dark:text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search events..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-zenith-muted dark:placeholder-gray-400"
-                />
-              </div>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold text-primary mb-2">
+                Events & Calendar
+              </h1>
+              <p className="text-lg text-secondary">
+                Discover and join exciting events happening in your community
+              </p>
             </div>
-
-            {/* View Toggle */}
-            <div className="flex rounded-lg border border-zenith-border dark:border-gray-600 overflow-hidden">
-              <button
-                onClick={() => handleViewSwitch("list")}
-                disabled={viewSwitching}
-                className={`flex items-center space-x-2 px-4 py-3 font-medium transition-colors disabled:opacity-50 ${
-                  view === "list"
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                    : "bg-zenith-card dark:bg-gray-700 text-zenith-secondary dark:text-gray-300 hover:bg-zenith-hover dark:hover:bg-gray-600"
-                }`}
+            
+            {permissions?.canCreate && (
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                {viewSwitching && view !== "list" ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600 dark:border-gray-500 dark:border-t-gray-300"></div>
-                ) : (
-                  <List size={16} />
-                )}
-                <span>List View</span>
-              </button>
-              <button
-                onClick={() => handleViewSwitch("calendar")}
-                disabled={viewSwitching}
-                className={`flex items-center space-x-2 px-4 py-3 font-medium transition-colors disabled:opacity-50 ${
-                  view === "calendar"
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                    : "bg-zenith-card dark:bg-gray-700 text-zenith-secondary dark:text-gray-300 hover:bg-zenith-hover dark:hover:bg-gray-600"
-                }`}
-              >
-                {viewSwitching && view !== "calendar" ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600 dark:border-gray-500 dark:border-t-gray-300"></div>
-                ) : (
-                  <Grid3X3 size={16} />
-                )}
-                <span>Calendar View</span>
-              </button>
-            </div>
+                <Plus className="w-5 h-5 mr-2" />
+                Create Event
+              </Button>
+            )}
           </div>
         </motion.div>
 
-        {/* Main Content */}
-        <AnimatePresence mode="wait">
-          {viewSwitching ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700"
-            >
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
-              <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
-                Switching views...
-              </h3>
-              <p className="text-zenith-muted dark:text-gray-400">
-                Please wait while we prepare the {view === "calendar" ? "list" : "calendar"} view.
-              </p>
-            </motion.div>
-          ) : view === "calendar" ? (
-            <motion.div
-              key="calendar"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-            >
-              {loading ? (
-                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
-                  <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
-                    Loading calendar events...
-                  </h3>
-                  <p className="text-zenith-muted dark:text-gray-400">
-                    Please wait while we fetch your events for the calendar view.
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+        >
+          <Card className="bg-card border border-custom">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Calendar className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-secondary">Total Events</p>
+                  <p className="text-2xl font-bold text-primary">{events.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-custom">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-secondary">Attending</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {events.filter(e => e.is_attending).length}
                   </p>
                 </div>
-              ) : error ? (
-                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
-                  <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CalendarIcon className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
-                    Error Loading Calendar
-                  </h3>
-                  <p className="text-zenith-muted dark:text-gray-400 mb-4">
-                    {error}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-custom">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Clock className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-secondary">This Month</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {events.filter(e => new Date(e.start_time).getMonth() === new Date().getMonth()).length}
                   </p>
-                  <button 
-                    onClick={() => fetchEvents()}
-                    className="px-6 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium"
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-custom">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Star className="h-8 w-8 text-yellow-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-secondary">Categories</p>
+                  <p className="text-2xl font-bold text-primary">{categories.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-6"
+        >
+          <Card className="bg-card border border-custom">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Search */}
+                <div className="flex-1">
+                  <Input
+                    placeholder="Search events..."
+                    value={searchTerm}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                    icon={<Search />}
+                  />
+                </div>
+
+                {/* Filters */}
+                <div className="flex gap-4">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="min-w-[160px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg zenith-bg-card zenith-text-primary"
                   >
-                    Try Again
-                  </button>
-                </div>
-              ) : (
-                renderCalendarView()
-              )}
-            </motion.div>
-          ) : (
-            /* Events List */
-            <motion.div
-              key="list"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="space-y-6"
-            >
-              {selectedDay && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg mb-6 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <CalendarIcon className="mr-3 text-blue-600 dark:text-blue-400" />
-                    <span className="font-semibold text-blue-700 dark:text-blue-300">
-                      Showing events for {selectedDay.toLocaleDateString("en-US", { 
-                        weekday: 'long', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </span>
-                  </div>
-                  <button 
-                    onClick={() => setSelectedDay(null)}
-                    className="text-sm text-blue-700 dark:text-blue-400 hover:underline"
+                    <option value="all">All Categories</option>
+                    {categories.map(category => (
+                      <option key={category} value={category}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={selectedClub}
+                    onChange={(e) => setSelectedClub(e.target.value)}
+                    className="min-w-[160px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg zenith-bg-card zenith-text-primary"
                   >
-                    Show all events
-                  </button>
-                </div>
-              )}
-              
-              {loading ? (
-                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
-                  <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
-                    Loading events...
-                  </h3>
-                  <p className="text-zenith-muted dark:text-gray-400">
-                    Please wait while we fetch your events.
-                  </p>
-                </div>
-              ) : error ? (
-                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
-                  <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CalendarIcon className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
-                    Error Loading Events
-                  </h3>
-                  <p className="text-zenith-muted dark:text-gray-400 mb-4">
-                    {error}
-                  </p>
-                  <button 
-                    onClick={() => fetchEvents()}
-                    className="px-6 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              ) : filteredEvents.length === 0 ? (
-                <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CalendarIcon className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
-                    No events found
-                  </h3>
-                  <p className="text-zenith-muted dark:text-gray-400 mb-4">
-                    {searchTerm
-                      ? "Try adjusting your search terms."
-                      : selectedDay
-                        ? `No events scheduled for ${selectedDay.toLocaleDateString()}.`
-                        : "No events match your current criteria."}
-                  </p>
-                  {(searchTerm || selectedDay) && (
-                    <button 
-                      onClick={() => {
-                        setSearchTerm("");
-                        setSelectedDay(null);
-                      }}
-                      className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors font-medium"
+                    <option value="all">All Clubs</option>
+                    {clubs.map(club => (
+                      <option key={club.id} value={club.id}>
+                        {club.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="flex rounded-lg border border-custom">
+                    <button
+                      onClick={() => setViewMode('calendar')}
+                      className={`px-3 py-2 rounded-l-lg ${viewMode === 'calendar' ? 'bg-blue-600 text-primary' : 'bg-main text-secondary hover:bg-gray-100'}`}
                     >
-                      Clear Filters
+                      <Calendar className="w-4 h-4 inline mr-1" />
+                      Calendar
                     </button>
-                  )}
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-blue-600 text-primary' : 'bg-main text-secondary hover:bg-gray-100'}`}
+                    >
+                      Grid
+                    </button>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`px-3 py-2 rounded-r-lg ${viewMode === 'list' ? 'bg-blue-600 text-primary' : 'bg-main text-secondary hover:bg-gray-100'}`}
+                    >
+                      List
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                upcomingEvents.map((event, index) => (
-                  <motion.div
-                    key={event.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className={`bg-white dark:bg-gray-800/90 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 ${
-                      isToday(event.event_date) ? "border-l-4 !border-l-blue-500" : ""
-                    }`}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Events Grid/List/Calendar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          {viewMode === 'calendar' ? (
+            <CalendarView 
+              events={filteredEvents}
+              currentDate={currentDate}
+              setCurrentDate={setCurrentDate}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              setShowDayDetails={setShowDayDetails}
+              clubColors={clubColors}
+              clubs={clubs}
+            />
+          ) : filteredEvents.length === 0 ? (
+            <Card className="bg-card border border-custom">
+              <CardContent className="p-12 text-center">
+                <Calendar className="mx-auto h-12 w-12 text-muted mb-4" />
+                <h3 className="text-lg font-medium text-primary mb-2">
+                  No events found
+                </h3>
+                <p className="text-secondary mb-6">
+                  {searchTerm || selectedCategory !== 'all' || selectedClub !== 'all'
+                    ? "Try adjusting your search criteria"
+                    : "No events are currently available. Check back later!"}
+                </p>
+                {permissions?.canCreate && (
+                  <Button
+                    onClick={() => setShowCreateModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-primary"
                   >
-                    {/* Event Header with Color Strip */}
-                    <div className={`h-2 ${getEventColor(event.club).solid}`}></div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-start space-x-4 flex-1">
-                          <div className={`w-12 h-12 rounded-full ${getEventColor(event.club).solid} flex items-center justify-center shadow-md`}>
-                            <CalendarIcon size={20} className="text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-3 mb-2 flex-wrap">
-                              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                                {event.title}
-                              </h3>
-                              <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-700">
-                                {event.club}
-                              </span>
-                              {event.isAttending && (
-                                <span className="px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium rounded-full border border-green-200 dark:border-green-700">
-                                  ✓ Attending
-                                </span>
-                              )}
-                              {isToday(event.event_date) && (
-                                <span className="px-3 py-1 bg-orange-50 dark:bg-blue-900/30 text-orange-700 dark:text-blue-300 text-xs font-medium rounded-full border border-orange-200 dark:border-blue-700 animate-pulse">
-                                  Today
-                                </span>
-                              )}
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create First Event
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className={viewMode === 'grid' 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+            }>
+              {filteredEvents.map((event, index) => (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className="bg-card border border-custom hover:shadow-lg transition-all duration-300">
+                    {viewMode === 'grid' ? (
+                      <>
+                        {/* Featured Image */}
+                        <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden rounded-t-lg">
+                          {event.featured_image ? (
+                            <img
+                              src={event.featured_image}
+                              alt={event.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <Calendar className="w-12 h-12 text-primary opacity-50" />
                             </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                              {event.description}
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                              <div className="flex items-center text-zenith-secondary dark:text-gray-300">
-                                <CalendarIcon size={16} className="mr-3 text-blue-500" />
-                                <span className="font-medium">{getDateLabel(event.event_date)}</span>
-                              </div>
-                              <div className="flex items-center text-zenith-secondary dark:text-gray-300">
-                                <Clock size={16} className="mr-3 text-green-500" />
-                                <span className="font-medium">
-                                  {formatTime(event.startTime)}
-                                  {event.endTime && ` - ${formatTime(event.endTime)}`}
-                                </span>
-                              </div>
-                              <div className="flex items-center text-zenith-secondary dark:text-gray-300">
-                                <MapPin size={16} className="mr-3 text-orange-500" />
-                                <span className="font-medium">{event.location}</span>
-                              </div>
-                            </div>
+                          )}
+                          
+                          {/* Status Badge */}
+                          <div className="absolute top-4 right-4">
+                            <Badge className={`${getStatusColor(event.status)} border`}>
+                              {event.status}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="text-right ml-6">
-                          <div className="text-center">
-                            <div className="text-xs text-zenith-muted dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">
-                              Attendees
+
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-3">
+                            <h3 className="text-lg font-semibold text-primary line-clamp-2">
+                              {event.title}
+                            </h3>
+                          </div>
+
+                          <p className="text-secondary text-sm mb-4 line-clamp-2">
+                            {event.description}
+                          </p>
+
+                          <div className="space-y-2 mb-4 text-sm">
+                            <div className="flex items-center text-secondary">
+                              <Clock className="w-4 h-4 mr-2" />
+                              <span>{formatDate(event.start_time)}</span>
                             </div>
-                            <div className="text-2xl font-bold text-zenith-primary dark:text-white">
-                              {event.attendees}
-                              {event.maxAttendees && (
-                                <span className="text-sm text-zenith-muted dark:text-gray-400 font-normal">
-                                  /{event.maxAttendees}
-                                </span>
-                              )}
+
+                            {event.location && (
+                              <div className="flex items-center text-secondary">
+                                <MapPin className="w-4 h-4 mr-2" />
+                                <span>{event.location}</span>
+                              </div>
+                            )}
+
+                            <div className="flex items-center text-secondary">
+                              <Users className="w-4 h-4 mr-2" />
+                              <span>
+                                {event.attendees_count} {event.max_attendees ? `/ ${event.max_attendees}` : ''} attendees
+                              </span>
                             </div>
-                            {event.maxAttendees && (
-                              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-3">
-                                <div 
-                                  className={`h-2 rounded-full ${getEventColor(event.club).solid} transition-all duration-300`}
-                                  style={{ width: `${(event.attendees / event.maxAttendees) * 100}%` }}
-                                ></div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-custom">
+                            <div className="flex flex-col">
+                              <Badge variant="secondary" className="text-xs w-fit mb-1">
+                                {event.club_name}
+                              </Badge>
+                              <span className="text-xs text-secondary">
+                                by {event.creator_name}
+                              </span>
+                            </div>
+
+                            {event.is_attending ? (
+                              <Button 
+                                onClick={() => toggleAttendance(event.id, true)}
+                                variant="outline"
+                                size="sm"
+                                className="border-red-300 text-red-600 hover:bg-red-50"
+                              >
+                                Leave
+                              </Button>
+                            ) : (
+                              <Button 
+                                onClick={() => toggleAttendance(event.id, false)}
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-primary"
+                                disabled={!!(event.max_attendees && event.attendees_count >= event.max_attendees)}
+                              >
+                                {event.max_attendees && event.attendees_count >= event.max_attendees ? 'Full' : 'Join'}
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </>
+                    ) : (
+                      /* List View */
+                      <CardContent className="p-6">
+                        <div className="flex items-center space-x-6">
+                          <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden">
+                            {event.featured_image ? (
+                              <img
+                                src={event.featured_image}
+                                alt={event.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <Calendar className="w-8 h-8 text-primary opacity-50" />
                               </div>
                             )}
                           </div>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-zenith-border dark:border-gray-600">
-                        <div className="flex items-center space-x-4">
-                          <span className="text-sm text-zenith-muted dark:text-gray-400 font-medium">
-                            Organized by <span className="text-zenith-primary dark:text-white font-semibold">{event.organizer}</span>
-                          </span>
-                          {event.event_incharge && (
-                            <span className="text-sm text-zenith-muted dark:text-gray-400 font-medium">
-                              • In-charge: <span className="text-zenith-primary dark:text-white font-semibold">{event.event_incharge}</span>
-                            </span>
-                          )}
-                          {event.event_coordinator && (
-                            <span className="text-sm text-zenith-muted dark:text-gray-400 font-medium">
-                              • Coordinator: <span className="text-zenith-primary dark:text-white font-semibold">{event.event_coordinator}</span>
-                            </span>
-                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-primary truncate mb-1">
+                                  {event.title}
+                                </h3>
+                                <p className="text-secondary text-sm mb-2 line-clamp-1">
+                                  {event.description}
+                                </p>
+                                
+                                <div className="flex items-center space-x-4 text-sm text-secondary">
+                                  <div className="flex items-center">
+                                    <Clock className="w-4 h-4 mr-1" />
+                                    <span>{formatDate(event.start_time)}</span>
+                                  </div>
+                                  
+                                  {event.location && (
+                                    <div className="flex items-center">
+                                      <MapPin className="w-4 h-4 mr-1" />
+                                      <span>{event.location}</span>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center">
+                                    <Users className="w-4 h-4 mr-1" />
+                                    <span>{event.attendees_count} attendees</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center space-x-3 ml-4">
+                                <Badge className={`${getStatusColor(event.status)} border`}>
+                                  {event.status}
+                                </Badge>
+                                
+                                {event.is_attending ? (
+                                  <Button 
+                                    onClick={() => toggleAttendance(event.id, true)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-red-300 text-red-600 hover:bg-red-50"
+                                  >
+                                    Leave
+                                  </Button>
+                                ) : (
+                                  <Button 
+                                    onClick={() => toggleAttendance(event.id, false)}
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-primary"
+                                    disabled={!!(event.max_attendees && event.attendees_count >= event.max_attendees)}
+                                  >
+                                    {event.max_attendees && event.attendees_count >= event.max_attendees ? 'Full' : 'Join'}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <button 
-                            onClick={() => openEventModal('view', event)}
-                            className="flex items-center px-4 py-2 text-zenith-muted dark:text-gray-400 hover:text-zenith-primary dark:hover:text-white transition-colors rounded-lg hover:bg-zenith-section/50 dark:hover:bg-gray-700/50"
-                          >
-                            <Eye size={16} className="mr-2" />
-                            View Details
-                          </button>
-                          
-                          {canManageEvents && (
-                            <>
-                              <button 
-                                onClick={() => openEventModal('edit', event)}
-                                className="flex items-center px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                              >
-                                <Edit size={16} className="mr-2" />
-                                Edit
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  if (confirm('Are you sure you want to delete this event?')) {
-                                    handleEventDeleted(event.id);
-                                  }
-                                }}
-                                className="flex items-center px-4 py-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                              >
-                                <Trash2 size={16} className="mr-2" />
-                                Delete
-                              </button>
-                            </>
-                          )}
-                          
-                          {event.isAttending ? (
-                            <button 
-                              onClick={() => toggleEventAttendance(event.id, true)}
-                              className="px-6 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium border border-red-200 dark:border-red-700"
-                            >
-                              Leave Event
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => toggleEventAttendance(event.id, false)}
-                              className={`px-6 py-2 text-white rounded-lg font-medium transition-colors shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none ${getEventColor(event.club).solid} hover:opacity-90`}
-                              disabled={event.maxAttendees ? (event.attendees >= event.maxAttendees) : false}
-                            >
-                              {event.maxAttendees && event.attendees >= event.maxAttendees 
-                                ? '🔒 Event Full' 
-                                : '🎫 Join Event'
-                              }
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </motion.div>
+                      </CardContent>
+                    )}
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
           )}
-        </AnimatePresence>
+        </motion.div>
       </div>
 
-      {/* Event Modal */}
-      <EventModal
-        isOpen={isEventModalOpen}
-        onClose={closeEventModal}
-        mode={modalMode}
-        event={selectedEvent ? convertEventForModal(selectedEvent) : null}
-        onSave={handleEventSaved}
-        onDelete={handleEventDeleted}
-        clubs={clubs}
+      {/* Create Event Modal */}
+      <CreateEventModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onEventCreated={() => {
+          setShowCreateModal(false);
+          fetchEvents(); // Refresh events list
+        }}
       />
 
-      <ZenChatbot />
-    </MainLayout>
+      {/* Day Details Modal */}
+      {showDayDetails && selectedDate && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowDayDetails(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            className="zenith-bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border zenith-border"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-6 border-b zenith-border zenith-bg-section">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold zenith-text-primary">
+                    {format(selectedDate, 'MMMM d, yyyy')}
+                  </h2>
+                  <p className="zenith-text-secondary">
+                    {events.filter(event => isSameDay(parseISO(event.start_time), selectedDate)).length} events
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDayDetails(false)}
+                  className="rounded-full p-2 h-auto zenith-text-muted hover:zenith-text-primary hover:zenith-bg-hover"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6 max-h-[60vh] overflow-y-auto zenith-bg-card">
+              <div className="space-y-4">
+                {events
+                  .filter(event => isSameDay(parseISO(event.start_time), selectedDate))
+                  .map((event, index) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="zenith-bg-section rounded-lg p-4 border zenith-border"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`w-4 h-4 rounded-full ${clubColors[clubs.find(c => c.id === event.club_id)?.type?.toLowerCase() || 'default'] || clubColors.default} mt-1`} />
+                        <div className="flex-1">
+                          <h3 className="font-semibold zenith-text-primary mb-1">
+                            {event.title}
+                          </h3>
+                          <p className="zenith-text-secondary text-sm mb-2">
+                            {event.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm zenith-text-muted">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{format(parseISO(event.start_time), 'h:mm a')}</span>
+                            </div>
+                            {event.location && (
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                <span>{event.location}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              <span>{event.attendees_count}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Badge className={`${getStatusColor(event.status)} border`}>
+                          {event.status}
+                        </Badge>
+                      </div>
+                    </motion.div>
+                  ))}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
   );
 }

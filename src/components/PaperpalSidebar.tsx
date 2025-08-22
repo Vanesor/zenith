@@ -43,6 +43,14 @@ interface PaperpalSidebarProps {
   onCollapseChange?: (isCollapsed: boolean) => void;
 }
 
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: any;
+  description: string;
+  requiresRole?: string[];
+}
+
 export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: PaperpalSidebarProps) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
@@ -71,7 +79,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
     }
   }, [isCollapsed, onCollapseChange]);
 
-  const mainNavigation = [
+  const mainNavigation: NavigationItem[] = [
     { 
       name: "Dashboard", 
       href: "/dashboard", 
@@ -101,6 +109,13 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
       href: "/assignments", 
       icon: BookOpen,
       description: "Tasks & projects"
+    },
+    { 
+      name: "Analytics", 
+      href: "/analytics", 
+      icon: BarChart3,
+      description: "Performance insights",
+      requiresRole: ['coordinator', 'co_coordinator', 'president', 'vice_president', 'innovation_head', 'treasurer', 'outreach', 'zenith_committee']
     },
     { 
       name: "Chat", 
@@ -137,8 +152,13 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
     },
   ];
 
-  // Add admin access if user has proper role
-  const hasAdminAccess = user && ['admin', 'coordinator', 'co_coordinator'].includes(user.role);
+  // Add admin access if user has proper role - Updated for club coordinators only
+  const hasAdminAccess = user && [
+    'coordinator', 
+    'co_coordinator', 
+    'club_coordinator',
+    'co-coordinator'
+  ].includes(user.role?.toLowerCase() || '');
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -200,7 +220,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
         variants={sidebarVariants}
         animate={isOpen ? "open" : "closed"}
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }} // Smoother cubic-bezier
-        className="fixed left-0 top-0 h-full bg-[#fefcf7] dark:bg-gray-900 border-r border-[#e7e2dc] dark:border-gray-800 z-50 lg:z-30 shadow-2xl lg:shadow-lg overflow-hidden"
+        className="fixed left-0 top-0 h-full zenith-bg-card zenith-border border-r z-50 lg:z-30 shadow-2xl lg:shadow-lg overflow-hidden"
       >
         <AnimatePresence mode="wait">
           {isOpen && (
@@ -212,7 +232,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
               className="flex flex-col h-full"
             >
               {/* Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+              <div className="p-4 border-b zenith-border">
                 <div className="flex items-center justify-between">
                   {!isCollapsed && (
                     <motion.div
@@ -224,8 +244,8 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                         <Zap className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Zenith</h2>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">CS Department</p>
+                        <h2 className="text-lg font-bold zenith-text-primary">Zenith</h2>
+                        <p className="text-xs zenith-text-muted">CS Department</p>
                       </div>
                     </motion.div>
                   )}
@@ -234,21 +254,21 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => setIsCollapsed(!isCollapsed)}
-                      className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:zenith-bg-hover transition-colors"
                     >
                       {isCollapsed ? (
-                        <ChevronRight className="w-4 h-4 text-gray-500" />
+                        <ChevronRight className="w-4 h-4 zenith-text-muted" />
                       ) : (
-                        <ChevronLeft className="w-4 h-4 text-gray-500" />
+                        <ChevronLeft className="w-4 h-4 zenith-text-muted" />
                       )}
                     </button>
                     
                     {/* Close Button (Mobile) */}
                     <button
                       onClick={onToggle}
-                      className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:zenith-bg-hover transition-colors"
                     >
-                      <X className="w-4 h-4 text-gray-500" />
+                      <X className="w-4 h-4 zenith-text-muted" />
                     </button>
                   </div>
                 </div>
@@ -263,11 +283,11 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                   className="p-4"
                 >
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 zenith-text-muted" />
                     <input
                       type="text"
                       placeholder="Search anything..."
-                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 zenith-bg-section zenith-border border rounded-lg text-sm zenith-text-primary placeholder:zenith-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     />
                   </div>
                 </motion.div>
@@ -283,13 +303,21 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3"
+                        className="text-xs font-semibold zenith-text-muted uppercase tracking-wider mb-3"
                       >
                         Navigation
                       </motion.h3>
                     )}
                     <nav className="space-y-1">
-                      {mainNavigation.map((item, index) => {
+                      {mainNavigation
+                        .filter(item => {
+                          // Check if item requires specific roles
+                          if (item.requiresRole && Array.isArray(item.requiresRole)) {
+                            return user && item.requiresRole.includes(user.role);
+                          }
+                          return true; // Show item if no role requirement
+                        })
+                        .map((item, index) => {
                         const IconComponent = item.icon;
                         const active = isActive(item.href);
                         return (
@@ -304,16 +332,16 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                               className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                                 active
                                   ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 shadow-sm'
-                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                                  : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
                               }`}
                             >
                               <IconComponent className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} ${
-                                active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                                active ? 'text-blue-600 dark:text-blue-400' : 'zenith-text-muted group-hover:zenith-text-secondary'
                               }`} />
                               {!isCollapsed && (
                                 <div className="flex-1">
                                   <div className="font-medium">{item.name}</div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300">
+                                  <div className="text-xs zenith-text-muted group-hover:zenith-text-secondary">
                                     {item.description}
                                   </div>
                                 </div>
@@ -338,7 +366,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
                     >
-                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                      <h3 className="text-xs font-semibold zenith-text-muted uppercase tracking-wider mb-3">
                         Quick Actions
                       </h3>
                       <div className="space-y-2">
@@ -353,10 +381,10 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                             >
                               <Link
                                 href={action.href}
-                                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                                className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover transition-colors group"
                               >
                                 <IconComponent className={`w-4 h-4 mr-3 ${action.color}`} />
-                                <span className="group-hover:text-gray-900 dark:group-hover:text-white">
+                                <span className="group-hover:zenith-text-primary">
                                   {action.name}
                                 </span>
                               </Link>
@@ -374,7 +402,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.45 }}
                     >
-                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                      <h3 className="text-xs font-semibold zenith-text-muted uppercase tracking-wider mb-3">
                         Workspace
                       </h3>
                       <div className="space-y-2">
@@ -385,10 +413,10 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                         >
                           <Link
                             href="/projects"
-                            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                            className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover transition-colors group"
                           >
                             <FolderOpen className="w-4 h-4 mr-3 text-blue-600" />
-                            <span className="group-hover:text-gray-900 dark:group-hover:text-white">
+                            <span className="group-hover:zenith-text-primary">
                               My Projects
                             </span>
                           </Link>
@@ -400,10 +428,10 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                         >
                           <button
                             onClick={() => setShowJoinModal(true)}
-                            className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                            className="w-full flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover transition-colors group"
                           >
                             <UserPlus className="w-4 h-4 mr-3 text-green-600" />
-                            <span className="group-hover:text-gray-900 dark:group-hover:text-white">
+                            <span className="group-hover:zenith-text-primary">
                               Join Project
                             </span>
                           </button>
@@ -413,29 +441,56 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                   )}
 
                   {/* Admin Section */}
-                  {hasAdminAccess && (
+                  {hasAdminAccess && !isCollapsed && (
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
                     >
-                      {!isCollapsed && (
-                        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-                          Administration
-                        </h3>
-                      )}
+                      <h3 className="text-xs font-semibold zenith-text-muted uppercase tracking-wider mb-3">
+                        Administration
+                      </h3>
+                      <div className="space-y-1">
+                        <Link
+                          href="/admin/club-management"
+                          className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                            isActive('/admin/club-management') || isActive('/admin')
+                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                              : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
+                          }`}
+                        >
+                          <Shield className={`w-5 h-5 mr-3 ${
+                            isActive('/admin/club-management') || isActive('/admin') ? 'text-purple-600' : 'zenith-text-muted'
+                          }`} />
+                          <div className="flex-1">
+                            <div className="font-medium">Club Management</div>
+                            <div className="text-xs zenith-text-muted">Manage clubs & members</div>
+                          </div>
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Collapsed Admin Portal Icon */}
+                  {hasAdminAccess && isCollapsed && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="mt-4"
+                    >
                       <Link
-                        href="/admin"
-                        className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                          isActive('/admin')
+                        href="/admin/club-management"
+                        className={`flex items-center justify-center w-12 h-12 mx-auto rounded-lg transition-colors ${
+                          isActive('/admin/club-management') || isActive('/admin')
                             ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                            : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
                         }`}
+                        title="Club Management"
                       >
-                        <Shield className={`w-5 h-5 ${isCollapsed ? 'mx-auto' : 'mr-3'} ${
-                          isActive('/admin') ? 'text-purple-600' : 'text-gray-500'
+                        <Shield className={`w-6 h-6 ${
+                          isActive('/admin/club-management') || isActive('/admin') ? 'text-purple-600' : 'zenith-text-muted'
                         }`} />
-                        {!isCollapsed && <span>Admin Panel</span>}
                       </Link>
                     </motion.div>
                   )}
@@ -448,10 +503,10 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  className="p-4 border-t border-gray-200 dark:border-gray-800"
+                  className="p-4 border-t zenith-border"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</span>
+                    <span className="text-sm font-medium zenith-text-secondary">Theme</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -467,7 +522,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                           className={`flex flex-col items-center p-2 rounded-lg text-xs transition-colors ${
                             theme === option.value
                               ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                              : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                              : 'hover:zenith-bg-hover zenith-text-muted'
                           }`}
                         >
                           <IconComponent className="w-4 h-4 mb-1" />
@@ -484,7 +539,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
-                className="p-4 border-t border-gray-200 dark:border-gray-800"
+                className="p-4 border-t zenith-border"
               >
                 {user && (
                   <div className="flex items-center space-x-3 mb-3">
@@ -495,10 +550,10 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                     </div>
                     {!isCollapsed && (
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-sm font-medium zenith-text-primary truncate">
                           {user.name || user.email}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                        <p className="text-xs zenith-text-muted capitalize">
                           {user.role?.replace('_', ' ')}
                         </p>
                       </div>
@@ -511,20 +566,28 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                     href="/profile"
                     className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                       isActive('/profile')
-                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        ? 'zenith-bg-hover zenith-text-primary'
+                        : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
                     }`}
                   >
                     <User className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                    {!isCollapsed && <span>Profile</span>}
+                    {!isCollapsed && <span>View Profile</span>}
                   </Link>
                   
                   <Link
                     href="/settings"
-                    className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover hover:zenith-text-primary transition-colors"
                   >
                     <Settings className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
                     {!isCollapsed && <span>Settings</span>}
+                  </Link>
+                  
+                  <Link
+                    href="/notifications"
+                    className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover hover:zenith-text-primary transition-colors"
+                  >
+                    <Bell className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
+                    {!isCollapsed && <span>Notifications</span>}
                   </Link>
                   
                   <button

@@ -150,9 +150,9 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-hidden"
         >
-          <div className="bg-gradient-to-br from-white/95 via-white/90 to-blue-50/90 dark:from-gray-800/95 dark:via-gray-800/90 dark:to-blue-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-3xl shadow-2xl">
+          <div className="zenith-bg-card backdrop-blur-xl border zenith-border rounded-3xl shadow-2xl">
             {/* Header */}
-            <div className="relative px-8 py-6 border-b border-gray-200/50 dark:border-gray-700/50">
+            <div className="relative px-8 py-6 border-b zenith-border zenith-bg-section">
               <div className="flex items-center justify-between">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -162,7 +162,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                     Create New Project
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mt-1">
+                  <p className="zenith-text-secondary mt-1">
                     Set up a new project with team collaboration features
                   </p>
                 </motion.div>
@@ -171,9 +171,9 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
-                  className="p-2 rounded-full bg-white/80 dark:bg-gray-700/80 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-gray-600 transition-colors"
+                  className="p-2 rounded-full zenith-bg-hover hover:zenith-bg-hover border zenith-border transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <X className="w-5 h-5 zenith-text-muted" />
                 </motion.button>
               </div>
               
@@ -182,7 +182,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
             </div>
 
             {/* Content */}
-            <div className="px-8 py-6 max-h-[calc(90vh-100px)] overflow-y-auto">
+            <div className="px-8 py-6 max-h-[calc(90vh-100px)] overflow-y-auto zenith-bg-card">
               {permissionsLoading ? (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -198,10 +198,10 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-gray-600 dark:text-gray-300 text-center"
+                    className="zenith-text-secondary text-center"
                   >
                     <p className="text-lg font-medium">Checking permissions...</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Please wait while we verify your access</p>
+                    <p className="text-sm zenith-text-muted mt-2">Please wait while we verify your access</p>
                   </motion.div>
                 </motion.div>
               ) : !permissions?.canCreateProject ? (
@@ -224,7 +224,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-primary mb-3">
                       Insufficient Permissions
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-2">
@@ -317,7 +317,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             name="club_id"
                             value={formData.club_id}
                             onChange={handleChange}
-                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 text-gray-900 dark:text-primary appearance-none cursor-pointer"
                             required
                           >
                             <option value="">Choose your club...</option>
@@ -355,7 +355,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             name="project_type"
                             value={formData.project_type}
                             onChange={handleChange}
-                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300 text-gray-900 dark:text-primary appearance-none cursor-pointer"
                             required
                           >
                             <option value="innovation">🚀 Innovation</option>
@@ -387,7 +387,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             name="priority"
                             value={formData.priority}
                             onChange={handleChange}
-                            className="w-full h-12 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                            className="w-full h-12 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 text-gray-900 dark:text-primary appearance-none cursor-pointer"
                           >
                             <option value="low">🟢 Low</option>
                             <option value="medium">🟡 Medium</option>
@@ -434,7 +434,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                           value={formData.description}
                           onChange={handleChange}
                           placeholder="Describe your project goals, objectives, and expected outcomes..."
-                          className="w-full h-32 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                          className="w-full h-32 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400 resize-none"
                           required
                         />
                       </motion.div>
@@ -468,7 +468,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             animate={{ scale: 1 }}
                             className="absolute inset-0 flex items-center justify-center pointer-events-none"
                           >
-                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                           </motion.div>
@@ -505,7 +505,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                       <Button
                         type="submit"
                         disabled={loading || !formData.name || !formData.description || !formData.club_id}
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-primary font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         {loading ? (
                           <motion.div className="flex items-center">

@@ -59,7 +59,7 @@ export function UserAvatar({
           className={`${sizeClasses[size]} rounded-full object-cover border-2 border-gray-800`} 
         />
       ) : (
-        <div className={`${sizeClasses[size]} ${bgColorClasses[colorIndex]} rounded-full flex items-center justify-center text-white font-medium`}>
+        <div className={`${sizeClasses[size]} ${bgColorClasses[colorIndex]} rounded-full flex items-center justify-center text-primary font-medium`}>
           {initials}
         </div>
       )}

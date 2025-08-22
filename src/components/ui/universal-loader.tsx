@@ -126,7 +126,7 @@ export default function UniversalLoader({
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
                 transition={{ duration: 0.5 }}
-                className="text-2xl md:text-3xl font-bold text-white mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent"
+                className="text-2xl md:text-3xl font-bold text-primary mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent"
               >
                 {texts[currentTextIndex]}
               </motion.h2>
@@ -173,7 +173,7 @@ export default function UniversalLoader({
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-              className="text-4xl md:text-6xl font-extrabold text-white tracking-wider"
+              className="text-4xl md:text-6xl font-extrabold text-primary tracking-wider"
               style={{
                 background: 'linear-gradient(45deg, #ffffff, #60a5fa, #a855f7)',
                 WebkitBackgroundClip: 'text',
@@ -187,7 +187,7 @@ export default function UniversalLoader({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 2.5, duration: 0.6 }}
-              className="text-white/80 text-lg mt-2 tracking-widest font-light"
+              className="text-primary/80 text-lg mt-2 tracking-widest font-light"
             >
               Where Excellence Meets Innovation
             </motion.p>

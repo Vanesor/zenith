@@ -193,7 +193,7 @@ export default function ProjectDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Project not found</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-primary">Project not found</h1>
             <Link href="/projects">
               <Button className="mt-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -225,11 +225,11 @@ export default function ProjectDetailPage() {
               </Link>
               <div>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-primary font-bold text-lg">
                     {project.project_key}
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-primary">
                       {project.name}
                     </h1>
                     <p className="mt-1 text-gray-600 dark:text-gray-300">
@@ -289,7 +289,7 @@ export default function ProjectDetailPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Progress</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{project.progress_percentage}%</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-primary">{project.progress_percentage}%</p>
                 </div>
               </div>
               <div className="mt-4">
@@ -306,7 +306,7 @@ export default function ProjectDetailPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tasks</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-primary">
                     {project.completed_tasks}/{project.total_tasks}
                   </p>
                 </div>
@@ -322,7 +322,7 @@ export default function ProjectDetailPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Team</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{project.member_count}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-primary">{project.member_count}</p>
                 </div>
               </div>
             </CardContent>
@@ -336,7 +336,7 @@ export default function ProjectDetailPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Due Date</p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
+                  <p className="text-lg font-bold text-gray-900 dark:text-primary">
                     {project.target_end_date 
                       ? new Date(project.target_end_date).toLocaleDateString()
                       : 'Not set'
@@ -358,7 +358,7 @@ export default function ProjectDetailPage() {
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
+                  <CardTitle className="text-xl font-bold text-gray-900 dark:text-primary">
                     Task Board
                   </CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-300">
@@ -380,7 +380,7 @@ export default function ProjectDetailPage() {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
                   >
                     <option value="all">All Status</option>
                     <option value="todo">To Do</option>
@@ -400,7 +400,7 @@ export default function ProjectDetailPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Circle className="w-4 h-4 text-gray-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">To Do</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-primary">To Do</h3>
                   <Badge variant="secondary" className="text-xs">
                     {tasksByStatus.todo.length}
                   </Badge>
@@ -431,7 +431,7 @@ export default function ProjectDetailPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <PlayCircle className="w-4 h-4 text-blue-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">In Progress</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-primary">In Progress</h3>
                   <Badge variant="secondary" className="text-xs">
                     {tasksByStatus.in_progress.length}
                   </Badge>
@@ -462,7 +462,7 @@ export default function ProjectDetailPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <PauseCircle className="w-4 h-4 text-yellow-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">In Review</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-primary">In Review</h3>
                   <Badge variant="secondary" className="text-xs">
                     {tasksByStatus.in_review.length}
                   </Badge>
@@ -493,7 +493,7 @@ export default function ProjectDetailPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Done</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-primary">Done</h3>
                   <Badge variant="secondary" className="text-xs">
                     {tasksByStatus.done.length}
                   </Badge>

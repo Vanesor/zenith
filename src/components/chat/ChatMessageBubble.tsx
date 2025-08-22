@@ -140,8 +140,8 @@ export function ChatMessageBubble({
           id={`msg-${message.id}`} 
           className={`px-4 py-2 rounded-2xl transition-colors duration-500 ${
             message.reply_to_message_id 
-              ? (isMe ? 'bg-college-primary text-white rounded-tr-none' : 'bg-gray-800 text-white rounded-tl-none') 
-              : (isMe ? 'bg-college-primary text-white' : 'bg-gray-800 text-white')
+              ? (isMe ? 'bg-college-primary text-primary rounded-tr-none' : 'bg-gray-800 text-primary rounded-tl-none') 
+              : (isMe ? 'bg-college-primary text-primary' : 'bg-gray-800 text-primary')
           } ${isMe ? 'mr-2' : 'ml-2'}`}
         >
           {message.is_deleted ? (
@@ -154,12 +154,12 @@ export function ChatMessageBubble({
                 {message.message}
               </div>
               <div className="flex items-center justify-end space-x-1 mt-1">
-                <span className="text-xs text-opacity-75 text-white">
+                <span className="text-xs text-opacity-75 text-primary">
                   {formatTime(message.created_at)}
                 </span>
                 {isMe && getMessageStatusIcon(message.message_status)}
                 {message.is_edited && (
-                  <span className="text-xs text-opacity-60 text-white">
+                  <span className="text-xs text-opacity-60 text-primary">
                     (edited)
                   </span>
                 )}

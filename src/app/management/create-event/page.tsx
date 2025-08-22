@@ -87,13 +87,13 @@ export default function CreateEvent() {
       <ThemeToggle />
 
       {/* Navigation */}
-      <nav className="bg-zenith-card/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-zenith-border dark:border-gray-700 sticky top-0 z-40">
+      <nav className="bg-card/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-custom dark:border-gray-700 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link
                 href="/management"
-                className="flex items-center text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white"
+                className="flex items-center text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-primary"
               >
                 <ArrowLeft size={20} className="mr-2" />
                 Back to Management
@@ -105,8 +105,8 @@ export default function CreateEvent() {
       </nav>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6 text-white">
+        <div className="bg-card rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6 text-primary">
             <div className="flex items-center space-x-3">
               <Calendar size={32} />
               <div>
@@ -135,7 +135,7 @@ export default function CreateEvent() {
                   required
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                  className="w-full px-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                   placeholder="Enter event title"
                 />
               </div>
@@ -155,7 +155,7 @@ export default function CreateEvent() {
                 rows={4}
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                className="w-full px-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                 placeholder="Describe your event..."
               />
             </div>
@@ -177,7 +177,7 @@ export default function CreateEvent() {
                   required
                   value={formData.date}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                  className="w-full px-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                 />
               </div>
 
@@ -196,7 +196,7 @@ export default function CreateEvent() {
                   required
                   value={formData.time}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                  className="w-full px-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                 />
               </div>
 
@@ -215,7 +215,7 @@ export default function CreateEvent() {
                   min="1"
                   value={formData.maxAttendees}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                  className="w-full px-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                   placeholder="No limit"
                 />
               </div>
@@ -237,16 +237,16 @@ export default function CreateEvent() {
                 required
                 value={formData.location}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                className="w-full px-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                 placeholder="Event location"
               />
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-zenith-border dark:border-gray-600">
+            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-custom dark:border-gray-600">
               <Link
                 href="/management"
-                className="px-6 py-3 border border-zenith-border dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors flex items-center"
+                className="px-6 py-3 border border-custom dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors flex items-center"
               >
                 <X size={16} className="mr-2" />
                 Cancel
@@ -254,7 +254,7 @@ export default function CreateEvent() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-white rounded-lg transition-colors flex items-center"
+                className="px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-primary rounded-lg transition-colors flex items-center"
               >
                 <Save size={16} className="mr-2" />
                 {isSubmitting ? "Creating..." : "Create Event"}

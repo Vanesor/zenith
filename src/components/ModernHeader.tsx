@@ -19,7 +19,7 @@ export function ModernHeader({ onMenuToggle, sidebarOpen }: ModernHeaderProps) {
   return (
     <header className="sticky top-0 z-30 bg-nav border-b border-custom backdrop-blur-lg bg-opacity-80">
       {/* College Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-primary px-4 py-2">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Image
@@ -64,7 +64,7 @@ export function ModernHeader({ onMenuToggle, sidebarOpen }: ModernHeaderProps) {
             {/* Logo & Title - Hidden when sidebar is open on mobile */}
             <div className={`flex items-center space-x-3 ${sidebarOpen ? 'hidden lg:flex' : 'flex'}`}>
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Z</span>
+                <span className="text-primary font-bold text-sm">Z</span>
               </div>
               <div className="hidden sm:block">
                 <h2 className="text-primary font-semibold text-lg">Zenith</h2>
@@ -106,7 +106,7 @@ export function ModernHeader({ onMenuToggle, sidebarOpen }: ModernHeaderProps) {
                 whileHover={{ scale: 1.05 }}
                 className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer"
               >
-                <span className="text-white font-semibold text-sm">
+                <span className="text-primary font-semibold text-sm">
                   {user.name?.charAt(0) || user.email.charAt(0)}
                 </span>
               </motion.div>

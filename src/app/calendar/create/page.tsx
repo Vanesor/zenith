@@ -77,7 +77,7 @@ export default function CreateEventForm() {
 
   if (!canCreateEvents) {
     return (
-      <div className="p-6 bg-zenith-card rounded-lg shadow-md">
+      <div className="p-6 bg-card rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-red-600 mb-2">Permission Denied</h2>
         <p>You don't have permission to create events. Only club coordinators and managers can create events.</p>
       </div>
@@ -85,7 +85,7 @@ export default function CreateEventForm() {
   }
 
   return (
-    <div className="p-6 bg-zenith-card rounded-lg shadow-md">
+    <div className="p-6 bg-card rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold mb-6">Create New Event</h2>
       
       {error && (
@@ -103,7 +103,7 @@ export default function CreateEventForm() {
             value={formData.title}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
@@ -113,7 +113,7 @@ export default function CreateEventForm() {
             name="type"
             value={formData.type}
             onChange={handleChange}
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           >
             {EVENT_TYPES.map((type) => (
               <option key={type.value} value={type.value}>
@@ -131,7 +131,7 @@ export default function CreateEventForm() {
             onChange={handleChange}
             rows={4}
             required
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
@@ -144,7 +144,7 @@ export default function CreateEventForm() {
               value={formData.date}
               onChange={handleChange}
               required
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
           
@@ -156,7 +156,7 @@ export default function CreateEventForm() {
               value={formData.startTime}
               onChange={handleChange}
               required
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function CreateEventForm() {
               name="endTime"
               value={formData.endTime}
               onChange={handleChange}
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
           
@@ -181,7 +181,7 @@ export default function CreateEventForm() {
               value={formData.location}
               onChange={handleChange}
               required
-              className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function CreateEventForm() {
             value={formData.maxAttendees}
             onChange={handleChange}
             min="1"
-            className="mt-1 block w-full border-zenith-border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full border-custom rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         
@@ -205,7 +205,7 @@ export default function CreateEventForm() {
             name="isPublic"
             checked={formData.isPublic}
             onChange={handleChange}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-zenith-border rounded"
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-custom rounded"
           />
           <label htmlFor="isPublic" className="ml-2 block text-sm text-zenith-secondary">
             Make this event public (visible to all users)
@@ -216,14 +216,14 @@ export default function CreateEventForm() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="bg-zenith-card py-2 px-4 border border-zenith-border rounded-md shadow-sm text-sm font-medium text-zenith-secondary hover:bg-zenith-section focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
+            className="bg-card py-2 px-4 border border-custom rounded-md shadow-sm text-sm font-medium text-zenith-secondary hover:bg-zenith-section focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-zenith-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary hover:bg-zenith-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {isSubmitting ? "Creating..." : "Create Event"}
           </button>

@@ -123,7 +123,7 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
   // Render without sidebar for special pages
   if (shouldHideSidebar) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-main">
         <PaperpalHeader 
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)} 
           sidebarOpen={sidebarOpen}
@@ -141,7 +141,7 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
   const showSidebar = !!user;
 
   return (
-    <div className="min-h-screen bg-college-medium dark:bg-college-dark">
+    <div className="min-h-screen bg-main">
       {/* Global Sidebar - Always render but conditionally show */}
       {showSidebar && (
         <PaperpalSidebar 
@@ -181,36 +181,36 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
         />
         
         {/* Page Content */}
-        <main className="min-h-[calc(100vh-80px)] p-6">
+        <main className="min-h-[calc(100vh-80px)] p-6 bg-main">
           {children}
         </main>
         
         {/* Footer */}
-        <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+        <footer className="bg-card border-t border-custom">
           <div className="max-w-7xl mx-auto px-6 py-6">
             <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
               <div className="flex items-center space-x-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">Z</span>
+                  <span className="text-primary font-bold text-sm">Z</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-primary">
                     Zenith - CS Department Forum
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted">
                     St. Joseph Engineering College, Vamanjoor
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                <a href="/privacy" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              <div className="flex items-center space-x-6 text-sm text-muted">
+                <a href="/privacy" className="hover:text-secondary transition-colors">
                   Privacy
                 </a>
-                <a href="/terms" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                <a href="/terms" className="hover:text-secondary transition-colors">
                   Terms
                 </a>
-                <a href="/support" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                <a href="/support" className="hover:text-secondary transition-colors">
                   Support
                 </a>
                 <span className="text-xs">

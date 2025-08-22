@@ -152,7 +152,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectProps>(
             }}
             onKeyDown={handleKeyDown}
             className={cn(
-              "min-h-12 w-full justify-between rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm px-4 py-3 text-sm font-medium text-gray-900 dark:text-white hover:border-purple-300 dark:hover:border-purple-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300",
+              "min-h-12 w-full justify-between rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm px-4 py-3 text-sm font-medium text-gray-900 dark:text-primary hover:border-purple-300 dark:hover:border-purple-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300",
               selectedOptions.length === 0 && "text-gray-500 dark:text-gray-400"
             )}
           >
@@ -217,7 +217,7 @@ const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectProps>(
                   ref={inputRef}
                   placeholder={searchPlaceholder}
                   value={searchValue}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setSearchValue(e.target.value)
                     setHighlightedIndex(0)
                   }}

@@ -124,9 +124,9 @@ const GlobalAuthModal = () => {
             <div className="text-center">
               <div className="mx-auto w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 
                               rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-white" />
+                <Shield className="w-6 h-6 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-zenith-primary">
+              <h2 className="text-2xl font-bold text-primary">
                 {isLogin ? 'Welcome Back' : 'Join Zenith'}
               </h2>
               <p className="text-zenith-muted mt-1">
@@ -140,7 +140,7 @@ const GlobalAuthModal = () => {
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="flex flex-col items-center p-2">
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-1">
-                  <Zap className="w-4 h-4 text-zenith-primary" />
+                  <Zap className="w-4 h-4 text-primary" />
                 </div>
                 <span className="text-xs text-zenith-muted">Code Playground</span>
               </div>
@@ -174,7 +174,7 @@ const GlobalAuthModal = () => {
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 
                                border border-gray-200 dark:border-gray-700 
                                focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
-                               text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                               text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
               )}
@@ -190,7 +190,7 @@ const GlobalAuthModal = () => {
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 
                              border border-gray-200 dark:border-gray-700 
                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
-                             text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                             text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
 
@@ -205,7 +205,7 @@ const GlobalAuthModal = () => {
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 
                              border border-gray-200 dark:border-gray-700 
                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
-                             text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                             text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
 
@@ -221,7 +221,7 @@ const GlobalAuthModal = () => {
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700
                            disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed
-                           text-white py-3 px-4 rounded-xl font-medium transition-all duration-200
+                           text-primary py-3 px-4 rounded-xl font-medium transition-all duration-200
                            shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 {isLoading ? (

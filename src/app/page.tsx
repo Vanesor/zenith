@@ -38,7 +38,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 // Club color mapping for text display
 const getClubTextColor = (clubName: string) => {
   const clubColors: Record<string, string> = {
-    'Ascend': 'text-zenith-primary',    // Blue for ASCEND
+    'Ascend': 'text-primary',    // Blue for ASCEND
     'Aster': 'text-pink-500',     // Pink for ASTER  
     'Achievers': 'text-purple-500', // Purple for ACHIEVERS
     'Altogether': 'text-green-500', // Green for ALTOGETHER
@@ -150,13 +150,13 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-zenith-primary mb-4">
+          <h1 className="text-2xl font-bold text-primary mb-4">
             Unable to load data
           </h1>
           <p className="text-zenith-secondary mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-zenith-accent text-white rounded-lg hover:bg-zenith-accent transition-colors"
+            className="px-4 py-2 bg-zenith-accent text-primary rounded-lg hover:bg-zenith-accent transition-colors"
           >
             Retry
           </button>
@@ -184,23 +184,23 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
+                <Zap className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Zenith</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-primary">Zenith</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">CS Department Forum</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Link
                 href="/login"
-                className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors"
+                className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-primary hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+                className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary text-sm font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 Get Started
               </Link>
@@ -214,7 +214,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-primary mb-6">
               Welcome to{" "}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ZENITH
@@ -230,14 +230,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
               >
                 Get Started
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-primary border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>
@@ -321,25 +321,25 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                  className="bg-zenith-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+                  className="bg-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
                 >
                   <div
-                    className={`bg-gradient-to-r ${club.color} p-6 text-white`}
+                    className={`bg-gradient-to-r ${club.color} p-6 text-primary`}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-zenith-card/20 rounded-xl flex items-center justify-center">
+                        <div className="w-16 h-16 bg-card/20 rounded-xl flex items-center justify-center">
                           <ClubLogo 
                             clubId={club.id}
                             clubName={club.name}
                             size="lg"
                             fallbackIcon={club.icon}
-                            className="text-white"
+                            className="text-primary"
                           />
                         </div>
                         <div>
                           <h3 className={`text-2xl font-bold ${getClubTextColor(club.name)}`}>{club.name}</h3>
-                          <p className={`text-white/80 ${getClubTextColor(club.name)}`}>{club.type}</p>
+                          <p className={`text-primary/80 ${getClubTextColor(club.name)}`}>{club.type}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -401,20 +401,20 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-                className="bg-zenith-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith"
+                className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith"
               >
                 <div className={`bg-gradient-to-r ${event.club_color} p-4`}>
-                  <div className="flex justify-between items-center text-white">
+                  <div className="flex justify-between items-center text-primary">
                     <span className="text-sm font-medium">
                       {event.club_name}
                     </span>
-                    <span className="text-xs bg-zenith-card/20 px-2 py-1 rounded">
+                    <span className="text-xs bg-card/20 px-2 py-1 rounded">
                       {new Date(event.event_date).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-zenith-primary mb-2">
+                  <h3 className="text-xl font-semibold text-primary mb-2">
                     {event.title}
                   </h3>
                   <p className="text-zenith-secondary mb-4 line-clamp-2">
@@ -473,10 +473,10 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-zenith-primary" />
+                    <Users className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-zenith-primary">
+                    <h3 className="font-semibold text-primary">
                       Community Driven
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -489,7 +489,7 @@ export default function HomePage() {
                     <BookOpen className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-zenith-primary">
+                    <h3 className="font-semibold text-primary">
                       Skill Development
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -502,7 +502,7 @@ export default function HomePage() {
                     <Lightbulb className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-zenith-primary">
+                    <h3 className="font-semibold text-primary">
                       Innovation Hub
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -515,7 +515,7 @@ export default function HomePage() {
                     <Calendar className="w-4 h-4 text-pink-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-zenith-primary">
+                    <h3 className="font-semibold text-primary">
                       Regular Events
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -531,7 +531,7 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.5 }}
               className="relative"
             >
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-primary">
                 <div className="text-center">
                   <ZenithLogo size="xl" className="mb-6" />
                   <p className="text-lg opacity-90 mb-6">
@@ -567,24 +567,24 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <h2 className="text-4xl font-bold text-white mb-6">
+            <h2 className="text-4xl font-bold text-primary mb-6">
               Ready to Reach Your Zenith?
             </h2>
-            <p className="text-xl text-white/90 mb-8">
+            <p className="text-xl text-primary/90 mb-8">
               Join thousands of students who are already part of our growing
               community. Your journey to excellence starts here.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-zenith-card text-zenith-accent hover:bg-zenith-section px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
+                className="bg-card text-zenith-accent hover:bg-zenith-section px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
               >
                 Join Zenith Today
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="border-2 border-white text-white hover:bg-zenith-card hover:text-zenith-accent px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+                className="border-2 border-white text-primary hover:bg-card hover:text-zenith-accent px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>
@@ -604,9 +604,9 @@ export default function HomePage() {
           >
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Users className="w-8 h-8 text-white" />
+                <Users className="w-8 h-8 text-primary" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
                 {stats.totalClubs}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -615,9 +615,9 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Users className="w-8 h-8 text-white" />
+                <Users className="w-8 h-8 text-primary" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
                 {stats.totalMembers}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -626,9 +626,9 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Calendar className="w-8 h-8 text-white" />
+                <Calendar className="w-8 h-8 text-primary" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
                 {stats.upcomingEvents}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -637,9 +637,9 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <MessageSquare className="w-8 h-8 text-white" />
+                <MessageSquare className="w-8 h-8 text-primary" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
                 {stats.totalPosts}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -651,7 +651,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-primary py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
@@ -670,7 +670,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="#clubs"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Clubs
                   </Link>
@@ -678,7 +678,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="#events"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Events
                   </Link>
@@ -686,7 +686,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/forums"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Forums
                   </Link>
@@ -694,7 +694,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/about"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     About
                   </Link>
@@ -707,7 +707,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/help"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Help Center
                   </Link>
@@ -715,7 +715,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/contact"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Contact Us
                   </Link>
@@ -723,7 +723,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/guidelines"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Guidelines
                   </Link>
@@ -731,7 +731,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/privacy"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Privacy
                   </Link>

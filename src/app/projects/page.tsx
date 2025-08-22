@@ -147,7 +147,7 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+      <div className="min-h-screen bg-main">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -158,7 +158,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+    <div className="min-h-screen bg-main">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -171,7 +171,7 @@ export default function ProjectsPage() {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Project Management
               </h1>
-              <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
+              <p className="mt-2 text-lg text-secondary">
                 Manage your projects with enterprise-level efficiency
               </p>
             </div>
@@ -180,7 +180,7 @@ export default function ProjectsPage() {
               {/* Always show create button with better permission handling */}
               <Button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 size="lg"
               >
                 <Plus className="w-5 h-5 mr-2" />
@@ -197,57 +197,57 @@ export default function ProjectsPage() {
           transition={{ delay: 0.1 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
         >
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="card">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <Target className="h-8 w-8 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Projects</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                  <p className="text-sm font-medium text-secondary">Total Projects</p>
+                  <p className="text-2xl font-bold text-primary">{stats.total}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="card">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <PlayCircle className="h-8 w-8 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
+                  <p className="text-sm font-medium text-secondary">Active</p>
+                  <p className="text-2xl font-bold text-primary">{stats.active}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="card">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <CheckCircle className="h-8 w-8 text-purple-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.completed}</p>
+                  <p className="text-sm font-medium text-secondary">Completed</p>
+                  <p className="text-2xl font-bold text-primary">{stats.completed}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="card">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Overdue</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.overdue}</p>
+                  <p className="text-sm font-medium text-secondary">Overdue</p>
+                  <p className="text-2xl font-bold text-primary">{stats.overdue}</p>
                 </div>
               </div>
             </CardContent>
@@ -261,12 +261,12 @@ export default function ProjectsPage() {
           transition={{ delay: 0.2 }}
           className="mb-6"
         >
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="card">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
                     <Input
                       placeholder="Search projects..."
                       value={searchTerm}
@@ -278,7 +278,7 @@ export default function ProjectsPage() {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="px-3 py-2 border border-custom rounded-md bg-card text-primary"
                   >
                     <option value="all">All Status</option>
                     <option value="planning">Planning</option>
@@ -319,7 +319,7 @@ export default function ProjectsPage() {
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
               <CardContent className="p-12 text-center">
                 <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-primary mb-2">
                   No projects found
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">

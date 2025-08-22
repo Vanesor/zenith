@@ -92,17 +92,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-purple-400/30 dark:to-pink-400/30 blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 dark:from-blue-400/30 dark:to-cyan-400/30 blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-r from-indigo-400/15 to-purple-400/15 dark:from-indigo-400/20 dark:to-purple-400/20 blur-3xl animate-pulse delay-500"></div>
-      </div>
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10"></div>
-
+    <div className="min-h-screen bg-main flex items-center justify-center p-4 relative overflow-hidden">
       {/* Theme Toggle Button */}
       <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />
@@ -132,7 +122,7 @@ export default function ForgotPasswordPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl rounded-3xl shadow-2xl dark:shadow-3xl border border-white/40 dark:border-gray-700/60 p-10 md:p-12 relative overflow-hidden min-h-[600px]"
+          className="bg-card backdrop-blur-xl rounded-3xl shadow-lg border border-custom p-10 md:p-12 relative overflow-hidden min-h-[600px]"
         >
           {/* Subtle gradient overlay for enhanced depth */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-blue-50/40 dark:from-gray-900/40 dark:to-purple-900/20 rounded-3xl"></div>
@@ -176,7 +166,7 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-700 to-purple-600 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent mb-3"
+                className="text-4xl font-bold text-primary mb-3"
               >
                 {emailSent ? "Check Your Email" : "Forgot Password"}
               </motion.h1>
@@ -185,7 +175,7 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-gray-600 dark:text-gray-400 text-lg font-medium"
+                className="text-secondary text-lg font-medium"
               >
                 {emailSent ? "We've sent you a password reset link" : "Enter your email to reset your password"}
               </motion.p>
@@ -213,13 +203,13 @@ export default function ForgotPasswordPage() {
                   placeholder="Enter your email address"
                   icon={<Mail className="w-5 h-5" />}
                   error={errors.email?.message}
-                  className="h-14 text-base px-6 bg-white/80 dark:bg-gray-800/80 border-gray-200/80 dark:border-gray-700/80 rounded-2xl focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-300 shadow-sm hover:shadow-md placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="h-14 text-base px-6 bg-card border-custom rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-sm hover:shadow-md placeholder:text-muted"
                 />
 
                 <Button
                   type="submit"
                   disabled={isLoading || !isValid}
-                  className="w-full h-14 text-base relative overflow-hidden group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                  className="w-full h-14 text-base relative overflow-hidden group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   <div className="relative z-10 flex items-center justify-center">
                     {isLoading ? (

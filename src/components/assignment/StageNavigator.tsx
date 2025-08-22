@@ -19,8 +19,8 @@ export function StageNavigator({ currentStage, stages, onStageChange }: StageNav
   const currentIndex = stages.findIndex(stage => stage.id === currentStage);
 
   return (
-    <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-      <h2 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">
+    <div className="bg-card rounded-xl shadow-lg p-6 mb-6">
+      <h2 className="text-lg font-semibold text-primary mb-4">
         Assignment Creation Progress
       </h2>
       
@@ -37,10 +37,10 @@ export function StageNavigator({ currentStage, stages, onStageChange }: StageNav
                   onClick={() => isClickable && onStageChange(stage.id)}
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all border-2 ${
                     isActive
-                      ? 'bg-zenith-primary text-white shadow-lg scale-110 border-zenith-primary'
+                      ? 'bg-zenith-primary text-primary shadow-lg scale-110 border-zenith-primary'
                       : isPast
-                      ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer border-green-600'
-                      : 'bg-white dark:bg-gray-800 text-zenith-primary dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-zenith-hover dark:hover:bg-gray-700'
+                      ? 'bg-green-600 text-primary hover:bg-green-700 cursor-pointer border-green-600'
+                      : 'bg-white dark:bg-gray-800 text-primary dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-zenith-hover dark:hover:bg-gray-700'
                   } ${isClickable ? 'hover:scale-105' : 'cursor-not-allowed'}`}
                   disabled={!isClickable}
                 >
@@ -53,7 +53,7 @@ export function StageNavigator({ currentStage, stages, onStageChange }: StageNav
                 
                 <div className="mt-3 text-center">
                   <p className={`text-sm font-semibold ${
-                    isActive ? 'text-zenith-primary dark:text-blue-400' : 
+                    isActive ? 'text-primary dark:text-blue-400' : 
                     isPast ? 'text-green-600 dark:text-green-400' : 
                     'text-zenith-secondary dark:text-gray-300'
                   }`}>

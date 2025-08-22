@@ -294,9 +294,9 @@ Please provide helpful, relevant content that enhances the blog post. If the use
                 transition={{ delay: 0.2, type: 'spring', stiffness: 150 }}
                 className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4"
               >
-                <Check className="w-8 h-8 text-white" />
+                <Check className="w-8 h-8 text-primary" />
               </motion.div>
-              <h3 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-bold text-center text-gray-900 dark:text-primary mb-2">
                 Post Created Successfully!
               </h3>
               <p className="text-gray-600 dark:text-gray-400 text-center">
@@ -326,10 +326,10 @@ Please provide helpful, relevant content that enhances the blog post. If the use
             >
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
+                  <Sparkles className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-primary">
                     Zen Writing Assistant
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -419,7 +419,7 @@ Examples:
 • 'Help me explain complex technical concepts'
 • 'Generate ideas for engaging student activities'
 • 'Improve the title to be more catchy'"
-                    className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                     rows={4}
                   />
                   <div className="absolute bottom-3 right-3 text-xs text-gray-400">
@@ -446,7 +446,7 @@ Examples:
                       }
                     }}
                     disabled={!aiPrompt.trim() || uiState.aiLoading}
-                    className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-primary rounded-xl font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                   >
                     {uiState.aiLoading ? (
                       <>
@@ -497,12 +497,12 @@ Examples:
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 bg-main min-h-screen">
         {/* Header - Made sticky */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sticky top-0 z-30 bg-gradient-to-br from-blue-50/95 via-white/95 to-purple-50/95 dark:from-gray-900/95 dark:via-gray-800/95 dark:to-gray-900/95 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50 mb-8"
+          className="sticky top-0 z-30 bg-card mb-8"
         >
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
@@ -511,7 +511,7 @@ Examples:
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => router.back()}
-                  className="p-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 hover:shadow-xl transition-all"
+                  className="p-3 bg-card hover:shadow-xl transition-all"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </motion.button>
@@ -563,9 +563,9 @@ Examples:
               animate={{ opacity: 1, y: 0 }}
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
             >
-              <label className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-white mb-4">
+              <label className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-primary mb-4">
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-                  <Type className="w-5 h-5 text-white" />
+                  <Type className="w-5 h-5 text-primary" />
                 </div>
                 Post Title
               </label>
@@ -583,7 +583,7 @@ Examples:
                   bg-white/80 dark:bg-gray-700/80 
                   rounded-xl border-2 transition-all duration-300
                   placeholder-gray-400 dark:placeholder-gray-500
-                  text-gray-900 dark:text-white
+                  text-gray-900 dark:text-primary
                   ${uiState.focusedField === 'title' 
                     ? 'border-blue-500 shadow-lg shadow-blue-500/20 ring-4 ring-blue-500/10 transform scale-[1.01]' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
@@ -602,9 +602,9 @@ Examples:
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
             >
               <div className="flex items-center justify-between mb-4">
-                <label className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-white">
+                <label className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-primary">
                   <div className="p-2 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg">
-                    <Edit3 className="w-5 h-5 text-white" />
+                    <Edit3 className="w-5 h-5 text-primary" />
                   </div>
                   Content
                 </label>
@@ -632,7 +632,7 @@ Examples:
                     type="button"
                     onClick={() => setUiState(prev => ({ ...prev, showAiModal: true }))}
                     disabled={uiState.aiLoading}
-                    className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-primary rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Zen Writing Assistant"
                   >
                     {uiState.aiLoading ? (
@@ -750,7 +750,7 @@ Examples:
                       bg-white/80 dark:bg-gray-700/80 
                       rounded-xl border-2 transition-all duration-300
                       placeholder-gray-400 dark:placeholder-gray-500
-                      text-gray-900 dark:text-white
+                      text-gray-900 dark:text-primary
                       font-mono text-sm leading-relaxed
                       resize-none
                       ${uiState.focusedField === 'content' 
@@ -775,9 +775,9 @@ Examples:
               transition={{ delay: 0.3 }}
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
             >
-              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-white mb-4">
+              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-primary mb-4">
                 <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-                  <Settings className="w-5 h-5 text-white" />
+                  <Settings className="w-5 h-5 text-primary" />
                 </div>
                 Post Settings
               </h3>
@@ -792,7 +792,7 @@ Examples:
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-white/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-primary focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   >
                     <option value="published">📢 Publish Now</option>
                     <option value="draft">📝 Save as Draft</option>
@@ -808,7 +808,7 @@ Examples:
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-white/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-primary focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   >
                     <option value="general">⭐ General</option>
                     <option value="announcement">📢 Announcement</option>
@@ -827,9 +827,9 @@ Examples:
               transition={{ delay: 0.4 }}
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
             >
-              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-white mb-4">
+              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-primary mb-4">
                 <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
-                  <Image className="w-5 h-5 text-white" />
+                  <Image className="w-5 h-5 text-primary" />
                 </div>
                 Featured Image
               </h3>
@@ -846,7 +846,7 @@ Examples:
                   bg-white/80 dark:bg-gray-700/80 
                   border-2 rounded-lg transition-all duration-300
                   placeholder-gray-400 dark:placeholder-gray-500
-                  text-gray-900 dark:text-white
+                  text-gray-900 dark:text-primary
                   ${uiState.focusedField === 'image' 
                     ? 'border-orange-500 shadow-lg shadow-orange-500/20 ring-4 ring-orange-500/10' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-orange-300 dark:hover:border-orange-500'
@@ -863,9 +863,9 @@ Examples:
               transition={{ delay: 0.5 }}
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
             >
-              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-white mb-4">
+              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-primary mb-4">
                 <div className="p-2 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg">
-                  <Hash className="w-5 h-5 text-white" />
+                  <Hash className="w-5 h-5 text-primary" />
                 </div>
                 Tags
               </h3>
@@ -882,7 +882,7 @@ Examples:
                   bg-white/80 dark:bg-gray-700/80 
                   border-2 rounded-lg transition-all duration-300
                   placeholder-gray-400 dark:placeholder-gray-500
-                  text-gray-900 dark:text-white
+                  text-gray-900 dark:text-primary
                   ${uiState.focusedField === 'tags' 
                     ? 'border-indigo-500 shadow-lg shadow-indigo-500/20 ring-4 ring-indigo-500/10' 
                     : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500'
@@ -902,9 +902,9 @@ Examples:
               transition={{ delay: 0.6 }}
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
             >
-              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-white mb-4">
+              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-primary mb-4">
                 <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                  <FileText className="w-5 h-5 text-white" />
+                  <FileText className="w-5 h-5 text-primary" />
                 </div>
                 Excerpt
               </h3>
@@ -921,7 +921,7 @@ Examples:
                   bg-white/80 dark:bg-gray-700/80 
                   border-2 rounded-lg transition-all duration-300
                   placeholder-gray-400 dark:placeholder-gray-500
-                  text-gray-900 dark:text-white
+                  text-gray-900 dark:text-primary
                   resize-none
                   ${uiState.focusedField === 'excerpt' 
                     ? 'border-green-500 shadow-lg shadow-green-500/20 ring-4 ring-green-500/10' 
@@ -939,22 +939,22 @@ Examples:
               transition={{ delay: 0.7 }}
               className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
             >
-              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-white mb-4">
+              <h3 className="flex items-center gap-3 text-lg font-bold text-gray-800 dark:text-primary mb-4">
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
-                  <Target className="w-5 h-5 text-white" />
+                  <Target className="w-5 h-5 text-primary" />
                 </div>
                 Content Stats
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Words</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  <span className="text-sm font-medium text-gray-900 dark:text-primary">
                     {contentMetrics.words}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Characters</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  <span className="text-sm font-medium text-gray-900 dark:text-primary">
                     {contentMetrics.chars}
                   </span>
                 </div>
@@ -987,7 +987,7 @@ Examples:
                     whileTap={{ scale: 0.95 }}
                     type="submit"
                     disabled={uiState.loading || !formData.title.trim() || !formData.content.trim()}
-                    className="flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 relative overflow-hidden"
+                    className="flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-primary rounded-xl font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-0 hover:opacity-100 transition-opacity duration-300" />
                     <div className="relative flex items-center gap-3">

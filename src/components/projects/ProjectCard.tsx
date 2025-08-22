@@ -127,12 +127,12 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
 
   if (viewMode === 'list') {
     return (
-      <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+      <Card className="card hover:shadow-xl transition-all duration-300">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 flex-1">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-primary font-bold text-lg">
                   {project.project_key}
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <Link href={`/projects/${project.id}`}>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer truncate">
+                    <h3 className="text-lg font-semibold text-primary hover:text-blue-600 transition-colors cursor-pointer truncate">
                       {project.name}
                     </h3>
                   </Link>
@@ -150,11 +150,11 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
                     </Badge>
                   )}
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm truncate">
+                <p className="text-secondary text-sm truncate">
                   {project.description}
                 </p>
                 <div className="flex items-center space-x-4 mt-2">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-muted">
                     {project.club_name}
                   </span>
                   <div className="flex items-center space-x-1">
@@ -173,21 +173,21 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
             <div className="flex items-center space-x-6">
               <div className="text-right">
                 <div className="flex items-center space-x-2 mb-1">
-                  <Users className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <Users className="w-4 h-4 text-muted" />
+                  <span className="text-sm text-secondary">
                     {project.member_count} members
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <TrendingUp className="w-4 h-4 text-muted" />
+                  <span className="text-sm text-secondary">
                     {project.completed_tasks}/{project.total_tasks} tasks
                   </span>
                 </div>
               </div>
               
               <div className="w-20">
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-center">
+                <div className="text-xs text-muted mb-1 text-center">
                   {project.progress_percentage}%
                 </div>
                 <Progress value={project.progress_percentage} className="h-2" />
@@ -235,20 +235,20 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full">
+      <Card className="card hover:shadow-xl transition-all duration-300 h-full">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-primary font-bold">
                 {project.project_key}
               </div>
               <div>
-                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1">
-                  <Link href={`/projects/${project.id}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                <CardTitle className="text-lg font-semibold text-primary line-clamp-1">
+                  <Link href={`/projects/${project.id}`} className="hover:text-blue-600 transition-colors">
                     {project.name}
                   </Link>
                 </CardTitle>
-                <CardDescription className="text-xs text-gray-500 dark:text-gray-400">
+                <CardDescription className="text-xs text-muted">
                   {project.club_name}
                 </CardDescription>
               </div>
@@ -260,18 +260,18 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-card border-custom">
                 <DropdownMenuItem asChild>
-                  <Link href={`/projects/${project.id}`} className="flex items-center">
+                  <Link href={`/projects/${project.id}`} className="flex items-center text-primary hover:bg-accent">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     View Details
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="text-primary hover:bg-accent">
                   <Settings className="mr-2 h-4 w-4" />
                   Manage
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem className="text-red-600 hover:bg-red-50">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -281,7 +281,7 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
         </CardHeader>
         
         <CardContent className="pt-0">
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
+          <p className="text-secondary text-sm mb-4 line-clamp-2">
             {project.description}
           </p>
           
@@ -309,8 +309,8 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                <span className="font-medium text-gray-900 dark:text-white">
+                <span className="text-secondary">Progress</span>
+                <span className="font-medium text-primary">
                   {project.progress_percentage}%
                 </span>
               </div>
@@ -319,20 +319,20 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
             
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center space-x-1">
-                <TrendingUp className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600 dark:text-gray-400">
+                <TrendingUp className="w-4 h-4 text-muted" />
+                <span className="text-secondary">
                   {project.completed_tasks}/{project.total_tasks} tasks
                 </span>
               </div>
               <div className="flex items-center space-x-1">
-                <Users className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600 dark:text-gray-400">
+                <Users className="w-4 h-4 text-muted" />
+                <span className="text-secondary">
                   {project.member_count} members
                 </span>
               </div>
             </div>
             
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-xs text-muted pt-2 border-t border-custom">
               <span>Created {formatDate(project.created_at)}</span>
               {project.target_end_date && (
                 <div className="flex items-center space-x-1">

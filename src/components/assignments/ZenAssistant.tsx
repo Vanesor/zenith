@@ -471,7 +471,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-gradient-to-br from-black/50 via-purple-900/30 to-blue-900/40 backdrop-blur-md"
+          className="absolute inset-0 bg-black/50 backdrop-blur-md"
           onClick={() => {
             if (!preventClose) {
               onClose();
@@ -483,17 +483,17 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
-          className="relative z-10 w-full max-w-5xl max-h-[90vh] overflow-hidden bg-white dark:bg-gray-800 rounded-3xl shadow-2xl"
+          className="relative z-10 w-full max-w-5xl max-h-[90vh] overflow-hidden zenith-bg-card rounded-3xl shadow-2xl border zenith-border"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-6 border-b zenith-border zenith-bg-section">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">ZEN AI Assistant</h2>
-                <p className="text-gray-600 dark:text-gray-300">
+                <h2 className="text-2xl font-bold zenith-text-primary">ZEN AI Assistant</h2>
+                <p className="zenith-text-secondary">
                   {step === 'input' && 'Create assignments with AI assistance'}
                   {step === 'generating' && 'Generating your assignment...'}
                   {step === 'review' && 'Review your generated assignment'}
@@ -514,14 +514,14 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                   });
                 }
               }}
-              className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-all duration-200"
+              className="w-10 h-10 rounded-xl zenith-bg-hover hover:zenith-bg-hover flex items-center justify-center transition-all duration-200"
             >
-              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <X className="w-5 h-5 zenith-text-muted" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-6 max-h-[calc(90vh-140px)] overflow-y-auto">
+          <div className="p-6 max-h-[calc(90vh-140px)] overflow-y-auto zenith-bg-card">
             {/* Input Step */}
             {step === 'input' && (
               <div className="space-y-6">
@@ -532,45 +532,45 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                     className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 ${
                       inputType === 'text'
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        : 'zenith-border hover:border-purple-300'
                     }`}
                   >
                     <FileText className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                    <span className="block font-medium text-gray-900 dark:text-white">Text Input</span>
+                    <span className="block font-medium zenith-text-primary">Text Input</span>
                   </button>
                   <button
                     onClick={() => setInputType('pdf')}
                     className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 ${
                       inputType === 'pdf'
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        : 'zenith-border hover:border-purple-300'
                     }`}
                   >
                     <Upload className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                    <span className="block font-medium text-gray-900 dark:text-white">PDF Upload</span>
+                    <span className="block font-medium zenith-text-primary">PDF Upload</span>
                   </button>
                 </div>
 
                 {/* Content Input */}
                 {inputType === 'text' ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium zenith-text-primary mb-2">
                       Assignment Content
                     </label>
                     <textarea
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
                       placeholder="Enter the topic, learning objectives, or content for your assignment. You can specify the number of questions (e.g., '5 questions about React hooks')..."
-                      className="w-full h-32 p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                      className="w-full h-32 p-4 border zenith-border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent zenith-bg-input zenith-text-primary resize-none placeholder:zenith-text-muted"
                     />
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium zenith-text-primary mb-2">
                       Upload PDF Document
                     </label>
                     <div
-                      className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-purple-400 transition-colors cursor-pointer"
+                      className="border-2 border-dashed zenith-border rounded-xl p-8 text-center hover:border-purple-400 transition-colors cursor-pointer zenith-bg-input"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       {uploadedFile ? (
@@ -580,9 +580,9 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                         </div>
                       ) : (
                         <div>
-                          <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                          <p className="text-gray-600 dark:text-gray-400">Click to upload a PDF document</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">Maximum size: 10MB</p>
+                          <Upload className="w-12 h-12 mx-auto mb-4 zenith-text-muted" />
+                          <p className="zenith-text-secondary">Click to upload a PDF document</p>
+                          <p className="text-sm zenith-text-muted mt-1">Maximum size: 10MB</p>
                         </div>
                       )}
                       <input
@@ -608,7 +608,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                         onClick={() => setDifficulty(level)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                           difficulty === level
-                            ? 'bg-purple-500 text-white'
+                            ? 'bg-purple-500 text-primary'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                         }`}
                       >
@@ -622,7 +622,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                 <button
                   onClick={handleGenerate}
                   disabled={(!textInput.trim() && !uploadedFile) || isGenerating}
-                  className="w-full py-3 px-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-medium hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+                  className="w-full py-3 px-6 bg-gradient-to-r from-purple-500 to-blue-500 text-primary rounded-xl font-medium hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <Wand2 className="w-5 h-5" />
                   Generate Assignment
@@ -653,7 +653,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                     value={questionCount}
                     onChange={(e) => setQuestionCount(e.target.value)}
                     placeholder="e.g., 5"
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
                   />
                 </div>
                 <div className="flex gap-3">
@@ -669,7 +669,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                       generateAssignment(inputType === 'text' ? textInput : uploadedFile?.name || '', parseInt(questionCount) || 5);
                     }}
                     disabled={!questionCount}
-                    className="flex-1 py-2 px-4 bg-purple-500 text-white rounded-xl hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 py-2 px-4 bg-purple-500 text-primary rounded-xl hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Continue
                   </button>
@@ -681,9 +681,9 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
             {step === 'generating' && (
               <div className="text-center py-16">
                 <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                  <Loader className="w-8 h-8 text-white animate-spin" />
+                  <Loader className="w-8 h-8 text-primary animate-spin" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-primary mb-2">
                   Generating Your Assignment
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
@@ -696,7 +696,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
             {step === 'review' && generatedAssignment && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assignment Preview</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-primary">Assignment Preview</h3>
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
@@ -718,7 +718,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                     </button>
                     <button
                       onClick={handleSaveAssignment}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-green-500 text-primary rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
                     >
                       <ArrowLeft className="w-4 h-4 rotate-180" />
                       Continue to Assignment Editor
@@ -729,7 +729,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900/20 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h4 className="text-xl font-bold text-gray-900 dark:text-white">{generatedAssignment.title}</h4>
+                      <h4 className="text-xl font-bold text-gray-900 dark:text-primary">{generatedAssignment.title}</h4>
                       <p className="text-gray-600 dark:text-gray-300 mt-2 leading-relaxed">{generatedAssignment.description}</p>
                     </div>
                     <div className="text-right">
@@ -762,14 +762,14 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
 
                 <div className="space-y-6">
                   {generatedAssignment.questions.map((question, index) => (
-                    <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div key={index} className="card rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start gap-3">
                           <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-sm">
                             {index + 1}
                           </div>
                           <div className="flex-1">
-                            <h5 className="font-semibold text-gray-900 dark:text-white text-lg mb-1">
+                            <h5 className="font-semibold text-gray-900 dark:text-primary text-lg mb-1">
                               {question.title}
                             </h5>
                             <div className="flex items-center gap-2 mb-2">
@@ -904,7 +904,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                   </button>
                   <button
                     onClick={handleSaveAssignment}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-green-500 text-primary rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
                   >
                     <ArrowLeft className="w-4 h-4 rotate-180" />
                     Continue to Editor
@@ -913,7 +913,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
 
                 {/* Assignment Metadata Editor */}
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Assignment Details</h4>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-primary mb-4">Assignment Details</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -926,7 +926,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                           ...generatedAssignment, 
                           title: e.target.value 
                         })}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
                         placeholder="Enter assignment title..."
                       />
                     </div>
@@ -940,7 +940,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                           ...generatedAssignment, 
                           description: e.target.value 
                         })}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none h-24"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary resize-none h-24"
                         placeholder="Enter assignment description..."
                       />
                     </div>
@@ -957,7 +957,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                           ...generatedAssignment, 
                           timeLimit: parseInt(e.target.value) || 60 
                         })}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
                       />
                     </div>
                     <div>
@@ -970,7 +970,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                           ...generatedAssignment, 
                           difficulty: e.target.value as 'easy' | 'medium' | 'hard'
                         })}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
                       >
                         <option value="easy">Easy</option>
                         <option value="medium">Medium</option>
@@ -1014,7 +1014,7 @@ const ZenAssistant: React.FC<ZenAssistantProps> = ({ isOpen, onClose, onAssignme
                   {generatedAssignment.questions.map((question, index) => (
                     <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-4">
-                        <h5 className="font-medium text-gray-900 dark:text-white">Question {index + 1}</h5>
+                        <h5 className="font-medium text-gray-900 dark:text-primary">Question {index + 1}</h5>
                         <button
                           onClick={() => handleDeleteQuestion(index)}
                           className="text-red-500 hover:text-red-700 text-sm"
@@ -1080,7 +1080,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
           type="text"
           value={editedQuestion.title}
           onChange={(e) => setEditedQuestion({ ...editedQuestion, title: e.target.value })}
-          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
         />
       </div>
 
@@ -1091,7 +1091,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
         <textarea
           value={editedQuestion.description}
           onChange={(e) => setEditedQuestion({ ...editedQuestion, description: e.target.value })}
-          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none h-20"
+          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary resize-none h-20"
         />
       </div>
 
@@ -1106,7 +1106,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
             max="100"
             value={editedQuestion.points}
             onChange={(e) => setEditedQuestion({ ...editedQuestion, points: parseInt(e.target.value) || 1 })}
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
           />
         </div>
         <div className="flex-1">
@@ -1119,7 +1119,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
               ...editedQuestion, 
               question_type: e.target.value as Question['question_type']
             })}
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
           >
             <option value="single_choice">Single Choice</option>
             <option value="multiple_choice">Multiple Choice</option>
@@ -1149,7 +1149,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
                     newOptions[index] = e.target.value;
                     setEditedQuestion({ ...editedQuestion, options: newOptions });
                   }}
-                  className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
                 />
                 <input
                   type={editedQuestion.question_type === 'multi_select' ? 'checkbox' : 'radio'}
@@ -1231,7 +1231,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
               ...editedQuestion, 
               correct_answer: parseFloat(e.target.value) || 0 
             })}
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
           />
         </div>
       )}
@@ -1249,7 +1249,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onSave, onCan
                 ...editedQuestion, 
                 code_language: e.target.value 
               })}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
             >
               <option value="python">Python</option>
               <option value="javascript">JavaScript</option>
@@ -1275,7 +1275,7 @@ def solution(input_value):
     pass
 
 # Write your solution here`}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono resize-y h-32"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary font-mono resize-y h-32"
             />
           </div>
           
@@ -1291,7 +1291,7 @@ def solution(input_value):
                 correct_answer: e.target.value // Set correct_answer to match expected_output for consistency
               })}
               placeholder="Enter the expected output or solution for grading"
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono resize-y h-24"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary font-mono resize-y h-24"
             />
           </div>
         </div>
@@ -1311,7 +1311,7 @@ def solution(input_value):
                 explanation: e.target.value 
               })}
               placeholder="Enter guidelines for the essay response (e.g., word count, structure, key points to address)"
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y h-24"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary resize-y h-24"
             />
           </div>
           
@@ -1326,7 +1326,7 @@ def solution(input_value):
                 correct_answer: e.target.value 
               })}
               placeholder="Enter a scoring rubric or key points that should be included in a good response"
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y h-32"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-primary resize-y h-32"
             />
           </div>
         </div>
@@ -1341,7 +1341,7 @@ def solution(input_value):
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 py-2 px-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+          className="flex-1 py-2 px-4 bg-purple-500 text-primary rounded-lg hover:bg-purple-600 transition-colors"
         >
           Save Changes
         </button>

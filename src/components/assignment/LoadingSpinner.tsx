@@ -45,7 +45,7 @@ export function FullscreenLoading({
 }: FullscreenLoadingProps) {
   return (
     <div className="fixed inset-0 bg-zenith-main/80 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-zenith-card rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+      <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
         <div className="text-center">
           <div className="mb-6">
             <div className="relative">
@@ -56,7 +56,7 @@ export function FullscreenLoading({
             </div>
           </div>
           
-          <h3 className="text-xl font-semibold text-zenith-primary mb-2">
+          <h3 className="text-xl font-semibold text-primary mb-2">
             {title}
           </h3>
           

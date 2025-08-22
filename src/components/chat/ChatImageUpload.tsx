@@ -84,9 +84,9 @@ export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 max-w-md w-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-white">Upload Image</h3>
+        <h3 className="text-lg font-medium text-primary">Upload Image</h3>
         <button 
-          className="text-gray-400 hover:text-white"
+          className="text-gray-400 hover:text-primary"
           onClick={onCancel}
         >
           <X className="w-5 h-5" />
@@ -108,7 +108,7 @@ export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null
               setPreview(null);
             }}
           >
-            <X className="w-4 h-4 text-white" />
+            <X className="w-4 h-4 text-primary" />
           </button>
         </div>
       ) : (
@@ -143,7 +143,7 @@ export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null
       {/* Actions */}
       <div className="flex space-x-3">
         <button 
-          className="flex-1 py-2 px-4 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          className="flex-1 py-2 px-4 bg-gray-700 text-primary rounded-lg hover:bg-gray-600 transition-colors"
           onClick={onCancel}
         >
           Cancel

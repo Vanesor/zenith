@@ -145,7 +145,7 @@ export default function TaskCard({ task, getStatusIcon, getPriorityColor, onTask
             </DropdownMenu>
           </div>
 
-          <h4 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
+          <h4 className="font-medium text-gray-900 dark:text-primary mb-2 line-clamp-2">
             {task.title}
           </h4>
           

@@ -121,7 +121,7 @@ export function UnifiedHeader({
     <header className={`fixed top-0 inset-x-0 z-50 w-full ${className}`}>
       {/* College Banner */}
       {showCollegeBanner && (
-        <div className="bg-zenith-main border-b border-zenith-border transition-colors duration-200">
+        <div className="bg-zenith-main border-b border-custom transition-colors duration-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-3">
               {/* Left - College Logo */}
@@ -140,10 +140,10 @@ export function UnifiedHeader({
 
               {/* Center - College and Department Name */}
               <div className="flex-1 text-center px-3 md:px-6">
-                <h1 className="text-md md:text-xl font-bold text-zenith-primary mb-0.5 transition-colors duration-200">
+                <h1 className="text-md md:text-xl font-bold text-primary mb-0.5 transition-colors duration-200">
                   St. Vincent Pallotti College of Engineering & Technology
                 </h1>
-                <p className="text-xs md:text-base text-zenith-primary font-semibold transition-colors duration-200">
+                <p className="text-xs md:text-base text-primary font-semibold transition-colors duration-200">
                   Department of Computer Engineering
                 </p>
                 <p className="text-xs md:text-xs text-zenith-secondary mt-0.5 transition-colors duration-200">
@@ -171,14 +171,14 @@ export function UnifiedHeader({
 
       {/* Navigation Bar */}
       {showNavigation && (
-        <div className="bg-zenith-card border-b border-zenith-border shadow-sm transition-colors duration-200">
+        <div className="bg-card border-b border-custom shadow-sm transition-colors duration-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14">
               {/* Left - Platform Name and Navigation */}
               <div className="flex items-center space-x-2 flex-1">
                 <Link 
                   href={isAuthenticated ? "/dashboard" : "/"}
-                  className="text-xl font-bold text-zenith-primary hover:text-zenith-accent transition-colors duration-200"
+                  className="text-xl font-bold text-primary hover:text-zenith-accent transition-colors duration-200"
                 >
                   ZENITH
                 </Link>
@@ -196,8 +196,8 @@ export function UnifiedHeader({
                           href={item.href}
                           className={`flex items-center space-x-3 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                             isActive
-                              ? "bg-zenith-accent text-white"
-                              : "text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover"
+                              ? "bg-zenith-accent text-primary"
+                              : "text-zenith-secondary hover:text-primary hover:bg-zenith-hover"
                           }`}
                         >
                           <Icon size={18} />
@@ -221,13 +221,13 @@ export function UnifiedHeader({
                   <div className="flex items-center space-x-4">
                     <Link
                       href="/login"
-                      className="px-5 py-2 text-sm font-medium text-zenith-secondary hover:text-zenith-primary transition-colors duration-200"
+                      className="px-5 py-2 text-sm font-medium text-zenith-secondary hover:text-primary transition-colors duration-200"
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/register"
-                      className="px-5 py-2 text-sm font-medium bg-zenith-accent hover:bg-zenith-accent/90 text-white rounded-md transition-colors duration-200"
+                      className="px-5 py-2 text-sm font-medium bg-zenith-accent hover:bg-zenith-accent/90 text-primary rounded-md transition-colors duration-200"
                     >
                       Sign Up
                     </Link>
@@ -240,7 +240,7 @@ export function UnifiedHeader({
                         e.stopPropagation();
                         setShowUserMenu(!showUserMenu);
                       }}
-                      className="flex items-center space-x-2 text-zenith-secondary hover:text-zenith-primary transition-colors duration-200"
+                      className="flex items-center space-x-2 text-zenith-secondary hover:text-primary transition-colors duration-200"
                     >
                       <UserAvatar 
                         avatar={user?.avatar}
@@ -257,9 +257,9 @@ export function UnifiedHeader({
 
                     {/* User Dropdown */}
                     {showUserMenu && (
-                      <div className="absolute right-0 mt-2 w-56 bg-zenith-card rounded-md shadow-lg border border-zenith-border py-1 transition-colors duration-200">
-                        <div className="px-4 py-2 border-b border-zenith-border">
-                          <p className="text-sm font-medium text-zenith-primary">
+                      <div className="absolute right-0 mt-2 w-56 bg-card rounded-md shadow-lg border border-custom py-1 transition-colors duration-200">
+                        <div className="px-4 py-2 border-b border-custom">
+                          <p className="text-sm font-medium text-primary">
                             {user?.name || user?.username || "User"}
                           </p>
                           <p className="text-sm text-zenith-muted truncate">
@@ -269,7 +269,7 @@ export function UnifiedHeader({
 
                         <Link
                           href="/profile"
-                          className="flex items-center px-4 py-2 text-sm text-zenith-secondary hover:bg-zenith-hover hover:text-zenith-primary transition-colors duration-200"
+                          className="flex items-center px-4 py-2 text-sm text-zenith-secondary hover:bg-zenith-hover hover:text-primary transition-colors duration-200"
                           onClick={() => setShowUserMenu(false)}
                         >
                           <User size={16} className="mr-3" />
@@ -278,7 +278,7 @@ export function UnifiedHeader({
 
                         <Link
                           href="/settings"
-                          className="flex items-center px-4 py-2 text-sm text-zenith-secondary hover:bg-zenith-hover hover:text-zenith-primary transition-colors duration-200"
+                          className="flex items-center px-4 py-2 text-sm text-zenith-secondary hover:bg-zenith-hover hover:text-primary transition-colors duration-200"
                           onClick={() => setShowUserMenu(false)}
                         >
                           <Settings size={16} className="mr-3" />
@@ -301,7 +301,7 @@ export function UnifiedHeader({
                 {isAuthenticated && (
                   <button
                     onClick={() => setShowMobileMenu(!showMobileMenu)}
-                    className="lg:hidden p-2 rounded-md text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover mobile-menu-container transition-colors duration-200"
+                    className="lg:hidden p-2 rounded-md text-zenith-secondary hover:text-primary hover:bg-zenith-hover mobile-menu-container transition-colors duration-200"
                   >
                     {showMobileMenu ? <X size={20} /> : <Menu size={20} />}
                   </button>
@@ -311,7 +311,7 @@ export function UnifiedHeader({
 
             {/* Mobile Navigation Menu - Only show when authenticated */}
             {showMobileMenu && isAuthenticated && (
-              <div className="lg:hidden border-t border-zenith-border py-4">
+              <div className="lg:hidden border-t border-custom py-4">
                 <nav className="space-y-2">
                   {navigationItems.map((item) => {
                     const isActive = pathname === item.href;
@@ -323,8 +323,8 @@ export function UnifiedHeader({
                         href={item.href}
                         className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition-colors duration-200 ${
                           isActive
-                            ? "bg-zenith-accent text-white"
-                            : "text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-hover"
+                            ? "bg-zenith-accent text-primary"
+                            : "text-zenith-secondary hover:text-primary hover:bg-zenith-hover"
                         }`}
                         onClick={() => setShowMobileMenu(false)}
                       >

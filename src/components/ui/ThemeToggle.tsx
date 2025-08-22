@@ -20,7 +20,7 @@ export default function ThemeToggle() {
   // Don't render until mounted to prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="p-2 rounded-lg bg-zenith-card border border-zenith-border">
+      <div className="p-2 rounded-lg bg-card border border-custom">
         <div className="h-5 w-5 animate-pulse bg-zenith-hover rounded"></div>
       </div>
     );
@@ -29,7 +29,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={handleToggle}
-      className="p-2 rounded-lg bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-600 hover:bg-zenith-hover dark:hover:bg-gray-700 transition-all duration-200 group"
+      className="p-2 rounded-lg bg-card border border-custom dark:border-gray-600 hover:bg-zenith-hover dark:hover:bg-gray-700 transition-all duration-200 group"
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >

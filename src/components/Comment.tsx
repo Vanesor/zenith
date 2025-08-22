@@ -82,7 +82,7 @@ export default function Comment({
       treasurer: "bg-yellow-100 text-yellow-800 border-yellow-200",
       outreach: "bg-teal-100 text-teal-800 border-teal-200",
     };
-    return roleColors[role] || "bg-zenith-section text-zenith-primary border-zenith-border";
+    return roleColors[role] || "bg-zenith-section text-primary border-custom";
   };
 
   const formatRole = (role: string) => {
@@ -269,16 +269,16 @@ export default function Comment({
 
   return (
     <>
-      <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-zenith-border dark:border-gray-700">
+      <div className="bg-card rounded-xl p-4 shadow-sm border border-custom dark:border-gray-700">
         {/* Comment Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-primary font-semibold text-sm">
               {comment.author_name.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h4 className="font-semibold text-zenith-primary dark:text-white text-sm">
+                <h4 className="font-semibold text-primary text-sm">
                   {comment.author_name}
                 </h4>
                 {comment.author_role && comment.author_role !== "member" && (
@@ -308,7 +308,7 @@ export default function Comment({
               {canEdit() && (
                 <button
                   onClick={handleEdit}
-                  className="text-zenith-muted hover:text-zenith-primary dark:text-zenith-muted dark:hover:text-blue-400 transition-colors p-1"
+                  className="text-zenith-muted hover:text-primary dark:text-zenith-muted dark:hover:text-blue-400 transition-colors p-1"
                   title="Edit comment"
                 >
                   <Edit className="w-4 h-4" />
@@ -334,7 +334,7 @@ export default function Comment({
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full p-3 border border-zenith-border dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full p-3 border border-custom dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
                 rows={3}
                 placeholder="Write your comment..."
               />
@@ -342,7 +342,7 @@ export default function Comment({
                 <button
                   onClick={handleSaveEdit}
                   disabled={isSubmitting}
-                  className="px-3 py-1.5 bg-zenith-primary text-white rounded-md hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1"
+                  className="px-3 py-1.5 bg-zenith-primary text-primary rounded-md hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1"
                 >
                   {isSubmitting ? (
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />

@@ -230,7 +230,57 @@ export default function CreateAssignment() {
     }
   };
 
+  const validateStage = (stageId: string): boolean => {
+    switch (stageId) {
+      case 'basic':
+        return formData.title.trim() !== '' && formData.description.trim() !== '' && formData.clubId !== '';
+      case 'settings':
+        return formData.timeLimit > 0 && formData.maxAttempts > 0;
+      case 'scoring':
+        return formData.maxPoints > 0 && formData.passingScore >= 0 && formData.passingScore <= 100;
+      case 'questions':
+        return questions.length > 0;
+      default:
+        return true;
+    }
+  };
+
+  const canNavigateToStage = (targetStageId: string): boolean => {
+    const stages = ['basic', 'settings', 'scoring', 'questions'];
+    const currentIndex = stages.indexOf(currentStage);
+    const targetIndex = stages.indexOf(targetStageId);
+    
+    // Allow navigation to previous stages or current stage
+    if (targetIndex <= currentIndex) {
+      return true;
+    }
+    
+    // For forward navigation, validate all previous stages
+    for (let i = 0; i < targetIndex; i++) {
+      if (!validateStage(stages[i])) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
   const goToStage = (stageId: string) => {
+    if (!canNavigateToStage(stageId)) {
+      const stageNames = {
+        'basic': 'Basic Info',
+        'settings': 'Test Settings', 
+        'scoring': 'Marks & Time',
+        'questions': 'Questions'
+      };
+      
+      showToast({
+        title: 'Complete Previous Stages',
+        message: `Please complete all required fields in previous stages before proceeding to ${stageNames[stageId as keyof typeof stageNames]}.`,
+        type: 'warning'
+      });
+      return;
+    }
     setCurrentStage(stageId);
   };
 
@@ -323,7 +373,7 @@ export default function CreateAssignment() {
           type="text"
           value={formData.title}
           onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+          className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
           placeholder="Enter assignment title..."
           required
         />
@@ -337,7 +387,7 @@ export default function CreateAssignment() {
         <textarea
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
+          className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
           placeholder="Describe the assignment objectives and requirements..."
           required
         />
@@ -352,7 +402,7 @@ export default function CreateAssignment() {
           type="datetime-local"
           value={formData.dueDate}
           onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+          className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
           required
         />
       </div>
@@ -364,7 +414,7 @@ export default function CreateAssignment() {
         <select
           value={formData.assignmentType}
           onChange={(e) => setFormData(prev => ({ ...prev, assignmentType: e.target.value as any }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-white rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+          className="w-full bg-slate-800/50 border border-slate-600 text-primary rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
         >
           <option value="mixed">Mixed Questions</option>
           <option value="objective">Objective Only</option>
@@ -387,7 +437,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.timeLimit}
             onChange={(e) => setFormData(prev => ({ ...prev, timeLimit: parseInt(e.target.value) || 60 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
             min="1"
             required
           />
@@ -402,7 +452,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.maxAttempts}
             onChange={(e) => setFormData(prev => ({ ...prev, maxAttempts: parseInt(e.target.value) || 1 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
             min="1"
             max="10"
             required
@@ -496,7 +546,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.maxPoints}
             onChange={(e) => setFormData(prev => ({ ...prev, maxPoints: parseInt(e.target.value) || 100 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
             min="1"
             required
           />
@@ -510,7 +560,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.passingScore}
             onChange={(e) => setFormData(prev => ({ ...prev, passingScore: parseInt(e.target.value) || 60 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
             min="0"
             max="100"
             required
@@ -552,7 +602,7 @@ export default function CreateAssignment() {
         
         <button 
           onClick={addQuestion}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg transition-all"
+          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-primary rounded-xl font-semibold shadow-lg transition-all"
         >
           <Plus className="w-5 h-5 inline mr-2" />
           Add Question
@@ -565,7 +615,7 @@ export default function CreateAssignment() {
             <div key={question.id} className="bg-slate-800/50 border border-slate-600 rounded-xl p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h4 className="text-white font-semibold">{question.title || `Question ${index + 1}`}</h4>
+                  <h4 className="text-primary font-semibold">{question.title || `Question ${index + 1}`}</h4>
                   <p className="text-slate-400 text-sm">{question.type} • {question.points} points</p>
                 </div>
                 <div className="flex space-x-2">
@@ -607,21 +657,21 @@ export default function CreateAssignment() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex flex-col items-center py-12 px-4">
-      <div className="w-full max-w-6xl bg-white/10 dark:bg-slate-900/80 rounded-3xl shadow-2xl border border-purple-500/20 backdrop-blur-xl p-8 md:p-12 relative">
+    <div className="min-h-screen bg-main flex flex-col items-center py-12 px-4">
+      <div className="w-full max-w-6xl bg-card rounded-3xl shadow-2xl border border-custom backdrop-blur-xl p-8 md:p-12 relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
-              <FileText className="text-white w-6 h-6" />
+              <FileText className="text-primary w-6 h-6" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-primary">
               Create Assignment
             </h1>
           </div>
           <Link
             href="/assignments"
-            className="flex items-center text-purple-300 hover:text-white transition-colors px-4 py-2 rounded-xl bg-slate-800/50 border border-purple-500/20"
+            className="flex items-center text-secondary hover:text-primary transition-colors px-4 py-2 rounded-xl bg-main border border-custom"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Assignments
@@ -635,10 +685,13 @@ export default function CreateAssignment() {
               <div key={stage.id} className="flex-1 flex flex-col items-center">
                 <button
                   onClick={() => goToStage(stage.id)}
+                  disabled={!canNavigateToStage(stage.id)}
                   className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 border-2 font-bold text-lg transition-all ${
                     currentStage === stage.id 
-                      ? 'border-purple-400 bg-purple-600 text-white shadow-lg' 
-                      : 'border-slate-600 bg-slate-800 text-slate-300 hover:border-purple-500 hover:bg-slate-700'
+                      ? 'border-purple-400 bg-purple-600 text-primary shadow-lg' 
+                      : canNavigateToStage(stage.id)
+                        ? 'border-slate-600 bg-slate-800 text-slate-300 hover:border-purple-500 hover:bg-slate-700 cursor-pointer'
+                        : 'border-slate-700 bg-slate-900 text-slate-600 cursor-not-allowed opacity-50'
                   }`}
                 >
                   {idx + 1}
@@ -659,12 +712,12 @@ export default function CreateAssignment() {
         </div>
 
         {/* Main Content Card */}
-        <div className="bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-blue-900/80 rounded-2xl shadow-xl border border-purple-500/10 p-8 md:p-10 mb-8">
+        <div className="zenith-bg-card rounded-2xl shadow-xl border zenith-border p-8 md:p-10 mb-8">
           <div className="mb-6">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
               {stages.find(s => s.id === currentStage)?.title}
             </h2>
-            <p className="text-slate-400">
+            <p className="zenith-text-secondary">
               {stages.find(s => s.id === currentStage)?.description}
             </p>
           </div>
@@ -682,7 +735,7 @@ export default function CreateAssignment() {
               }
             }}
             disabled={stages.findIndex(s => s.id === currentStage) === 0}
-            className="flex items-center px-6 py-3 rounded-xl bg-slate-800/50 border border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex items-center px-6 py-3 rounded-xl zenith-bg-section border zenith-border zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Previous
@@ -692,8 +745,8 @@ export default function CreateAssignment() {
             {stages.findIndex(s => s.id === currentStage) === stages.length - 1 ? (
               <button
                 onClick={handleSubmit}
-                disabled={loading}
-                className="px-8 py-3 rounded-xl bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold shadow-lg transition-all"
+                disabled={loading || !validateStage(currentStage)}
+                className="px-8 py-3 rounded-xl bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -711,11 +764,18 @@ export default function CreateAssignment() {
               <button
                 onClick={() => {
                   const currentIndex = stages.findIndex(s => s.id === currentStage);
-                  if (currentIndex < stages.length - 1) {
+                  if (currentIndex < stages.length - 1 && validateStage(currentStage)) {
                     goToStage(stages[currentIndex + 1].id);
+                  } else if (!validateStage(currentStage)) {
+                    showToast({
+                      title: 'Complete Required Fields',
+                      message: 'Please fill in all required fields before proceeding to the next stage.',
+                      type: 'warning'
+                    });
                   }
                 }}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg transition-all"
+                disabled={!validateStage(currentStage)}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-600 disabled:to-gray-700"
               >
                 Next
                 <ArrowRight className="w-5 h-5 ml-2 inline" />
@@ -731,7 +791,7 @@ export default function CreateAssignment() {
           <div className="bg-slate-900/95 border border-purple-500/30 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-700/50">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-primary">
                   {editingQuestion ? 'Edit Question' : 'Add New Question'}
                 </h3>
                 <button
@@ -739,7 +799,7 @@ export default function CreateAssignment() {
                     setShowQuestionModal(false);
                     setEditingQuestion(null);
                   }}
-                  className="text-slate-400 hover:text-white transition-colors"
+                  className="text-slate-400 hover:text-primary transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -764,7 +824,7 @@ export default function CreateAssignment() {
                       });
                     }
                   }}
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary focus:border-purple-500 focus:outline-none"
                 >
                   <option value="multiple-choice">Multiple Choice</option>
                   <option value="multi-select">Multi Select</option>
@@ -793,7 +853,7 @@ export default function CreateAssignment() {
                     }
                   }}
                   placeholder="Enter question title"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none"
                 />
               </div>
 
@@ -860,7 +920,7 @@ export default function CreateAssignment() {
                         }
                       }}
                       placeholder="e.g., Two Sum, Binary Search, etc."
-                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
+                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none"
                     />
                   </div>
 
@@ -881,7 +941,7 @@ export default function CreateAssignment() {
                       }}
                       placeholder="Detailed description of the problem including constraints, examples, etc. You can use LaTeX for math equations: $x^2 + y^2 = z^2$"
                       rows={6}
-                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none font-mono"
+                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none font-mono"
                     />
                     <p className="text-xs text-slate-500 mt-1">
                       Supports LaTeX math equations with $ delimiters
@@ -987,7 +1047,7 @@ export default function CreateAssignment() {
                                 }}
                                 placeholder="Input data"
                                 rows={3}
-                                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none resize-none font-mono text-sm"
+                                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-primary placeholder-slate-500 focus:border-purple-500 focus:outline-none resize-none font-mono text-sm"
                               />
                             </div>
                             <div>
@@ -1009,7 +1069,7 @@ export default function CreateAssignment() {
                                 }}
                                 placeholder="Expected output"
                                 rows={3}
-                                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none resize-none font-mono text-sm"
+                                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-primary placeholder-slate-500 focus:border-purple-500 focus:outline-none resize-none font-mono text-sm"
                               />
                             </div>
                           </div>
@@ -1060,7 +1120,7 @@ export default function CreateAssignment() {
                       }}
                       placeholder="Enter question description or instructions"
                       rows={3}
-                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
+                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
                     />
                   </div>
 
@@ -1122,7 +1182,7 @@ export default function CreateAssignment() {
                               }
                             }}
                             placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                            className="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
+                            className="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none"
                           />
                           <button
                             onClick={() => {
@@ -1179,7 +1239,7 @@ export default function CreateAssignment() {
                       }}
                       placeholder="Enter question description, formula, or calculation details"
                       rows={4}
-                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
+                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
                     />
                   </div>
 
@@ -1202,7 +1262,7 @@ export default function CreateAssignment() {
                           }
                         }}
                         placeholder="Enter correct answer"
-                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none font-mono text-lg"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none font-mono text-lg"
                       />
                     </div>
                     <div>
@@ -1221,7 +1281,7 @@ export default function CreateAssignment() {
                           }
                         }}
                         placeholder="e.g., kg, m/s, °C"
-                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -1242,7 +1302,7 @@ export default function CreateAssignment() {
                             });
                           }
                         }}
-                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:border-purple-500 focus:outline-none"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary focus:border-purple-500 focus:outline-none"
                       >
                         <option value={0}>Integer (0 decimals)</option>
                         <option value={1}>1 decimal place</option>
@@ -1268,7 +1328,7 @@ export default function CreateAssignment() {
                           }
                         }}
                         placeholder="0"
-                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none font-mono"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none font-mono"
                       />
                     </div>
                   </div>
@@ -1295,7 +1355,7 @@ export default function CreateAssignment() {
                       }}
                       placeholder="Enter the statement to be evaluated as true or false"
                       rows={3}
-                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
+                      className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
                     />
                   </div>
 
@@ -1321,7 +1381,7 @@ export default function CreateAssignment() {
                           }}
                           className="text-green-500 focus:ring-green-500"
                         />
-                        <span className="text-white font-medium">True</span>
+                        <span className="text-primary font-medium">True</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -1339,7 +1399,7 @@ export default function CreateAssignment() {
                           }}
                           className="text-red-500 focus:ring-red-500"
                         />
-                        <span className="text-white font-medium">False</span>
+                        <span className="text-primary font-medium">False</span>
                       </label>
                     </div>
                   </div>
@@ -1367,7 +1427,7 @@ export default function CreateAssignment() {
                       : "Enter the question that requires a short text answer"
                     }
                     rows={editingQuestion?.type === 'essay' ? 5 : 3}
-                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary placeholder-slate-400 focus:border-purple-500 focus:outline-none resize-none"
                   />
                 </div>
               )}
@@ -1391,7 +1451,7 @@ export default function CreateAssignment() {
                       }
                     }}
                     min="1"
-                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary focus:border-purple-500 focus:outline-none"
                   />
                 </div>
 
@@ -1410,7 +1470,7 @@ export default function CreateAssignment() {
                         });
                       }
                     }}
-                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-primary focus:border-purple-500 focus:outline-none"
                   >
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
@@ -1426,14 +1486,14 @@ export default function CreateAssignment() {
                   setShowQuestionModal(false);
                   setEditingQuestion(null);
                 }}
-                className="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-medium transition-all"
+                className="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-primary font-medium transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={saveQuestion}
                 disabled={!editingQuestion?.title?.trim()}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold transition-all"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-primary font-semibold transition-all"
               >
                 {editingQuestion?.id ? 'Update Question' : 'Add Question'}
               </button>

@@ -113,9 +113,9 @@ export function PerformanceMonitor() {
 
   if (loading && !stats) {
     return (
-      <div className="bg-zenith-card rounded-xl border border-zenith-border p-6">
+      <div className="bg-card rounded-xl border border-custom p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-zenith-primary">Performance Monitor</h3>
+          <h3 className="text-lg font-medium text-primary">Performance Monitor</h3>
           <RefreshCw className="w-5 h-5 text-zenith-muted animate-spin" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -134,12 +134,12 @@ export function PerformanceMonitor() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-zenith-card rounded-xl border border-zenith-border p-6"
+      className="bg-card rounded-xl border border-custom p-6"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
           <Activity className="w-6 h-6 text-zenith-accent" />
-          <h3 className="text-lg font-medium text-zenith-primary">Performance Monitor</h3>
+          <h3 className="text-lg font-medium text-primary">Performance Monitor</h3>
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-zenith-muted">
@@ -148,7 +148,7 @@ export function PerformanceMonitor() {
           <button
             onClick={fetchStats}
             disabled={loading}
-            className="p-2 text-zenith-muted hover:text-zenith-primary rounded-lg hover:bg-zenith-hover transition-colors"
+            className="p-2 text-zenith-muted hover:text-primary rounded-lg hover:bg-zenith-hover transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -162,12 +162,12 @@ export function PerformanceMonitor() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
-            className="bg-zenith-bg rounded-lg p-4 border border-zenith-border"
+            className="bg-zenith-bg rounded-lg p-4 border border-custom"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Database className="w-5 h-5 text-blue-500" />
-                <span className="font-medium text-zenith-primary">Database</span>
+                <span className="font-medium text-primary">Database</span>
               </div>
               <span className={`text-sm font-medium ${getHealthColor(stats.database.healthy, stats.database.latency, 200)}`}>
                 {stats.database.healthy ? '●' : '●'} {stats.database.healthy ? 'Healthy' : 'Issues'}
@@ -194,12 +194,12 @@ export function PerformanceMonitor() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="bg-zenith-bg rounded-lg p-4 border border-zenith-border"
+            className="bg-zenith-bg rounded-lg p-4 border border-custom"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Zap className="w-5 h-5 text-yellow-500" />
-                <span className="font-medium text-zenith-primary">Cache</span>
+                <span className="font-medium text-primary">Cache</span>
               </div>
               <span className={`text-sm font-medium ${stats.cache.hitRate > 60 ? 'text-green-500' : stats.cache.hitRate > 30 ? 'text-yellow-500' : 'text-red-500'}`}>
                 {stats.cache.hitRate.toFixed(1)}% Hit Rate
@@ -226,12 +226,12 @@ export function PerformanceMonitor() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="bg-zenith-bg rounded-lg p-4 border border-zenith-border"
+            className="bg-zenith-bg rounded-lg p-4 border border-custom"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <TrendingUp className="w-5 h-5 text-green-500" />
-                <span className="font-medium text-zenith-primary">System</span>
+                <span className="font-medium text-primary">System</span>
               </div>
               <span className="text-sm font-medium text-zenith-muted">
                 {stats.system.activeUsers} active
@@ -260,9 +260,9 @@ export function PerformanceMonitor() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="mt-6 p-4 bg-zenith-bg rounded-lg border border-zenith-border"
+        className="mt-6 p-4 bg-zenith-bg rounded-lg border border-custom"
       >
-        <h4 className="text-sm font-medium text-zenith-primary mb-2 flex items-center">
+        <h4 className="text-sm font-medium text-primary mb-2 flex items-center">
           <BarChart3 className="w-4 h-4 mr-2" />
           Performance Tips
         </h4>
@@ -298,19 +298,19 @@ export function PerformanceMonitor() {
             await CacheManager.clear();
             fetchStats();
           }}
-          className="px-3 py-1.5 bg-zenith-hover hover:bg-zenith-accent text-zenith-primary hover:text-white rounded-lg text-sm transition-colors"
+          className="px-3 py-1.5 bg-zenith-hover hover:bg-zenith-accent text-primary hover:text-primary rounded-lg text-sm transition-colors"
         >
           Clear Cache
         </button>
         <button
           onClick={() => window.open('/api/health/full-report', '_blank')}
-          className="px-3 py-1.5 bg-zenith-hover hover:bg-zenith-accent text-zenith-primary hover:text-white rounded-lg text-sm transition-colors"
+          className="px-3 py-1.5 bg-zenith-hover hover:bg-zenith-accent text-primary hover:text-primary rounded-lg text-sm transition-colors"
         >
           Full Report
         </button>
         <button
           onClick={fetchStats}
-          className="px-3 py-1.5 bg-zenith-hover hover:bg-zenith-accent text-zenith-primary hover:text-white rounded-lg text-sm transition-colors"
+          className="px-3 py-1.5 bg-zenith-hover hover:bg-zenith-accent text-primary hover:text-primary rounded-lg text-sm transition-colors"
         >
           Refresh Stats
         </button>

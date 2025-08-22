@@ -82,12 +82,12 @@ export default function CreatePostPage() {
         <div className="mb-8">
           <Link
             href="/management"
-            className="inline-flex items-center text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300 mb-4"
+            className="inline-flex items-center text-primary dark:text-blue-400 hover:text-primary/90 dark:hover:text-blue-300 mb-4"
           >
             <ArrowLeft size={20} className="mr-2" />
             Back to Management
           </Link>
-          <h1 className="text-3xl font-bold text-zenith-primary dark:text-white">
+          <h1 className="text-3xl font-bold text-primary">
             Create Post
           </h1>
           <p className="text-zenith-secondary dark:text-zenith-muted mt-2">
@@ -96,7 +96,7 @@ export default function CreatePostPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
@@ -114,7 +114,7 @@ export default function CreatePostPage() {
                 onChange={handleChange}
                 required
                 disabled={loading}
-                className="w-full px-4 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white disabled:opacity-50"
+                className="w-full px-4 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary disabled:opacity-50"
                 placeholder="Enter post title..."
               />
             </div>
@@ -135,7 +135,7 @@ export default function CreatePostPage() {
                 required
                 disabled={loading}
                 rows={8}
-                className="w-full px-4 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white disabled:opacity-50"
+                className="w-full px-4 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary disabled:opacity-50"
                 placeholder="Write your post content here..."
               />
             </div>
@@ -145,7 +145,7 @@ export default function CreatePostPage() {
               <label className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2">
                 Attachments
               </label>
-              <div className="border-2 border-dashed border-zenith-border dark:border-gray-600 rounded-lg p-6 text-center">
+              <div className="border-2 border-dashed border-custom dark:border-gray-600 rounded-lg p-6 text-center">
                 <Paperclip size={24} className="mx-auto text-zenith-muted mb-2" />
                 <p className="text-zenith-muted dark:text-zenith-muted">
                   File upload feature coming soon
@@ -157,14 +157,14 @@ export default function CreatePostPage() {
             <div className="flex justify-end space-x-4">
               <Link
                 href="/management"
-                className="px-6 py-2 border border-zenith-border dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
+                className="px-6 py-2 border border-custom dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors"
+                className="px-6 py-2 bg-zenith-primary text-primary rounded-lg hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors"
               >
                 {loading ? (
                   <>

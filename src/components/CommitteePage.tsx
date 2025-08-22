@@ -105,7 +105,7 @@ export default function CommitteePage() {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-red-200">
+        <div className="bg-card rounded-xl shadow-lg p-6 border border-red-200">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Committee</h3>
             <p className="text-red-600 mb-4">{error}</p>
@@ -124,9 +124,9 @@ export default function CommitteePage() {
   if (!committee) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-2">Committee Not Found</h3>
+            <h3 className="text-lg font-semibold text-primary mb-2">Committee Not Found</h3>
             <p className="text-zenith-muted">The committee structure has not been initialized yet.</p>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function CommitteePage() {
             <Users className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-zenith-primary dark:text-white">{committee.name}</h1>
+            <h1 className="text-3xl font-bold text-primary">{committee.name}</h1>
             <p className="text-zenith-muted">{committee.description}</p>
           </div>
         </div>
@@ -165,13 +165,13 @@ export default function CommitteePage() {
         {committee.roles
           .sort((a, b) => a.hierarchy - b.hierarchy)
           .map((role) => (
-            <div key={role.id} className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-zenith-border dark:border-gray-600">
-              <div className="p-6 pb-3 border-b border-zenith-border dark:border-gray-600">
+            <div key={role.id} className="bg-card rounded-xl shadow-lg overflow-hidden border border-custom dark:border-gray-600">
+              <div className="p-6 pb-3 border-b border-custom dark:border-gray-600">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {getRoleIcon(role.name)}
                     <div>
-                      <h3 className="text-xl font-semibold text-zenith-primary dark:text-white">{role.name}</h3>
+                      <h3 className="text-xl font-semibold text-primary">{role.name}</h3>
                       <p className="text-zenith-muted">{role.description}</p>
                     </div>
                   </div>
@@ -196,7 +196,7 @@ export default function CommitteePage() {
                           className="ring-2 ring-white dark:ring-gray-600"
                         />
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-zenith-primary dark:text-white truncate">
+                          <h4 className="font-medium text-primary truncate">
                             {member.user.name}
                           </h4>
                           <div className="flex items-center gap-1 text-sm text-zenith-muted">
@@ -224,8 +224,8 @@ export default function CommitteePage() {
 
                 {/* Permissions */}
                 {role.permissions && role.permissions.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-zenith-border dark:border-gray-600">
-                    <h5 className="text-sm font-medium text-zenith-primary dark:text-white mb-2">Permissions</h5>
+                  <div className="mt-4 pt-4 border-t border-custom dark:border-gray-600">
+                    <h5 className="text-sm font-medium text-primary mb-2">Permissions</h5>
                     <div className="flex flex-wrap gap-2">
                       {role.permissions.map((permission: string, index: number) => (
                         <span 
@@ -244,8 +244,8 @@ export default function CommitteePage() {
       </div>
 
       {/* Contact Information */}
-      <div className="mt-8 bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-zenith-border dark:border-gray-600">
-        <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-2">Contact Information</h3>
+      <div className="mt-8 bg-card rounded-xl shadow-lg p-6 border border-custom dark:border-gray-600">
+        <h3 className="text-lg font-semibold text-primary mb-2">Contact Information</h3>
         <p className="text-zenith-muted">
           For committee-related inquiries, please reach out to any of the committee members above.
         </p>

@@ -15,7 +15,7 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
     return (
       <button
         onClick={() => setIsVisible(true)}
-        className="fixed bottom-4 right-4 p-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-full shadow-lg transition-colors z-40"
+        className="fixed bottom-4 right-4 p-3 bg-zenith-primary hover:bg-zenith-primary/90 text-primary rounded-full shadow-lg transition-colors z-40"
         title="Show tips"
       >
         <Lightbulb className="w-5 h-5" />
@@ -45,7 +45,7 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
             'Set appropriate attempt limits',
             'Consider allowing practice attempts'
           ],
-          icon: <AlertCircle className="w-5 h-5 text-zenith-primary" />
+          icon: <AlertCircle className="w-5 h-5 text-primary" />
         };
       case 'scoring':
         return {
@@ -91,7 +91,7 @@ export function QuickTips({ currentStage, className = '' }: QuickTipsProps) {
         <div className="flex items-start space-x-3">
           {currentTips.icon}
           <div className="flex-1">
-            <h3 className="font-semibold text-zenith-primary dark:text-white mb-2 flex items-center">
+            <h3 className="font-semibold text-primary mb-2 flex items-center">
               Quick Tips: {currentTips.title}
             </h3>
             <ul className="space-y-1">

@@ -181,7 +181,7 @@ export default function ModernDashboard() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center shadow-lg`}>
-                    <IconComponent className="w-6 h-6 text-white" />
+                    <IconComponent className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex items-center text-green-600 text-sm font-medium">
                     <TrendingUp className="w-4 h-4 mr-1" />
@@ -298,7 +298,7 @@ export default function ModernDashboard() {
               className="card p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
             >
               <div className="flex items-center space-x-4 mb-4">
-                <div className={`w-12 h-12 bg-gradient-to-r ${club.color} rounded-xl flex items-center justify-center text-white font-bold`}>
+                <div className={`w-12 h-12 bg-gradient-to-r ${club.color} rounded-xl flex items-center justify-center text-primary font-bold`}>
                   {club.image}
                 </div>
                 <div className="flex-1">
@@ -312,7 +312,7 @@ export default function ModernDashboard() {
               </div>
               <p className="text-secondary text-sm mb-4">{club.description}</p>
               <Link href="/clubs">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-primary py-2 px-4 rounded-lg text-sm font-medium transition-colors">
                   Learn More
                 </button>
               </Link>

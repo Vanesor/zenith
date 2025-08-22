@@ -12,13 +12,13 @@ const buttonVariants = cva(
         destructive:
           "bg-red-500 text-gray-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-gray-50 dark:hover:bg-red-900/90",
         outline:
-          "border border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+          "border zenith-border zenith-bg-card hover:zenith-bg-hover hover:zenith-text-primary",
         secondary:
-          "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-700",
-        ghost: "hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50",
-        link: "text-gray-900 underline-offset-4 hover:no-underline dark:text-gray-50",
+          "zenith-bg-section zenith-text-primary hover:zenith-bg-hover",
+        ghost: "hover:zenith-bg-hover hover:zenith-text-primary",
+        link: "zenith-text-primary underline-offset-4 hover:no-underline",
         gradient: "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]",
-        glass: "bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 shadow-lg",
+        glass: "bg-white/10 backdrop-blur-md border border-white/20 text-primary hover:bg-white/20 shadow-lg",
       },
       size: {
         default: "h-12 px-6 py-3",

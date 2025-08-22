@@ -76,15 +76,15 @@ const Toast: React.FC<ToastProps> = ({ type, title, message, onClose }) => {
   const getToastStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-50 border-green-200 text-green-800 dark:bg-zenith-section dark:border-zenith-border dark:text-green-400';
+        return 'bg-green-50 border-green-200 text-green-800 dark:bg-zenith-section dark:border-custom dark:text-green-400';
       case 'error':
-        return 'bg-red-50 border-red-200 text-red-800 dark:bg-zenith-section dark:border-zenith-border dark:text-red-400';
+        return 'bg-red-50 border-red-200 text-red-800 dark:bg-zenith-section dark:border-custom dark:text-red-400';
       case 'warning':
-        return 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-zenith-section dark:border-zenith-border dark:text-yellow-400';
+        return 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-zenith-section dark:border-custom dark:text-yellow-400';
       case 'info':
-        return 'bg-zenith-section border-zenith-border text-zenith-primary dark:bg-zenith-section dark:border-zenith-border dark:text-zenith-primary';
+        return 'bg-zenith-section border-custom text-primary dark:bg-zenith-section dark:border-custom dark:text-primary';
       default:
-        return 'bg-zenith-section border-zenith-border text-zenith-primary dark:bg-zenith-section dark:border-zenith-border dark:text-zenith-primary';
+        return 'bg-zenith-section border-custom text-primary dark:bg-zenith-section dark:border-custom dark:text-primary';
     }
   };
 
@@ -665,7 +665,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
       {/* Screen Freeze Overlay */}
       {screenFrozen && (
         <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-60">
-          <div className="bg-red-600 text-white p-8 rounded-lg text-center max-w-md mx-4 border-4 border-red-400">
+          <div className="bg-red-600 text-primary p-8 rounded-lg text-center max-w-md mx-4 border-4 border-red-400">
             <AlertTriangle className="w-20 h-20 mx-auto mb-4 animate-pulse" />
             <h2 className="text-2xl font-bold mb-4">
               VIOLATION DETECTED
@@ -686,9 +686,9 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
       {/* Proctoring Warning Banner */}
       {focusLost && testStarted && !screenFrozen && (
         <div className="fixed inset-0 bg-red-600 bg-opacity-90 flex items-center justify-center z-50">
-          <div className="bg-zenith-card dark:bg-zenith-card p-8 rounded-lg text-center max-w-md mx-4">
+          <div className="bg-card dark:bg-card p-8 rounded-lg text-center max-w-md mx-4">
             <AlertTriangle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-zenith-primary dark:text-white mb-2">
+            <h2 className="text-xl font-bold text-primary mb-2">
               Focus Required
             </h2>
             <p className="text-zenith-secondary dark:text-zenith-muted mb-4">
@@ -704,11 +704,11 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
       {/* Start Test Button */}
       {!testStarted && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-40">
-          <div className="bg-zenith-card dark:bg-zenith-card p-8 rounded-lg text-center max-w-lg mx-4">
+          <div className="bg-card dark:bg-card p-8 rounded-lg text-center max-w-lg mx-4">
             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Play className="w-8 h-8 text-zenith-primary dark:text-blue-400" />
+              <Play className="w-8 h-8 text-primary dark:text-blue-400" />
             </div>
-            <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-4">
+            <h2 className="text-2xl font-bold text-primary mb-4">
               Ready to Start?
             </h2>
             <div className="text-zenith-secondary dark:text-zenith-muted mb-6 space-y-2">
@@ -725,7 +725,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
             </div>
             <button
               onClick={startTest}
-              className="px-6 py-3 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 font-medium transition-colors"
+              className="px-6 py-3 bg-zenith-primary text-primary rounded-lg hover:bg-zenith-primary/90 font-medium transition-colors"
             >
               Start Proctored Test
             </button>
@@ -734,12 +734,12 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
       )}
       
       {/* Header */}
-      <div className="bg-zenith-card dark:bg-zenith-card border-b border-zenith-border dark:border-zenith-border px-4 py-3 flex items-center justify-between">
+      <div className="bg-card dark:bg-card border-b border-custom dark:border-custom px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-lg font-semibold text-zenith-primary dark:text-white">
+          <h1 className="text-lg font-semibold text-primary">
             {question.title}
           </h1>
-          <span className="px-2 py-1 bg-zenith-section text-zenith-primary text-xs rounded-full">
+          <span className="px-2 py-1 bg-zenith-section text-primary text-xs rounded-full">
             {question.points} points
           </span>
         </div>
@@ -764,9 +764,9 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
       {/* Main Content - Three Panel Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Problem Statement */}
-        <div className="w-2/5 bg-zenith-card dark:bg-zenith-card border-r border-zenith-border dark:border-zenith-border flex flex-col">
-          <div className="p-4 border-b border-zenith-border dark:border-zenith-border">
-            <h2 className="text-lg font-semibold text-zenith-primary dark:text-white">Problem Statement</h2>
+        <div className="w-2/5 bg-card dark:bg-card border-r border-custom dark:border-custom flex flex-col">
+          <div className="p-4 border-b border-custom dark:border-custom">
+            <h2 className="text-lg font-semibold text-primary">Problem Statement</h2>
           </div>
           
           <div className="flex-1 overflow-auto p-4 space-y-6">
@@ -778,11 +778,11 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
             {/* Sample Test Cases */}
             {question.testCases && question.testCases.length > 0 && question.testCases.some(tc => !tc.isHidden) && (
               <div>
-                <h3 className="text-md font-semibold text-zenith-primary dark:text-white mb-4">Sample Test Cases</h3>
+                <h3 className="text-md font-semibold text-primary mb-4">Sample Test Cases</h3>
                 <div className="space-y-3">
                   {question.testCases.filter(tc => !tc.isHidden).map((testCase, index) => (
-                    <div key={index} className="border border-zenith-border dark:border-zenith-border rounded-lg overflow-hidden">
-                      <div className="bg-zenith-section dark:bg-gray-700 px-4 py-2 border-b border-zenith-border dark:border-zenith-border">
+                    <div key={index} className="border border-custom dark:border-custom rounded-lg overflow-hidden">
+                      <div className="bg-zenith-section dark:bg-gray-700 px-4 py-2 border-b border-custom dark:border-custom">
                         <span className="text-sm font-medium text-zenith-secondary dark:text-zenith-secondary">
                           Example {index + 1}
                         </span>
@@ -824,12 +824,12 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
           {/* Code Editor Section */}
           <div className="h-3/5 flex flex-col">
             {/* Editor Toolbar */}
-            <div className="bg-zenith-section dark:bg-gray-700 px-4 py-2 border-b border-zenith-border dark:border-zenith-border flex items-center justify-between">
+            <div className="bg-zenith-section dark:bg-gray-700 px-4 py-2 border-b border-custom dark:border-custom flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <select
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
-                  className="px-3 py-1 bg-zenith-card dark:bg-zenith-secondary border border-zenith-border dark:border-gray-500 rounded text-sm"
+                  className="px-3 py-1 bg-card dark:bg-zenith-secondary border border-custom dark:border-gray-500 rounded text-sm"
                 >
                   {availableLanguages.map(lang => (
                     <option key={lang.value} value={lang.value}>{lang.label}</option>
@@ -839,14 +839,14 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                 <div className="flex items-center space-x-1">
                   <button
                     onClick={() => setFontSize(Math.max(10, fontSize - 1))}
-                    className="p-1 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-gray-200"
+                    className="p-1 text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-gray-200"
                   >
                     <ZoomOut className="w-4 h-4" />
                   </button>
                   <span className="text-sm text-zenith-secondary dark:text-zenith-muted px-2">{fontSize}px</span>
                   <button
                     onClick={() => setFontSize(Math.min(24, fontSize + 1))}
-                    className="p-1 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-gray-200"
+                    className="p-1 text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-gray-200"
                   >
                     <ZoomIn className="w-4 h-4" />
                   </button>
@@ -863,7 +863,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => onSave(code, selectedLanguage)}
-                  className="px-3 py-1 bg-zenith-secondary text-white rounded text-sm hover:bg-zenith-secondary/90 flex items-center transition-colors"
+                  className="px-3 py-1 bg-zenith-secondary text-primary rounded text-sm hover:bg-zenith-secondary/90 flex items-center transition-colors"
                 >
                   <Save className="w-4 h-4 mr-1" />
                   Save
@@ -872,7 +872,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                 <button
                   onClick={handleRun}
                   disabled={isRunning}
-                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:bg-green-400 flex items-center transition-colors"
+                  className="px-3 py-1 bg-green-600 text-primary rounded text-sm hover:bg-green-700 disabled:bg-green-400 flex items-center transition-colors"
                 >
                   {isRunning ? <Square className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
                   {isRunning ? 'Running...' : 'Run'}
@@ -880,7 +880,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
 
                 <button
                   onClick={handleSubmit}
-                  className="px-4 py-1 bg-zenith-primary text-white rounded text-sm hover:bg-zenith-primary/90 font-medium transition-colors"
+                  className="px-4 py-1 bg-zenith-primary text-primary rounded text-sm hover:bg-zenith-primary/90 font-medium transition-colors"
                 >
                   Submit
                 </button>
@@ -916,15 +916,15 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
           </div>
 
           {/* Bottom Panel - Output Section */}
-          <div className="h-2/5 bg-zenith-section dark:bg-zenith-card border-t border-zenith-border dark:border-zenith-border flex flex-col">
+          <div className="h-2/5 bg-zenith-section dark:bg-card border-t border-custom dark:border-custom flex flex-col">
             {/* Tab Navigation */}
-            <div className="flex bg-zenith-section dark:bg-gray-700 border-b border-zenith-border dark:border-zenith-border">
+            <div className="flex bg-zenith-section dark:bg-gray-700 border-b border-custom dark:border-custom">
               <button
                 onClick={() => setActiveBottomTab('testcases')}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeBottomTab === 'testcases'
-                    ? 'border-zenith-primary text-zenith-primary bg-zenith-card'
-                    : 'border-transparent text-zenith-secondary hover:text-zenith-primary'
+                    ? 'border-zenith-primary text-primary bg-card'
+                    : 'border-transparent text-zenith-secondary hover:text-primary'
                 }`}
               >
                 Test Results {testResults.length > 0 && (
@@ -941,8 +941,8 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                 onClick={() => setActiveBottomTab('custom')}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeBottomTab === 'custom'
-                    ? 'border-zenith-primary text-zenith-primary bg-zenith-card'
-                    : 'border-transparent text-zenith-secondary hover:text-zenith-primary'
+                    ? 'border-zenith-primary text-primary bg-card'
+                    : 'border-transparent text-zenith-secondary hover:text-primary'
                 }`}
               >
                 Custom Test
@@ -951,8 +951,8 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                 onClick={() => setActiveBottomTab('output')}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeBottomTab === 'output'
-                    ? 'border-zenith-primary text-zenith-primary dark:text-blue-400 bg-zenith-card dark:bg-zenith-card'
-                    : 'border-transparent text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-gray-200'
+                    ? 'border-zenith-primary text-primary dark:text-blue-400 bg-card dark:bg-card'
+                    : 'border-transparent text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-gray-200'
                 }`}
               >
                 Summary
@@ -969,7 +969,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                       <div className="w-16 h-16 mx-auto mb-4 bg-zenith-section dark:bg-gray-700 rounded-full flex items-center justify-center">
                         <Play className="w-8 h-8 text-zenith-muted" />
                       </div>
-                      <div className="text-lg font-medium text-zenith-primary dark:text-white mb-2">No test results yet</div>
+                      <div className="text-lg font-medium text-primary mb-2">No test results yet</div>
                       <div className="text-sm text-zenith-muted dark:text-zenith-muted">
                         Click "Run" to execute your code against sample test cases
                       </div>
@@ -977,9 +977,9 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                   ) : (
                     <div className="space-y-4">
                       {/* Overall Results Summary */}
-                      <div className="bg-zenith-card dark:bg-gray-700 rounded-lg p-4 border shadow-sm">
+                      <div className="bg-card dark:bg-gray-700 rounded-lg p-4 border shadow-sm">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-semibold text-zenith-primary dark:text-white">Test Results</h3>
+                          <h3 className="font-semibold text-primary">Test Results</h3>
                           <div className="flex items-center space-x-3">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                               testResults.every(r => r.passed) 
@@ -1014,14 +1014,14 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                       {/* Individual Test Cases */}
                       <div className="space-y-3">
                         {testResults.map((result, index) => (
-                          <div key={index} className="border border-zenith-border dark:border-zenith-border rounded-lg overflow-hidden">
+                          <div key={index} className="border border-custom dark:border-custom rounded-lg overflow-hidden">
                             <div className={`px-4 py-3 flex items-center justify-between ${
                               result.passed 
                                 ? 'bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800'
                                 : 'bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800'
                             }`}>
                               <div className="flex items-center space-x-3">
-                                <span className="font-semibold text-zenith-primary dark:text-white">
+                                <span className="font-semibold text-primary">
                                   Test Case {index + 1}
                                 </span>
                                 {result.passed ? (
@@ -1087,7 +1087,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
               {activeBottomTab === 'custom' && (
                 <div className="p-4 h-full flex flex-col">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">Custom Test Case</h3>
+                    <h3 className="text-lg font-semibold text-primary">Custom Test Case</h3>
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => {
@@ -1096,14 +1096,14 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                           setCustomOutput('');
                           setCustomTestResult(null);
                         }}
-                        className="px-3 py-1 bg-zenith-section0 text-white rounded text-sm hover:bg-zenith-secondary transition-colors"
+                        className="px-3 py-1 bg-zenith-section0 text-primary rounded text-sm hover:bg-zenith-secondary transition-colors"
                       >
                         Clear All
                       </button>
                       <button
                         onClick={handleCustomRun}
                         disabled={isRunning}
-                        className="px-4 py-1 bg-zenith-primary text-white rounded text-sm hover:bg-zenith-primary/90 disabled:bg-blue-400 flex items-center transition-colors"
+                        className="px-4 py-1 bg-zenith-primary text-primary rounded text-sm hover:bg-zenith-primary/90 disabled:bg-blue-400 flex items-center transition-colors"
                       >
                         {isRunning ? <Square className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
                         {isRunning ? 'Running...' : 'Run Test'}
@@ -1127,7 +1127,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                         value={customInput}
                         onChange={(e) => setCustomInput(e.target.value)}
                         placeholder="Enter your test input here...&#10;Each line will be treated as a separate input line."
-                        className="flex-1 w-full p-3 border border-zenith-border dark:border-zenith-border rounded-lg text-sm bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white resize-none font-mono focus:ring-2 focus:ring-zenith-primary focus:border-zenith-primary"
+                        className="flex-1 w-full p-3 border border-custom dark:border-custom rounded-lg text-sm bg-card dark:bg-gray-700 text-primary resize-none font-mono focus:ring-2 focus:ring-zenith-primary focus:border-zenith-primary"
                       />
                     </div>
 
@@ -1146,7 +1146,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                         value={customExpectedOutput}
                         onChange={(e) => setCustomExpectedOutput(e.target.value)}
                         placeholder="Enter expected output to validate your solution...&#10;Leave empty for output-only testing."
-                        className="flex-1 w-full p-3 border border-zenith-border dark:border-zenith-border rounded-lg text-sm bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white resize-none font-mono focus:ring-2 focus:ring-zenith-primary focus:border-zenith-primary"
+                        className="flex-1 w-full p-3 border border-custom dark:border-custom rounded-lg text-sm bg-card dark:bg-gray-700 text-primary resize-none font-mono focus:ring-2 focus:ring-zenith-primary focus:border-zenith-primary"
                       />
                     </div>
                     
@@ -1186,11 +1186,11 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                             ? 'border-green-300 bg-green-50 dark:border-green-600 dark:bg-green-900/20'
                             : customTestResult?.passed === false
                             ? 'border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-900/20'
-                            : 'border-zenith-border bg-zenith-section dark:border-zenith-border dark:bg-zenith-card'
-                          : 'border-zenith-border bg-zenith-section dark:border-zenith-border dark:bg-zenith-card'
+                            : 'border-custom bg-zenith-section dark:border-custom dark:bg-card'
+                          : 'border-custom bg-zenith-section dark:border-custom dark:bg-card'
                       }`}>
                         {customOutput ? (
-                          <pre className="text-zenith-primary dark:text-white whitespace-pre-wrap">{customOutput}</pre>
+                          <pre className="text-primary whitespace-pre-wrap">{customOutput}</pre>
                         ) : (
                           <div className="text-zenith-muted dark:text-zenith-muted text-center py-8">
                             <div className="w-12 h-12 mx-auto mb-3 bg-zenith-section dark:bg-gray-700 rounded-full flex items-center justify-center">
@@ -1219,7 +1219,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
               {activeBottomTab === 'output' && (
                 <div className="p-4">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">Execution Summary</h3>
+                    <h3 className="text-lg font-semibold text-primary">Execution Summary</h3>
                     <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
                       Complete overview of your code execution results
                     </p>
@@ -1230,7 +1230,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                       <div className="w-20 h-20 mx-auto mb-4 bg-zenith-section dark:bg-gray-700 rounded-full flex items-center justify-center">
                         <Info className="w-10 h-10 text-zenith-muted" />
                       </div>
-                      <div className="text-lg font-medium text-zenith-primary dark:text-white mb-2">No execution results</div>
+                      <div className="text-lg font-medium text-primary mb-2">No execution results</div>
                       <div className="text-sm text-zenith-muted dark:text-zenith-muted max-w-md mx-auto">
                         Run your code using "Run" button or test with custom input to see detailed execution results and performance metrics here.
                       </div>
@@ -1239,8 +1239,8 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                     <div className="space-y-6">
                       {/* Overall Statistics */}
                       {testResults.length > 0 && (
-                        <div className="bg-zenith-card dark:bg-gray-700 rounded-lg p-6 border shadow-sm">
-                          <h4 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">Test Results Overview</h4>
+                        <div className="bg-card dark:bg-gray-700 rounded-lg p-6 border shadow-sm">
+                          <h4 className="text-lg font-semibold text-primary mb-4">Test Results Overview</h4>
                           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                             <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -1255,7 +1255,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                               <div className="text-xs text-red-800 dark:text-red-300 font-medium">Tests Failed</div>
                             </div>
                             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                              <div className="text-2xl font-bold text-zenith-primary dark:text-blue-400">
+                              <div className="text-2xl font-bold text-primary dark:text-blue-400">
                                 {(testResults.reduce((acc, r) => acc + (r.executionTime || 0), 0) / testResults.length).toFixed(1)}ms
                               </div>
                               <div className="text-xs text-blue-800 dark:text-blue-300 font-medium">Avg Execution</div>
@@ -1279,9 +1279,9 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
 
                       {/* Custom Test Result */}
                       {customTestResult && (
-                        <div className="bg-zenith-card dark:bg-gray-700 rounded-lg p-6 border shadow-sm">
-                          <h4 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">Custom Test Result</h4>
-                          <div className="flex items-center justify-between p-4 rounded-lg border border-zenith-border dark:border-zenith-border">
+                        <div className="bg-card dark:bg-gray-700 rounded-lg p-6 border shadow-sm">
+                          <h4 className="text-lg font-semibold text-primary mb-4">Custom Test Result</h4>
+                          <div className="flex items-center justify-between p-4 rounded-lg border border-custom dark:border-custom">
                             <div className="flex items-center space-x-3">
                               {customTestResult.passed ? (
                                 <CheckCircle className="w-6 h-6 text-green-500" />
@@ -1289,7 +1289,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                                 <X className="w-6 h-6 text-red-500" />
                               )}
                               <div>
-                                <div className="font-medium text-zenith-primary dark:text-white">
+                                <div className="font-medium text-primary">
                                   {customExpectedOutput.trim() 
                                     ? (customTestResult.passed ? 'Output matches expected result' : 'Output differs from expected')
                                     : 'Custom test executed successfully'
@@ -1317,12 +1317,12 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                       )}
 
                       {/* Detailed Information */}
-                      <div className="bg-zenith-card dark:bg-gray-700 rounded-lg p-6 border shadow-sm">
-                        <h4 className="text-lg font-semibold text-zenith-primary dark:text-white mb-4">Execution Details</h4>
+                      <div className="bg-card dark:bg-gray-700 rounded-lg p-6 border shadow-sm">
+                        <h4 className="text-lg font-semibold text-primary mb-4">Execution Details</h4>
                         <div className="space-y-3 text-sm">
                           <div className="flex justify-between">
                             <span className="text-zenith-secondary dark:text-zenith-muted">Programming Language:</span>
-                            <span className="font-medium text-zenith-primary dark:text-white">
+                            <span className="font-medium text-primary">
                               {availableLanguages.find(l => l.value === selectedLanguage)?.label}
                             </span>
                           </div>
@@ -1331,7 +1331,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                             <>
                               <div className="flex justify-between">
                                 <span className="text-zenith-secondary dark:text-zenith-muted">Total test cases:</span>
-                                <span className="font-medium text-zenith-primary dark:text-white">{testResults.length}</span>
+                                <span className="font-medium text-primary">{testResults.length}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-zenith-secondary dark:text-zenith-muted">Tests passed:</span>
@@ -1347,19 +1347,19 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-zenith-secondary dark:text-zenith-muted">Total execution time:</span>
-                                <span className="font-medium text-zenith-primary dark:text-white">
+                                <span className="font-medium text-primary">
                                   {testResults.reduce((acc, r) => acc + (r.executionTime || 0), 0).toFixed(2)}ms
                                 </span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-zenith-secondary dark:text-zenith-muted">Fastest execution:</span>
-                                <span className="font-medium text-zenith-primary dark:text-white">
+                                <span className="font-medium text-primary">
                                   {Math.min(...testResults.map(r => r.executionTime || 0)).toFixed(2)}ms
                                 </span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-zenith-secondary dark:text-zenith-muted">Slowest execution:</span>
-                                <span className="font-medium text-zenith-primary dark:text-white">
+                                <span className="font-medium text-primary">
                                   {Math.max(...testResults.map(r => r.executionTime || 0)).toFixed(2)}ms
                                 </span>
                               </div>
@@ -1367,7 +1367,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                                 <>
                                   <div className="flex justify-between">
                                     <span className="text-zenith-secondary dark:text-zenith-muted">Memory usage range:</span>
-                                    <span className="font-medium text-zenith-primary dark:text-white">
+                                    <span className="font-medium text-primary">
                                       {Math.min(...testResults.map(r => r.memoryUsed || 0))}KB - {Math.max(...testResults.map(r => r.memoryUsed || 0))}KB
                                     </span>
                                   </div>
@@ -1377,17 +1377,17 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                           )}
                           
                           {customTestResult && (
-                            <div className="border-t border-zenith-border dark:border-zenith-border pt-3 mt-3">
+                            <div className="border-t border-custom dark:border-custom pt-3 mt-3">
                               <div className="flex justify-between">
                                 <span className="text-zenith-secondary dark:text-zenith-muted">Custom test execution:</span>
-                                <span className="font-medium text-zenith-primary dark:text-white">
+                                <span className="font-medium text-primary">
                                   {customTestResult.executionTime.toFixed(2)}ms
                                 </span>
                               </div>
                             </div>
                           )}
                           
-                          <div className="border-t border-zenith-border dark:border-zenith-border pt-3 mt-3">
+                          <div className="border-t border-custom dark:border-custom pt-3 mt-3">
                             <div className="flex justify-between">
                               <span className="text-zenith-secondary dark:text-zenith-muted">Overall status:</span>
                               <span className={`font-medium ${
@@ -1395,7 +1395,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
                                   ? testResults.every(r => r.passed) 
                                     ? 'text-green-600 dark:text-green-400' 
                                     : 'text-red-600 dark:text-red-400'
-                                  : 'text-zenith-primary dark:text-blue-400'
+                                  : 'text-primary dark:text-blue-400'
                               }`}>
                                 {testResults.length > 0 
                                   ? testResults.every(r => r.passed) 

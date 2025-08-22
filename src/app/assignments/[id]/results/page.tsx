@@ -145,7 +145,7 @@ export default function AssignmentResults() {
   const getScoreColor = (percentage: number, isPassing: boolean) => {
     if (isPassing) {
       if (percentage >= 90) return 'text-green-600 dark:text-green-400';
-      if (percentage >= 80) return 'text-zenith-primary dark:text-blue-400';
+      if (percentage >= 80) return 'text-primary dark:text-blue-400';
       return 'text-yellow-600 dark:text-yellow-400';
     }
     return 'text-red-600 dark:text-red-400';
@@ -216,12 +216,12 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
       <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="w-16 h-16 text-zenith-muted mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
+          <h2 className="text-xl font-semibold text-primary">
             Results not available
           </h2>
           <button
             onClick={() => router.push('/assignments')}
-            className="mt-4 px-6 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg"
+            className="mt-4 px-6 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-primary rounded-lg"
           >
             Back to Assignments
           </button>
@@ -238,12 +238,12 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
           <div className="flex items-center">
             <button
               onClick={() => router.push('/assignments')}
-              className="mr-4 p-2 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white"
+              className="mr-4 p-2 text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-primary"
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-zenith-primary dark:text-white">
+              <h1 className="text-3xl font-bold text-primary">
                 Assignment Results
               </h1>
               <p className="text-zenith-secondary dark:text-zenith-muted">
@@ -255,14 +255,14 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
           <div className="flex items-center space-x-3">
             <button
               onClick={downloadResults}
-              className="flex items-center px-4 py-2 bg-zenith-secondary hover:bg-zenith-secondary/90 text-white rounded-lg"
+              className="flex items-center px-4 py-2 bg-zenith-secondary hover:bg-zenith-secondary/90 text-primary rounded-lg"
             >
               <Download className="w-4 h-4 mr-2" />
               Download
             </button>
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="flex items-center px-4 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg"
+              className="flex items-center px-4 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-primary rounded-lg"
             >
               <Eye className="w-4 h-4 mr-2" />
               {showDetails ? 'Hide Details' : 'Show Details'}
@@ -272,7 +272,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
 
         {/* Results Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
+          <div className="bg-card rounded-xl shadow-lg p-6 text-center">
             <div className={`text-4xl font-bold mb-2 ${getScoreColor(results.percentage, results.isPassing)}`}>
               {results.percentage.toFixed(1)}%
             </div>
@@ -282,7 +282,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
             </div>
           </div>
 
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
+          <div className="bg-card rounded-xl shadow-lg p-6 text-center">
             <div className={`text-3xl font-bold mb-2 ${getScoreColor(results.percentage, results.isPassing)}`}>
               {getGradeLabel(results.percentage, results.isPassing)}
             </div>
@@ -292,8 +292,8 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
             </div>
           </div>
 
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-zenith-primary dark:text-blue-400 mb-2">
+          <div className="bg-card rounded-xl shadow-lg p-6 text-center">
+            <div className="text-3xl font-bold text-primary dark:text-blue-400 mb-2">
               {formatTime(results.timeSpent)}
             </div>
             <div className="text-zenith-secondary dark:text-zenith-muted mb-1">Time Spent</div>
@@ -302,7 +302,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
             </div>
           </div>
 
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center">
+          <div className="bg-card rounded-xl shadow-lg p-6 text-center">
             <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
               {results.attempt}
             </div>
@@ -348,36 +348,36 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
         </div>
 
         {/* Assignment Info */}
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-          <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-4">
+        <div className="bg-card rounded-xl shadow-lg p-6 mb-8">
+          <h3 className="text-xl font-semibold text-primary mb-4">
             Assignment Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center">
               <User className="w-4 h-4 text-zenith-muted mr-2" />
               <span className="text-zenith-secondary dark:text-zenith-muted">Student:</span>
-              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
+              <span className="ml-2 font-medium text-primary">
                 {user?.name || 'Unknown'}
               </span>
             </div>
             <div className="flex items-center">
               <Calendar className="w-4 h-4 text-zenith-muted mr-2" />
               <span className="text-zenith-secondary dark:text-zenith-muted">Submitted:</span>
-              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
+              <span className="ml-2 font-medium text-primary">
                 {new Date(results.submittedAt).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center">
               <FileText className="w-4 h-4 text-zenith-muted mr-2" />
               <span className="text-zenith-secondary dark:text-zenith-muted">Questions:</span>
-              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
+              <span className="ml-2 font-medium text-primary">
                 {results.questions.length}
               </span>
             </div>
             <div className="flex items-center">
               <Target className="w-4 h-4 text-zenith-muted mr-2" />
               <span className="text-zenith-secondary dark:text-zenith-muted">Status:</span>
-              <span className="ml-2 font-medium text-zenith-primary dark:text-white">
+              <span className="ml-2 font-medium text-primary">
                 {results.status.charAt(0).toUpperCase() + results.status.slice(1)}
               </span>
             </div>
@@ -419,18 +419,18 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
 
         {/* Question Results */}
         {(results.allowReview || showDetails) && (
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-6">
+          <div className="bg-card rounded-xl shadow-lg p-6">
+            <h3 className="text-xl font-semibold text-primary mb-6">
               Question Results
             </h3>
             
             <div className="space-y-4">
               {results.questions.map((question, index) => (
-                <div key={question.id} className="border border-zenith-border dark:border-gray-700 rounded-lg p-4">
+                <div key={question.id} className="border border-custom dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <span className="text-lg font-semibold text-zenith-primary dark:text-white mr-3">
+                        <span className="text-lg font-semibold text-primary mr-3">
                           Question {index + 1}
                         </span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -444,7 +444,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                           {question.type.replace('-', ' ').toUpperCase()}
                         </span>
                       </div>
-                      <h4 className="font-medium text-zenith-primary dark:text-white mb-2">
+                      <h4 className="font-medium text-primary mb-2">
                         {question.title}
                       </h4>
                       <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-3">
@@ -474,7 +474,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                               {question.userAnswer?.code ? question.userAnswer.code : 'No code submitted'}
                             </pre>
                           ) : (
-                            <span className="text-zenith-primary dark:text-white">
+                            <span className="text-primary">
                               {Array.isArray(question.userAnswer)
                                 ? question.userAnswer.join(', ')
                                 : question.userAnswer || 'No answer provided'
@@ -540,7 +540,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
                           <span className="font-medium text-purple-700 dark:text-purple-300">
                             AI Code Analysis:
                           </span>
-                          <div className="mt-2 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded text-sm text-zenith-primary dark:text-gray-300 whitespace-pre-line">
+                          <div className="mt-2 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded text-sm text-primary dark:text-gray-300 whitespace-pre-line">
                             {question.analysisContent}
                           </div>
                         </div>
@@ -570,7 +570,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
         <div className="mt-8 flex justify-center space-x-4">
           <button
             onClick={() => router.push('/assignments')}
-            className="px-8 py-3 bg-zenith-secondary hover:bg-zenith-secondary/90 text-white font-semibold rounded-lg"
+            className="px-8 py-3 bg-zenith-secondary hover:bg-zenith-secondary/90 text-primary font-semibold rounded-lg"
           >
             Back to Assignments
           </button>
@@ -578,7 +578,7 @@ ${results.violations.map(v => `• ${v}`).join('\n')}
           {results.attempt < results.totalAttempts && !results.isPassing && (
             <button
               onClick={() => router.push(`/assignments/${assignmentId}/take`)}
-              className="px-8 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white font-semibold rounded-lg"
+              className="px-8 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-primary font-semibold rounded-lg"
             >
               Try Again
             </button>

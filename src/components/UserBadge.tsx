@@ -30,7 +30,7 @@ const getRoleColor = (role: string): string => {
     innovation_head: "bg-pink-500 text-pink-900",
     treasurer: "bg-indigo-500 text-indigo-900",
     outreach: "bg-teal-500 text-teal-900",
-    student: "bg-zenith-section0 text-zenith-primary",
+    student: "bg-zenith-section0 text-primary",
   };
   return roleColors[role] || roleColors.student;
 };
@@ -86,7 +86,7 @@ export default function UserBadge({
     );
   }
 
-  const roleColor = role ? getRoleColor(role) : "bg-zenith-section0 text-zenith-primary";
+  const roleColor = role ? getRoleColor(role) : "bg-zenith-section0 text-primary";
   const roleDisplay = role ? getRoleDisplay(role) : "Student";
 
   return (

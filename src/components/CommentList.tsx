@@ -243,7 +243,7 @@ export default function CommentList({
         {user && !showCommentForm && (
           <button
             onClick={() => setShowCommentForm(true)}
-            className="flex items-center space-x-1 text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300 transition-colors text-sm"
+            className="flex items-center space-x-1 text-primary dark:text-blue-400 hover:text-primary/90 dark:hover:text-blue-300 transition-colors text-sm"
           >
             <Plus className="w-4 h-4" />
             <span>Add Comment</span>
@@ -255,13 +255,13 @@ export default function CommentList({
       {showCommentForm && (
         <form
           onSubmit={handleSubmitComment}
-          className="bg-zenith-section dark:bg-gray-800 rounded-xl p-4 border border-zenith-border dark:border-gray-700"
+          className="bg-zenith-section dark:bg-gray-800 rounded-xl p-4 border border-custom dark:border-gray-700"
         >
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Write your comment..."
-            className="w-full p-3 border border-zenith-border dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+            className="w-full p-3 border border-custom dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
             rows={3}
           />
           <div className="flex items-center justify-between mt-3">
@@ -275,14 +275,14 @@ export default function CommentList({
                   setShowCommentForm(false);
                   setNewComment("");
                 }}
-                className="px-3 py-1.5 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-gray-200 transition-colors text-sm"
+                className="px-3 py-1.5 text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-gray-200 transition-colors text-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !newComment.trim()}
-                className="flex items-center space-x-1 px-4 py-1.5 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                className="flex items-center space-x-1 px-4 py-1.5 bg-zenith-primary text-primary rounded-lg hover:bg-zenith-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
               >
                 {isSubmitting ? (
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />

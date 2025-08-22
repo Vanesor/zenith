@@ -85,7 +85,7 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-main flex items-center justify-center p-4 transition-colors duration-300">
       <ThemeToggle />
 
       <motion.div
@@ -97,18 +97,18 @@ export default function SetPasswordPage() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300 mb-8 transition-colors"
+          className="inline-flex items-center text-primary dark:text-blue-400 hover:text-primary/90 dark:hover:text-blue-300 mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </button>
 
         {/* Set Password Card */}
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-zenith-border dark:border-gray-700">
+        <div className="bg-card rounded-2xl shadow-xl p-8 border border-custom">
           {/* Logo */}
           <div className="text-center mb-8">
             <ZenithLogo size="lg" className="justify-center mb-4" />
-            <h1 className="text-2xl font-bold text-zenith-primary dark:text-white">
+            <h1 className="text-2xl font-bold text-primary">
               Set Your Password
             </h1>
             <p className="text-zenith-secondary dark:text-zenith-muted mt-2">
@@ -150,7 +150,7 @@ export default function SetPasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-10 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-10 py-3 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-card text-primary placeholder:text-muted"
                   placeholder="Create a secure password"
                 />
                 <button
@@ -185,7 +185,7 @@ export default function SetPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-10 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-10 py-3 border border-custom dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Confirm your password"
                 />
                 <button
@@ -215,7 +215,7 @@ export default function SetPasswordPage() {
             <button
               type="submit"
               disabled={isLoading || success}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-primary py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             >
               {isLoading ? "Setting Password..." : "Set Password"}
             </button>

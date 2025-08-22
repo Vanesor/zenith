@@ -113,7 +113,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
       case 'integer':
         return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
       default:
-        return 'bg-zenith-section text-zenith-primary dark:bg-gray-900/20 dark:text-zenith-muted';
+        return 'bg-zenith-section text-primary dark:bg-gray-900/20 dark:text-zenith-muted';
     }
   };
 
@@ -142,7 +142,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
     return (
       <div className={`text-center py-12 ${className}`}>
         <FileText className="w-12 h-12 text-zenith-muted mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-zenith-primary dark:text-white mb-2">
+        <h3 className="text-lg font-medium text-primary mb-2">
           No questions added yet
         </h3>
         <p className="text-zenith-secondary dark:text-zenith-muted">
@@ -158,7 +158,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
       <div className="mb-6 p-4 bg-zenith-section dark:bg-gray-800/50 rounded-xl">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-zenith-primary dark:text-blue-400">
+            <div className="text-2xl font-bold text-primary dark:text-blue-400">
               {questions.length}
             </div>
             <div className="text-sm text-zenith-secondary dark:text-zenith-muted">
@@ -189,7 +189,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
         {questions.map((question, index) => (
           <div
             key={question.id}
-            className="bg-zenith-card dark:bg-gray-800 rounded-xl border border-zenith-border dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            className="bg-card rounded-xl border border-custom dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
           >
             {/* Question Header */}
             <div className="p-4">
@@ -209,7 +209,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                     )}
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-zenith-primary dark:text-white mb-2 truncate">
+                  <h3 className="text-lg font-semibold text-primary mb-2 truncate">
                     {question.title}
                   </h3>
                   
@@ -245,7 +245,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                 <div className="flex items-center space-x-2 ml-4">
                   <button
                     onClick={() => setPreviewQuestion(question)}
-                    className="p-2 text-zenith-muted hover:text-zenith-primary dark:text-zenith-muted dark:hover:text-blue-400 transition-colors"
+                    className="p-2 text-zenith-muted hover:text-primary dark:text-zenith-muted dark:hover:text-blue-400 transition-colors"
                     title="Preview question"
                   >
                     <Eye className="w-4 h-4" />
@@ -308,7 +308,7 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                             className={`p-2 rounded-lg text-sm ${
                               isCorrect
                                 ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800'
-                                : 'bg-zenith-card dark:bg-gray-700 text-zenith-secondary dark:text-gray-300'
+                                : 'bg-card dark:bg-gray-700 text-zenith-secondary dark:text-gray-300'
                             }`}
                           >
                             <span className="font-medium mr-2">
@@ -386,15 +386,15 @@ export function QuestionList({ questions, onEditQuestion, onDeleteQuestion, clas
                         </h4>
                         <div className="space-y-2">
                           {question.testCases.slice(0, 3).map((testCase, testIndex) => (
-                            <div key={testIndex} className="bg-zenith-card dark:bg-gray-700 p-3 rounded-lg">
+                            <div key={testIndex} className="bg-card dark:bg-gray-700 p-3 rounded-lg">
                               <div className="grid grid-cols-2 gap-4 text-xs">
                                 <div>
                                   <span className="font-medium text-zenith-muted dark:text-zenith-muted">Input:</span>
-                                  <pre className="mt-1 text-zenith-primary dark:text-gray-200">{testCase.input}</pre>
+                                  <pre className="mt-1 text-primary dark:text-gray-200">{testCase.input}</pre>
                                 </div>
                                 <div>
                                   <span className="font-medium text-zenith-muted dark:text-zenith-muted">Expected:</span>
-                                  <pre className="mt-1 text-zenith-primary dark:text-gray-200">{testCase.output}</pre>
+                                  <pre className="mt-1 text-primary dark:text-gray-200">{testCase.output}</pre>
                                 </div>
                               </div>
                             </div>

@@ -128,11 +128,11 @@ export default function OnboardingPage() {
         className="w-full max-w-2xl"
       >
         {/* Onboarding Card */}
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-zenith-border dark:border-gray-700">
+        <div className="bg-card rounded-2xl shadow-xl p-8 border border-custom dark:border-gray-700">
           {/* Logo */}
           <div className="text-center mb-8">
             <ZenithLogo size="lg" className="justify-center mb-4" />
-            <h1 className="text-2xl font-bold text-zenith-primary dark:text-white">
+            <h1 className="text-2xl font-bold text-primary">
               Complete Your Profile
             </h1>
             <p className="text-zenith-secondary dark:text-zenith-muted mt-2">
@@ -169,7 +169,7 @@ export default function OnboardingPage() {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-custom dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="First name"
                   />
                 </div>
@@ -189,7 +189,7 @@ export default function OnboardingPage() {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   required
-                  className="block w-full px-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full px-3 py-3 border border-custom dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Last name"
                 />
               </div>
@@ -214,7 +214,7 @@ export default function OnboardingPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-custom dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Your phone number"
                   />
                 </div>
@@ -237,7 +237,7 @@ export default function OnboardingPage() {
                     type="date"
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border border-custom dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function OnboardingPage() {
 
             {/* Interests Section */}
             <div>
-              <h3 className="text-lg font-medium text-zenith-primary dark:text-white mb-4">
+              <h3 className="text-lg font-medium text-primary mb-4">
                 Select Your Interests
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       formData.interests.includes(interest.id)
                         ? "border-zenith-primary bg-blue-50 dark:bg-blue-900/20"
-                        : "border-zenith-border dark:border-gray-600"
+                        : "border-custom dark:border-gray-600"
                     }`}
                   >
                     <div className="flex items-start">
@@ -268,11 +268,11 @@ export default function OnboardingPage() {
                         }`}
                       >
                         {formData.interests.includes(interest.id) && (
-                          <Check className="w-3 h-3 text-white" />
+                          <Check className="w-3 h-3 text-primary" />
                         )}
                       </div>
                       <div className="ml-3">
-                        <h4 className="font-medium text-zenith-primary dark:text-white">
+                        <h4 className="font-medium text-primary">
                           {interest.name}
                         </h4>
                         <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
@@ -294,7 +294,7 @@ export default function OnboardingPage() {
                   type="checkbox"
                   checked={formData.agreeToTerms}
                   onChange={handleInputChange}
-                  className="focus:ring-zenith-primary h-4 w-4 text-zenith-primary border-zenith-border rounded"
+                  className="focus:ring-zenith-primary h-4 w-4 text-primary border-custom rounded"
                 />
               </div>
               <label
@@ -304,14 +304,14 @@ export default function OnboardingPage() {
                 I agree to the{" "}
                 <a
                   href="/terms"
-                  className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300"
+                  className="text-primary dark:text-blue-400 hover:text-primary/90 dark:hover:text-blue-300"
                 >
                   Terms and Conditions
                 </a>{" "}
                 and{" "}
                 <a
                   href="/privacy"
-                  className="text-zenith-primary dark:text-blue-400 hover:text-zenith-primary/90 dark:hover:text-blue-300"
+                  className="text-primary dark:text-blue-400 hover:text-primary/90 dark:hover:text-blue-300"
                 >
                   Privacy Policy
                 </a>
@@ -322,7 +322,7 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-primary py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             >
               {isLoading ? "Completing Profile..." : "Complete Profile"}
             </button>

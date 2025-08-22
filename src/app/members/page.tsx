@@ -51,7 +51,7 @@ export default function MembersPage() {
   if (error) {
     return (
       <div className="container mx-auto py-8">
-                <div className="bg-zenith-section border border-zenith-border text-zenith-primary px-4 py-3 rounded">
+                <div className="bg-zenith-section border border-custom text-primary px-4 py-3 rounded">
           <p>Error: {error}</p>
         </div>
       </div>
@@ -64,13 +64,13 @@ export default function MembersPage() {
       
       {members.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-zenith-primary text-lg">No members found.</p>
+          <p className="text-primary text-lg">No members found.</p>
           <p className="text-zenith-muted text-sm mt-2">Members will appear here once they register.</p>
         </div>
       ) : (
         <div className="grid gap-4">
           {members.map((member) => (
-            <div key={member.id} className="bg-white p-6 rounded-lg shadow border">
+            <div key={member.id} className="card p-6 rounded-lg shadow">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                   {member.avatar ? (
@@ -80,14 +80,14 @@ export default function MembersPage() {
                       className="w-12 h-12 rounded-full object-cover"
                     />
                   ) : (
-                                        <span className="text-zenith-primary font-medium">
+                                        <span className="text-primary font-medium">
                       {member.name}
                     </span>
                   )}
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold">{member.name}</h3>
-                  <p className="text-zenith-primary">{member.email}</p>
+                  <p className="text-primary">{member.email}</p>
                   <p className="text-sm text-zenith-muted capitalize">{member.role}</p>
                 </div>
               </div>

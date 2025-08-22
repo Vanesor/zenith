@@ -98,7 +98,7 @@ export function ModernSidebar({ isOpen, onToggle }: ModernSidebarProps) {
                 className="flex items-center space-x-3"
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">Z</span>
+                  <span className="text-primary font-bold text-sm">Z</span>
                 </div>
                 <div>
                   <h2 className="text-primary font-semibold text-lg">Zenith</h2>
@@ -135,7 +135,7 @@ export function ModernSidebar({ isOpen, onToggle }: ModernSidebarProps) {
         <div className="p-4 border-b border-custom">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-semibold text-sm">
+              <span className="text-primary font-semibold text-sm">
                 {user.name?.charAt(0) || user.email.charAt(0)}
               </span>
             </div>

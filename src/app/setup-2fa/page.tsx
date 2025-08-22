@@ -158,7 +158,7 @@ Warning: If you lose your device and these backup codes, you will lose access to
               <div
                 className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${
                   stepNumber <= step
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-blue-600 text-primary'
                     : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                 }`}
               >

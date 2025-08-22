@@ -239,17 +239,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-purple-400/30 dark:to-pink-400/30 blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 dark:from-blue-400/30 dark:to-cyan-400/30 blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-r from-indigo-400/15 to-purple-400/15 dark:from-indigo-400/20 dark:to-purple-400/20 blur-3xl animate-pulse delay-500"></div>
-      </div>
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10"></div>
-
+    <div className="min-h-screen zenith-bg-main flex items-center justify-center p-4 relative overflow-hidden">
       {/* Theme Toggle Button */}
       <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />
@@ -278,7 +268,7 @@ export default function LoginPage() {
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 p-2"
+              className="zenith-text-secondary hover:zenith-text-primary p-2"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -291,11 +281,8 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl rounded-3xl shadow-2xl dark:shadow-3xl border border-white/40 dark:border-gray-700/60 p-10 md:p-12 relative overflow-hidden min-h-[650px]"
+          className="zenith-bg-card backdrop-blur-xl rounded-3xl shadow-lg border zenith-border p-10 md:p-12 relative overflow-hidden min-h-[650px]"
         >
-          {/* Subtle gradient overlay for enhanced depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-blue-50/40 dark:from-gray-900/40 dark:to-purple-900/20 rounded-3xl"></div>
-          
           <div className="relative z-10">
             {/* Logo and branding */}
             <div className="text-center mb-10">
@@ -335,7 +322,7 @@ export default function LoginPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-700 to-purple-600 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent mb-3"
+                className="text-4xl font-bold zenith-text-primary mb-3"
               >
                 {showTwoFactor ? "Two-Factor Authentication" : "Welcome Back"}
               </motion.h1>
@@ -344,7 +331,7 @@ export default function LoginPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-gray-600 dark:text-gray-400 text-lg font-medium"
+                className="zenith-text-secondary text-lg font-medium"
               >
                 {showTwoFactor ? "Enter the verification code from your app" : "Sign in to your Zenith account"}
               </motion.p>
@@ -380,7 +367,7 @@ export default function LoginPage() {
                         placeholder="Email address"
                         icon={<Mail className="w-5 h-5" />}
                         error={errors.email?.message}
-                        className="h-14 text-base bg-white/80 dark:bg-gray-800/80 border-gray-200/80 dark:border-gray-700/80 rounded-2xl focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-300 shadow-sm hover:shadow-md placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                        className="h-14 text-base zenith-bg-card border zenith-border rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-sm hover:shadow-md placeholder:zenith-text-muted"
                       />
                     </div>
                     
@@ -391,12 +378,12 @@ export default function LoginPage() {
                         placeholder="Password"
                         icon={<Lock className="w-5 h-5" />}
                         error={errors.password?.message}
-                        className="h-14 text-base pr-12 bg-white/80 dark:bg-gray-800/80 border-gray-200/80 dark:border-gray-700/80 rounded-2xl focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-300 shadow-sm hover:shadow-md placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                        className="h-14 text-base pr-12 zenith-bg-card border zenith-border rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-sm hover:shadow-md placeholder:zenith-text-muted"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors z-20 bg-transparent p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 zenith-text-muted hover:zenith-text-primary transition-colors z-20 bg-transparent p-1 rounded-md hover:zenith-bg-hover"
                         tabIndex={-1}
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -411,14 +398,14 @@ export default function LoginPage() {
                         type="checkbox"
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 transition-colors"
                       />
-                      <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors font-medium">
+                      <span className="text-sm zenith-text-secondary group-hover:zenith-text-primary transition-colors font-medium">
                         Remember me
                       </span>
                     </label>
                     
                     <Link 
                       href="/forgot-password" 
-                      className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-medium hover:no-underline"
+                      className="text-sm zenith-text-accent hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium hover:no-underline"
                     >
                       Forgot password?
                     </Link>
@@ -427,7 +414,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={isLoading || !isValid}
-                    className="w-full h-14 text-base relative overflow-hidden group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    className="w-full h-14 text-base relative overflow-hidden group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                     variant={loginSuccess ? "default" : "default"}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
@@ -514,11 +501,11 @@ export default function LoginPage() {
                 </div>
 
                 <div className="mt-10 text-center">
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="zenith-text-secondary">
                     Don't have an account?{" "}
                     <Link 
                       href="/register" 
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:no-underline font-medium transition-colors"
+                      className="zenith-text-accent hover:text-blue-700 dark:hover:text-blue-300 hover:no-underline font-medium transition-colors"
                     >
                       Sign up
                     </Link>
@@ -535,7 +522,7 @@ export default function LoginPage() {
                   >
                     <Shield className="w-10 h-10 text-blue-600 dark:text-blue-400" />
                   </motion.div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm zenith-text-secondary">
                     {verificationMethod === 'app' 
                       ? 'Enter the 6-digit code from your authenticator app'
                       : `Enter the verification code sent to ${maskEmail(userEmail)}`
@@ -544,7 +531,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Verification Method Toggle */}
-                <div className="flex bg-gray-100 dark:bg-gray-800/50 rounded-xl p-1 mb-6">
+                <div className="flex zenith-bg-section rounded-xl p-1 mb-6">
                   <button
                     type="button"
                     onClick={() => {
@@ -554,8 +541,8 @@ export default function LoginPage() {
                     }}
                     className={`flex-1 flex items-center justify-center py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
                       verificationMethod === 'app'
-                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                        ? 'zenith-bg-card zenith-text-primary shadow-sm'
+                        : 'zenith-text-secondary hover:zenith-text-primary'
                     }`}
                   >
                     <Smartphone className="w-4 h-4 mr-2" />
@@ -570,8 +557,8 @@ export default function LoginPage() {
                     }}
                     className={`flex-1 flex items-center justify-center py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
                       verificationMethod === 'email'
-                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                        ? 'zenith-bg-card zenith-text-primary shadow-sm'
+                        : 'zenith-text-secondary hover:zenith-text-primary'
                     }`}
                   >
                     <Mail className="w-4 h-4 mr-2" />
@@ -589,7 +576,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={handleEmailVerification}
                       disabled={isLoading}
-                      className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-primary font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       {isLoading ? (
                         <>
@@ -613,7 +600,7 @@ export default function LoginPage() {
                       type="text"
                       placeholder="000000"
                       value={twoFactorCode}
-                      onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       className="text-center text-2xl tracking-widest font-mono h-16 bg-white/80 dark:bg-gray-800/80 border-gray-200/80 dark:border-gray-700/80 rounded-2xl focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-300 shadow-sm hover:shadow-md"
                       maxLength={6}
                       required
@@ -639,7 +626,7 @@ export default function LoginPage() {
                     <Button
                       type="submit"
                       disabled={isLoading || twoFactorCode.length !== 6}
-                      className="w-full h-14 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                      className="w-full h-14 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                     >
                       {isLoading ? (
                         <>

@@ -232,7 +232,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                     size="sm"
                     className={`transition-all duration-300 ${
                       inviteMode === 'search' 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105' 
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-primary shadow-lg scale-105' 
                         : 'hover:scale-105 hover:shadow-md'
                     }`}
                   >
@@ -245,7 +245,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                     size="sm"
                     className={`transition-all duration-300 ${
                       inviteMode === 'link' 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105' 
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-primary shadow-lg scale-105' 
                         : 'hover:scale-105 hover:shadow-md'
                     }`}
                   >
@@ -390,7 +390,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                                       selectedUsers.includes(user.id) ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600 group-hover:bg-blue-400'
                                     }`} />
                                     <div>
-                                      <h5 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                      <h5 className="font-semibold text-gray-900 dark:text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                         {user.name}
                                       </h5>
                                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -412,7 +412,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                                     className="flex-shrink-0"
                                   >
                                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                      <Check className="w-4 h-4 text-white" />
+                                      <Check className="w-4 h-4 text-primary" />
                                     </div>
                                   </motion.div>
                                 )}
@@ -442,7 +442,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                       <Button
                         onClick={handleInviteUsers}
                         disabled={loading || selectedUsers.length === 0}
-                        className="px-6 py-2 h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 disabled:hover:scale-100 transition-all duration-300"
+                        className="px-6 py-2 h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 disabled:hover:scale-100 transition-all duration-300"
                       >
                         {loading ? (
                           <motion.div
@@ -480,7 +480,7 @@ export default function InviteMemberModal({ isOpen, onClose, onMemberInvited, pr
                           transition={{ delay: 0.3, type: "spring" }}
                         >
                           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <Copy className="w-8 h-8 text-white" />
+                            <Copy className="w-8 h-8 text-primary" />
                           </div>
                         </motion.div>
                         

@@ -165,12 +165,12 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         className={`p-4 border-b ${
           isDarkMode
             ? "bg-gray-800 border-gray-700"
-            : "bg-zenith-card border-zenith-border"
+            : "bg-card border-custom"
         }`}
       >
         <h2
           className={`text-lg font-semibold ${
-            isDarkMode ? "text-white" : "text-zenith-primary"
+            isDarkMode ? "text-primary" : "text-primary"
           }`}
         >
           Chat Room
@@ -233,7 +233,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                   <div className="flex items-center gap-2 mb-1">
                     <span
                       className={`font-medium text-sm ${
-                        isDarkMode ? "text-white" : "text-zenith-primary"
+                        isDarkMode ? "text-primary" : "text-primary"
                       }`}
                     >
                       {message.author_name}
@@ -258,10 +258,10 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
                   <div
                     className={`p-3 rounded-lg ${
                       message.user_id === currentUserId
-                        ? "bg-zenith-primary text-white ml-auto max-w-sm"
+                        ? "bg-zenith-primary text-primary ml-auto max-w-sm"
                         : isDarkMode
                         ? "bg-gray-700 text-gray-100"
-                        : "bg-zenith-card text-zenith-primary border border-zenith-border"
+                        : "bg-card text-primary border border-custom"
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap break-words">
@@ -308,7 +308,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
         className={`p-4 border-t ${
           isDarkMode
             ? "bg-gray-800 border-gray-700"
-            : "bg-zenith-card border-zenith-border"
+            : "bg-card border-custom"
         }`}
       >
         <div className="flex gap-2">
@@ -321,8 +321,8 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
               rows={1}
               className={`w-full px-4 py-2 pr-12 border rounded-lg resize-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent ${
                 isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                  : "bg-zenith-card border-zenith-border text-zenith-primary placeholder-gray-500"
+                  ? "bg-gray-700 border-gray-600 text-primary placeholder-gray-400"
+                  : "bg-card border-custom text-primary placeholder-gray-500"
               }`}
               style={{ maxHeight: "120px" }}
             />
@@ -350,7 +350,7 @@ export default function ChatRoom({ roomId }: ChatRoomProps) {
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim() || sending}
-            className="px-4 py-2 bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
+            className="px-4 py-2 bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-primary rounded-lg font-medium transition-colors"
           >
             {sending ? "..." : <Send className="w-4 h-4" />}
           </button>

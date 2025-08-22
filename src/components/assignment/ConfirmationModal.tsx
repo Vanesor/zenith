@@ -48,7 +48,7 @@ export function ConfirmationModal({
       case 'info':
         return {
           icon: CheckCircle,
-          iconColor: 'text-zenith-primary',
+          iconColor: 'text-primary',
           bgColor: 'bg-blue-50 dark:bg-blue-900/20',
           borderColor: 'border-blue-200 dark:border-blue-800',
           confirmBg: 'bg-zenith-primary hover:bg-zenith-primary/90',
@@ -62,10 +62,10 @@ export function ConfirmationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4">
+      <div className="bg-card rounded-xl shadow-2xl max-w-md w-full mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zenith-border dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">
+        <div className="flex items-center justify-between p-6 border-b border-custom dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-primary">
             {title}
           </h3>
           <button
@@ -94,7 +94,7 @@ export function ConfirmationModal({
           <div className="flex justify-end space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-zenith-border dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
+              className="px-4 py-2 border border-custom dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
             >
               {cancelText}
             </button>
@@ -103,7 +103,7 @@ export function ConfirmationModal({
                 onConfirm();
                 onClose();
               }}
-              className={`px-4 py-2 ${styles.confirmBg} text-white rounded-lg transition-colors`}
+              className={`px-4 py-2 ${styles.confirmBg} text-primary rounded-lg transition-colors`}
             >
               {confirmText}
             </button>

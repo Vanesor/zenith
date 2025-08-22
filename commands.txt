@@ -42,3 +42,6 @@ then change the ui of chats and make it proper and modern like other pages and y
 
 
 assignment submissions reports
+
+
+in the above pages screenshots the theme is not proper still some elemets have dark theme make sure to check each and every div and make everything proper with theme and also check google github icons too in login and register and also gix the theme of chat room create project join room and make them proper and also change the theme of the sub settings on the settings page go to each page each div and also make sure that text are visible both in light and dark mode

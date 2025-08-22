@@ -321,16 +321,16 @@ export function ProctoringSetup({
       return <XCircle className="w-6 h-6 text-red-600" />;
     }
     
-    return <IconComponent className={`w-6 h-6 ${status === 'current' ? 'text-zenith-primary' : 'text-zenith-muted'}`} />;
+    return <IconComponent className={`w-6 h-6 ${status === 'current' ? 'text-primary' : 'text-zenith-muted'}`} />;
   };
 
   const currentStepData = steps[currentStep];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-xl">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-primary p-6 rounded-t-xl">
           <div className="flex items-center space-x-3">
             <Shield className="w-8 h-8" />
             <div>
@@ -341,7 +341,7 @@ export function ProctoringSetup({
         </div>
 
         {/* Progress Steps */}
-        <div className="p-6 border-b border-zenith-border dark:border-gray-700">
+        <div className="p-6 border-b border-custom dark:border-gray-700">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const status = getStepStatus(index);
@@ -350,12 +350,12 @@ export function ProctoringSetup({
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
                     status === 'completed' ? 'border-green-600 bg-green-100 dark:bg-green-900' :
                     status === 'current' ? 'border-blue-600 bg-blue-100 dark:bg-blue-900' :
-                    'border-zenith-border bg-zenith-section dark:bg-gray-700'
+                    'border-custom bg-zenith-section dark:bg-gray-700'
                   }`}>
                     {getStepIcon(step, status)}
                   </div>
                   <span className={`mt-2 text-sm font-medium ${
-                    status === 'current' ? 'text-zenith-primary dark:text-blue-400' : 'text-zenith-secondary dark:text-zenith-muted'
+                    status === 'current' ? 'text-primary dark:text-blue-400' : 'text-zenith-secondary dark:text-zenith-muted'
                   }`}>
                     {step.title}
                   </span>
@@ -368,7 +368,7 @@ export function ProctoringSetup({
         {/* Content */}
         <div className="p-6">
           <div className="text-center mb-6">
-            <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+            <h3 className="text-xl font-semibold text-primary mb-2">
               {currentStepData.title}
             </h3>
             <p className="text-zenith-secondary dark:text-zenith-muted">
@@ -440,7 +440,7 @@ export function ProctoringSetup({
           <div className="flex justify-between">
             <button
               onClick={onCancel}
-              className="px-6 py-2 border border-zenith-border dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90"
+              className="px-6 py-2 border border-custom dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90"
             >
               Cancel
             </button>
@@ -448,7 +448,7 @@ export function ProctoringSetup({
             <button
               onClick={handleStepAction}
               disabled={isLoading}
-              className="px-6 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-zenith-primary hover:bg-zenith-primary/90 text-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Processing...' : 
                 currentStepData.id === 'system' ? 'Check Again' :

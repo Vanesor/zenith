@@ -45,7 +45,7 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   const getFallbackContent = () => {
     if (fallbackText) {
       return (
-        <div className={`${sizeClasses} bg-zenith-accent text-white flex items-center justify-center ${rounded ? 'rounded-full' : 'rounded-lg'} ${className}`}>
+        <div className={`${sizeClasses} bg-zenith-accent text-primary flex items-center justify-center ${rounded ? 'rounded-full' : 'rounded-lg'} ${className}`}>
           <span className="font-semibold text-sm">
             {getAvatarFallback(fallbackText)}
           </span>

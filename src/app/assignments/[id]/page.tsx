@@ -83,7 +83,7 @@ export default function AssignmentDetails() {
           <p>{error}</p>
           <button
             onClick={() => router.back()}
-            className="mt-4 px-4 py-2 bg-zenith-primary text-white rounded hover:bg-zenith-primary/90"
+            className="mt-4 px-4 py-2 bg-zenith-primary text-primary rounded hover:bg-zenith-primary/90"
           >
             Go Back
           </button>
@@ -98,7 +98,7 @@ export default function AssignmentDetails() {
         <div className="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg">
           <h1 className="text-xl font-semibold">Assignment Not Found</h1>
           <p>The requested assignment could not be found.</p>
-          <Link href="/assignments" className="mt-4 inline-block px-4 py-2 bg-zenith-primary text-white rounded hover:bg-zenith-primary/90">
+          <Link href="/assignments" className="mt-4 inline-block px-4 py-2 bg-zenith-primary text-primary rounded hover:bg-zenith-primary/90">
             View All Assignments
           </Link>
         </div>
@@ -123,7 +123,7 @@ export default function AssignmentDetails() {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <div className="bg-zenith-card dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <div className="bg-card rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-bold">{assignment.title}</h1>
@@ -221,7 +221,7 @@ export default function AssignmentDetails() {
           {assignment.status === 'pending' && (
             <Link
               href={`/assignments/${assignmentId}/take`}
-              className={`px-4 py-2 bg-zenith-primary text-white rounded hover:bg-zenith-primary/90 ${
+              className={`px-4 py-2 bg-zenith-primary text-primary rounded hover:bg-zenith-primary/90 ${
                 new Date() > new Date(assignment.dueDate) ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >

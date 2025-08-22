@@ -85,10 +85,11 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="relative z-10 w-full max-w-lg"
           >
-            <div className="bg-gradient-to-br from-white/95 via-white/90 to-blue-50/90 dark:from-gray-800/95 dark:via-gray-800/90 dark:to-blue-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-3xl shadow-2xl overflow-hidden">
+            {/* <div className="bg-gradient-to-br from-white/95 via-white/90 to-blue-50/90 dark:from-gray-800/95 dark:via-gray-800/90 dark:to-blue-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-3xl shadow-2xl overflow-hidden"> */}
+            <div className="zenith-bg-card backdrop-blur-xl border zenith-border rounded-3xl shadow-2xl overflow-hidden">
               
               {/* Header with gradient */}
-              <div className="relative px-8 py-6">
+              <div className="relative px-8 py-6 zenith-bg-section">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500"></div>
                 <div className="flex items-center justify-between">
                   <motion.div
@@ -106,10 +107,10 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                       <UserPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </motion.div>
                     <div>
-                      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-800 bg-clip-text text-transparent">
                         Join Project
                       </h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      <p className="zenith-text-secondary text-sm">
                         Enter the access code to collaborate
                       </p>
                     </div>
@@ -119,15 +120,15 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={onClose}
-                    className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                    className="p-2 rounded-full zenith-bg-hover hover:zenith-bg-hover transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    <X className="w-5 h-5 zenith-text-muted" />
                   </motion.button>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="px-8 py-6">
+              <div className="px-8 py-6 zenith-bg-card">
                 <motion.form
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -191,7 +192,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                           value={accessCode}
                           onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                           placeholder="PROJ-ABC123"
-                          className="h-14 text-center font-mono text-lg tracking-widest bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
+                          className="h-14 text-center font-mono text-lg tracking-widest bg-main backdrop-blur-sm border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
                           disabled={loading}
                           autoFocus
                         />
@@ -237,7 +238,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                       <Button
                         type="submit"
                         disabled={loading || !accessCode.trim()}
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-primary font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         {loading ? (
                           <motion.div className="flex items-center">
@@ -249,7 +250,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                             Joining Project...
                           </motion.div>
                         ) : (
-                          <div className="flex items-center">
+                          <div className="flex items-center text-primary">
                             <UserPlus className="w-5 h-5 mr-2" />
                             Join Project
                           </div>

@@ -95,7 +95,7 @@ export default function EventsList({ clubId }: EventsListProps) {
       ) : (
         <div className="space-y-4">
           {events.map((event) => (
-            <div key={event.id} className="border rounded-lg p-4 shadow-sm bg-zenith-card">
+            <div key={event.id} className="border rounded-lg p-4 shadow-sm bg-card">
               <h3 className="font-medium text-lg">{event.title}</h3>
               
               <div className="mt-2 text-sm text-zenith-muted">
@@ -129,7 +129,7 @@ export default function EventsList({ clubId }: EventsListProps) {
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   event.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
                   event.status === 'ongoing' ? 'bg-green-100 text-green-800' :
-                  event.status === 'completed' ? 'bg-zenith-section text-zenith-primary' :
+                  event.status === 'completed' ? 'bg-zenith-section text-primary' :
                   'bg-red-100 text-red-800'
                 }`}>
                   {event.status}

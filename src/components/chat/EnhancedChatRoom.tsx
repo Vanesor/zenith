@@ -510,7 +510,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
   return (
     <div className="flex flex-col h-full max-h-screen overflow-hidden bg-zenith-section dark:bg-gray-900" style={{ paddingBottom: '80px' }}>
       {/* Header with modern styling */}
-      <div className="p-3 md:p-4 border-b dark:border-gray-700 bg-zenith-card dark:bg-gray-800 shadow-sm sticky top-0 z-10">
+      <div className="p-3 md:p-4 border-b dark:border-gray-700 bg-card shadow-sm sticky top-0 z-10">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <h2 className="text-lg md:text-xl font-semibold">Chat Room</h2>
@@ -535,7 +535,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
             {isPrivate && onInviteUser && (
               <button
                 onClick={onInviteUser}
-                className="px-3 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+                className="px-3 py-2 bg-zenith-primary text-primary rounded-lg hover:bg-zenith-primary/90 transition-colors"
               >
                 Invite User
               </button>
@@ -622,8 +622,8 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                 <div
                   className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative group shadow-sm ${
                     isOwnMessage
-                      ? 'bg-zenith-primary text-white ml-auto' // Removed the tail styling
-                      : 'bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white mr-auto'
+                      ? 'bg-zenith-primary text-primary ml-auto' // Removed the tail styling
+                      : 'bg-card text-primary mr-auto'
                   }`}
                 >
                   {/* Dropdown menu toggle */}
@@ -637,7 +637,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                     
                     {/* Dropdown menu */}
                     {openDropdownId === message.id && (
-                      <div className="absolute top-full right-0 mt-1 w-36 bg-zenith-card dark:bg-gray-800 shadow-lg rounded-md overflow-hidden z-10">
+                      <div className="absolute top-full right-0 mt-1 w-36 bg-card shadow-lg rounded-md overflow-hidden z-10">
                         <button
                           onClick={() => {
                             setReplyingTo(message);
@@ -682,7 +682,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                       className="mb-2 reply-bubble cursor-pointer text-xs"
                       onClick={() => scrollToMessage(message.reply_to || message.reply_to_message_id || '')}
                     >
-                      <div className="font-semibold text-zenith-primary dark:text-blue-400">
+                      <div className="font-semibold text-primary dark:text-blue-400">
                         {message.reply_sender || 'Reply'}
                       </div>
                       <div className="truncate">{message.reply_message}</div>
@@ -703,7 +703,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                         <textarea
                           value={editingContent}
                           onChange={(e) => setEditingContent(e.target.value)}
-                          className="w-full p-2 rounded bg-zenith-card dark:bg-gray-800 text-black dark:text-white resize-none"
+                          className="w-full p-2 rounded bg-card text-black dark:text-primary resize-none"
                           rows={3}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
@@ -726,7 +726,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                               setEditingMessage(null);
                               setEditingContent('');
                             }}
-                            className="px-3 py-1 text-xs bg-zenith-section0 text-white rounded hover:bg-zenith-secondary"
+                            className="px-3 py-1 text-xs bg-zenith-section0 text-primary rounded hover:bg-zenith-secondary"
                           >
                             Cancel
                           </button>
@@ -736,7 +736,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                                 editMessage(message.id, editingContent);
                               }
                             }}
-                            className="px-3 py-1 text-xs bg-zenith-primary text-white rounded hover:bg-zenith-primary"
+                            className="px-3 py-1 text-xs bg-zenith-primary text-primary rounded hover:bg-zenith-primary"
                             disabled={!editingContent.trim()}
                           >
                             Save
@@ -817,13 +817,13 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
       </div>
 
       {/* Message Input Area - Fixed at bottom, always visible, modern WhatsApp-like styling */}
-      <div className="p-3 md:p-4 border-t dark:border-gray-700 bg-zenith-card dark:bg-gray-800 fixed bottom-0 left-0 right-0 z-20 shadow-lg">
+      <div className="p-3 md:p-4 border-t dark:border-gray-700 bg-card fixed bottom-0 left-0 right-0 z-20 shadow-lg">
         {/* Reply Preview - Modern WhatsApp-like style */}
         {replyingTo && (
-          <div className="mb-2 bg-zenith-card dark:bg-gray-800 rounded-lg shadow-sm max-h-20 overflow-hidden border-l-4 border-zenith-primary">
+          <div className="mb-2 bg-card rounded-lg shadow-sm max-h-20 overflow-hidden border-l-4 border-zenith-primary">
             <div className="flex items-center justify-between p-2">
               <div className="flex-1 min-w-0 pl-2">
-                <div className="text-xs font-semibold text-zenith-primary">
+                <div className="text-xs font-semibold text-primary">
                   Replying to {replyingTo?.sender_name}
                 </div>
                 <div className="text-xs text-zenith-secondary dark:text-zenith-muted truncate max-w-[90%]">
@@ -845,7 +845,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
           <div className="mb-2 max-h-24 overflow-y-auto">
             <div className="flex flex-wrap gap-2">
               {attachments.map((file, index) => (
-                <div key={index} className="flex items-center space-x-2 bg-zenith-card dark:bg-gray-800 p-2 rounded-lg shadow-sm max-w-48 border border-zenith-border dark:border-gray-700">
+                <div key={index} className="flex items-center space-x-2 bg-card p-2 rounded-lg shadow-sm max-w-48 border border-custom dark:border-gray-700">
                   {file.type.startsWith('image/') ? (
                     <div className="relative">
                       <img
@@ -854,12 +854,12 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                         className="w-10 h-10 object-cover rounded-md"
                       />
                       <div className="absolute -top-1 -right-1 bg-zenith-primary rounded-full p-0.5">
-                        <Image size={10} className="text-white" />
+                        <Image size={10} className="text-primary" />
                       </div>
                     </div>
                   ) : (
                     <div className="rounded-full bg-zenith-section dark:bg-gray-700 p-2">
-                      <File size={16} className="text-zenith-primary" />
+                      <File size={16} className="text-primary" />
                     </div>
                   )}
                   <span className="text-xs truncate flex-1 max-w-[120px]">{file.name}</span>
@@ -911,7 +911,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder={isEncrypted ? "Type an encrypted message..." : "Type a message..."}
-              className="w-full p-2 bg-transparent border-none resize-none focus:outline-none dark:text-white"
+              className="w-full p-2 bg-transparent border-none resize-none focus:outline-none dark:text-primary"
               rows={1}
               style={{ 
                 minHeight: '40px', 
@@ -924,7 +924,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim() && attachments.length === 0}
-            className="p-2 bg-zenith-primary text-white rounded-full hover:bg-zenith-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0 h-10 w-10 flex items-center justify-center"
+            className="p-2 bg-zenith-primary text-primary rounded-full hover:bg-zenith-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0 h-10 w-10 flex items-center justify-center"
           >
             <Send size={18} />
           </button>
@@ -933,7 +933,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
           {showEmojiPicker && (
             <div
               ref={emojiPickerRef}
-              className="absolute bottom-full left-0 md:left-10 mb-2 bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-700 rounded-lg shadow-lg p-3 z-20"
+              className="absolute bottom-full left-0 md:left-10 mb-2 bg-card border border-custom dark:border-gray-700 rounded-lg shadow-lg p-3 z-20"
               style={{ 
                 width: '280px', 
                 height: '220px',
@@ -972,20 +972,20 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
       {/* Error Modal - Modern design */}
       {errorModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-auto shadow-2xl animate-fadeIn">
+          <div className="bg-card rounded-xl p-6 max-w-md w-full mx-auto shadow-2xl animate-fadeIn">
             <div className="flex items-center space-x-3 mb-4">
               <div className="rounded-full bg-red-100 dark:bg-red-900 p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">Error</h3>
+              <h3 className="text-lg font-semibold text-primary">Error</h3>
             </div>
             <p className="text-zenith-secondary dark:text-gray-300 mb-6 pl-11">{errorModal.message}</p>
             <div className="flex justify-end">
               <button
                 onClick={() => setErrorModal({show: false, message: ''})}
-                className="px-4 py-2 bg-zenith-section hover:bg-zenith-section dark:bg-gray-700 dark:hover:bg-zenith-secondary text-zenith-primary dark:text-white rounded-lg font-medium transition-colors"
+                className="px-4 py-2 bg-zenith-section hover:bg-zenith-section dark:bg-gray-700 dark:hover:bg-zenith-secondary text-primary rounded-lg font-medium transition-colors"
               >
                 OK
               </button>
@@ -997,14 +997,14 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
       {/* Delete Confirmation Modal - Modern design */}
       {deleteConfirmModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-auto shadow-2xl animate-fadeIn">
+          <div className="bg-card rounded-xl p-6 max-w-md w-full mx-auto shadow-2xl animate-fadeIn">
             <div className="flex items-center space-x-3 mb-4">
               <div className="rounded-full bg-red-100 dark:bg-red-900 p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-zenith-primary dark:text-white">Delete Message</h3>
+              <h3 className="text-lg font-semibold text-primary">Delete Message</h3>
             </div>
             <p className="text-zenith-secondary dark:text-gray-300 mb-6 pl-11">
               Are you sure you want to delete this message? This action cannot be undone.
@@ -1012,7 +1012,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setDeleteConfirmModal({show: false, messageId: null})}
-                className="px-4 py-2 bg-zenith-section hover:bg-zenith-section dark:bg-gray-700 dark:hover:bg-zenith-secondary text-zenith-primary dark:text-white rounded-lg font-medium transition-colors"
+                className="px-4 py-2 bg-zenith-section hover:bg-zenith-section dark:bg-gray-700 dark:hover:bg-zenith-secondary text-primary rounded-lg font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -1022,7 +1022,7 @@ export const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({
                     deleteMessage(deleteConfirmModal.messageId);
                   }
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                className="px-4 py-2 bg-red-600 text-primary rounded-lg hover:bg-red-700 transition-colors font-medium"
               >
                 Delete
               </button>

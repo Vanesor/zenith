@@ -226,32 +226,32 @@ function PlaygroundPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zenith-background dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-main flex items-center justify-center">
         <div className="flex items-center space-x-3">
-          <Loader2 className="w-6 h-6 animate-spin text-zenith-primary" />
-          <span className="text-zenith-primary">Loading playground...</span>
+          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          <span className="text-primary">Loading playground...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-zenith-background dark:bg-gray-900 ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <div className={`min-h-screen bg-main ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Header */}
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-zenith-card dark:bg-gray-800 border-b border-zenith-border dark:border-gray-700 p-4"
+        className="bg-card border-b border-custom p-4"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <AnimatedPlaygroundIcon className="w-8 h-8 text-zenith-primary" />
+              <AnimatedPlaygroundIcon className="w-8 h-8 text-blue-600" />
               <div>
-                <h1 className="text-2xl font-bold text-zenith-primary dark:text-white">
+                <h1 className="text-2xl font-bold text-primary">
                   Code Playground
                 </h1>
-                <p className="text-sm text-zenith-muted">
+                <p className="text-sm text-secondary">
                   Write, execute, and experiment with code
                 </p>
               </div>
@@ -267,7 +267,7 @@ function PlaygroundPage() {
                   const lang = SUPPORTED_LANGUAGES.find(l => l.id === e.target.value);
                   if (lang) setSelectedLanguage(lang);
                 }}
-                className="appearance-none bg-zenith-section dark:bg-gray-700 border border-zenith-border dark:border-gray-600 rounded-lg px-4 py-2 pr-8 text-zenith-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-zenith-primary"
+                className="appearance-none bg-main border border-custom rounded-lg px-4 py-2 pr-8 text-primary focus:outline-none focus:ring-2 focus:ring-blue-600"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.id} value={lang.id}>
@@ -278,7 +278,7 @@ function PlaygroundPage() {
             </div>
 
             {/* Controls */}
-            <div className="flex items-center space-x-1 bg-zenith-section dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex items-center space-x-1 bg-card rounded-lg p-1">
               <button
                 onClick={decreaseFontSize}
                 className="p-2 rounded hover:bg-zenith-background dark:hover:bg-gray-600 transition-colors"
@@ -298,7 +298,7 @@ function PlaygroundPage() {
 
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 bg-zenith-section dark:bg-gray-700 rounded-lg hover:bg-zenith-background dark:hover:bg-gray-600 transition-colors"
+              className="p-2 bg-zenith-section rounded-lg hover:bg-zenith-background bg-main transition-colors"
               title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
               {isFullscreen ? (
@@ -320,10 +320,10 @@ function PlaygroundPage() {
           transition={{ delay: 0.1 }}
           className="flex-1 flex flex-col"
         >
-          <div className="bg-zenith-card dark:bg-gray-800 border-b border-zenith-border dark:border-gray-700 p-3 flex items-center justify-between">
+          <div className="bg-card border-b border-custom p-3 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Code2 className="w-4 h-4 text-zenith-primary" />
-              <span className="text-sm font-medium text-zenith-primary dark:text-white">
+              <Code2 className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">
                 {selectedLanguage.name} Editor
               </span>
             </div>
@@ -362,12 +362,12 @@ function PlaygroundPage() {
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="w-96 bg-zenith-card dark:bg-gray-800 border-l border-zenith-border dark:border-gray-700 flex flex-col"
+          className="w-96 bg-card border-l border-custom flex flex-col"
         >
-          <div className="p-3 border-b border-zenith-border dark:border-gray-700 flex items-center justify-between">
+          <div className="p-3 border-b border-custom dark:border-gray-700 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Terminal className="w-4 h-4 text-zenith-primary" />
-              <span className="text-sm font-medium text-zenith-primary dark:text-white">
+              <Terminal className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">
                 Output
               </span>
             </div>
@@ -377,7 +377,7 @@ function PlaygroundPage() {
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
                 isExecuting
                   ? 'bg-gray-200 dark:bg-gray-700 text-zenith-muted cursor-not-allowed'
-                  : 'bg-gradient-to-r ' + selectedLanguage.color + ' text-white hover:shadow-lg transform hover:scale-105'
+                  : 'bg-gradient-to-r ' + selectedLanguage.color + ' text-primary hover:shadow-lg transform hover:scale-105'
               }`}
             >
               {isExecuting ? (
@@ -427,7 +427,7 @@ function PlaygroundPage() {
                           <Copy className="w-3 h-3 text-zenith-muted" />
                         </button>
                       </div>
-                      <pre className="bg-zenith-background dark:bg-gray-900 p-3 rounded-lg text-sm text-zenith-primary dark:text-gray-300 font-mono whitespace-pre-wrap border border-zenith-border dark:border-gray-600">
+                      <pre className="bg-zenith-background dark:bg-gray-900 p-3 rounded-lg text-sm text-primary dark:text-gray-300 font-mono whitespace-pre-wrap border border-custom dark:border-gray-600">
                         {result.output}
                       </pre>
                     </div>
@@ -455,12 +455,12 @@ function PlaygroundPage() {
 
                   {/* Execution Info */}
                   {(result.executionTime || result.memoryUsed) && (
-                    <div className="pt-2 border-t border-zenith-border dark:border-gray-700">
+                    <div className="pt-2 border-t border-custom dark:border-gray-700">
                       <div className="grid grid-cols-2 gap-4 text-xs">
                         {result.executionTime && (
                           <div>
                             <span className="text-zenith-muted">Execution Time</span>
-                            <div className="font-mono text-zenith-primary dark:text-white">
+                            <div className="font-mono text-primary">
                               {result.executionTime}ms
                             </div>
                           </div>
@@ -468,7 +468,7 @@ function PlaygroundPage() {
                         {result.memoryUsed && (
                           <div>
                             <span className="text-zenith-muted">Memory Used</span>
-                            <div className="font-mono text-zenith-primary dark:text-white">
+                            <div className="font-mono text-primary">
                               {result.memoryUsed}KB
                             </div>
                           </div>
@@ -484,11 +484,11 @@ function PlaygroundPage() {
                   animate={{ opacity: 1 }}
                   className="flex flex-col items-center justify-center h-full text-center space-y-4"
                 >
-                  <div className="w-16 h-16 bg-zenith-section dark:bg-gray-700 rounded-2xl flex items-center justify-center">
-                    <Sparkles className="w-8 h-8 text-zenith-primary" />
+                  <div className="w-16 h-16 bg-zenith-section rounded-2xl flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-zenith-primary dark:text-white mb-2">
+                    <h3 className="text-lg font-medium text-primary mb-2">
                       Ready to Code!
                     </h3>
                     <p className="text-sm text-zenith-muted mb-4">

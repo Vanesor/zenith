@@ -283,9 +283,9 @@ export default function SettingsPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+      <Card className="zenith-bg-card backdrop-blur-sm border zenith-border shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 zenith-text-primary">
             <User className="w-5 h-5" />
             <span>Personal Information</span>
           </CardTitle>
@@ -293,29 +293,29 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium zenith-text-secondary mb-2">
                 First Name
               </label>
               <Input
                 value={profileData.firstName}
-                onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileData({...profileData, firstName: e.target.value})}
                 placeholder="First name"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium zenith-text-secondary mb-2">
                 Last Name
               </label>
               <Input
                 value={profileData.lastName}
-                onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileData({...profileData, lastName: e.target.value})}
                 placeholder="Last name"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium zenith-text-secondary mb-2">
               Email Address
             </label>
             <div className="relative">
@@ -334,7 +334,7 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium zenith-text-secondary mb-2">
                 Phone Number
               </label>
               <Input
@@ -344,7 +344,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium zenith-text-secondary mb-2">
                 Location
               </label>
               <Input
@@ -356,7 +356,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium zenith-text-secondary mb-2">
               Department
             </label>
             <Input
@@ -367,14 +367,14 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium zenith-text-secondary mb-2">
               Bio
             </label>
             <textarea
               value={profileData.bio}
               onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
               placeholder="Tell us about yourself..."
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+              className="w-full p-3 border zenith-border rounded-lg zenith-bg-card zenith-text-primary resize-none"
               rows={4}
             />
           </div>
@@ -407,16 +407,16 @@ export default function SettingsPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+      <Card className="zenith-bg-card backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 zenith-text-primary">
             <Lock className="w-5 h-5" />
             <span>Change Password</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium zenith-text-secondary mb-2">
               Current Password
             </label>
             <div className="relative">
@@ -430,7 +430,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setShowPasswords({...showPasswords, current: !showPasswords.current})}
-                className="absolute right-3 top-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="absolute right-3 top-3 zenith-text-muted hover:zenith-text-secondary"
               >
                 {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -438,7 +438,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium zenith-text-secondary mb-2">
               New Password
             </label>
             <div className="relative">
@@ -452,7 +452,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
-                className="absolute right-3 top-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="absolute right-3 top-3 zenith-text-muted hover:zenith-text-secondary"
               >
                 {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -460,7 +460,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium zenith-text-secondary mb-2">
               Confirm New Password
             </label>
             <div className="relative">
@@ -474,16 +474,16 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setShowPasswords({...showPasswords, confirm: !showPasswords.confirm})}
-                className="absolute right-3 top-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="absolute right-3 top-3 zenith-text-muted hover:zenith-text-secondary"
               >
                 {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Password Requirements:</h4>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+          <div className="zenith-bg-section p-4 rounded-lg">
+            <h4 className="font-medium zenith-text-primary mb-2">Password Requirements:</h4>
+            <ul className="text-sm zenith-text-secondary space-y-1">
               <li>• At least 8 characters long</li>
               <li>• Include uppercase and lowercase letters</li>
               <li>• Include at least one number</li>
@@ -519,9 +519,9 @@ export default function SettingsPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+      <Card className="zenith-bg-card backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 zenith-text-primary">
             <Shield className="w-5 h-5" />
             <span>Two-Factor Authentication</span>
             {twoFactorEnabled && (
@@ -534,14 +534,14 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           {!twoFactorEnabled ? (
             <div className="space-y-4">
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+              <div className="zenith-bg-section p-4 rounded-lg">
                 <div className="flex items-start space-x-3">
                   <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100">
+                    <h4 className="font-medium zenith-text-primary">
                       Enhance Your Security
                     </h4>
-                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                    <p className="text-sm zenith-text-secondary mt-1">
                       Two-factor authentication adds an extra layer of security to your account by requiring a verification code in addition to your password.
                     </p>
                   </div>
@@ -569,10 +569,10 @@ export default function SettingsPage() {
               ) : (
                 <div className="space-y-4">
                   <div className="text-center">
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                    <h4 className="font-medium zenith-text-primary mb-2">
                       Scan QR Code
                     </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="text-sm zenith-text-secondary mb-4">
                       Use your authenticator app to scan this QR code
                     </p>
                     <div className="bg-white p-4 rounded-lg inline-block">
@@ -581,7 +581,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium zenith-text-secondary mb-2">
                       Verification Code
                     </label>
                     <Input
@@ -623,14 +623,14 @@ export default function SettingsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <div className="zenith-bg-section p-4 rounded-lg">
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-green-900 dark:text-green-100">
+                    <h4 className="font-medium zenith-text-primary">
                       2FA is Active
                     </h4>
-                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    <p className="text-sm zenith-text-secondary mt-1">
                       Your account is protected with two-factor authentication. You'll need to enter a verification code when logging in.
                     </p>
                   </div>
@@ -668,21 +668,21 @@ export default function SettingsPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+      <Card className="zenith-bg-card backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 zenith-text-primary">
             <Mail className="w-5 h-5" />
             <span>Email Notifications</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {Object.entries(notifications.email).map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div key={key} className="flex items-center justify-between p-3 zenith-bg-section rounded-lg">
               <div>
-                <h4 className="font-medium text-gray-900 dark:text-white capitalize">
+                <h4 className="font-medium zenith-text-primary capitalize">
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm zenith-text-secondary">
                   {key === 'events' && 'Get notified about upcoming events'}
                   {key === 'updates' && 'Receive system updates and announcements'}
                   {key === 'newsletters' && 'Weekly newsletters and club highlights'}
@@ -706,21 +706,21 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+      <Card className="zenith-bg-card backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 zenith-text-primary">
             <Bell className="w-5 h-5" />
             <span>Push Notifications</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {Object.entries(notifications.push).map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div key={key} className="flex items-center justify-between p-3 zenith-bg-section rounded-lg">
               <div>
-                <h4 className="font-medium text-gray-900 dark:text-white capitalize">
+                <h4 className="font-medium zenith-text-primary capitalize">
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm zenith-text-secondary">
                   {key === 'events' && 'Push notifications for event reminders'}
                   {key === 'messages' && 'New message notifications'}
                   {key === 'updates' && 'App updates and maintenance notifications'}
@@ -747,17 +747,17 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center">
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl p-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Not Logged In</h2>
-          <p className="text-gray-600 dark:text-gray-400">Please log in to access settings.</p>
+      <div className="min-h-screen zenith-bg-main flex items-center justify-center">
+        <Card className="zenith-bg-card backdrop-blur-sm border-0 shadow-xl p-8 text-center">
+          <h2 className="text-xl font-semibold zenith-text-primary mb-2">Not Logged In</h2>
+          <p className="zenith-text-secondary">Please log in to access settings.</p>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+    <div className="min-h-screen zenith-bg-main">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
@@ -765,10 +765,10 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold zenith-text-primary">
             Settings
           </h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-lg zenith-text-secondary">
             Manage your account preferences and security settings
           </p>
         </motion.div>
@@ -782,8 +782,8 @@ export default function SettingsPage() {
               exit={{ opacity: 0, y: -20 }}
               className={`mb-6 p-4 rounded-lg flex items-center space-x-3 ${
                 message.type === 'success' 
-                  ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-100' 
-                  : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-100'
+                  ? 'zenith-bg-section text-green-800 dark:text-green-100' 
+                  : 'zenith-bg-section text-red-800 dark:text-red-100'
               }`}
             >
               {message.type === 'success' ? (
@@ -810,25 +810,25 @@ export default function SettingsPage() {
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${
                     activeSection === section.id
-                      ? 'bg-white dark:bg-gray-800 shadow-lg scale-105'
-                      : 'bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-800/80 hover:shadow-md'
+                      ? 'zenith-bg-card shadow-lg scale-105'
+                      : 'zenith-bg-section hover:zenith-bg-hover hover:shadow-md'
                   }`}
                   whileHover={{ scale: activeSection === section.id ? 1.05 : 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className="flex items-center space-x-3">
                     <div className={`p-2 rounded-lg bg-gradient-to-r ${section.color}`}>
-                      <section.icon className="w-5 h-5 text-white" />
+                      <section.icon className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium zenith-text-primary">
                         {section.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm zenith-text-secondary">
                         {section.description}
                       </p>
                     </div>
-                    <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${
+                    <ChevronRight className={`w-4 h-4 zenith-text-muted transition-transform ${
                       activeSection === section.id ? 'rotate-90' : ''
                     }`} />
                   </div>

@@ -26,7 +26,7 @@ export function AssignmentSuccess({
           <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
         </div>
         
-        <h2 className="text-3xl font-bold text-zenith-primary dark:text-white mb-4">
+        <h2 className="text-3xl font-bold text-primary mb-4">
           Assignment Created Successfully!
         </h2>
         
@@ -40,9 +40,9 @@ export function AssignmentSuccess({
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-700 rounded-xl p-6 text-center">
-          <Eye className="w-8 h-8 text-zenith-primary dark:text-blue-400 mx-auto mb-3" />
-          <h3 className="font-semibold text-zenith-primary dark:text-white mb-2">
+        <div className="bg-card border border-custom dark:border-gray-700 rounded-xl p-6 text-center">
+          <Eye className="w-8 h-8 text-primary dark:text-blue-400 mx-auto mb-3" />
+          <h3 className="font-semibold text-primary mb-2">
             View Assignment
           </h3>
           <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
@@ -50,9 +50,9 @@ export function AssignmentSuccess({
           </p>
         </div>
         
-        <div className="bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-700 rounded-xl p-6 text-center">
+        <div className="bg-card border border-custom dark:border-gray-700 rounded-xl p-6 text-center">
           <Settings className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-3" />
-          <h3 className="font-semibold text-zenith-primary dark:text-white mb-2">
+          <h3 className="font-semibold text-primary mb-2">
             Manage Settings
           </h3>
           <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
@@ -60,9 +60,9 @@ export function AssignmentSuccess({
           </p>
         </div>
         
-        <div className="bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-700 rounded-xl p-6 text-center">
+        <div className="bg-card border border-custom dark:border-gray-700 rounded-xl p-6 text-center">
           <ExternalLink className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-3" />
-          <h3 className="font-semibold text-zenith-primary dark:text-white mb-2">
+          <h3 className="font-semibold text-primary mb-2">
             Share Link
           </h3>
           <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
@@ -74,7 +74,7 @@ export function AssignmentSuccess({
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <button
           onClick={onViewAssignment}
-          className="px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+          className="px-6 py-3 bg-zenith-primary hover:bg-zenith-primary/90 text-primary rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           <Eye className="w-5 h-5 inline mr-2" />
           View Assignment
@@ -82,14 +82,14 @@ export function AssignmentSuccess({
         
         <button
           onClick={onCreateAnother}
-          className="px-6 py-3 bg-zenith-section hover:bg-zenith-section dark:bg-gray-700 dark:hover:bg-zenith-secondary text-zenith-primary dark:text-white rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+          className="px-6 py-3 bg-zenith-section hover:bg-zenith-section dark:bg-gray-700 dark:hover:bg-zenith-secondary text-primary rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           Create Another Assignment
         </button>
         
         <button
           onClick={onGoToDashboard}
-          className="px-6 py-3 border border-zenith-border dark:border-gray-600 hover:bg-zenith-section dark:hover:bg-gray-800 text-zenith-secondary dark:text-gray-300 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+          className="px-6 py-3 border border-custom dark:border-gray-600 hover:bg-zenith-section dark:hover:bg-gray-800 text-zenith-secondary dark:text-gray-300 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           Go to Dashboard
         </button>

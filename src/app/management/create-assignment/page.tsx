@@ -96,17 +96,17 @@ export default function CreateAssignmentPage() {
 
   if (!user || !isManager) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen zenith-bg-main flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-4">
+          <h2 className="text-2xl font-bold zenith-text-primary mb-4">
             Unauthorized Access
           </h2>
-          <p className="text-zenith-secondary dark:text-zenith-muted mb-6">
+          <p className="zenith-text-secondary mb-6">
             You don&apos;t have permission to create assignments.
           </p>
           <Link
             href="/dashboard"
-            className="bg-zenith-primary hover:bg-zenith-primary/90 text-white px-6 py-3 rounded-lg transition-colors"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary px-6 py-3 rounded-lg transition-colors"
           >
             Go to Dashboard
           </Link>
@@ -117,15 +117,15 @@ export default function CreateAssignmentPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen zenith-bg-main flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8 text-white" />
+            <FileText className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-4">
+          <h2 className="text-2xl font-bold zenith-text-primary mb-4">
             Assignment Created Successfully!
           </h2>
-          <p className="text-zenith-secondary dark:text-zenith-muted">
+          <p className="zenith-text-secondary">
             Redirecting to management dashboard...
           </p>
         </div>
@@ -134,22 +134,22 @@ export default function CreateAssignmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+    <div className="min-h-screen zenith-bg-main">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center mb-4">
             <Link
               href="/management"
-              className="mr-4 p-2 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white transition-colors"
+              className="mr-4 p-2 zenith-text-secondary hover:zenith-text-primary transition-colors"
             >
               <ArrowLeft className="w-6 h-6" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-zenith-primary dark:text-white">
+              <h1 className="text-3xl font-bold zenith-text-primary">
                 Create Assignment
               </h1>
-              <p className="text-zenith-secondary dark:text-zenith-muted mt-2">
+              <p className="zenith-text-secondary mt-2">
                 Create a new assignment for your club members
               </p>
             </div>
@@ -157,18 +157,18 @@ export default function CreateAssignmentPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-zenith-card dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="zenith-bg-card rounded-xl shadow-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
               <label
                 htmlFor="title"
-                className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
+                className="block text-sm font-medium zenith-text-secondary mb-2"
               >
                 Assignment Title *
               </label>
               <div className="relative">
-                <FileText className="absolute left-3 top-3 w-5 h-5 text-zenith-muted" />
+                <FileText className="absolute left-3 top-3 w-5 h-5 zenith-text-muted" />
                 <input
                   type="text"
                   id="title"
@@ -176,7 +176,7 @@ export default function CreateAssignmentPage() {
                   required
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 border zenith-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent zenith-bg-card zenith-text-primary"
                   placeholder="Enter assignment title"
                 />
               </div>
@@ -186,7 +186,7 @@ export default function CreateAssignmentPage() {
             <div>
               <label
                 htmlFor="description"
-                className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
+                className="block text-sm font-medium zenith-text-secondary mb-2"
               >
                 Description *
               </label>
@@ -197,7 +197,7 @@ export default function CreateAssignmentPage() {
                 rows={4}
                 value={formData.description}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white resize-none"
+                className="w-full px-4 py-3 border zenith-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent zenith-bg-card zenith-text-primary resize-none"
                 placeholder="Provide a brief description of the assignment"
               />
             </div>
@@ -216,7 +216,7 @@ export default function CreateAssignmentPage() {
                 rows={6}
                 value={formData.instructions}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white resize-none"
+                className="w-full px-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary resize-none"
                 placeholder="Provide detailed instructions, requirements, and submission guidelines"
               />
             </div>
@@ -240,7 +240,7 @@ export default function CreateAssignmentPage() {
                     value={formData.dueDate}
                     onChange={handleInputChange}
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full pl-10 pr-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                    className="w-full pl-10 pr-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                   />
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default function CreateAssignmentPage() {
                     required
                     value={formData.dueTime}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                    className="w-full pl-10 pr-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                   />
                 </div>
               </div>
@@ -285,7 +285,7 @@ export default function CreateAssignmentPage() {
                   max={1000}
                   value={formData.maxPoints}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary"
                   placeholder="100"
                 />
               </div>
@@ -304,14 +304,14 @@ export default function CreateAssignmentPage() {
             <div className="flex items-center justify-end space-x-4 pt-6">
               <Link
                 href="/management"
-                className="px-6 py-3 border border-zenith-border dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
+                className="px-6 py-3 border border-custom dark:border-gray-600 text-zenith-secondary dark:text-gray-300 rounded-lg hover:bg-zenith-section dark:hover:bg-zenith-secondary/90 transition-colors"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-white px-8 py-3 rounded-lg transition-colors flex items-center space-x-2"
+                className="bg-zenith-primary hover:bg-zenith-primary/90 disabled:bg-blue-400 text-primary px-8 py-3 rounded-lg transition-colors flex items-center space-x-2"
               >
                 {loading ? (
                   <>

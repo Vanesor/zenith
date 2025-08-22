@@ -13,8 +13,8 @@ export function Spinner({ size = 'md', color = 'white' }: SpinnerProps) {
   };
 
   const colorClass = {
-    primary: 'text-zenith-primary',
-    white: 'text-white'
+    primary: 'text-primary',
+    white: 'text-primary'
   };
 
   return (

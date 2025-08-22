@@ -131,10 +131,8 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-hidden"
         >
-          <div className="bg-gradient-to-br from-white/95 via-white/90 to-orange-50/90 dark:from-gray-800/95 dark:via-gray-800/90 dark:to-orange-900/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-3xl shadow-2xl">
-            
-            {/* Header */}
-            <div className="relative px-8 py-6 border-b border-gray-200/50 dark:border-gray-700/50">
+            <div className="zenith-bg-card backdrop-blur-xl border zenith-border rounded-3xl shadow-2xl">            {/* Header */}
+            <div className="relative px-8 py-6 border-b zenith-border">
               <div className="flex items-center justify-between">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -144,7 +142,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-purple-600 bg-clip-text text-transparent">
                     Create New Task
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mt-1">
+                  <p className="zenith-text-secondary mt-1">
                     Add a new task to track project progress
                   </p>
                 </motion.div>
@@ -153,9 +151,9 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
-                  className="p-2 rounded-full bg-white/80 dark:bg-gray-700/80 hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-200 dark:border-gray-600 transition-colors"
+                  className="p-2 rounded-full zenith-bg-card hover:bg-red-50 dark:hover:bg-red-900/20 border zenith-border transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <X className="w-5 h-5 zenith-text-secondary" />
                 </motion.button>
               </div>
               
@@ -176,7 +174,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                   <motion.div
                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    className="flex items-center space-x-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-2xl"
+                    className="flex items-center space-x-3 p-4 zenith-bg-section border border-red-200 dark:border-red-800 rounded-2xl"
                   >
                     <motion.div
                       animate={{ rotate: [0, 10, -10, 0] }}
@@ -197,7 +195,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                     transition={{ delay: 0.3 }}
                     className="space-y-3"
                   >
-                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                    <label className="text-sm font-semibold zenith-text-secondary flex items-center">
                       <Target className="w-4 h-4 mr-2 text-orange-600" />
                       Task Title *
                     </label>
@@ -207,10 +205,10 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                         value={formData.title}
                         onChange={handleChange}
                         placeholder="Enter a clear, actionable task title..."
-                        className="h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-gray-500"
+                        className="h-12 pl-12 pr-4 rounded-xl border-2 zenith-border zenith-bg-card backdrop-blur-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-gray-500"
                         required
                       />
-                      <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors w-4 h-4" />
+                      <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 zenith-text-muted group-focus-within:text-orange-500 transition-colors w-4 h-4" />
                     </div>
                   </motion.div>
 
@@ -221,7 +219,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                     transition={{ delay: 0.4 }}
                     className="space-y-3"
                   >
-                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="text-sm font-semibold zenith-text-secondary">
                       Task Description *
                     </label>
                     <textarea
@@ -229,7 +227,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                       value={formData.description}
                       onChange={handleChange}
                       placeholder="Describe the task requirements, objectives, and expected deliverables..."
-                      className="w-full h-32 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                      className="w-full h-32 p-4 rounded-xl border-2 zenith-border zenith-bg-card backdrop-blur-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 zenith-text-primary placeholder:zenith-text-muted resize-none"
                       required
                     />
                   </motion.div>
@@ -243,7 +241,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                       transition={{ delay: 0.5 }}
                       className="space-y-3"
                     >
-                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                      <label className="text-sm font-semibold zenith-text-secondary flex items-center">
                         <Flag className="w-4 h-4 mr-2 text-red-600" />
                         Priority
                       </label>
@@ -252,14 +250,14 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                           name="priority"
                           value={formData.priority}
                           onChange={handleChange}
-                          className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all duration-300 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full h-12 pl-12 pr-4 rounded-xl border-2 zenith-border zenith-bg-card backdrop-blur-sm focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all duration-300 zenith-text-primary appearance-none cursor-pointer"
                         >
                           <option value="low">🟢 Low Priority</option>
                           <option value="medium">🟡 Medium Priority</option>
                           <option value="high">🟠 High Priority</option>
                           <option value="critical">🔴 Critical</option>
                         </select>
-                        <Flag className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors w-4 h-4 pointer-events-none" />
+                        <Flag className="absolute left-4 top-1/2 transform -translate-y-1/2 zenith-text-muted group-focus-within:text-red-500 transition-colors w-4 h-4 pointer-events-none" />
                         <motion.div
                           animate={{ rotate: formData.priority ? 180 : 0 }}
                           className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
@@ -287,7 +285,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                           name="assignee_id"
                           value={formData.assignee_id}
                           onChange={handleChange}
-                          className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-primary appearance-none cursor-pointer"
                         >
                           <option value="">👤 Unassigned</option>
                           {projectMembers.map((member) => (
@@ -345,7 +343,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                     <Button
                       type="submit"
                       disabled={loading || !formData.title || !formData.description}
-                      className="px-8 py-3 rounded-xl bg-gradient-to-r from-orange-600 via-red-600 to-purple-600 hover:from-orange-700 hover:via-red-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="px-8 py-3 rounded-xl bg-gradient-to-r from-orange-600 via-red-600 to-purple-600 hover:from-orange-700 hover:via-red-700 hover:to-purple-700 text-primary font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       {loading ? (
                         <motion.div className="flex items-center">

@@ -90,10 +90,22 @@ export async function POST(request: NextRequest) {
 
     const userId = authResult.user!.id;
     const body = await request.json();
-    const { title, description, event_date, event_time, location, club_id } = body;
+    const { 
+      title, 
+      description, 
+      event_date, 
+      location, 
+      club_id,
+      max_attendees,
+      registration_required,
+      is_public,
+      event_type,
+      tags,
+      banner_url
+    } = body;
 
     // Validate required fields
-    if (!title || !event_date || !event_time || !location || !club_id) {
+    if (!title || !event_date || !location || !club_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -104,10 +116,28 @@ export async function POST(request: NextRequest) {
       const eventId = require('crypto').randomUUID();
       
       const result = await db.query(`
-        INSERT INTO events (id, title, description, event_date, event_time, location, club_id, status, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        INSERT INTO events (
+          id, title, description, event_date, location, club_id, creator_id,
+          max_attendees, registration_required, is_public, event_type, tags, banner_url,
+          status, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'published', NOW(), NOW())
         RETURNING *
-      `, [eventId, title, description || null, event_date, event_time, location, club_id, 'upcoming']);
+      `, [
+        eventId, 
+        title, 
+        description || null, 
+        event_date, 
+        location, 
+        club_id, 
+        userId,
+        max_attendees || null,
+        registration_required || false,
+        is_public !== false, // default to true
+        event_type || 'workshop',
+        tags ? JSON.stringify(tags) : null,
+        banner_url || null
+      ]);
 
       console.log('✅ Event created successfully:', result.rows[0].id);
 
@@ -121,10 +151,15 @@ export async function POST(request: NextRequest) {
           title,
           description,
           event_date,
-          event_time,
           location,
           club_id,
-          status: 'upcoming'
+          max_attendees,
+          registration_required,
+          is_public,
+          event_type,
+          tags,
+          banner_url,
+          status: 'published'
         },
         request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
         request.headers.get('user-agent') || undefined

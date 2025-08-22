@@ -316,18 +316,18 @@ export default function ManagementDashboard() {
 
   if (isLoading || !user || !isManager) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-main flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <div className="min-h-screen bg-main transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zenith-primary dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-primary mb-2">
             Management Dashboard
           </h1>
           <p className="text-zenith-secondary dark:text-zenith-muted">
@@ -337,52 +337,52 @@ export default function ManagementDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted">
                   Total Members
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                <p className="text-2xl font-bold text-primary">
                   {stats.totalMembers}
                 </p>
               </div>
-              <Users className="w-8 h-8 text-zenith-primary" />
+              <Users className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted">
                   Active Events
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                <p className="text-2xl font-bold text-primary">
                   {stats.activeEvents}
                 </p>
               </div>
               <Calendar className="w-8 h-8 stat-events" />
             </div>
           </div>
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted">
                   Total Posts
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                <p className="text-2xl font-bold text-primary">
                   {stats.totalPosts}
                 </p>
               </div>
               <FileText className="w-8 h-8 stat-posts" />
             </div>
           </div>
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted">
                   Assignments
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary dark:text-white">
+                <p className="text-2xl font-bold text-primary">
                   {stats.totalAssignments}
                 </p>
               </div>
@@ -393,13 +393,13 @@ export default function ManagementDashboard() {
 
         {/* Quick Actions */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-zenith-primary dark:text-white mb-6">
+          <h2 className="text-2xl font-bold text-primary mb-6">
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link
               href="/management/create-event"
-              className="bg-zenith-primary hover:bg-zenith-primary/90 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="bg-zenith-primary hover:bg-zenith-primary/90 text-primary rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Calendar className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Create Event</h3>
@@ -409,7 +409,7 @@ export default function ManagementDashboard() {
             </Link>
             <Link
               href="/management/create-post"
-              className="bg-green-600 hover:bg-green-700 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="bg-green-600 hover:bg-green-700 text-primary rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <FileText className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Create Post</h3>
@@ -419,11 +419,11 @@ export default function ManagementDashboard() {
             </Link>
             <Link
               href="/management/create-assignment"
-              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-orange-300"
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-primary rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1 border-2 border-orange-300"
             >
               <div className="flex items-center justify-between mb-4">
                 <BookOpen className="w-10 h-10 group-hover:scale-110 transition-transform" />
-                <span className="bg-zenith-card bg-opacity-20 text-xs font-bold px-2 py-1 rounded-full">
+                <span className="bg-card bg-opacity-20 text-xs font-bold px-2 py-1 rounded-full">
                   NEW
                 </span>
               </div>
@@ -434,7 +434,7 @@ export default function ManagementDashboard() {
             </Link>
             <Link
               href="/management/create-announcement"
-              className="bg-purple-600 hover:bg-zenith-secondary/90 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="bg-purple-600 hover:bg-zenith-secondary/90 text-primary rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Edit className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Announcement</h3>
@@ -444,7 +444,7 @@ export default function ManagementDashboard() {
             </Link>
             <Link
               href="/management/members"
-              className="bg-indigo-600 hover:bg-zenith-primary/90 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="bg-indigo-600 hover:bg-zenith-primary/90 text-primary rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Users className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Manage Members</h3>
@@ -454,7 +454,7 @@ export default function ManagementDashboard() {
             </Link>
             <Link
               href="/management/settings"
-              className="bg-zenith-secondary hover:bg-zenith-secondary/90 text-white rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="bg-zenith-secondary hover:bg-zenith-secondary/90 text-primary rounded-xl p-6 transition-all duration-200 group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <Settings className="w-10 h-10 mb-4 group-hover:scale-110 transition-transform" />
               <h3 className="font-bold text-xl mb-2">Settings</h3>
@@ -467,14 +467,14 @@ export default function ManagementDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Events */}
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
+              <h2 className="text-xl font-semibold text-primary">
                 Recent Events
               </h2>
               <Link
                 href="/management/events"
-                className="text-zenith-primary hover:no-underline text-sm"
+                className="text-primary hover:no-underline text-sm"
               >
                 View All
               </Link>
@@ -483,22 +483,22 @@ export default function ManagementDashboard() {
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="border border-zenith-border dark:border-gray-700 rounded-lg p-4"
+                  className="border border-custom dark:border-gray-700 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-zenith-primary dark:text-white">
+                    <h3 className="font-medium text-primary">
                       {event.title}
                     </h3>
                     <div className="flex space-x-2">
                       <Link
                         href={`/events/${event.id}`}
-                        className="text-zenith-primary hover:text-zenith-primary/90"
+                        className="text-primary hover:text-primary/90"
                       >
                         <Eye size={16} />
                       </Link>
                       <Link
                         href={`/management/edit-event/${event.id}`}
-                        className="text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary"
+                        className="text-zenith-secondary dark:text-zenith-muted hover:text-primary"
                       >
                         <Edit size={16} />
                       </Link>
@@ -532,14 +532,14 @@ export default function ManagementDashboard() {
           </div>
 
           {/* Recent Posts */}
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
+              <h2 className="text-xl font-semibold text-primary">
                 Recent Posts
               </h2>
               <Link
                 href="/management/posts"
-                className="text-zenith-primary hover:no-underline text-sm"
+                className="text-primary hover:no-underline text-sm"
               >
                 View All
               </Link>
@@ -548,22 +548,22 @@ export default function ManagementDashboard() {
               {posts.map((post) => (
                 <div
                   key={post.id}
-                  className="border border-zenith-border dark:border-gray-700 rounded-lg p-4"
+                  className="border border-custom dark:border-gray-700 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-zenith-primary dark:text-white">
+                    <h3 className="font-medium text-primary">
                       {post.title}
                     </h3>
                     <div className="flex space-x-2">
                       <Link
                         href={`/posts/${post.id}`}
-                        className="text-zenith-primary hover:text-zenith-primary/90"
+                        className="text-primary hover:text-primary/90"
                       >
                         <Eye size={16} />
                       </Link>
                       <Link
                         href={`/management/edit-post/${post.id}`}
-                        className={`text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary ${
+                        className={`text-zenith-secondary dark:text-zenith-muted hover:text-primary ${
                           !canEdit(post.created_at) && !isManager
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -608,14 +608,14 @@ export default function ManagementDashboard() {
 
         {/* Recent Announcements */}
         <div className="mt-8">
-          <div className="bg-zenith-card dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
+              <h2 className="text-xl font-semibold text-primary">
                 Recent Announcements
               </h2>
               <Link
                 href="/management/announcements"
-                className="text-zenith-primary hover:no-underline text-sm"
+                className="text-primary hover:no-underline text-sm"
               >
                 View All
               </Link>
@@ -624,7 +624,7 @@ export default function ManagementDashboard() {
               {announcements.map((announcement) => (
                 <div
                   key={announcement.id}
-                  className="border border-zenith-border dark:border-gray-700 rounded-lg p-4"
+                  className="border border-custom dark:border-gray-700 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span
@@ -641,7 +641,7 @@ export default function ManagementDashboard() {
                     <div className="flex space-x-2">
                       <Link
                         href={`/management/edit-announcement/${announcement.id}`}
-                        className={`text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary ${
+                        className={`text-zenith-secondary dark:text-zenith-muted hover:text-primary ${
                           !canEdit(announcement.created_at) && !isManager
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -674,7 +674,7 @@ export default function ManagementDashboard() {
                       </button>
                     </div>
                   </div>
-                  <h3 className="font-medium text-zenith-primary dark:text-white mb-2">
+                  <h3 className="font-medium text-primary mb-2">
                     {announcement.title}
                   </h3>
                   <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-2 line-clamp-2">

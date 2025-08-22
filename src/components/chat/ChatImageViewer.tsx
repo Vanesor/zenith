@@ -35,34 +35,34 @@ export function ChatImageViewer({ imageUrl, sender, timestamp, onClose }: ChatIm
         {/* Header with controls */}
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent p-4 flex justify-between items-center z-10">
           <div>
-            <div className="text-white font-medium">{sender}</div>
+            <div className="text-primary font-medium">{sender}</div>
             <div className="text-gray-300 text-sm">{timestamp}</div>
           </div>
           <div className="flex space-x-4">
             <button 
               onClick={handleDownload}
-              className="text-white hover:text-blue-400 transition-colors"
+              className="text-primary hover:text-blue-400 transition-colors"
               title="Download"
             >
               <Download className="w-5 h-5" />
             </button>
             <button 
               onClick={handleCopy}
-              className="text-white hover:text-blue-400 transition-colors"
+              className="text-primary hover:text-blue-400 transition-colors"
               title="Copy URL"
             >
               <Copy className="w-5 h-5" />
             </button>
             <button 
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="text-white hover:text-blue-400 transition-colors"
+              className="text-primary hover:text-blue-400 transition-colors"
               title="Toggle fullscreen"
             >
               <Maximize2 className="w-5 h-5" />
             </button>
             <button 
               onClick={onClose}
-              className="text-white hover:text-red-400 transition-colors"
+              className="text-primary hover:text-red-400 transition-colors"
               title="Close"
             >
               <X className="w-5 h-5" />

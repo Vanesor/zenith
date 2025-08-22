@@ -122,18 +122,18 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
   };
 
   return (
-    <div className="max-h-[95vh] overflow-hidden flex flex-col bg-white dark:bg-gray-800">
+    <div className="max-h-[95vh] overflow-hidden flex flex-col zenith-bg-card">
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
+      <div className="border-b zenith-border px-6 py-4 flex items-center justify-between zenith-bg-section">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <Edit3 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-bold zenith-text-primary">
               Create New Post
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm zenith-text-secondary">
               Share your thoughts and insights with the community
             </p>
           </div>
@@ -145,7 +145,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               isPreview 
                 ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 shadow-md'
-                : 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'
+                : 'zenith-bg-card zenith-text-secondary hover:zenith-bg-hover border zenith-border'
             }`}
           >
             {isPreview ? <Edit3 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -153,9 +153,9 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
           </button>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 hover:zenith-bg-hover rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 zenith-text-muted" />
           </button>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
             {/* Title Section */}
             <div className="space-y-4">
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                <label className="flex items-center gap-2 text-sm font-semibold zenith-text-primary mb-3">
                   <Type className="w-4 h-4 text-blue-500" />
                   Post Title
                 </label>
@@ -185,14 +185,14 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="Enter an engaging title for your post..."
-                  className="w-full px-4 py-3 text-lg border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 text-lg border zenith-border rounded-xl zenith-bg-input zenith-text-primary placeholder:zenith-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
 
               {/* Featured Image */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                <label className="flex items-center gap-2 text-sm font-semibold zenith-text-primary mb-3">
                   <Image className="w-4 h-4 text-purple-500" />
                   Featured Image URL (Optional)
                 </label>
@@ -202,13 +202,13 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                   value={formData.featured_image_url}
                   onChange={handleChange}
                   placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border zenith-border rounded-xl zenith-bg-input zenith-text-primary placeholder:zenith-text-muted focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* Tags */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                <label className="flex items-center gap-2 text-sm font-semibold zenith-text-primary mb-3">
                   <Hash className="w-4 h-4 text-indigo-500" />
                   Tags
                 </label>
@@ -218,13 +218,13 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                   value={formData.tags}
                   onChange={handleChange}
                   placeholder="technology, innovation, tutorial (comma-separated)"
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border zenith-border rounded-xl zenith-bg-input zenith-text-primary placeholder:zenith-text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* Excerpt */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                <label className="flex items-center gap-2 text-sm font-semibold zenith-text-primary mb-3">
                   <FileText className="w-4 h-4 text-green-500" />
                   Brief Description
                 </label>
@@ -234,25 +234,25 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                   value={formData.excerpt}
                   onChange={handleChange}
                   placeholder="A short description that will appear in the post preview..."
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border zenith-border rounded-xl zenith-bg-input zenith-text-primary placeholder:zenith-text-muted focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
             {/* Content Editor */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              <label className="flex items-center gap-2 text-sm font-semibold zenith-text-primary mb-3">
                 <Edit3 className="w-4 h-4 text-blue-500" />
                 Content
               </label>
               
               {!isPreview && (
-                <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="mb-3 p-3 zenith-bg-section rounded-lg border zenith-border">
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={formatBold}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Bold"
                     >
                       <Bold className="w-4 h-4" />
@@ -260,7 +260,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatItalic}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Italic"
                     >
                       <Italic className="w-4 h-4" />
@@ -268,7 +268,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatCode}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Inline Code"
                     >
                       <Code className="w-4 h-4" />
@@ -276,7 +276,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatHeading}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Heading"
                     >
                       <Heading className="w-4 h-4" />
@@ -284,7 +284,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatQuote}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Quote"
                     >
                       <Quote className="w-4 h-4" />
@@ -292,7 +292,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatList}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="List"
                     >
                       <List className="w-4 h-4" />
@@ -300,7 +300,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatLink}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Link"
                     >
                       <Link className="w-4 h-4" />
@@ -308,7 +308,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatImage}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Image"
                     >
                       <Image className="w-4 h-4" />
@@ -316,7 +316,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatVideo}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="YouTube Video"
                     >
                       <Video className="w-4 h-4" />
@@ -324,7 +324,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                     <button
                       type="button"
                       onClick={formatCodeBlock}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm zenith-bg-card border zenith-border rounded-lg hover:zenith-bg-hover transition-colors zenith-text-secondary"
                       title="Code Block"
                     >
                       <Code className="w-4 h-4" />
@@ -335,7 +335,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
               )}
               
               {isPreview ? (
-                <div className="min-h-[400px] p-6 border border-gray-200 dark:border-gray-600 rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                <div className="min-h-[400px] p-6 border zenith-border rounded-xl zenith-bg-section">
                   <div className="prose prose-lg prose-gray dark:prose-invert max-w-none">
                     <ReactMarkdown
                       components={{
@@ -352,7 +352,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                               {String(children).replace(/\n$/, '')}
                             </SyntaxHighlighter>
                           ) : (
-                            <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-sm" {...props}>
+                            <code className="px-1.5 py-0.5 zenith-bg-section rounded text-sm zenith-text-secondary" {...props}>
                               {children}
                             </code>
                           );
@@ -370,7 +370,7 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
                   onChange={handleChange}
                   placeholder="Write your post content here... Use the toolbar above for formatting options!"
                   rows={16}
-                  className="w-full px-4 py-4 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all font-mono text-sm leading-relaxed"
+                  className="w-full px-4 py-4 border zenith-border rounded-xl zenith-bg-input zenith-text-primary placeholder:zenith-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all font-mono text-sm leading-relaxed"
                   required
                 />
               )}
@@ -378,14 +378,14 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
 
             {/* Status */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              <label className="flex items-center gap-2 text-sm font-semibold zenith-text-primary mb-3">
                 Publication Status
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border zenith-border rounded-xl zenith-bg-input zenith-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
                 <option value="published">📢 Publish immediately</option>
                 <option value="draft">📝 Save as draft</option>
@@ -395,16 +395,16 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-800">
+        <div className="border-t zenith-border px-6 py-4 zenith-bg-section">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm zenith-text-muted">
               💡 Tip: Use Markdown syntax for rich formatting
             </div>
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium transition-colors"
+                className="px-4 py-2 zenith-text-secondary hover:zenith-text-primary font-medium transition-colors"
               >
                 Cancel
               </button>

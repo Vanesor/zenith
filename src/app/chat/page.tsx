@@ -140,7 +140,7 @@ function EditMessageModal({ isOpen, onClose, message, onMessageEdited }: EditMes
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="rounded-full p-2 h-auto text-gray-400 hover:text-white hover:bg-white/10"
+                className="rounded-full p-2 h-auto text-gray-400 hover:text-primary hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -166,7 +166,7 @@ function EditMessageModal({ isOpen, onClose, message, onMessageEdited }: EditMes
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Type your message..."
-                className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
+                className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
                 required
               />
             </div>
@@ -177,14 +177,14 @@ function EditMessageModal({ isOpen, onClose, message, onMessageEdited }: EditMes
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
-                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white rounded-xl"
+                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-primary rounded-xl"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading || !content.trim()}
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold"
+                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-primary rounded-xl font-semibold"
               >
                 {loading ? (
                   <>
@@ -288,7 +288,7 @@ function DeleteMessageModal({ isOpen, onClose, message, onMessageDeleted }: Dele
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="rounded-full p-2 h-auto text-gray-400 hover:text-white hover:bg-white/10"
+                className="rounded-full p-2 h-auto text-gray-400 hover:text-primary hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -321,14 +321,14 @@ function DeleteMessageModal({ isOpen, onClose, message, onMessageDeleted }: Dele
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
-                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white rounded-xl"
+                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-primary rounded-xl"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleDelete}
                 disabled={loading}
-                className="px-6 py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-xl font-semibold"
+                className="px-6 py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-primary rounded-xl font-semibold"
               >
                 {loading ? (
                   <>
@@ -467,18 +467,18 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-purple-500/20"
+          className="zenith-bg-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border zenith-border"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="relative p-6 border-b border-purple-500/20">
+          <div className="relative p-6 border-b zenith-border zenith-bg-section">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10"></div>
             <div className="relative flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                   Create Chat Room
                 </h2>
-                <p className="text-gray-400 mt-1">
+                <p className="zenith-text-secondary mt-1">
                   Set up a new chat room with team collaboration features
                 </p>
               </div>
@@ -486,7 +486,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="rounded-full p-2 h-auto text-gray-400 hover:text-white hover:bg-white/10"
+                className="rounded-full p-2 h-auto zenith-text-muted hover:zenith-text-primary hover:zenith-bg-hover"
               >
                 <X className="h-5 w-5" />
               </Button>
@@ -494,11 +494,11 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
           </div>
 
           {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div className="overflow-y-auto max-h-[calc(90vh-140px)] zenith-bg-card">
             {permissionsLoading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
-                <p className="mt-4 text-gray-400">Checking permissions...</p>
+                <p className="mt-4 zenith-text-secondary">Checking permissions...</p>
               </div>
             ) : !permissions?.canCreateProject ? (
               <div className="p-6">
@@ -534,7 +534,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                   <div className="space-y-6">
                     {/* Room Name */}
                     <div>
-                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                      <label className="block text-sm font-medium zenith-text-primary mb-3">
                         <MessageCircle className="h-4 w-4 inline mr-2" />
                         Room Name *
                       </label>
@@ -542,10 +542,10 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                         <Input
                           type="text"
                           value={formData.name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                           placeholder="Enter an exciting room name..."
                           required
-                          className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400 focus:border-purple-400 focus:ring-purple-400/20 rounded-xl h-12"
+                          className="w-full zenith-bg-input border zenith-border zenith-text-primary placeholder:zenith-text-muted focus:border-purple-400 focus:ring-purple-400/20 rounded-xl h-12"
                         />
                         <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10 pointer-events-none"></div>
                       </div>
@@ -553,7 +553,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
 
                     {/* Room Type */}
                     <div>
-                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                      <label className="block text-sm font-medium zenith-text-primary mb-3">
                         <Target className="h-4 w-4 inline mr-2" />
                         Room Type *
                       </label>
@@ -563,13 +563,13 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                             formData.type === 'public'
                               ? 'border-purple-400 bg-purple-500/10'
-                              : 'border-slate-600 bg-slate-800/50 hover:border-slate-500'
+                              : 'zenith-border zenith-bg-section hover:border-purple-400/50'
                           }`}
                         >
                           <div className="text-center">
                             <Users className="h-6 w-6 mx-auto mb-2 text-purple-400" />
-                            <div className="font-medium text-white">Public</div>
-                            <div className="text-xs text-gray-400 mt-1">Open to all members</div>
+                            <div className="font-medium zenith-text-primary">Public</div>
+                            <div className="text-xs zenith-text-muted mt-1">Open to all members</div>
                           </div>
                         </div>
                         <div
@@ -577,13 +577,13 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                             formData.type === 'club'
                               ? 'border-purple-400 bg-purple-500/10'
-                              : 'border-slate-600 bg-slate-800/50 hover:border-slate-500'
+                              : 'zenith-border zenith-bg-section hover:border-purple-400/50'
                           }`}
                         >
                           <div className="text-center">
                             <Shield className="h-6 w-6 mx-auto mb-2 text-blue-400" />
-                            <div className="font-medium text-white">Club</div>
-                            <div className="text-xs text-gray-400 mt-1">Club members only</div>
+                            <div className="font-medium zenith-text-primary">Club</div>
+                            <div className="text-xs zenith-text-muted mt-1">Club members only</div>
                           </div>
                         </div>
                       </div>
@@ -592,19 +592,19 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                     {/* Club Selection */}
                     {formData.type === 'club' && (
                       <div>
-                        <label className="block text-sm font-medium text-purple-300 mb-3">
+                        <label className="block text-sm font-medium zenith-text-primary mb-3">
                           <Users className="h-4 w-4 inline mr-2" />
                           Select Club *
                         </label>
                         {clubsLoading ? (
-                          <div className="bg-slate-800/50 rounded-xl p-4 text-center">
+                          <div className="zenith-bg-section rounded-xl p-4 text-center">
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400 mx-auto"></div>
                           </div>
                         ) : clubs.length > 0 ? (
                           <select
                             value={formData.club_id}
                             onChange={(e) => setFormData(prev => ({ ...prev, club_id: e.target.value }))}
-                            className="w-full bg-slate-800/50 border border-slate-600 text-white rounded-xl h-12 px-4 focus:border-purple-400 focus:ring-purple-400/20"
+                            className="w-full zenith-bg-input border zenith-border zenith-text-primary rounded-xl h-12 px-4 focus:border-purple-400 focus:ring-purple-400/20"
                             required
                           >
                             <option value="">Choose your club...</option>
@@ -615,8 +615,8 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                             ))}
                           </select>
                         ) : (
-                          <div className="bg-slate-800/50 rounded-xl p-4 text-center">
-                            <p className="text-gray-400">No clubs available</p>
+                          <div className="zenith-bg-section rounded-xl p-4 text-center">
+                            <p className="zenith-text-muted">No clubs available</p>
                           </div>
                         )}
                       </div>
@@ -627,42 +627,42 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                   <div className="space-y-6">
                     {/* Description */}
                     <div>
-                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                      <label className="block text-sm font-medium zenith-text-primary mb-3">
                         Description *
                       </label>
                       <textarea
                         value={formData.description}
                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                         placeholder="Describe your room goals, objectives, and expected outcomes..."
-                        className="w-full bg-slate-800/50 border border-slate-600 text-white placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
+                        className="w-full zenith-bg-input border zenith-border zenith-text-primary placeholder:zenith-text-muted rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
                         required
                       />
                     </div>
 
                     {/* Profile Picture */}
                     <div>
-                      <label className="block text-sm font-medium text-purple-300 mb-3">
+                      <label className="block text-sm font-medium zenith-text-primary mb-3">
                         Profile Picture URL
                       </label>
                       <Input
                         type="url"
                         value={formData.profile_picture_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, profile_picture_url: e.target.value }))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, profile_picture_url: e.target.value }))}
                         placeholder="https://example.com/avatar.jpg"
-                        className="w-full bg-slate-800/50 border-slate-600 text-white placeholder-slate-400 focus:border-purple-400 focus:ring-purple-400/20 rounded-xl h-12"
+                        className="w-full zenith-bg-input border zenith-border zenith-text-primary placeholder:zenith-text-muted focus:border-purple-400 focus:ring-purple-400/20 rounded-xl h-12"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-purple-500/20">
+                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t zenith-border">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={onClose}
                     disabled={loading}
-                    className="px-8 py-3 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white rounded-xl"
+                    className="px-8 py-3 border zenith-border zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary rounded-xl"
                   >
                     Cancel
                   </Button>
@@ -890,16 +890,16 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex">
+    <div className="h-screen bg-main flex">
       {/* Sidebar - Room List */}
-      <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+      <div className="w-80 bg-card border-r border-custom flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-custom">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Chats</h1>
+            <h1 className="text-xl font-bold text-primary">Chats</h1>
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="rounded-full p-2 h-10 w-10 bg-blue-600 hover:bg-blue-700 text-white"
+              className="rounded-full p-2 h-10 w-10 bg-blue-600 hover:bg-blue-700 text-primary"
             >
               <Plus className="h-5 w-5" />
             </Button>
@@ -907,12 +907,12 @@ export default function ChatPage() {
           
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted" />
             <Input
               placeholder="Search chats..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-main border-custom focus:ring-2 focus:ring-blue-500 text-primary"
             />
           </div>
         </div>
@@ -946,7 +946,7 @@ export default function ChatPage() {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
-                        <span className="text-white font-semibold text-lg">
+                        <span className="text-primary font-semibold text-lg">
                           {room.name.charAt(0).toUpperCase()}
                         </span>
                       )}
@@ -958,7 +958,7 @@ export default function ChatPage() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                      <h3 className="font-semibold text-gray-900 dark:text-primary truncate">
                         {room.name}
                       </h3>
                       {room.last_message && (
@@ -976,7 +976,7 @@ export default function ChatPage() {
                         }
                       </p>
                       {room.unread_count && room.unread_count > 0 && (
-                        <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                        <span className="bg-blue-500 text-primary text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
                           {room.unread_count > 99 ? '99+' : room.unread_count}
                         </span>
                       )}
@@ -1005,13 +1005,13 @@ export default function ChatPage() {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                     ) : (
-                      <span className="text-white font-semibold">
+                      <span className="text-primary font-semibold">
                         {selectedRoom.name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-900 dark:text-white">
+                    <h2 className="font-semibold text-gray-900 dark:text-primary">
                       {selectedRoom.name}
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -1104,7 +1104,7 @@ export default function ChatPage() {
                                   className="w-8 h-8 rounded-full object-cover"
                                 />
                               ) : (
-                                <span className="text-white text-sm font-semibold">
+                                <span className="text-primary text-sm font-semibold">
                                   {message.senderName.charAt(0).toUpperCase()}
                                 </span>
                               )}
@@ -1121,8 +1121,8 @@ export default function ChatPage() {
                             <div
                               className={`relative px-4 py-2 rounded-2xl break-words ${
                                 isOwn
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600'
+                                  ? 'bg-blue-600 text-primary'
+                                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-primary border border-gray-200 dark:border-gray-600'
                               }`}
                             >
                               {message.replyTo && (
@@ -1221,7 +1221,7 @@ export default function ChatPage() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Type a message..."
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white max-h-32"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-primary max-h-32"
                     rows={1}
                   />
                   <Button
@@ -1236,7 +1236,7 @@ export default function ChatPage() {
                 <Button
                   onClick={sendMessage}
                   disabled={!newMessage.trim() || sending}
-                  className="rounded-full p-3 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                  className="rounded-full p-3 bg-blue-600 hover:bg-blue-700 text-primary disabled:opacity-50"
                 >
                   <Send className="h-5 w-5" />
                 </Button>
@@ -1247,7 +1247,7 @@ export default function ChatPage() {
           <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
             <div className="text-center">
               <MessageCircle className="h-24 w-24 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-primary mb-2">
                 Welcome to Zenith Chat
               </h2>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
@@ -1255,7 +1255,7 @@ export default function ChatPage() {
               </p>
               <Button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full"
+                className="bg-blue-600 hover:bg-blue-700 text-primary px-6 py-3 rounded-full"
               >
                 <Plus className="h-5 w-5 mr-2" />
                 Create Room

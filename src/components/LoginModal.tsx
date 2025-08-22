@@ -26,7 +26,7 @@ export default function LoginModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative bg-zenith-card rounded-2xl shadow-xl max-w-md w-full mx-4 p-8 border border-zenith-border"
+        className="relative bg-card rounded-2xl shadow-xl max-w-md w-full mx-4 p-8 border border-custom"
       >
         {/* Close Button */}
         <button
@@ -39,9 +39,9 @@ export default function LoginModal({
         {/* Icon */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-zenith-primary to-blue-600 rounded-full mb-4">
-            <Lock className="w-8 h-8 text-white" />
+            <Lock className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-zenith-primary mb-2">{message}</h2>
+          <h2 className="text-2xl font-bold text-primary mb-2">{message}</h2>
           <p className="text-zenith-secondary text-center">
             {redirectMessage}
           </p>
@@ -50,15 +50,15 @@ export default function LoginModal({
         {/* Features List */}
         <div className="space-y-3 mb-8">
           <div className="flex items-center space-x-3 text-sm text-zenith-secondary">
-            <Code2 className="w-4 h-4 text-zenith-primary" />
+            <Code2 className="w-4 h-4 text-primary" />
             <span>Multi-language code execution</span>
           </div>
           <div className="flex items-center space-x-3 text-sm text-zenith-secondary">
-            <User className="w-4 h-4 text-zenith-primary" />
+            <User className="w-4 h-4 text-primary" />
             <span>Save and share your code</span>
           </div>
           <div className="flex items-center space-x-3 text-sm text-zenith-secondary">
-            <Lock className="w-4 h-4 text-zenith-primary" />
+            <Lock className="w-4 h-4 text-primary" />
             <span>Secure code execution environment</span>
           </div>
         </div>
@@ -67,13 +67,13 @@ export default function LoginModal({
         <div className="space-y-3">
           <Link
             href="/login?redirect=/playground"
-            className="block w-full bg-gradient-to-r from-zenith-primary to-blue-600 text-white text-center py-3 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-105"
+            className="block w-full bg-gradient-to-r from-zenith-primary to-blue-600 text-primary text-center py-3 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-105"
           >
             Log In to Continue
           </Link>
           <Link
             href="/register?redirect=/playground"
-            className="block w-full border border-zenith-border text-zenith-primary text-center py-3 px-4 rounded-lg font-semibold hover:bg-zenith-hover transition-colors"
+            className="block w-full border border-custom text-primary text-center py-3 px-4 rounded-lg font-semibold hover:bg-zenith-hover transition-colors"
           >
             Create New Account
           </Link>

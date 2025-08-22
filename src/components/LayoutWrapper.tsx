@@ -30,11 +30,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Global theme toggle - appears on all pages except auth pages */}
-      {!isExcludedPath && (
-        <div className="fixed top-4 right-4 z-[60]">
-          <ThemeToggle />
-        </div>
-      )}
 
       <main className="flex-grow pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">

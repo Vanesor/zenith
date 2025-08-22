@@ -486,7 +486,7 @@ export default function ClubManagementPage() {
       <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="text-center">
           <Shield className="w-16 h-16 mx-auto mb-4 text-zenith-muted" />
-          <h2 className="text-xl font-semibold text-zenith-primary mb-2">
+          <h2 className="text-xl font-semibold text-primary mb-2">
             No Club Data
           </h2>
           <p className="text-zenith-secondary dark:text-zenith-muted">
@@ -505,9 +505,9 @@ export default function ClubManagementPage() {
       media: "bg-pink-100 text-pink-800 border-pink-200",
       president: "bg-red-100 text-red-800 border-red-200",
       vice_president: "bg-orange-100 text-orange-800 border-orange-200",
-      member: "bg-zenith-section text-zenith-secondary border-zenith-border",
+      member: "bg-zenith-section text-zenith-secondary border-custom",
     };
-    return roleColors[role] || "bg-zenith-section text-zenith-secondary border-zenith-border";
+    return roleColors[role] || "bg-zenith-section text-zenith-secondary border-custom";
   };
 
   return (
@@ -515,7 +515,7 @@ export default function ClubManagementPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zenith-primary mb-2">
+          <h1 className="text-3xl font-bold text-primary mb-2">
             Club Management
           </h1>
           <p className="text-zenith-secondary">
@@ -525,56 +525,56 @@ export default function ClubManagementPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
-              <Users className="w-8 h-8 text-zenith-primary" />
+              <Users className="w-8 h-8 text-primary" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-zenith-muted">
                   Total Members
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {clubData.stats.totalMembers}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
               <Calendar className="w-8 h-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-zenith-muted">
                   Active Events
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {clubData.stats.activeEvents}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-zenith-card rounded-xl p-6 shadow-sm border border-zenith-border">
+          <div className="bg-card rounded-xl p-6 shadow-sm border border-custom">
             <div className="flex items-center">
               <FileText className="w-8 h-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-zenith-muted">
                   Assignments
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {clubData.stats.pendingAssignments}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-zenith-card rounded-xl p-6 shadow-sm border border-zenith-border">
+          <div className="bg-card rounded-xl p-6 shadow-sm border border-custom">
             <div className="flex items-center">
               <MessageSquare className="w-8 h-8 text-orange-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-zenith-secondary dark:text-zenith-muted">
                   Monthly Posts
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {clubData.stats.monthlyPosts}
                 </p>
               </div>
@@ -583,8 +583,8 @@ export default function ClubManagementPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-zenith-card rounded-xl shadow-sm border border-zenith-border">
-          <div className="border-b border-zenith-border">
+        <div className="bg-card rounded-xl shadow-sm border border-custom">
+          <div className="border-b border-custom">
             <nav className="flex space-x-8 px-6">
               {[
                 { id: "overview", name: "Overview", icon: Settings },
@@ -597,8 +597,8 @@ export default function ClubManagementPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
-                      ? "border-zenith-primary text-zenith-primary"
-                      : "border-transparent text-zenith-muted hover:text-zenith-secondary hover:border-zenith-border dark:text-zenith-muted dark:hover:text-gray-300"
+                      ? "border-zenith-primary text-primary"
+                      : "border-transparent text-zenith-muted hover:text-zenith-secondary hover:border-custom dark:text-zenith-muted dark:hover:text-gray-300"
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -612,12 +612,12 @@ export default function ClubManagementPage() {
             {activeTab === "members" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-zenith-primary">
+                  <h3 className="text-lg font-semibold text-primary">
                     Club Members
                   </h3>
                   <button
                     onClick={() => setShowAddMember(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-primary rounded-lg hover:bg-zenith-primary/90 transition-colors"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Add Member</span>
@@ -637,7 +637,7 @@ export default function ClubManagementPage() {
                           size="md"
                         />
                         <div>
-                          <h4 className="font-medium text-zenith-primary">
+                          <h4 className="font-medium text-primary">
                             {member.name}
                           </h4>
                           <p className="text-sm text-zenith-muted dark:text-zenith-muted">
@@ -655,7 +655,7 @@ export default function ClubManagementPage() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewMemberProfile(member.id)}
-                          className="flex items-center px-3 py-2 text-sm font-medium text-zenith-primary bg-zenith-card hover:bg-zenith-hover border border-zenith-border rounded-lg transition-colors shadow-sm"
+                          className="flex items-center px-3 py-2 text-sm font-medium text-primary bg-card hover:bg-zenith-hover border border-custom rounded-lg transition-colors shadow-sm"
                           title="View member profile"
                         >
                           <Eye className="w-4 h-4 mr-2" />
@@ -688,12 +688,12 @@ export default function ClubManagementPage() {
             {activeTab === "assignments" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-zenith-primary">
+                  <h3 className="text-lg font-semibold text-primary">
                     Club Assignments
                   </h3>
                   <button
                     onClick={() => router.push("/assignments/create")}
-                    className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-zenith-primary text-primary rounded-lg hover:bg-zenith-primary/90 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Create Assignment</span>
@@ -715,7 +715,7 @@ export default function ClubManagementPage() {
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-zenith-primary mb-2">
+                            <h4 className="font-medium text-primary mb-2">
                               {assignment.title}
                             </h4>
                             <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-2">
@@ -739,7 +739,7 @@ export default function ClubManagementPage() {
                                   ? "bg-green-100 text-green-800" 
                                   : assignment.status === "overdue"
                                   ? "bg-red-100 text-red-800"
-                                  : "bg-zenith-section text-zenith-primary"
+                                  : "bg-zenith-section text-primary"
                               }`}
                             >
                               {assignment.status.toUpperCase()}
@@ -749,7 +749,7 @@ export default function ClubManagementPage() {
                                 onClick={() => handleEditAssignment(assignment)}
                                 className={`p-1 ${new Date() > new Date(assignment.startDate || '2000-01-01') 
                                   ? 'text-zenith-muted cursor-not-allowed' 
-                                  : 'text-zenith-primary hover:text-zenith-primary/90 transition-colors'}`}
+                                  : 'text-primary hover:text-primary/90 transition-colors'}`}
                                 title="Edit Assignment"
                                 disabled={new Date() > new Date(assignment.startDate || '2000-01-01')}
                               >
@@ -791,12 +791,12 @@ export default function ClubManagementPage() {
             {activeTab === "events" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-zenith-primary">
+                  <h3 className="text-lg font-semibold text-primary">
                     Club Events
                   </h3>
                   <button
                     onClick={() => setShowCreateEvent(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-primary rounded-lg hover:bg-green-700 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Create Event</span>
@@ -811,7 +811,7 @@ export default function ClubManagementPage() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium text-zenith-primary mb-2">
+                          <h4 className="font-medium text-primary mb-2">
                             {event.title}
                           </h4>
                           <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-2">
@@ -831,7 +831,7 @@ export default function ClubManagementPage() {
                               ? "bg-blue-100 text-blue-800"
                               : event.status === "ongoing"
                               ? "bg-green-100 text-green-800"
-                              : "bg-zenith-section text-zenith-primary"
+                              : "bg-zenith-section text-primary"
                           }`}
                         >
                           {event.status.toUpperCase()}
@@ -849,9 +849,9 @@ export default function ClubManagementPage() {
       {/* Add Member Modal */}
       {showAddMember && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-zenith-card rounded-xl p-6 w-full max-w-md">
+          <div className="bg-card rounded-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-zenith-primary">
+              <h3 className="text-lg font-semibold text-primary">
                 Add New Member
               </h3>
               <button
@@ -867,12 +867,12 @@ export default function ClubManagementPage() {
                 placeholder="Enter member's email"
                 value={newMemberEmail}
                 onChange={(e) => setNewMemberEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
               />
               <div className="flex space-x-3">
                 <button
                   onClick={handleAddMember}
-                  className="flex-1 px-4 py-2 bg-zenith-primary text-white rounded-lg hover:bg-zenith-primary/90 transition-colors"
+                  className="flex-1 px-4 py-2 bg-zenith-primary text-primary rounded-lg hover:bg-zenith-primary/90 transition-colors"
                 >
                   Add Member
                 </button>
@@ -891,9 +891,9 @@ export default function ClubManagementPage() {
       {/* Create Event Modal */}
       {showCreateEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-zenith-card rounded-xl p-6 w-full max-w-lg">
+          <div className="bg-card rounded-xl p-6 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-zenith-primary">
+              <h3 className="text-lg font-semibold text-primary">
                 Create New Event
               </h3>
               <button
@@ -911,7 +911,7 @@ export default function ClubManagementPage() {
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, title: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
               />
               <textarea
                 placeholder="Event description"
@@ -919,7 +919,7 @@ export default function ClubManagementPage() {
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, description: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
                 rows={3}
               />
               <div className="grid grid-cols-2 gap-4">
@@ -929,7 +929,7 @@ export default function ClubManagementPage() {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, event_date: e.target.value })
                   }
-                  className="px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="px-3 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
                 />
                 <input
                   type="time"
@@ -937,7 +937,7 @@ export default function ClubManagementPage() {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, event_time: e.target.value })
                   }
-                  className="px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="px-3 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
                 />
               </div>
               <input
@@ -947,12 +947,12 @@ export default function ClubManagementPage() {
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, location: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-custom dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-zenith-primary focus:border-transparent dark:bg-gray-700 dark:text-primary"
               />
               <div className="flex space-x-3">
                 <button
                   onClick={handleCreateEvent}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-green-600 text-primary rounded-lg hover:bg-green-700 transition-colors"
                 >
                   Create Event
                 </button>
@@ -1001,9 +1001,9 @@ export default function ClubManagementPage() {
       {/* Assignment Action Modal */}
       {showAssignmentActionModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-zenith-card rounded-xl p-6 w-full max-w-lg">
+          <div className="bg-card rounded-xl p-6 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-lg font-semibold ${showAssignmentActionModal.type === 'error' ? 'text-red-600' : 'text-zenith-primary'}`}>
+              <h3 className={`text-lg font-semibold ${showAssignmentActionModal.type === 'error' ? 'text-red-600' : 'text-primary'}`}>
                 {showAssignmentActionModal.title}
               </h3>
               <button
@@ -1037,7 +1037,7 @@ export default function ClubManagementPage() {
                     showAssignmentActionModal.type === 'delete' 
                       ? 'bg-red-600 hover:bg-red-700' 
                       : 'bg-zenith-primary hover:bg-zenith-primary/90'
-                  } text-white rounded-lg transition-colors`}
+                  } text-primary rounded-lg transition-colors`}
                 >
                   {showAssignmentActionModal.type === 'edit' ? 'Edit' : 'Delete'}
                 </button>

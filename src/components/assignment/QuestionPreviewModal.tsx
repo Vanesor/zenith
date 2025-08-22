@@ -62,12 +62,12 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-zenith-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-zenith-border">
+      <div className="bg-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-custom">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <Eye className="w-5 h-5 text-zenith-primary dark:text-blue-400" />
-              <h2 className="text-xl font-semibold text-zenith-primary">
+              <Eye className="w-5 h-5 text-primary dark:text-blue-400" />
+              <h2 className="text-xl font-semibold text-primary">
                 Question Preview
               </h2>
             </div>
@@ -97,7 +97,7 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
           <div className="space-y-6">
             {/* Question Title */}
             <div>
-              <h3 className="text-lg font-semibold text-zenith-primary mb-3">
+              <h3 className="text-lg font-semibold text-primary mb-3">
                 {question.title}
               </h3>
               <div 
@@ -124,13 +124,13 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
                         className={`p-3 rounded-lg border transition-colors ${
                           isCorrect
                             ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                            : 'bg-zenith-section border-zenith-border dark:bg-gray-700 dark:border-gray-600'
+                            : 'bg-zenith-section border-custom dark:bg-gray-700 dark:border-gray-600'
                         }`}
                       >
                         <div className={`flex items-start space-x-3 ${
                           isCorrect
                             ? 'text-green-800 dark:text-green-300'
-                            : 'text-zenith-primary dark:text-gray-300'
+                            : 'text-primary dark:text-gray-300'
                         }`}>
                           <span className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold">
                             {String.fromCharCode(65 + index)}
@@ -190,7 +190,7 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
                               <h5 className="text-xs font-medium text-zenith-secondary mb-2">
                                 Input:
                               </h5>
-                              <pre className="bg-zenith-card p-2 rounded text-xs overflow-x-auto">
+                              <pre className="bg-card p-2 rounded text-xs overflow-x-auto">
                                 {testCase.input}
                               </pre>
                             </div>
@@ -198,7 +198,7 @@ export function QuestionPreviewModal({ question, onClose }: QuestionPreviewModal
                               <h5 className="text-xs font-medium text-zenith-secondary mb-2">
                                 Expected Output:
                               </h5>
-                              <pre className="bg-zenith-card p-2 rounded text-xs overflow-x-auto">
+                              <pre className="bg-card p-2 rounded text-xs overflow-x-auto">
                                 {testCase.output}
                               </pre>
                             </div>

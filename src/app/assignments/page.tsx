@@ -293,7 +293,7 @@ export default function AssignmentsPage() {
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black">
+      <div className="min-h-screen bg-main">
         <UniversalLoader message="Loading your assignments..." />
       </div>
     );
@@ -331,7 +331,7 @@ export default function AssignmentsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black">
+    <div className="min-h-screen bg-main">
       {/* <PaperpalHeader 
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         sidebarOpen={sidebarOpen}
@@ -342,10 +342,10 @@ export default function AssignmentsPage() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 mb-2">
+              <h1 className="text-3xl font-bold text-primary mb-2">
                 Assignments
               </h1>
-              <p className="text-zenith-muted">
+              <p className="text-secondary">
                 Track your assignments, submissions, and academic progress
               </p>
             </div>
@@ -355,7 +355,7 @@ export default function AssignmentsPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push('/assignments/create')}
-                className="flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-indigo-500/20"
+                className="flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-primary rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-indigo-500/20"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Assignment
@@ -365,7 +365,7 @@ export default function AssignmentsPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowZenAssistant(true)}
-                className="flex items-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-purple-500/20"
+                className="flex items-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-primary rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-purple-500/20"
               >
                 <Brain className="w-4 h-4 mr-2" />
                 ZEN Assistant
@@ -375,7 +375,7 @@ export default function AssignmentsPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-indigo-500/20"
+                className="flex items-center px-4 py-2.5 bg-indigo-600 text-primary rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-indigo-500/20"
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
@@ -417,7 +417,7 @@ export default function AssignmentsPage() {
                     <div className="relative">
                       <div className="flex items-center justify-between mb-5">
                         <div className={`p-3 bg-gradient-to-br ${getCardGradient()} rounded-xl shadow-xl group-hover:shadow-lg group-hover:shadow-indigo-500/20 transition-all duration-300`}>
-                          <stat.icon className="w-5 h-5 text-white" />
+                          <stat.icon className="w-5 h-5 text-primary" />
                         </div>
                         <motion.div 
                           initial={{ opacity: 0.7 }}
@@ -441,7 +441,7 @@ export default function AssignmentsPage() {
                         <motion.p 
                           initial={{ scale: 1 }}
                           whileHover={{ scale: 1.05 }}
-                          className="text-3xl font-bold text-white mb-2"
+                          className="text-3xl font-bold text-primary mb-2"
                         >
                           {stat.value}
                         </motion.p>
@@ -465,7 +465,7 @@ export default function AssignmentsPage() {
                 placeholder="Search assignments, clubs, or instructors..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full py-3.5 pl-12 pr-4 bg-zenith-darker border border-indigo-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent hover:border-indigo-500/30 text-white transition-all duration-300 shadow-md hover:shadow-lg"
+                className="w-full py-3.5 pl-12 pr-4 bg-zenith-darker border border-indigo-900/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent hover:border-indigo-500/30 text-primary transition-all duration-300 shadow-md hover:shadow-lg"
               />
               {searchTerm && (
                 <motion.button
@@ -510,8 +510,8 @@ export default function AssignmentsPage() {
                     onClick={() => setFilter(filterOption as any)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 capitalize ${
                       filter === filterOption
-                        ? `${getFilterStyle()} text-white shadow-md`
-                        : `bg-transparent border ${getInactiveStyle()} text-white`
+                        ? `${getFilterStyle()} text-primary shadow-md`
+                        : `bg-transparent border ${getInactiveStyle()} text-primary`
                     }`}
                   >
                     <div className="flex items-center">
@@ -542,9 +542,9 @@ export default function AssignmentsPage() {
                 className="text-center py-16"
               >
                 <div className="w-24 h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/30">
-                  <FileText className="w-12 h-12 text-white" />
+                  <FileText className="w-12 h-12 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">
+                <h3 className="text-xl font-semibold text-primary mb-2">
                   {searchTerm || filter !== "all" ? "No assignments found" : "No assignments available"}
                 </h3>
                 <p className="text-zenith-muted mb-6">
@@ -559,7 +559,7 @@ export default function AssignmentsPage() {
                       setSearchTerm("");
                       setFilter("all");
                     }}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
+                    className="px-6 py-3 bg-indigo-600 text-primary rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
                   >
                     Clear filters
                   </button>
@@ -576,11 +576,11 @@ export default function AssignmentsPage() {
               // Updated status badge styling
               const getStatusBadgeStyle = (status: string) => {
                 switch (status) {
-                  case 'pending': return 'bg-amber-500 text-white';
-                  case 'submitted': return 'bg-blue-500 text-white';
-                  case 'graded': return 'bg-emerald-500 text-white';
-                  case 'overdue': return 'bg-rose-500 text-white';
-                  default: return 'bg-slate-500 text-white';
+                  case 'pending': return 'bg-amber-500 text-primary';
+                  case 'submitted': return 'bg-blue-500 text-primary';
+                  case 'graded': return 'bg-emerald-500 text-primary';
+                  case 'overdue': return 'bg-rose-500 text-primary';
+                  default: return 'bg-slate-500 text-primary';
                 }
               };
               
@@ -605,7 +605,7 @@ export default function AssignmentsPage() {
                       </div>
 
                       {/* Assignment Title */}
-                      <h3 className="text-xl font-bold text-white group-hover:text-indigo-300 transition-colors mb-3 line-clamp-2 pr-20">
+                      <h3 className="text-xl font-bold text-primary group-hover:text-indigo-300 transition-colors mb-3 line-clamp-2 pr-20">
                         {assignment.title}
                       </h3>
 
@@ -702,7 +702,7 @@ export default function AssignmentsPage() {
                             className={`w-full py-3 ${isOverdue(assignment.dueDate) 
                               ? 'bg-gray-600/50 cursor-not-allowed' 
                               : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg hover:shadow-indigo-500/30'
-                            } text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2`}
+                            } text-primary rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2`}
                           >
                             {startingAssignment === assignment.id ? (
                               <>

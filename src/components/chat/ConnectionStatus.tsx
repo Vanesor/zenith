@@ -23,9 +23,9 @@ export function ConnectionStatus({
     >
       <div className={`
         flex items-center px-3 py-1.5 rounded-full text-sm font-medium shadow-md
-        ${status === 'connected' ? 'bg-green-500 text-white' : ''}
-        ${status === 'connecting' ? 'bg-yellow-500 text-white' : ''}
-        ${status === 'disconnected' ? 'bg-red-500 text-white' : ''}
+        ${status === 'connected' ? 'bg-green-500 text-primary' : ''}
+        ${status === 'connecting' ? 'bg-yellow-500 text-primary' : ''}
+        ${status === 'disconnected' ? 'bg-red-500 text-primary' : ''}
       `}>
         {status === 'connected' && (
           <motion.div 

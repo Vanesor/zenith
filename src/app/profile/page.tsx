@@ -285,11 +285,11 @@ export default function ModernProfilePage() {
             {/* Avatar */}
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white text-3xl font-bold">
+                <span className="text-primary text-3xl font-bold">
                   {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
                 </span>
               </div>
-              <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg">
+              <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-primary rounded-full flex items-center justify-center transition-colors shadow-lg">
                 <Camera className="w-5 h-5" />
               </button>
             </div>
@@ -323,14 +323,14 @@ export default function ModernProfilePage() {
               <>
                 <button
                   onClick={handleSave}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-colors"
+                  className="bg-green-600 hover:bg-green-700 text-primary px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-colors"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Changes</span>
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-colors"
+                  className="bg-gray-500 hover:bg-gray-600 text-primary px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-colors"
                 >
                   <X className="w-4 h-4" />
                   <span>Cancel</span>
@@ -339,7 +339,7 @@ export default function ModernProfilePage() {
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-primary px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-colors"
               >
                 <Edit className="w-4 h-4" />
                 <span>Edit Profile</span>
@@ -536,7 +536,7 @@ export default function ModernProfilePage() {
               className="card p-6 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
             >
               <div className={`w-14 h-14 bg-gradient-to-r ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
-                <IconComponent className="w-7 h-7 text-white" />
+                <IconComponent className="w-7 h-7 text-primary" />
               </div>
               <h3 className="text-lg font-semibold text-primary mb-1">{stat.title}</h3>
               <p className="text-3xl font-bold text-primary mb-2">{stat.value}</p>
@@ -567,7 +567,7 @@ export default function ModernProfilePage() {
                 transition={{ delay: 0.3 + index * 0.1 }}
                 className="flex items-center space-x-4 p-4 bg-section rounded-lg hover:bg-hover transition-colors"
               >
-                <div className={`w-12 h-12 bg-gradient-to-r ${club.color} rounded-xl flex items-center justify-center text-white font-bold shadow-lg`}>
+                <div className={`w-12 h-12 bg-gradient-to-r ${club.color} rounded-xl flex items-center justify-center text-primary font-bold shadow-lg`}>
                   {club.image}
                 </div>
                 <div className="flex-1">

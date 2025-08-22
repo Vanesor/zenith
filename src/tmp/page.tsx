@@ -284,7 +284,7 @@ export default function CalendarPage() {
     const colors = [
       {
         bg: 'bg-gradient-to-r from-purple-500 to-purple-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-purple-200 dark:shadow-purple-800/30',
         border: 'border-purple-300 dark:border-purple-600',
         highlight: 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-700',
@@ -292,7 +292,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-blue-200 dark:shadow-blue-800/30',
         border: 'border-blue-300 dark:border-blue-600',
         highlight: 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700',
@@ -300,7 +300,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-green-500 to-green-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-green-200 dark:shadow-green-800/30',
         border: 'border-green-300 dark:border-green-600',
         highlight: 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700',
@@ -308,7 +308,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-yellow-500 to-yellow-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-yellow-200 dark:shadow-yellow-800/30',
         border: 'border-yellow-300 dark:border-yellow-600',
         highlight: 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700',
@@ -316,7 +316,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-red-500 to-red-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-red-200 dark:shadow-red-800/30',
         border: 'border-red-300 dark:border-red-600',
         highlight: 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-700',
@@ -324,7 +324,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-indigo-200 dark:shadow-indigo-800/30',
         border: 'border-indigo-300 dark:border-indigo-600',
         highlight: 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-700',
@@ -332,7 +332,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-pink-500 to-pink-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-pink-200 dark:shadow-pink-800/30',
         border: 'border-pink-300 dark:border-pink-600',
         highlight: 'bg-pink-50 border-pink-200 dark:bg-pink-900/20 dark:border-pink-700',
@@ -340,7 +340,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-cyan-500 to-cyan-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-cyan-200 dark:shadow-cyan-800/30',
         border: 'border-cyan-300 dark:border-cyan-600',
         highlight: 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/20 dark:border-cyan-700',
@@ -348,7 +348,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-orange-500 to-orange-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-orange-200 dark:shadow-orange-800/30',
         border: 'border-orange-300 dark:border-orange-600',
         highlight: 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-700',
@@ -356,7 +356,7 @@ export default function CalendarPage() {
       },
       {
         bg: 'bg-gradient-to-r from-teal-500 to-teal-600',
-        text: 'text-white',
+        text: 'text-primary',
         shadow: 'shadow-teal-200 dark:shadow-teal-800/30',
         border: 'border-teal-300 dark:border-teal-600',
         highlight: 'bg-teal-50 border-teal-200 dark:bg-teal-900/20 dark:border-teal-700',
@@ -380,7 +380,7 @@ export default function CalendarPage() {
       <div key={day} className={`p-3 text-center text-sm font-semibold border-b-2 ${
         index === 0 
           ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700' 
-          : 'text-zenith-primary dark:text-blue-400 bg-zenith-section/50 dark:bg-gray-800/50 border-zenith-primary/20 dark:border-gray-600'
+          : 'text-primary dark:text-blue-400 bg-zenith-section/50 dark:bg-gray-800/50 border-zenith-primary/20 dark:border-gray-600'
       }`}>
         {day}
       </div>
@@ -389,7 +389,7 @@ export default function CalendarPage() {
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(
-        <div key={`empty-${i}`} className="p-3 h-28 border border-zenith-border/50 dark:border-gray-700/50 bg-zenith-section/30 dark:bg-gray-800/30"></div>
+        <div key={`empty-${i}`} className="p-3 h-28 border border-custom/50 dark:border-gray-700/50 bg-zenith-section/30 dark:bg-gray-800/30"></div>
       );
     }
 
@@ -406,13 +406,13 @@ export default function CalendarPage() {
           className={`p-3 h-28 border transition-all duration-200 relative overflow-hidden ${
             isSunday 
               ? 'border-red-200 dark:border-red-700 bg-red-50/50 dark:bg-red-900/20 hover:bg-red-100/50 dark:hover:bg-red-900/30' 
-              : 'border-zenith-border/50 dark:border-gray-700/50 bg-zenith-card dark:bg-gray-800/50 hover:bg-zenith-hover dark:hover:bg-gray-700/50'
+              : 'border-custom/50 dark:border-gray-700/50 bg-card/50 hover:bg-zenith-hover dark:hover:bg-gray-700/50'
           } ${
             isCurrentDay ? 'ring-2 ring-zenith-primary dark:ring-blue-400 bg-zenith-primary/5 dark:bg-blue-900/20' : ''
           }`}
         >
           <div className={`text-sm font-semibold mb-2 ${
-            isSunday ? 'text-red-600 dark:text-red-400' : isCurrentDay ? 'text-zenith-primary dark:text-blue-400' : 'text-zenith-secondary dark:text-gray-300'
+            isSunday ? 'text-red-600 dark:text-red-400' : isCurrentDay ? 'text-primary dark:text-blue-400' : 'text-zenith-secondary dark:text-gray-300'
           }`}>
             {day}
             {isCurrentDay && (
@@ -428,7 +428,7 @@ export default function CalendarPage() {
               return (
                 <div
                   key={event.id}
-                  className={`text-xs p-1.5 rounded-md font-medium truncate cursor-pointer hover:scale-105 transform transition-all duration-200 shadow-sm ${eventColor.solid} text-white`}
+                  className={`text-xs p-1.5 rounded-md font-medium truncate cursor-pointer hover:scale-105 transform transition-all duration-200 shadow-sm ${eventColor.solid} text-primary`}
                   title={`${event.title} - ${formatTime(event.startTime)} at ${event.location} (${event.club})`}
                 >
                   <div className="flex items-center space-x-1">
@@ -439,7 +439,7 @@ export default function CalendarPage() {
               );
             })}
             {dayEvents.length > 2 && (
-              <div className="text-xs font-medium text-zenith-primary dark:text-blue-400 bg-zenith-primary/10 dark:bg-blue-900/30 rounded px-2 py-1 border border-zenith-primary/20 dark:border-blue-700/50">
+              <div className="text-xs font-medium text-primary dark:text-blue-400 bg-zenith-primary/10 dark:bg-blue-900/30 rounded px-2 py-1 border border-zenith-primary/20 dark:border-blue-700/50">
                 +{dayEvents.length - 2} more
               </div>
             )}
@@ -449,7 +449,7 @@ export default function CalendarPage() {
     }
 
     return (
-      <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
+      <div className="bg-card/90 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
         {/* Loading Overlay for Calendar - shows when events array is empty but not in error state */}
         {events.length === 0 && !loading && !error && (
           <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm z-10 flex items-center justify-center">
@@ -461,8 +461,8 @@ export default function CalendarPage() {
         )}
         
         {/* Calendar Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zenith-border dark:border-gray-600">
-          <h2 className="text-xl font-semibold text-zenith-primary dark:text-white">
+        <div className="flex items-center justify-between p-6 border-b border-custom dark:border-gray-600">
+          <h2 className="text-xl font-semibold text-primary">
             {formatMonthYear(currentDate)}
           </h2>
           <div className="flex items-center space-x-2">
@@ -474,7 +474,7 @@ export default function CalendarPage() {
             </button>
             <button
               onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-1 text-sm bg-zenith-primary dark:bg-blue-600 text-white rounded-lg hover:bg-zenith-primary/90 dark:hover:bg-blue-700 transition-colors"
+              className="px-3 py-1 text-sm bg-zenith-primary dark:bg-blue-600 text-primary rounded-lg hover:bg-zenith-primary/90 dark:hover:bg-blue-700 transition-colors"
             >
               {formatMonth(currentDate)}
             </button>
@@ -510,7 +510,7 @@ export default function CalendarPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-zenith-primary mb-2">
+            <h1 className="text-3xl font-bold text-primary mb-2">
               Calendar & Events
             </h1>
             <p className="text-zenith-secondary">
@@ -526,7 +526,7 @@ export default function CalendarPage() {
           {user && ["coordinator", "co_coordinator", "secretary", "president", "vice_president"].includes(user.role) && (
             <button 
               onClick={() => router.push('/calendar/create')}
-              className="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-blue-600 text-primary rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus size={16} className="mr-2" />
               Create Event
@@ -536,52 +536,52 @@ export default function CalendarPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-zenith-muted">
                   Total Events
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {events.length}
                 </p>
               </div>
               <Calendar className="w-8 h-8 text-blue-600" />
             </div>
           </div>
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-zenith-muted">
                   Upcoming
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {upcomingEvents.length}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-green-600" />
             </div>
           </div>
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-zenith-muted">
                   Attending
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {attendingEvents.length}
                 </p>
               </div>
               <Users className="w-8 h-8 text-purple-600" />
             </div>
           </div>
-          <div className="bg-zenith-card rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-zenith-muted">
                   This Week
                 </p>
-                <p className="text-2xl font-bold text-zenith-primary">
+                <p className="text-2xl font-bold text-primary">
                   {
                     events.filter((event) => {
                       const eventDate = new Date(event.event_date);
@@ -600,7 +600,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Filters and Controls */}
-        <div className="bg-zenith-card rounded-xl shadow-lg p-6 mb-8">
+        <div className="bg-card rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -611,20 +611,20 @@ export default function CalendarPage() {
                   placeholder="Search events..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-zenith-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zenith-card text-zenith-primary"
+                  className="w-full pl-10 pr-4 py-3 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-card text-primary"
                 />
               </div>
             </div>
 
             {/* View Toggle */}
-            <div className="flex rounded-lg border border-zenith-border overflow-hidden">
+            <div className="flex rounded-lg border border-custom overflow-hidden">
               <button
                 onClick={() => handleViewSwitch("list")}
                 disabled={viewSwitching}
                 className={`flex items-center space-x-2 px-4 py-3 font-medium transition-colors disabled:opacity-50 ${
                   view === "list"
-                    ? "bg-blue-600 text-white"
-                    : "bg-zenith-card text-zenith-secondary hover:bg-zenith-hover"
+                    ? "bg-blue-600 text-primary"
+                    : "bg-card text-zenith-secondary hover:bg-zenith-hover"
                 }`}
               >
                 {viewSwitching && view !== "list" ? (
@@ -639,8 +639,8 @@ export default function CalendarPage() {
                 disabled={viewSwitching}
                 className={`flex items-center space-x-2 px-4 py-3 font-medium transition-colors disabled:opacity-50 ${
                   view === "calendar"
-                    ? "bg-blue-600 text-white"
-                    : "bg-zenith-card text-zenith-secondary hover:bg-zenith-hover"
+                    ? "bg-blue-600 text-primary"
+                    : "bg-card text-zenith-secondary hover:bg-zenith-hover"
                 }`}
               >
                 {viewSwitching && view !== "calendar" ? (
@@ -664,7 +664,7 @@ export default function CalendarPage() {
                   }
                   className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
                     filterType === filterOption.key
-                      ? "bg-blue-600 text-white"
+                      ? "bg-blue-600 text-primary"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
@@ -677,9 +677,9 @@ export default function CalendarPage() {
 
         {/* Main Content */}
         {viewSwitching ? (
-          <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+          <div className="bg-card/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
-            <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+            <h3 className="text-xl font-semibold text-primary mb-2">
               Switching views...
             </h3>
             <p className="text-zenith-muted dark:text-gray-400">
@@ -688,9 +688,9 @@ export default function CalendarPage() {
           </div>
         ) : view === "calendar" ? (
           loading ? (
-            <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+            <div className="bg-card/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
-              <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-primary mb-2">
                 Loading calendar events...
               </h3>
               <p className="text-zenith-muted dark:text-gray-400">
@@ -698,9 +698,9 @@ export default function CalendarPage() {
               </p>
             </div>
           ) : error ? (
-            <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
+            <div className="bg-card/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
               <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Calendar className="w-10 h-10 text-white" />
+                <Calendar className="w-10 h-10 text-primary" />
               </div>
               <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
                 Error Loading Calendar
@@ -722,9 +722,9 @@ export default function CalendarPage() {
           /* Events List */
           <div className="space-y-6">
             {loading ? (
-              <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+              <div className="bg-card/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
                 <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400 mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+                <h3 className="text-xl font-semibold text-primary mb-2">
                   Loading events...
                 </h3>
                 <p className="text-zenith-muted dark:text-gray-400">
@@ -732,9 +732,9 @@ export default function CalendarPage() {
                 </p>
               </div>
             ) : error ? (
-              <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
+              <div className="bg-card/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
                 <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Calendar className="w-10 h-10 text-white" />
+                  <Calendar className="w-10 h-10 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
                   Error Loading Events
@@ -750,9 +750,9 @@ export default function CalendarPage() {
                 </button>
               </div>
             ) : error ? (
-              <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
+              <div className="bg-card/90 rounded-xl shadow-lg p-12 text-center border border-red-200 dark:border-red-700">
                 <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Calendar className="w-10 h-10 text-white" />
+                  <Calendar className="w-10 h-10 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
                   Error Loading Events
@@ -768,11 +768,11 @@ export default function CalendarPage() {
                 </button>
               </div>
             ) : filteredEvents.length === 0 ? (
-              <div className="bg-zenith-card dark:bg-gray-800/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
+              <div className="bg-card/90 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Calendar className="w-10 h-10 text-white" />
+                  <Calendar className="w-10 h-10 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-zenith-primary dark:text-white mb-2">
+                <h3 className="text-xl font-semibold text-primary mb-2">
                   No events found
                 </h3>
                 <p className="text-zenith-muted dark:text-gray-400 mb-4">
@@ -804,11 +804,11 @@ export default function CalendarPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start space-x-4 flex-1">
                         <div className={`w-12 h-12 rounded-full ${getEventColor(event.club).solid} flex items-center justify-center shadow-md`}>
-                          <Calendar size={20} className="text-white" />
+                          <Calendar size={20} className="text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-3 mb-2 flex-wrap">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-primary">
                               {event.title}
                             </h3>
                             <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-700">
@@ -852,7 +852,7 @@ export default function CalendarPage() {
                           <div className="text-xs text-zenith-muted dark:text-gray-400 mb-2 font-medium uppercase tracking-wide">
                             Attendees
                           </div>
-                          <div className="text-2xl font-bold text-zenith-primary dark:text-white">
+                          <div className="text-2xl font-bold text-primary">
                             {event.attendees}
                             {event.maxAttendees && (
                               <span className="text-sm text-zenith-muted dark:text-gray-400 font-normal">
@@ -872,14 +872,14 @@ export default function CalendarPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-zenith-border dark:border-gray-600">
+                    <div className="flex items-center justify-between pt-4 border-t border-custom dark:border-gray-600">
                       <div className="flex items-center space-x-4">
                         <span className="text-sm text-zenith-muted dark:text-gray-400 font-medium">
-                          Organized by <span className="text-zenith-primary dark:text-white font-semibold">{event.organizer}</span>
+                          Organized by <span className="text-primary font-semibold">{event.organizer}</span>
                         </span>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <button className="flex items-center px-4 py-2 text-zenith-muted dark:text-gray-400 hover:text-zenith-primary dark:hover:text-white transition-colors rounded-lg hover:bg-zenith-section/50 dark:hover:bg-gray-700/50">
+                        <button className="flex items-center px-4 py-2 text-zenith-muted dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors rounded-lg hover:bg-zenith-section/50 dark:hover:bg-gray-700/50">
                           <ExternalLink size={16} className="mr-2" />
                           View Details
                         </button>
@@ -893,7 +893,7 @@ export default function CalendarPage() {
                         ) : (
                           <button 
                             onClick={() => toggleEventAttendance(event.id, false)}
-                            className={`px-6 py-2 text-white rounded-lg font-medium transition-colors shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none ${getEventColor(event.club).solid} hover:opacity-90`}
+                            className={`px-6 py-2 text-primary rounded-lg font-medium transition-colors shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none ${getEventColor(event.club).solid} hover:opacity-90`}
                             disabled={event.maxAttendees ? (event.attendees >= event.maxAttendees) : false}
                           >
                             {event.maxAttendees && event.attendees >= event.maxAttendees 

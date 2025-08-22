@@ -373,7 +373,7 @@ export default function ClubsPage() {
           {String(children).replace(/\n$/, '')}
         </SyntaxHighlighter>
       ) : (
-        <code className={`${className} bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm`} {...props}>
+        <code className={`${className} bg-accent px-1 py-0.5 rounded text-sm`} {...props}>
           {children}
         </code>
       );
@@ -455,7 +455,7 @@ export default function ClubsPage() {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+      <div className="min-h-screen bg-main">
         <div className="container mx-auto px-4 py-8">
           {!selectedClub ? (
             // Club Discovery View
@@ -466,10 +466,10 @@ export default function ClubsPage() {
             >
               {/* Header */}
               <div className="text-center space-y-4">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold text-primary">
                   Discover Clubs
                 </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                <p className="text-lg text-secondary max-w-2xl mx-auto">
                   Explore vibrant communities, connect with like-minded individuals, and dive into exciting projects and discussions.
                 </p>
               </div>
@@ -477,19 +477,19 @@ export default function ClubsPage() {
               {/* Search and Filter */}
               <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Search clubs..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-custom rounded-xl bg-card backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-primary"
                   />
                 </div>
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="px-4 py-3 border border-custom rounded-xl bg-card backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-primary"
                 >
                   <option value="all">All Types</option>
                   <option value="technical">Technical</option>
@@ -510,30 +510,30 @@ export default function ClubsPage() {
                     onClick={() => handleClubSelect(club)}
                     className="cursor-pointer group"
                   >
-                    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="bg-card backdrop-blur-sm rounded-2xl p-6 border border-custom shadow-lg hover:shadow-xl transition-all duration-300">
                       {/* Club Header */}
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary font-bold text-lg">
                           {club.name.charAt(0)}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                          <h3 className="font-semibold text-lg text-primary group-hover:text-purple-600 transition-colors">
                             {club.name}
                           </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                          <p className="text-sm text-secondary capitalize">
                             {club.type}
                           </p>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                        <ChevronRight className="w-5 h-5 text-muted group-hover:text-purple-500 transition-colors" />
                       </div>
 
                       {/* Club Description */}
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                      <p className="text-secondary mb-4 line-clamp-2">
                         {club.description}
                       </p>
 
                       {/* Club Stats */}
-                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center justify-between text-sm text-secondary">
                         <div className="flex items-center gap-1">
                           <Users className="w-4 h-4" />
                           <span>{club.member_count} members</span>
@@ -549,13 +549,13 @@ export default function ClubsPage() {
 
               {filteredClubs.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    <Search className="w-8 h-8 text-gray-400" />
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-card flex items-center justify-center">
+                    <Search className="w-8 h-8 text-muted" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-lg font-medium text-primary mb-2">
                     No clubs found
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <p className="text-secondary">
                     Try adjusting your search criteria or filter options.
                   </p>
                 </div>
@@ -569,11 +569,11 @@ export default function ClubsPage() {
               className="space-y-6"
             >
               {/* Club Header */}
-              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50">
+              <div className="bg-card backdrop-blur-sm rounded-2xl p-6 border border-custom">
                 <div className="flex items-center justify-between mb-4">
                   <button
                     onClick={() => setSelectedClub(null)}
-                    className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                    className="flex items-center gap-2 text-secondary hover:text-purple-600 transition-colors"
                   >
                     <ChevronRight className="w-5 h-5 rotate-180" />
                     Back to Clubs
@@ -581,11 +581,11 @@ export default function ClubsPage() {
                 </div>
 
                 <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary font-bold text-2xl">
                     {selectedClub.name.charAt(0)}
                   </div>
                   <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-primary mb-2">
                       {selectedClub.name}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-300 mb-3">
@@ -606,7 +606,7 @@ export default function ClubsPage() {
               </div>
 
               {/* Tab Navigation */}
-              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-1">
+              <div className="card rounded-xl p-1">
                 <div className="flex space-x-1">
                   {[
                     { id: 'blogs', label: 'Recent Blogs', icon: MessageSquare },
@@ -619,7 +619,7 @@ export default function ClubsPage() {
                       onClick={() => setActiveTab(tab.id as any)}
                       className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
                         activeTab === tab.id
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-primary shadow-md'
                           : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
                       }`}
                     >
@@ -645,7 +645,7 @@ export default function ClubsPage() {
                       <div className="flex justify-end">
                         <button
                           onClick={() => router.push(`/clubs/${selectedClub.id}/posts/create`)}
-                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
+                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-primary rounded-lg hover:shadow-lg transition-all"
                         >
                           <Plus className="w-4 h-4" />
                           Create Post
@@ -660,18 +660,18 @@ export default function ClubsPage() {
                           key={post.id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+                          className="card rounded-2xl overflow-hidden"
                         >
                           {/* Post Header */}
                           <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary font-medium">
                                   {post.author_name.charAt(0)}
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <h4 className="font-medium text-gray-900 dark:text-white">
+                                    <h4 className="font-medium text-gray-900 dark:text-primary">
                                       {post.author_name}
                                     </h4>
                                     <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -697,7 +697,7 @@ export default function ClubsPage() {
                               )}
                             </div>
 
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-primary mb-2">
                               {post.title}
                             </h2>
                             
@@ -797,7 +797,7 @@ export default function ClubsPage() {
                               >
                                 {/* Add Comment */}
                                 <div className="flex gap-3 mb-4">
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary text-sm font-medium">
                                     {user?.name?.charAt(0) || 'U'}
                                   </div>
                                   <div className="flex-1 flex gap-2">
@@ -806,13 +806,13 @@ export default function ClubsPage() {
                                       placeholder="Write a comment..."
                                       value={newComment}
                                       onChange={(e) => setNewComment(e.target.value)}
-                                      className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                      className="flex-1 px-3 py-2 border-custom rounded-lg bg-main focus:outline-none focus:ring-2 focus:ring-purple-500 text-primary"
                                       onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
                                     />
                                     <button
                                       onClick={() => handleAddComment(post.id)}
                                       disabled={!newComment.trim()}
-                                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                      className="px-4 py-2 bg-purple-500 text-primary rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                       Post
                                     </button>
@@ -824,12 +824,12 @@ export default function ClubsPage() {
                                   <div className="space-y-3">
                                     {comments[post.id].map((comment) => (
                                       <div key={comment.id} className="flex gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
+                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-primary text-xs font-medium">
                                           {comment.author_name.charAt(0)}
                                         </div>
                                         <div className="flex-1">
                                           <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
-                                            <div className="font-medium text-sm text-gray-900 dark:text-white mb-1">
+                                            <div className="font-medium text-sm text-gray-900 dark:text-primary mb-1">
                                               {comment.author_name}
                                             </div>
                                             <p className="text-gray-700 dark:text-gray-300 text-sm">
@@ -854,9 +854,9 @@ export default function ClubsPage() {
                     </div>
 
                     {blogPosts.length === 0 && (
-                      <div className="text-center py-12 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl">
+                      <div className="text-center py-12 card rounded-2xl">
                         <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-primary mb-2">
                           No blog posts yet
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400 mb-4">
@@ -865,7 +865,7 @@ export default function ClubsPage() {
                         {canCreatePost && (
                           <button
                             onClick={() => router.push(`/clubs/${selectedClub.id}/posts/create`)}
-                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
+                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-primary rounded-lg hover:shadow-lg transition-all"
                           >
                             Create First Post
                           </button>
@@ -886,13 +886,13 @@ export default function ClubsPage() {
                     {clubMembers.map((member) => (
                       <div
                         key={member.id}
-                        className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50"
+                        className="card rounded-xl p-6"
                       >
                         <div className="text-center">
-                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary font-bold text-xl">
                             {member.name.charAt(0)}
                           </div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                          <h3 className="font-semibold text-primary mb-1">
                             {member.name}
                           </h3>
                           <p className="text-sm text-purple-600 dark:text-purple-400 capitalize mb-2">
@@ -908,7 +908,7 @@ export default function ClubsPage() {
                     {clubMembers.length === 0 && (
                       <div className="col-span-full text-center py-12">
                         <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-primary mb-2">
                           No team members listed
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400">
@@ -930,14 +930,14 @@ export default function ClubsPage() {
                     {clubEvents.map((event) => (
                       <div
                         key={event.id}
-                        className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50"
+                        className="card rounded-xl p-6"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                            <h3 className="font-semibold text-primary mb-2">
                               {event.title}
                             </h3>
-                            <p className="text-gray-600 dark:text-gray-300 mb-3">
+                            <p className="text-secondary mb-3">
                               {event.description}
                             </p>
                             <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -973,7 +973,7 @@ export default function ClubsPage() {
                     {clubEvents.length === 0 && (
                       <div className="text-center py-12 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl">
                         <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-primary mb-2">
                           No events yet
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400">
@@ -1005,7 +1005,7 @@ export default function ClubsPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50"
+                        className="card rounded-xl p-6"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <stat.icon className={`w-8 h-8 ${stat.color}`} />
@@ -1013,7 +1013,7 @@ export default function ClubsPage() {
                             {stat.value}
                           </span>
                         </div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">
+                        <h3 className="font-medium text-gray-900 dark:text-primary">
                           {stat.label}
                         </h3>
                       </motion.div>

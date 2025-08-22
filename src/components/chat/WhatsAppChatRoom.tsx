@@ -292,7 +292,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
     const isRead = message.read_by && message.read_by.length > 1; // More than just sender
     
     if (isRead) {
-      return <CheckCheck className="w-4 h-4 text-zenith-primary" />;
+      return <CheckCheck className="w-4 h-4 text-primary" />;
     } else {
       return <Check className="w-4 h-4 text-zenith-muted" />;
     }
@@ -325,9 +325,9 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
   return (
     <div className="flex flex-col h-full bg-zenith-section dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-green-600 dark:bg-green-700 text-white p-3 flex items-center justify-between shadow-md">
+      <div className="bg-green-600 dark:bg-green-700 text-primary p-3 flex items-center justify-between shadow-md">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-primary font-bold text-sm">
             {roomName.charAt(0).toUpperCase()}
           </div>
           <div>
@@ -369,13 +369,13 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
 
       {/* Search Bar */}
       {showSearch && (
-        <div className="p-3 bg-zenith-card dark:bg-gray-800 border-b shadow-sm">
+        <div className="p-3 bg-card border-b shadow-sm">
           <input
             type="text"
             placeholder="Search messages..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-zenith-border dark:border-gray-600 rounded-lg bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 py-2 border border-custom dark:border-gray-600 rounded-lg bg-card dark:bg-gray-700 text-primary text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
           />
         </div>
       )}
@@ -412,7 +412,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                 
                 {/* Reply Reference */}
                 {message.reply_to_message_id && (
-                  <div className="text-xs text-zenith-muted mb-1 pl-2 border-l-2 border-zenith-border bg-zenith-section rounded p-1">
+                  <div className="text-xs text-zenith-muted mb-1 pl-2 border-l-2 border-custom bg-zenith-section rounded p-1">
                     Replying to previous message
                   </div>
                 )}
@@ -421,8 +421,8 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                 <div 
                   className={`relative px-3 py-2 rounded-lg shadow-sm max-w-full ${
                     isOwnMessage 
-                      ? 'bg-green-500 text-white rounded-br-sm' 
-                      : 'bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white rounded-bl-sm'
+                      ? 'bg-green-500 text-primary rounded-br-sm' 
+                      : 'bg-card dark:bg-gray-700 text-primary rounded-bl-sm'
                   }`}
                 >
                   {/* Sender Name */}
@@ -451,7 +451,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
                         href={message.file_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-zenith-primary hover:no-underline text-sm truncate"
+                        className="text-primary hover:no-underline text-sm truncate"
                       >
                         {message.message || 'Download file'}
                       </a>
@@ -553,7 +553,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
 
       {/* Emoji Picker */}
       {showEmojiPicker && (
-        <div className="absolute bottom-20 left-4 bg-zenith-card dark:bg-gray-800 border border-zenith-border dark:border-gray-600 rounded-lg p-4 shadow-lg max-w-xs">
+        <div className="absolute bottom-20 left-4 bg-card border border-custom dark:border-gray-600 rounded-lg p-4 shadow-lg max-w-xs">
           <div className="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto">
             {EMOJIS.map((emoji, index) => (
               <button
@@ -569,7 +569,7 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
       )}
 
       {/* Message Input */}
-      <div className="bg-zenith-card dark:bg-gray-800 border-t border-zenith-border dark:border-gray-600 p-3">
+      <div className="bg-card border-t border-custom dark:border-gray-600 p-3">
         <div className="flex items-end space-x-2">
           <button
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -596,14 +596,14 @@ export const WhatsAppChatRoom: React.FC<WhatsAppChatRoomProps> = ({
             }}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
-            className="flex-1 resize-none border border-zenith-border dark:border-gray-600 rounded-lg px-3 py-2 bg-zenith-card dark:bg-gray-700 text-zenith-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 max-h-20 min-h-[40px]"
+            className="flex-1 resize-none border border-custom dark:border-gray-600 rounded-lg px-3 py-2 bg-card dark:bg-gray-700 text-primary focus:outline-none focus:ring-2 focus:ring-green-500 max-h-20 min-h-[40px]"
             rows={1}
           />
           
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim()}
-            className="p-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full transition-colors flex-shrink-0"
+            className="p-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-primary rounded-full transition-colors flex-shrink-0"
             title="Send message"
           >
             <Send className="w-5 h-5" />

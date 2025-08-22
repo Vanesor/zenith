@@ -53,9 +53,9 @@ export function PaperpalHeader({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/80 backdrop-blur-lg border-b border-[#e7e2dc] dark:border-gray-800">
+    <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-lg border-b border-custom">
       {/* College Banner */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white">
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-primary">
         <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -67,7 +67,7 @@ export function PaperpalHeader({
                 className="rounded-full ring-2 ring-white/20"
               />
               <div className="hidden sm:block">
-                <h1 className="text-sm font-semibold text-white">St. Vincent Pallotti College of Engineering and Technology</h1>
+                <h1 className="text-sm font-semibold text-primary">St. Vincent Pallotti College of Engineering and Technology</h1>
                 <p className="text-xs text-blue-100">Nagpur • Department of Computer Science and Engineering</p>
               </div>
             </div>
@@ -80,7 +80,7 @@ export function PaperpalHeader({
                 className="rounded ring-1 ring-white/20"
               />
               <div className="hidden md:block text-right">
-                <span className="text-sm font-medium text-white">Zenith Forum</span>
+                <span className="text-sm font-medium text-primary">Zenith Forum</span>
                 <p className="text-xs text-blue-100">Student Hub</p>
               </div>
             </div>
@@ -96,7 +96,7 @@ export function PaperpalHeader({
             {user && (
               <button
                 onClick={onMenuToggle}
-                className="lg:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="lg:hidden p-2 text-muted hover:text-secondary hover:bg-hover rounded-lg transition-colors"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -106,11 +106,11 @@ export function PaperpalHeader({
             {(!user || expandedHeader) && (
               <Link href="/" className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Zap className="w-6 h-6 text-white" />
+                  <Zap className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">Zenith</h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">CS Department Forum</p>
+                  <h1 className="text-xl font-bold text-primary">Zenith</h1>
+                  <p className="text-sm text-muted">CS Department Forum</p>
                 </div>
               </Link>
             )}
@@ -120,13 +120,13 @@ export function PaperpalHeader({
           {user && !expandedHeader && (
             <div className="hidden md:flex flex-1 max-w-lg mx-8">
               <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="text"
                   placeholder="Search assignments, events, clubs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 bg-section border border-custom rounded-xl text-sm text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -143,14 +143,14 @@ export function PaperpalHeader({
               >
                 <Link
                   href="/login"
-                  className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary hover:bg-hover rounded-lg transition-colors"
                 >
                   <LogIn className="w-4 h-4 mr-2" />
                   Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+                  className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary text-sm font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Sign Up
@@ -164,7 +164,7 @@ export function PaperpalHeader({
                 {/* Mobile Search Toggle */}
                 <button
                   onClick={() => setSearchQuery(searchQuery ? '' : 'search')}
-                  className="md:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="md:hidden p-2 text-muted hover:text-secondary hover:bg-hover rounded-lg transition-colors"
                 >
                   <Search className="w-5 h-5" />
                 </button>
@@ -182,7 +182,7 @@ export function PaperpalHeader({
                 <div className="relative">
                   <button
                     onClick={() => setShowNotifications(!showNotifications)}
-                    className="relative p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="relative p-2 text-muted hover:text-secondary hover:bg-hover rounded-lg transition-colors"
                   >
                     <Bell className="w-5 h-5" />
                     {notifications.some(n => n.unread) && (
@@ -198,10 +198,10 @@ export function PaperpalHeader({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50"
+                        className="absolute right-0 top-full mt-2 w-80 bg-card rounded-xl shadow-2xl border-custom z-50"
                       >
                         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-primary">Notifications</h3>
                         </div>
                         <div className="max-h-80 overflow-y-auto">
                           {notifications.map((notification) => (
@@ -214,7 +214,7 @@ export function PaperpalHeader({
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center space-x-2">
-                                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                                    <h4 className="text-sm font-medium text-gray-900 dark:text-primary">
                                       {notification.title}
                                     </h4>
                                     {notification.unread && (
@@ -249,13 +249,13 @@ export function PaperpalHeader({
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-primary text-sm font-medium">
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="hidden md:block text-left">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-primary">{user.name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role}</p>
                     </div>
                     <ChevronDown className="hidden md:block w-4 h-4 text-gray-500" />
@@ -269,15 +269,15 @@ export function PaperpalHeader({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50"
+                        className="absolute right-0 top-full mt-2 w-64 bg-card rounded-xl shadow-2xl border-custom z-50"
                       >
                         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-medium">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-primary font-medium">
                               {user.name?.charAt(0).toUpperCase() || 'U'}
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-primary">{user.name}</p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                             </div>
                           </div>
@@ -336,7 +336,7 @@ export function PaperpalHeader({
                 placeholder="Search anything..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-primary placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
             </div>
           </motion.div>

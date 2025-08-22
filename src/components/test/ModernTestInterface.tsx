@@ -254,13 +254,13 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-college-dark text-white">
+    <div className="min-h-screen flex flex-col bg-college-dark text-primary">
       {/* Test Header */}
       <header className="bg-college-medium border-b border-gray-700 shadow-md py-3 px-6 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center">
           <button 
             onClick={() => setShowInstructions(true)}
-            className="mr-4 text-gray-300 hover:text-white p-2 rounded-full hover:bg-gray-700/50 transition-colors"
+            className="mr-4 text-gray-300 hover:text-primary p-2 rounded-full hover:bg-gray-700/50 transition-colors"
             title="Show Instructions"
           >
             <HelpCircle className="w-5 h-5" />
@@ -415,7 +415,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                     <textarea
                       value={answers[questions[currentQuestionIndex].id] as string || ''}
                       onChange={(e) => handleAnswerChange(questions[currentQuestionIndex].id, e.target.value)}
-                      className="w-full h-40 p-4 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-college-primary transition-colors resize-none"
+                      className="w-full h-40 p-4 bg-gray-800 border border-gray-700 rounded-lg text-primary placeholder-gray-400 focus:outline-none focus:border-college-primary transition-colors resize-none"
                       placeholder="Type your answer here..."
                     />
                   )}
@@ -425,7 +425,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-300">Code Editor</span>
                         <select 
-                          className="text-sm bg-gray-800 border border-gray-700 rounded-md py-1 px-2 text-white"
+                          className="text-sm bg-gray-800 border border-gray-700 rounded-md py-1 px-2 text-primary"
                           defaultValue="javascript"
                         >
                           <option value="javascript">JavaScript</option>
@@ -437,7 +437,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                       <textarea
                         value={answers[questions[currentQuestionIndex].id] as string || ''}
                         onChange={(e) => handleAnswerChange(questions[currentQuestionIndex].id, e.target.value)}
-                        className="w-full h-64 p-4 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-college-primary transition-colors resize-none font-mono"
+                        className="w-full h-64 p-4 bg-gray-900 border border-gray-700 rounded-lg text-primary placeholder-gray-400 focus:outline-none focus:border-college-primary transition-colors resize-none font-mono"
                         placeholder="// Write your code here..."
                       />
                     </div>
@@ -449,7 +449,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                   <button
                     onClick={handlePrevQuestion}
                     disabled={currentQuestionIndex === 0}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800 text-primary hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <ArrowLeft className="w-5 h-5" />
                     <span>Previous</span>
@@ -458,7 +458,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                   <div className="flex space-x-3">
                     <button
                       onClick={() => setConfirmSubmit(true)}
-                      className="flex items-center space-x-2 px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                      className="flex items-center space-x-2 px-5 py-2 rounded-lg bg-green-600 text-primary hover:bg-green-700 transition-colors"
                     >
                       <CheckCircle className="w-5 h-5" />
                       <span>Submit Test</span>
@@ -467,7 +467,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                     {currentQuestionIndex < questions.length - 1 ? (
                       <button
                         onClick={handleNextQuestion}
-                        className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-college-primary text-white hover:bg-college-accent transition-colors"
+                        className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-college-primary text-primary hover:bg-college-accent transition-colors"
                       >
                         <span>Next</span>
                         <ArrowRight className="w-5 h-5" />
@@ -475,7 +475,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                     ) : (
                       <button
                         onClick={() => setConfirmSubmit(true)}
-                        className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-college-primary text-white hover:bg-college-accent transition-colors"
+                        className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-college-primary text-primary hover:bg-college-accent transition-colors"
                       >
                         <span>Finish</span>
                         <CheckCircle className="w-5 h-5" />
@@ -512,7 +512,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                   onClick={() => goToQuestion(index)}
                   className={`w-full aspect-square flex items-center justify-center text-sm rounded-lg transition-colors ${
                     currentQuestionIndex === index
-                      ? 'bg-college-primary text-white font-medium'
+                      ? 'bg-college-primary text-primary font-medium'
                       : getAnswerStatus(index) === 'flagged'
                       ? 'bg-amber-500/20 text-amber-500 border border-amber-500'
                       : getAnswerStatus(index) === 'answered'
@@ -547,7 +547,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
             <div className="mt-8 pt-6 border-t border-gray-700">
               <button
                 onClick={() => setConfirmSubmit(true)}
-                className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg bg-green-600 text-primary hover:bg-green-700 transition-colors"
               >
                 <CheckCircle className="w-5 h-5" />
                 <span>Submit Test</span>
@@ -605,7 +605,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                       onClick={() => goToQuestion(index)}
                       className={`w-full aspect-square flex items-center justify-center text-sm rounded-lg transition-colors ${
                         currentQuestionIndex === index
-                          ? 'bg-college-primary text-white font-medium'
+                          ? 'bg-college-primary text-primary font-medium'
                           : getAnswerStatus(index) === 'flagged'
                           ? 'bg-amber-500/20 text-amber-500 border border-amber-500'
                           : getAnswerStatus(index) === 'answered'
@@ -643,7 +643,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
                       setShowSidebar(false);
                       setConfirmSubmit(true);
                     }}
-                    className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                    className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg bg-green-600 text-primary hover:bg-green-700 transition-colors"
                   >
                     <CheckCircle className="w-5 h-5" />
                     <span>Submit Test</span>
@@ -691,13 +691,13 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
               <div className="flex space-x-3">
                 <button
                   onClick={() => setConfirmSubmit(false)}
-                  className="flex-1 py-3 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+                  className="flex-1 py-3 rounded-lg bg-gray-800 text-primary hover:bg-gray-700 transition-colors"
                 >
                   Continue Test
                 </button>
                 <button
                   onClick={handleSubmitTest}
-                  className="flex-1 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                  className="flex-1 py-3 rounded-lg bg-green-600 text-primary hover:bg-green-700 transition-colors"
                 >
                   Submit Test
                 </button>
@@ -783,7 +783,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
               
               <button
                 onClick={() => setShowInstructions(false)}
-                className="w-full py-3 rounded-lg bg-college-primary text-white hover:bg-college-accent transition-colors"
+                className="w-full py-3 rounded-lg bg-college-primary text-primary hover:bg-college-accent transition-colors"
               >
                 I Understand
               </button>
@@ -819,7 +819,7 @@ export default function ModernTestInterface({ testId, onComplete, onExit }: Test
               
               <button
                 onClick={() => setTestPaused(false)}
-                className="w-full py-3 rounded-lg bg-college-primary text-white hover:bg-college-accent transition-colors flex items-center justify-center space-x-2"
+                className="w-full py-3 rounded-lg bg-college-primary text-primary hover:bg-college-accent transition-colors flex items-center justify-center space-x-2"
               >
                 <Play className="w-5 h-5" />
                 <span>Resume Test</span>

@@ -32,15 +32,15 @@ export const PostCard: React.FC<PostCardProps> = ({
   truncateContent = 150,
 }) => {
   return (
-    <div className="bg-zenith-card rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+    <div className="bg-card rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
       {/* Post Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-zenith-primary rounded-full flex items-center justify-center text-white font-semibold">
+          <div className="w-10 h-10 bg-zenith-primary rounded-full flex items-center justify-center text-primary font-semibold">
             {post.author.username.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h3 className="font-semibold text-zenith-primary">
+            <h3 className="font-semibold text-primary">
               {post.author.username}
             </h3>
             <p className="text-sm text-zenith-muted">
@@ -64,7 +64,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       {/* Post Content */}
       <div className="mb-4">
         <Link href={`/posts/${post.id}`} className="hover:no-underline">
-          <h2 className="text-xl font-bold text-zenith-primary mb-2">{post.title}</h2>
+          <h2 className="text-xl font-bold text-primary mb-2">{post.title}</h2>
         </Link>
         <p className="text-zenith-secondary leading-relaxed">
           {truncateText(post.content, truncateContent)}
@@ -90,7 +90,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       {/* Post Stats */}
       <div className="flex items-center justify-between text-sm text-zenith-muted">
         <div className="flex items-center space-x-4">
-          <button className="flex items-center space-x-1 hover:text-zenith-primary transition-colors">
+          <button className="flex items-center space-x-1 hover:text-primary transition-colors">
             <svg
               className="w-4 h-4"
               fill="none"
@@ -109,7 +109,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
           <Link
             href={`/posts/${post.id}#comments`}
-            className="flex items-center space-x-1 hover:text-zenith-primary transition-colors"
+            className="flex items-center space-x-1 hover:text-primary transition-colors"
           >
             <svg
               className="w-4 h-4"

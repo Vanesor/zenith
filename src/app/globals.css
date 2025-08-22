@@ -110,6 +110,25 @@ body {
 .border-custom { border-color: var(--border-color); }
 .border-hover { border-color: var(--border-hover); }
 
+/* Zenith branded styles */
+.zenith-bg-main { background-color: var(--bg-main) !important; }
+.zenith-bg-section { background-color: var(--bg-section) !important; }
+.zenith-bg-card { background-color: var(--bg-card) !important; }
+.zenith-bg-hover { background-color: var(--bg-hover) !important; }
+.zenith-bg-sidebar { background-color: var(--bg-sidebar) !important; }
+.zenith-bg-nav { background-color: var(--bg-nav) !important; }
+
+.zenith-text-primary { color: var(--text-primary) !important; }
+.zenith-text-secondary { color: var(--text-secondary) !important; }
+.zenith-text-muted { color: var(--text-muted) !important; }
+.zenith-text-accent { color: var(--text-accent) !important; }
+.zenith-border { border-color: var(--border-color) !important; }
+
+/* Hover states for zenith classes */
+.hover\:zenith-bg-hover:hover { background-color: var(--bg-hover) !important; }
+.hover\:zenith-text-primary:hover { color: var(--text-primary) !important; }
+.hover\:zenith-text-secondary:hover { color: var(--text-secondary) !important; }
+
 /* Modern Card Styles */
 .card {
   background: var(--bg-card);

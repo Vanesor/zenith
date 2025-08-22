@@ -198,7 +198,7 @@ export default function EventModal({
             <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20" />
             
             {/* Glass morphism overlay */}
-            <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl" />
+            <div className="absolute inset-0 bg-main/80 backdrop-blur-xl" />
             
             {/* Animated border */}
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 opacity-50" />
@@ -281,7 +281,7 @@ export default function EventModal({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
                   >
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-primary flex items-center">
                       <Calendar className="w-5 h-5 mr-2 text-purple-600" />
                       Event Information
                     </h3>
@@ -296,7 +296,7 @@ export default function EventModal({
                           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                           placeholder="Enter event title"
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300"
                         />
                       </div>
                       
@@ -310,7 +310,7 @@ export default function EventModal({
                           placeholder="Describe your event"
                           rows={3}
                           disabled={mode === 'view'}
-                          className="border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300"
+                          className="border-custom rounded-xl bg-main focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300"
                         />
                       </div>
                     </div>
@@ -323,7 +323,7 @@ export default function EventModal({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-primary flex items-center">
                       <Clock className="w-5 h-5 mr-2 text-blue-600" />
                       Schedule
                     </h3>
@@ -338,7 +338,7 @@ export default function EventModal({
                           value={formData.event_date}
                           onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
                         />
                       </div>
                       
@@ -351,7 +351,7 @@ export default function EventModal({
                           value={formData.start_time}
                           onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
                         />
                       </div>
                       
@@ -364,7 +364,7 @@ export default function EventModal({
                           value={formData.end_time || ''}
                           onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
                         />
                       </div>
                     </div>
@@ -377,7 +377,7 @@ export default function EventModal({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
                   >
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-primary flex items-center">
                       <MapPin className="w-5 h-5 mr-2 text-pink-600" />
                       Venue & Organization
                     </h3>
@@ -392,7 +392,7 @@ export default function EventModal({
                           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                           placeholder="Event location"
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition-all duration-300"
                         />
                       </div>
                       
@@ -405,7 +405,7 @@ export default function EventModal({
                           onValueChange={(value) => setFormData({ ...formData, club_id: value })}
                           disabled={mode === 'view'}
                         >
-                          <SelectTrigger className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20">
+                          <SelectTrigger className="h-12 border-custom rounded-xl bg-main focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20">
                             <SelectValue placeholder="Select club" />
                           </SelectTrigger>
                           <SelectContent>
@@ -427,7 +427,7 @@ export default function EventModal({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-primary flex items-center">
                       <Users className="w-5 h-5 mr-2 text-indigo-600" />
                       Event Management
                     </h3>
@@ -443,7 +443,7 @@ export default function EventModal({
                           onChange={(e) => setFormData({ ...formData, event_incharge: e.target.value })}
                           placeholder="Person responsible for the event"
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300"
                         />
                       </div>
                       
@@ -457,7 +457,7 @@ export default function EventModal({
                           onChange={(e) => setFormData({ ...formData, event_coordinator: e.target.value })}
                           placeholder="Event coordination contact"
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300"
                         />
                       </div>
                     </div>
@@ -473,7 +473,7 @@ export default function EventModal({
                           onChange={(e) => setFormData({ ...formData, max_attendees: e.target.value ? parseInt(e.target.value) : undefined })}
                           placeholder="Maximum number of attendees"
                           disabled={mode === 'view'}
-                          className="h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300"
+                          className="h-12 border-custom rounded-xl bg-main focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300"
                         />
                       </div>
                     </div>
@@ -499,7 +499,7 @@ export default function EventModal({
                       <Button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2 h-11 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                        className="px-6 py-2 h-11 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-primary font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                       >
                         {loading ? (
                           <motion.div

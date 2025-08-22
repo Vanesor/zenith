@@ -64,7 +64,7 @@ export function MarkdownEditor({
       .replace(/^\> (.*$)/gm, '<blockquote class="border-l-4 border-zenith-primary pl-4 italic text-zenith-secondary dark:text-zenith-muted">$1</blockquote>')
       .replace(/^\- (.*$)/gm, '<li class="ml-4">$1</li>')
       .replace(/^\d+\. (.*$)/gm, '<li class="ml-4">$1</li>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-zenith-primary hover:no-underline">$1</a>');
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary hover:no-underline">$1</a>');
 
     // Wrap lists
     html = html.replace(/(<li.*<\/li>)/g, '<ul class="list-disc ml-4">$1</ul>');
@@ -94,16 +94,16 @@ export function MarkdownEditor({
         </label>
       )}
       
-      <div className="border border-zenith-border dark:border-gray-600 rounded-lg overflow-hidden">
+      <div className="border border-custom dark:border-gray-600 rounded-lg overflow-hidden">
         {/* Toolbar */}
-        <div className="bg-zenith-section dark:bg-gray-700 border-b border-zenith-border dark:border-gray-600 p-2 flex items-center justify-between">
+        <div className="bg-zenith-section dark:bg-gray-700 border-b border-custom dark:border-gray-600 p-2 flex items-center justify-between">
           <div className="flex items-center space-x-1">
             {toolbarButtons.map((button, index) => (
               <button
                 key={index}
                 type="button"
                 onClick={button.action}
-                className="p-2 text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white hover:bg-zenith-section dark:hover:bg-zenith-secondary rounded transition-colors"
+                className="p-2 text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-primary hover:bg-zenith-section dark:hover:bg-zenith-secondary rounded transition-colors"
                 title={button.title}
               >
                 <button.icon className="w-4 h-4" />
@@ -114,7 +114,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="flex items-center space-x-2 px-3 py-1 text-sm text-zenith-secondary dark:text-zenith-muted hover:text-zenith-primary dark:hover:text-white hover:bg-zenith-section dark:hover:bg-zenith-secondary rounded transition-colors"
+            className="flex items-center space-x-2 px-3 py-1 text-sm text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-primary hover:bg-zenith-section dark:hover:bg-zenith-secondary rounded transition-colors"
           >
             {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             <span>{showPreview ? 'Edit' : 'Preview'}</span>
@@ -135,7 +135,7 @@ export function MarkdownEditor({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
-              className="w-full p-4 border-none outline-none resize-none bg-zenith-card dark:bg-gray-800 text-zenith-primary dark:text-white"
+              className="w-full p-4 border-none outline-none resize-none bg-card text-primary"
               style={{ height }}
             />
           )}
