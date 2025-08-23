@@ -14,12 +14,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useState } from 'react';
 
 interface Task {
   id: string;
@@ -42,7 +37,13 @@ interface TaskCardProps {
   userPermissions: any;
 }
 
-export default function TaskCard({ task, getStatusIcon, getPriorityColor, onTaskUpdate, userPermissions }: TaskCardProps) {
+export function TaskCard({ 
+  task, 
+  getStatusIcon, 
+  getPriorityColor, 
+  onTaskUpdate, 
+  userPermissions 
+}: TaskCardProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -116,33 +117,52 @@ export default function TaskCard({ task, getStatusIcon, getPriorityColor, onTask
               )}
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <details className="relative">
+              <summary className="list-none cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                >
                   <MoreVertical className="h-3 w-3" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              </summary>
+              <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                 {userPermissions?.canEditTasks && (
-                  <DropdownMenuItem>
+                  <button
+                    className="flex items-center w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    onClick={() => {
+                      // Handle edit action
+                    }}
+                  >
                     <Edit className="mr-2 h-3 w-3" />
                     Edit
-                  </DropdownMenuItem>
+                  </button>
                 )}
                 {userPermissions?.canAssignTasks && (
-                  <DropdownMenuItem>
+                  <button
+                    className="flex items-center w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    onClick={() => {
+                      // Handle assign action
+                    }}
+                  >
                     <UserPlus className="mr-2 h-3 w-3" />
                     Assign
-                  </DropdownMenuItem>
+                  </button>
                 )}
                 {userPermissions?.canDeleteTasks && (
-                  <DropdownMenuItem className="text-red-600">
+                  <button
+                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    onClick={() => {
+                      // Handle delete action
+                    }}
+                  >
                     <Trash2 className="mr-2 h-3 w-3" />
                     Delete
-                  </DropdownMenuItem>
+                  </button>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </div>
+            </details>
           </div>
 
           <h4 className="font-medium text-gray-900 dark:text-primary mb-2 line-clamp-2">
@@ -160,26 +180,17 @@ export default function TaskCard({ task, getStatusIcon, getPriorityColor, onTask
             </Badge>
             
             {userPermissions?.canEditTasks && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Badge className={`${getStatusBadgeColor(task.status)} cursor-pointer hover:opacity-80`}>
-                    {getStatusIcon(task.status)}
-                    <span className="ml-1">{task.status.replace('_', ' ')}</span>
-                  </Badge>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {statusOptions.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      onClick={() => handleStatusUpdate(option.value)}
-                      className={task.status === option.value ? 'bg-gray-100 dark:bg-gray-600' : ''}
-                    >
-                      {getStatusIcon(option.value)}
-                      <span className="ml-2">{option.label}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <select 
+                className={`${getStatusBadgeColor(task.status)} cursor-pointer hover:opacity-80 border-0 rounded px-2 py-1 text-xs`}
+                value={task.status}
+                onChange={(e) => handleStatusUpdate(e.target.value)}
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             )}
           </div>
 
@@ -201,3 +212,5 @@ export default function TaskCard({ task, getStatusIcon, getPriorityColor, onTask
     </motion.div>
   );
 }
+
+export default TaskCard;

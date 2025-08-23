@@ -104,76 +104,121 @@ export default function AdminClubManagementPage() {
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  // Check if user has admin access (coordinator, co_coordinator, or committee members)
-  // For testing, let's be more permissive
-  const hasAdminAccess = true; // Temporarily allow all users for testing
-  // const hasAdminAccess = user && [
-  //   "coordinator", "co_coordinator", "club_coordinator", "secretary", "media", "president",
-  //   "vice_president", "innovation_head", "treasurer", "outreach"
-  // ].includes(user.role);
+  // Enhanced role checking for admin access
+  const userRole = user?.role?.toLowerCase() || '';
+  
+  // Zenith Committee Members - can see all clubs
+  const isZenithCommittee = [
+    'president',
+    'vice_president', 
+    'innovation_head',
+    'secretary',
+    'treasurer',
+    'outreach_coordinator',
+    'media_coordinator',
+    'zenith_committee'
+  ].includes(userRole);
+
+  // Club Coordinators - should be redirected to their specific club management
+  const isClubCoordinator = [
+    'coordinator',
+    'co_coordinator',
+    'club_coordinator',
+    'co-coordinator'
+  ].includes(userRole);
+
+  // System Admin - full access
+  const isSystemAdmin = userRole === 'admin';
+
+  // Only Zenith committee and system admins should access this page
+  const hasMultiClubAccess = isZenithCommittee || isSystemAdmin;
+
+  // Redirect club coordinators to their specific club management page
+  useEffect(() => {
+    if (!isLoading && user && !hasMultiClubAccess) {
+      if (isClubCoordinator) {
+        console.log('Club coordinator detected, redirecting to club-management');
+        router.push('/club-management');
+        return;
+      } else {
+        console.log('User does not have admin access, redirecting to dashboard');
+        router.push('/dashboard');
+        return;
+      }
+    }
+  }, [user, isLoading, hasMultiClubAccess, isClubCoordinator, router]);
 
   useEffect(() => {
-    console.log('🔍 Club Management - useEffect triggered');
-    console.log('📊 Current state:', { isLoading, user: user?.name, userRole: user?.role, hasAdminAccess });
-    
-    // Fetch data immediately when component mounts
-    fetchAdminData();
-  }, []); // Empty dependency array to run only on mount
+    if (hasMultiClubAccess && isAuthenticated) {
+      console.log('🔍 Admin Club Management - useEffect triggered for Zenith committee/admin');
+      console.log('📊 Current state:', { 
+        isLoading, 
+        user: user?.name, 
+        userRole: user?.role, 
+        hasMultiClubAccess,
+        isZenithCommittee,
+        isSystemAdmin
+      });
+      
+      // Fetch data immediately when component mounts
+      fetchAdminData();
+    }
+  }, [hasMultiClubAccess, isAuthenticated]); // Only fetch when user has proper access
 
   const fetchAdminData = async () => {
     try {
       setLoading(true);
       console.log('🔄 Starting to fetch admin data...');
       
-      // Fetch clubs data
-      const clubsResponse = await fetch('/api/clubs');
-      console.log('📊 Clubs API response status:', clubsResponse.status);
+      // Fetch admin clubs data with authentication
+      const adminResponse = await fetch('/api/admin/clubs', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
       
-      if (clubsResponse.ok) {
-        const clubsData = await clubsResponse.json();
-        console.log('📋 Clubs data received:', clubsData);
-        const clubsList = clubsData.clubs || [];
-        console.log('🏛️ Processing', clubsList.length, 'clubs');
+      console.log('📊 Admin Clubs API response status:', adminResponse.status);
+      
+      if (adminResponse.ok) {
+        const adminData = await adminResponse.json();
+        console.log('📋 Admin data received:', adminData);
         
-        const processedClubs = clubsList.map((club: any) => ({
-          id: club.id,
-          name: club.name,
-          description: club.description,
-          type: club.type,
-          color: club.color,
-          status: 'active', // Default status since we don't have this field yet
-          member_count: club.memberCount || 0,
-          coordinator_id: club.coordinator_id,
-          coordinator_name: club.coordinator_name,
-          created_at: club.created_at,
-          updated_at: club.created_at
-        }));
-        
-        console.log('✅ Processed clubs:', processedClubs);
-        setClubs(processedClubs);
-        
-        // Calculate stats from the clubs data
-        const activeClubs = clubsList.filter((club: any) => club.memberCount > 0);
-        const totalMembers = clubsList.reduce((sum: number, club: any) => sum + (club.memberCount || 0), 0);
-        const totalEvents = clubsList.reduce((sum: number, club: any) => sum + (club.eventCount || 0), 0);
-        
-        const calculatedStats = {
-          totalClubs: clubsList.length,
-          activeClubs: activeClubs.length,
-          pendingClubs: 0, // We don't have pending status yet
-          totalMembers: totalMembers,
-          totalEvents: totalEvents,
-          totalAssignments: 0 // We'd need to fetch this from assignments API
-        };
-        
-        console.log('📈 Calculated stats:', calculatedStats);
-        setStats(calculatedStats);
+        if (adminData.success) {
+          const { clubs: clubsList, members: membersList, stats: systemStats } = adminData;
+          
+          console.log('🏛️ Processing', clubsList.length, 'clubs for admin view');
+          
+          // Set clubs data directly since it's already formatted for admin view
+          setClubs(clubsList);
+          
+          // Set members data
+          setMembers(membersList || []);
+          
+          // Set system stats
+          setStats(systemStats);
+          
+          console.log('✅ Admin data processed:', {
+            clubs: clubsList.length,
+            members: membersList?.length || 0,
+            stats: systemStats
+          });
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } else if (adminResponse.status === 403) {
+        // User doesn't have admin access, redirect them
+        console.log('❌ Access denied to admin endpoint');
+        showToast({
+          type: "error",
+          title: "Access Denied",
+          message: "You don't have permission to access admin features"
+        });
+        router.push('/dashboard');
+        return;
       } else {
-        throw new Error('Failed to fetch clubs');
+        throw new Error(`Failed to fetch admin data: ${adminResponse.status}`);
       }
-      
-      // Fetch members data (you can expand this later)
-      setMembers([]); // For now, set empty array
       
     } catch (error) {
       console.error("❌ Error fetching admin data:", error);
@@ -269,28 +314,9 @@ export default function AdminClubManagementPage() {
     }
   };
 
-  // Only allow coordinators and committee members
-  const allowedRoles = [
-    'coordinator',
-    'committee',
-    'co_coordinator',
-    'secretary',
-    'media',
-    'president',
-    'vice_president',
-    'innovation_head',
-    'treasurer',
-    'outreach'
-  ];
-
-  if (!user || !allowedRoles.includes(user.role)) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <Shield className="w-16 h-16 text-yellow-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-        <p className="text-gray-600 mb-4">You do not have permission to access this page.</p>
-      </div>
-    );
+  // Authentication check moved to the top of component with useEffect
+  if (!isAuthenticated) {
+    return null; // The auth modal will be shown by useAuthGuard
   }
 
   // Runtime check for export
@@ -315,7 +341,7 @@ export default function AdminClubManagementPage() {
     );
   }
 
-  if (!hasAdminAccess) {
+  if (!hasMultiClubAccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">

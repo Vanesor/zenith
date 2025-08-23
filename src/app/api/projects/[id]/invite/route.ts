@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { ProjectManagementService } from '@/lib/ProjectManagementService';
 import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get('Authorization');
     
@@ -14,7 +14,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     const userId = decoded.userId;
-    const projectId = params.id;
+    const resolvedParams = await params;
+    const projectId = resolvedParams.id;
 
     const { userIds } = await request.json();
 

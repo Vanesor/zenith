@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Check if user has admin permissions - only coordinators and Zenith committee members
+  // Check if user has admin permissions
   const isZenithCommittee = user && (
     user.role === 'president' ||
     user.role === 'vice_president' ||
@@ -24,17 +24,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     user.role === 'secretary' ||
     user.role === 'treasurer' ||
     user.role === 'outreach_coordinator' ||
-    user.role === 'media_coordinator'
+    user.role === 'media_coordinator' ||
+    user.role === 'zenith_committee'
   );
 
   const isClubCoordinator = user && (
     user.role === 'coordinator' ||
-    user.role === 'co_coordinator'
+    user.role === 'co_coordinator' ||
+    user.role === 'club_coordinator' ||
+    user.role === 'co-coordinator'
   );
 
-  const isAdmin = user && user.role === 'admin';
+  const isSystemAdmin = user && user.role === 'admin';
 
-  if (!isZenithCommittee && !isClubCoordinator && !isAdmin) {
+  // Check if user has any admin-level access
+  const hasAdminAccess = isZenithCommittee || isClubCoordinator || isSystemAdmin;
+
+  if (!hasAdminAccess) {
     redirect("/dashboard");
     return null;
   }

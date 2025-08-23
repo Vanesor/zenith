@@ -1,28 +1,20 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, 
   Calendar, 
   TrendingUp, 
   Clock,
-  MoreVertical,
   ExternalLink,
-  Settings,
-  Trash2
+  Trash2,
+  CheckCircle2,
+  Circle
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface Project {
   id: string;
@@ -31,6 +23,7 @@ interface Project {
   project_key: string;
   club_name: string;
   creator_name: string;
+  created_by: string;
   status: string;
   priority: string;
   progress_percentage: number;
@@ -47,32 +40,11 @@ interface ProjectCardProps {
   getStatusIcon: (status: string) => React.ReactNode;
   getPriorityColor: (priority: string) => string;
   onProjectUpdate?: () => void;
+  currentUserId?: string;
 }
 
-export default function ProjectCard({ project, viewMode, getStatusIcon, getPriorityColor, onProjectUpdate }: ProjectCardProps) {
-  const [permissions, setPermissions] = useState<any>(null);
-
-  useEffect(() => {
-    checkPermissions();
-  }, [project.id]);
-
-  const checkPermissions = async () => {
-    try {
-      const token = localStorage.getItem('zenith-token');
-      const response = await fetch(`/api/projects/${project.id}/permissions`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPermissions(data.permissions);
-      }
-    } catch (error) {
-      console.error('Error checking permissions:', error);
-    }
-  };
+export default function ProjectCard({ project, viewMode, getStatusIcon, getPriorityColor, onProjectUpdate, currentUserId }: ProjectCardProps) {
+  const isProjectCreator = currentUserId === project.created_by;
 
   const handleDeleteProject = async () => {
     if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
@@ -132,8 +104,8 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 flex-1">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-primary font-bold text-lg">
-                  {project.project_key}
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                  {project.name.substring(0, 2).toUpperCase()}
                 </div>
               </div>
               
@@ -155,7 +127,7 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
                 </p>
                 <div className="flex items-center space-x-4 mt-2">
                   <span className="text-xs text-muted">
-                    {project.club_name}
+                    {project.club_name} • Created by {project.creator_name}
                   </span>
                   <div className="flex items-center space-x-1">
                     {getStatusIcon(project.status)}
@@ -186,43 +158,36 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
                 </div>
               </div>
               
-              <div className="w-20">
-                <div className="text-xs text-muted mb-1 text-center">
-                  {project.progress_percentage}%
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-1 text-green-600">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-sm font-medium">{project.completed_tasks}</span>
                 </div>
-                <Progress value={project.progress_percentage} className="h-2" />
+                <div className="text-xs text-gray-400">/</div>
+                <div className="flex items-center space-x-1 text-blue-600">
+                  <Circle className="h-4 w-4" />
+                  <span className="text-sm font-medium">{project.total_tasks}</span>
+                </div>
               </div>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreVertical className="h-4 w-4" />
+              <div className="flex items-center space-x-2">
+                <Link href={`/projects/${project.id}`}>
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    View
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href={`/projects/${project.id}`} className="flex items-center">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      View Details
-                    </Link>
-                  </DropdownMenuItem>
-                  {permissions?.canEditProject && (
-                    <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Manage
-                    </DropdownMenuItem>
-                  )}
-                  {permissions?.canDeleteProject && (
-                    <DropdownMenuItem 
-                      className="text-red-600"
-                      onClick={handleDeleteProject}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </Link>
+                {isProjectCreator && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleDeleteProject}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -239,8 +204,8 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-primary font-bold">
-                {project.project_key}
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                {project.name.substring(0, 2).toUpperCase()}
               </div>
               <div>
                 <CardTitle className="text-lg font-semibold text-primary line-clamp-1">
@@ -249,34 +214,21 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
                   </Link>
                 </CardTitle>
                 <CardDescription className="text-xs text-muted">
-                  {project.club_name}
+                  {project.club_name} • By {project.creator_name}
                 </CardDescription>
               </div>
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card border-custom">
-                <DropdownMenuItem asChild>
-                  <Link href={`/projects/${project.id}`} className="flex items-center text-primary hover:bg-accent">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View Details
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-primary hover:bg-accent">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Manage
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 hover:bg-red-50">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {isProjectCreator && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleDeleteProject}
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardHeader>
         
@@ -307,21 +259,25 @@ export default function ProjectCard({ project, viewMode, getStatusIcon, getPrior
           )}
           
           <div className="space-y-3">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-secondary">Progress</span>
-                <span className="font-medium text-primary">
-                  {project.progress_percentage}%
-                </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-secondary">Tasks:</span>
+                <div className="flex items-center space-x-3">
+                  <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {project.total_tasks} total
+                  </div>
+                  <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                    {project.completed_tasks} done
+                  </div>
+                </div>
               </div>
-              <Progress value={project.progress_percentage} className="h-2" />
             </div>
             
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center space-x-1">
                 <TrendingUp className="w-4 h-4 text-muted" />
                 <span className="text-secondary">
-                  {project.completed_tasks}/{project.total_tasks} tasks
+                  {project.completed_tasks}/{project.total_tasks} completed
                 </span>
               </div>
               <div className="flex items-center space-x-1">

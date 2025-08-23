@@ -9,9 +9,11 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 // GET /api/projects/[id] - Get project details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     // Verify authentication
     let token = request.headers.get("authorization");
     if (token?.startsWith("Bearer ")) {
@@ -35,7 +37,7 @@ export async function GET(
       );
     }
 
-    const result = await ProjectManagementService.getProjectDetails(params.id, decoded.userId);
+    const result = await ProjectManagementService.getProjectDetails(id, decoded.userId);
 
     if (!result.success) {
       return NextResponse.json(
@@ -45,7 +47,7 @@ export async function GET(
     }
 
     // Get task statistics
-    const taskStats = await TaskManagementService.getTaskStatistics(params.id);
+    const taskStats = await TaskManagementService.getTaskStatistics(id);
 
     return NextResponse.json({
       success: true,
@@ -65,7 +67,7 @@ export async function GET(
 // DELETE /api/projects/[id] - Delete project
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify authentication
@@ -91,7 +93,8 @@ export async function DELETE(
       );
     }
 
-    const projectId = params.id;
+    const resolvedParams = await params;
+    const projectId = resolvedParams.id;
 
     // Check user permissions
     const permissions = await ProjectPermissionService.getUserPermissions(decoded.userId, projectId);

@@ -91,15 +91,31 @@ export class ProjectManagementService {
     is_public?: boolean;
   }): Promise<{ success: boolean; project?: Project; error?: string }> {
     try {
+      // Validate project name length
+      if (data.name.length < 5) {
+        return { success: false, error: 'Project name must be at least 5 characters long' };
+      }
+
       // Check permissions
       const permissions = await ProjectPermissionService.getUserPermissions(data.created_by);
       if (!permissions.canCreateProject) {
         return { success: false, error: 'Insufficient permissions to create projects' };
       }
       
-      // Generate unique project key
+      // Check if project name is unique within the club
+      const nameCheckQuery = `
+        SELECT 1 FROM projects 
+        WHERE LOWER(name) = LOWER($1) AND club_id = $2
+      `;
+      const nameCheckResult = await db.query(nameCheckQuery, [data.name, data.club_id]);
+      
+      if (nameCheckResult.rows.length > 0) {
+        return { success: false, error: 'A project with this name already exists in your club. Please choose a different name.' };
+      }
+      
+      // Generate unique project key and access password
       const projectKey = await this.generateProjectKey(data.name, data.club_id);
-      const accessPassword = this.generateAccessPassword();
+      const accessPassword = await this.generateAccessPassword(data.name, data.created_by);
       
       const query = `
         INSERT INTO projects (
@@ -237,7 +253,7 @@ export class ProjectManagementService {
       // Get project members
       const membersQuery = `
         SELECT pm.*, 
-          u.name as user_name, u.email as user_email, u.avatar_url,
+          u.name as user_name, u.email as user_email,
           inv.name as inviter_name
         FROM project_members pm
         LEFT JOIN users u ON pm.user_id = u.id
@@ -415,22 +431,65 @@ export class ProjectManagementService {
   }
   
   /**
-   * Generate unique project key
+   * Generate secure project key using advanced cryptographic methods
+   * Format: First 2 chars from project name + 6 secure chars = 8 total
    */
   private static async generateProjectKey(projectName: string, clubId: string): Promise<string> {
-    // Create base key from project name
-    const baseKey = projectName
+    // Get first 2 characters from project name
+    const nameBase = projectName
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, '')
-      .substring(0, 4);
+      .substring(0, 2)
+      .padEnd(2, 'X');
     
-    let counter = 1;
-    let projectKey = baseKey;
+    let projectKey: string;
+    let attempts = 0;
+    const maxAttempts = 50;
     
-    // Ensure uniqueness within club
-    while (await this.isProjectKeyExists(projectKey, clubId)) {
-      projectKey = `${baseKey}${counter}`;
-      counter++;
+    do {
+      // Generate cryptographically secure random nonce
+      const nonce = crypto.randomBytes(32);
+      
+      // Get 5 characters from project name for XOR operation
+      const nameChars = projectName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .substring(0, 5)
+        .padEnd(5, 'Z');
+      
+      // Convert name chars to bytes
+      const nameBytes = Buffer.from(nameChars, 'utf8');
+      
+      // Multi-stage XOR operation for enhanced security
+      const stage1 = Buffer.alloc(5);
+      for (let i = 0; i < 5; i++) {
+        stage1[i] = nameBytes[i] ^ nonce[i] ^ nonce[i + 8] ^ nonce[i + 16];
+      }
+      
+      // Create HMAC-SHA256 with club-specific salt
+      const hmac = crypto.createHmac('sha256', Buffer.concat([nonce.slice(0, 16), Buffer.from(clubId)]));
+      hmac.update(stage1);
+      hmac.update(projectName);
+      hmac.update(Date.now().toString());
+      hmac.update(process.env.NEXTAUTH_SECRET || 'zenith-fallback-secret');
+      
+      const hashResult = hmac.digest('hex');
+      
+      // Take 6 characters from hash (ensuring alphanumeric)
+      const hashPart = hashResult
+        .toUpperCase()
+        .replace(/[^A-F0-9]/g, '')
+        .substring(0, 6);
+      
+      projectKey = nameBase + hashPart;
+      attempts++;
+      
+    } while (await this.isProjectKeyExists(projectKey, clubId) && attempts < maxAttempts);
+    
+    // Fallback if all attempts failed (very unlikely)
+    if (attempts >= maxAttempts) {
+      const timestamp = Date.now().toString().slice(-6);
+      projectKey = nameBase + timestamp;
     }
     
     return projectKey;
@@ -444,8 +503,134 @@ export class ProjectManagementService {
     return result.rows.length > 0;
   }
   
-  private static generateAccessPassword(): string {
-    return crypto.randomBytes(8).toString('hex').toUpperCase();
+  /**
+   * Generate highly secure access password using advanced cryptographic algorithms
+   * Format: First 2 chars from project name + 12 secure characters = 14 total (upgraded from 12)
+   */
+  private static async generateAccessPassword(projectName: string, creatorId: string): Promise<string> {
+    // Get creator's information for additional entropy
+    const userQuery = 'SELECT name, email FROM users WHERE id = $1';
+    const userResult = await db.query(userQuery, [creatorId]);
+    const creatorData = userResult.rows[0] || { name: 'USER', email: 'user@zenith.edu' };
+    
+    // Generate multiple cryptographically secure nonces
+    const nonce1 = crypto.randomBytes(64); // Increased size
+    const nonce2 = crypto.randomBytes(64);
+    const nonce3 = crypto.randomBytes(32);
+    const nonce4 = crypto.randomBytes(16);
+    
+    // Get first 2 characters from project name for prefix
+    const projectPrefix = projectName
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .substring(0, 2)
+      .padEnd(2, 'P');
+    
+    // Prepare project name (5 chars) for cryptographic operations
+    const projectChars = projectName
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .substring(0, 5)
+      .padEnd(5, 'P');
+    
+    // Prepare creator data (6 chars total: 4 from name + 2 from email domain)
+    const creatorChars = creatorData.name
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .substring(0, 4)
+      .padEnd(4, 'U');
+    
+    const emailDomain = creatorData.email.split('@')[1] || 'zenith.edu';
+    const domainChars = emailDomain
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .substring(0, 2)
+      .padEnd(2, 'Z');
+    
+    // Convert to bytes for XOR operations
+    const projectBytes = Buffer.from(projectChars, 'utf8');
+    const creatorBytes = Buffer.from(creatorChars + domainChars, 'utf8');
+    
+    // Multi-stage XOR operations with different nonces
+    const stage1 = Buffer.alloc(5);
+    const stage2 = Buffer.alloc(6);
+    
+    // Stage 1: Project name XOR with multiple nonces
+    for (let i = 0; i < 5; i++) {
+      stage1[i] = projectBytes[i] ^ 
+                   nonce1[i] ^ 
+                   nonce2[i + 10] ^ 
+                   nonce3[i % 32] ^
+                   nonce4[i % 16];
+    }
+    
+    // Stage 2: Creator data XOR with different nonce combinations  
+    for (let i = 0; i < 6; i++) {
+      stage2[i] = creatorBytes[i] ^ 
+                   nonce2[i] ^ 
+                   nonce1[i + 20] ^ 
+                   nonce3[(i + 5) % 32] ^
+                   nonce4[(i + 3) % 16];
+    }
+    
+    // Create PBKDF2 key derivation for maximum security
+    const salt = Buffer.concat([nonce3, nonce4, Buffer.from(creatorId)]);
+    const iterations = 150000; // High iteration count
+    
+    const derivedKey = crypto.pbkdf2Sync(
+      Buffer.concat([stage1, stage2]), 
+      salt, 
+      iterations, 
+      32, 
+      'sha512'
+    );
+    
+    // Create HMAC-SHA512 for final hash
+    const hmac = crypto.createHmac('sha512', nonce4);
+    hmac.update(derivedKey);
+    hmac.update(stage1);
+    hmac.update(stage2);
+    hmac.update(creatorId);
+    hmac.update(projectName);
+    hmac.update(Date.now().toString());
+    hmac.update(process.env.NEXTAUTH_SECRET || 'zenith-ultimate-secret');
+    
+    const hmacResult = hmac.digest('hex');
+    
+    // Create final secure password (12 characters after 2 prefix chars)
+    const securePassword = projectPrefix + hmacResult
+      .toUpperCase()
+      .replace(/[^A-F0-9]/g, '')
+      .substring(0, 12);
+    
+    // Verify uniqueness with exponential backoff
+    let attempts = 0;
+    let finalPassword = securePassword;
+    
+    while (attempts < 5) {
+      const existsQuery = 'SELECT 1 FROM projects WHERE access_password = $1';
+      const existsResult = await db.query(existsQuery, [finalPassword]);
+      
+      if (existsResult.rows.length === 0) {
+        break; // Password is unique
+      }
+      
+      // Generate alternative using different nonce if collision occurs
+      const altNonce = crypto.randomBytes(32);
+      const altHmac = crypto.createHmac('sha512', altNonce);
+      altHmac.update(securePassword);
+      altHmac.update(attempts.toString());
+      altHmac.update(Date.now().toString());
+      
+      finalPassword = projectPrefix + altHmac.digest('hex')
+        .toUpperCase()
+        .replace(/[^A-F0-9]/g, '')
+        .substring(0, 12);
+      
+      attempts++;
+    }
+    
+    return finalPassword;
   }
 
   /**

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import db from '@/lib/database';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get('Authorization');
     
@@ -13,7 +13,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     const userId = decoded.userId;
-    const projectId = params.id;
+    const resolvedParams = await params;
+    const projectId = resolvedParams.id;
 
     // Check if user has access to this project
     const accessQuery = `

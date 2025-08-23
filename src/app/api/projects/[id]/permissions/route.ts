@@ -4,11 +4,11 @@ import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('Authorization');
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -16,9 +16,7 @@ export async function GET(
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     const userId = decoded.userId;
-    const projectId = params.id;
-
-    // Get user's permissions for this specific project
+    const { id: projectId } = await params;    // Get user's permissions for this specific project
     const permissions = await ProjectPermissionService.getUserPermissions(userId, projectId);
     
     return NextResponse.json({

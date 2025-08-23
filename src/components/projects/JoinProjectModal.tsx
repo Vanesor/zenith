@@ -13,15 +13,20 @@ interface JoinProjectModalProps {
 }
 
 export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalProps) {
-  const [accessCode, setAccessCode] = useState('');
+  const [projectKey, setProjectKey] = useState('');
+  const [accessPassword, setAccessPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessCode.trim()) {
-      setError('Please enter an access code');
+    if (!projectKey.trim()) {
+      setError('Please enter a project key');
+      return;
+    }
+    if (!accessPassword.trim()) {
+      setError('Please enter the access password');
       return;
     }
 
@@ -37,7 +42,10 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ accessCode: accessCode.trim() }),
+        body: JSON.stringify({ 
+          projectKey: projectKey.trim(),
+          accessPassword: accessPassword.trim()
+        }),
       });
 
       const data = await response.json();
@@ -173,48 +181,86 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="space-y-4"
+                    className="space-y-6"
                   >
-                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                      <Key className="w-4 h-4 mr-2 text-blue-600" />
-                      Project Access Code
-                    </label>
-                    
-                    <div className="relative group">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "100%" }}
-                        transition={{ delay: 0.4, duration: 0.5 }}
-                        className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-lg"
-                      />
-                      <div className="relative">
-                        <Input
-                          value={accessCode}
-                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                          placeholder="PROJ-ABC123"
-                          className="h-14 text-center font-mono text-lg tracking-widest bg-main backdrop-blur-sm border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
-                          disabled={loading}
-                          autoFocus
-                        />
+                    {/* Project Key Field */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                        <Key className="w-4 h-4 mr-2 text-blue-600" />
+                        Project Key
+                      </label>
+                      
+                      <div className="relative group">
                         <motion.div
-                          animate={{ 
-                            opacity: accessCode ? 1 : 0.5,
-                            scale: accessCode ? 1.1 : 1 
-                          }}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2"
-                        >
-                          <Key className="w-5 h-5 text-gray-400" />
-                        </motion.div>
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ delay: 0.4, duration: 0.5 }}
+                          className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-lg"
+                        />
+                        <div className="relative">
+                          <Input
+                            value={projectKey}
+                            onChange={(e) => setProjectKey(e.target.value.toUpperCase())}
+                            placeholder="PROJEX123"
+                            className="h-14 text-center font-mono text-lg tracking-widest bg-main backdrop-blur-sm border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300"
+                            disabled={loading}
+                            autoFocus
+                          />
+                          <motion.div
+                            animate={{ 
+                              opacity: projectKey ? 1 : 0.5,
+                              scale: projectKey ? 1.1 : 1 
+                            }}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                          >
+                            <Key className="w-5 h-5 text-gray-400" />
+                          </motion.div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Access Password Field */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                        <Key className="w-4 h-4 mr-2 text-purple-600" />
+                        Access Password
+                      </label>
+                      
+                      <div className="relative group">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ delay: 0.5, duration: 0.5 }}
+                          className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-blue-500/20 rounded-2xl blur-lg"
+                        />
+                        <div className="relative">
+                          <Input
+                            value={accessPassword}
+                            onChange={(e) => setAccessPassword(e.target.value.toUpperCase())}
+                            placeholder="PROJUSERXXXX"
+                            className="h-14 text-center font-mono text-lg tracking-widest bg-main backdrop-blur-sm border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300"
+                            disabled={loading}
+                          />
+                          <motion.div
+                            animate={{ 
+                              opacity: accessPassword ? 1 : 0.5,
+                              scale: accessPassword ? 1.1 : 1 
+                            }}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                          >
+                            <Key className="w-5 h-5 text-purple-400" />
+                          </motion.div>
+                        </div>
                       </div>
                     </div>
                     
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
+                      transition={{ delay: 0.6 }}
                       className="text-sm text-gray-600 dark:text-gray-400 text-center"
                     >
-                      Ask your project coordinator for the access code
+                      Ask your project coordinator for both the project key and access password
                     </motion.p>
                   </motion.div>
 
@@ -237,7 +283,7 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
                         type="submit"
-                        disabled={loading || !accessCode.trim()}
+                        disabled={loading || !projectKey.trim() || !accessPassword.trim()}
                         className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-primary font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         {loading ? (

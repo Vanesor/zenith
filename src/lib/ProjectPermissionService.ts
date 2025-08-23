@@ -177,15 +177,27 @@ export class ProjectPermissionService {
   /**
    * Get list of users who can be invited to projects
    */
-  static async getInvitableUsers(inviterUserId: string, clubId?: string): Promise<any[]> {
+  static async getInvitableUsers(projectId: string): Promise<any[]> {
     try {
+      // First get the project's club
+      const projectQuery = `
+        SELECT club_id FROM projects WHERE id = $1
+      `;
+      const projectResult = await db.query(projectQuery, [projectId]);
+      
+      if (!projectResult.rows.length) {
+        return [];
+      }
+      
+      const clubId = projectResult.rows[0].club_id;
+      
+      // Get users who are not already project members
       let query = `
         SELECT 
           u.id,
           u.name,
           u.email,
           u.role,
-          u.avatar_url,
           CASE 
             WHEN cm.user_id IS NOT NULL THEN cr.name
             ELSE u.role 
@@ -193,10 +205,11 @@ export class ProjectPermissionService {
         FROM users u
         LEFT JOIN committee_members cm ON u.id = cm.user_id AND cm.status = 'active'
         LEFT JOIN committee_roles cr ON cm.role_id = cr.id
-        WHERE u.id != $1
+        LEFT JOIN project_members pm ON u.id = pm.user_id AND pm.project_id = $1
+        WHERE pm.user_id IS NULL
       `;
       
-      const params = [inviterUserId];
+      const params = [projectId];
       
       // If club specified, prioritize club members
       if (clubId) {

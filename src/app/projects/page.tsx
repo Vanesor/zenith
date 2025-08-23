@@ -35,6 +35,7 @@ interface Project {
   project_key: string;
   club_name: string;
   creator_name: string;
+  created_by: string;
   status: string;
   priority: string;
   progress_percentage: number;
@@ -172,7 +173,7 @@ export default function ProjectsPage() {
                 Project Management
               </h1>
               <p className="mt-2 text-lg text-secondary">
-                Manage your projects with enterprise-level efficiency
+                Manage your projects with Kanban boards and advanced task tracking
               </p>
             </div>
             
@@ -354,6 +355,7 @@ export default function ProjectsPage() {
                     getStatusIcon={getStatusIcon}
                     getPriorityColor={getPriorityColor}
                     onProjectUpdate={fetchProjects}
+                    currentUserId={user?.id}
                   />
                 </motion.div>
               ))}

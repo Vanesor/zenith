@@ -14,22 +14,22 @@ export async function POST(request: NextRequest) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     const userId = decoded.userId;
     
-    const { accessCode } = await request.json();
+    const { projectKey, accessPassword } = await request.json();
 
-    if (!accessCode) {
-      return NextResponse.json({ error: 'Access code is required' }, { status: 400 });
+    if (!projectKey || !accessPassword) {
+      return NextResponse.json({ error: 'Project key and access password are required' }, { status: 400 });
     }
 
-    // Find project by access password
+    // Find project by both project key and access password
     const projectQuery = `
-      SELECT id, name, access_password, creator_id
+      SELECT id, name, project_key, access_password, creator_id
       FROM projects 
-      WHERE access_password = $1 AND status != 'archived'
+      WHERE project_key = $1 AND access_password = $2 AND status != 'archived'
     `;
-    const projectResult = await db.query(projectQuery, [accessCode]);
+    const projectResult = await db.query(projectQuery, [projectKey, accessPassword]);
 
     if (projectResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Invalid access code' }, { status: 404 });
+      return NextResponse.json({ error: 'Invalid project key or access password' }, { status: 404 });
     }
 
     const project = projectResult.rows[0];
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Log the activity
     const activityQuery = `
       INSERT INTO project_activities (project_id, user_id, action, description, created_at)
-      VALUES ($1, $2, 'member_joined', 'User joined the project using access code', NOW())
+      VALUES ($1, $2, 'member_joined', 'User joined the project using project key and access password', NOW())
     `;
     await db.query(activityQuery, [project.id, userId]);
 

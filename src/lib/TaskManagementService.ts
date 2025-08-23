@@ -68,9 +68,9 @@ export class TaskManagementService {
       const query = `
         INSERT INTO tasks (
           project_id, title, description, task_key, task_type, priority,
-          assignee_id, reporter_id, parent_task_id, due_date, estimated_hours,
-          labels, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'todo')
+          assignee_id, reporter_id, parent_task_id, due_date,
+          status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'todo')
         RETURNING *
       `;
       
@@ -84,9 +84,7 @@ export class TaskManagementService {
         data.assignee_id,
         data.reporter_id,
         data.parent_task_id,
-        data.due_date,
-        data.estimated_hours,
-        JSON.stringify(data.labels || [])
+        data.due_date
       ]);
       
       const task = result.rows[0];
@@ -130,10 +128,8 @@ export class TaskManagementService {
         SELECT t.*,
           assignee.name as assignee_name,
           assignee.email as assignee_email,
-          assignee.avatar_url as assignee_avatar,
           reporter.name as reporter_name,
           reporter.email as reporter_email,
-          reporter.avatar_url as reporter_avatar,
           (SELECT COUNT(*) FROM tasks WHERE parent_task_id = t.id) as subtask_count,
           p.project_key
         FROM tasks t
@@ -500,6 +496,177 @@ export class TaskManagementService {
     } catch (error) {
       console.error('Error logging task activity:', error);
       // Don't fail the main operation if activity logging fails
+    }
+  }
+
+  /**
+   * Update task with multiple fields
+   */
+  static async updateTask(
+    taskId: string,
+    userId: string,
+    updateData: {
+      title?: string;
+      description?: string;
+      status?: string;
+      priority?: string;
+      assignee_id?: string;
+      due_date?: string;
+      estimated_hours?: number;
+      task_type?: string;
+    }
+  ): Promise<{ success: boolean; task?: any; error?: string }> {
+    try {
+      // Get current task
+      const currentTask = await db.query('SELECT * FROM tasks WHERE id = $1', [taskId]);
+      
+      if (currentTask.rows.length === 0) {
+        return { success: false, error: 'Task not found' };
+      }
+      
+      const task = currentTask.rows[0];
+      
+      // Check permissions
+      const permissions = await ProjectPermissionService.getUserPermissions(userId, task.project_id);
+      if (!permissions.canEditTasks) {
+        return { success: false, error: 'Insufficient permissions to update task' };
+      }
+      
+      // Build update query dynamically
+      const updateFields = [];
+      const updateValues = [];
+      let paramCounter = 1;
+      
+      if (updateData.title !== undefined) {
+        updateFields.push(`title = $${paramCounter}`);
+        updateValues.push(updateData.title);
+        paramCounter++;
+      }
+      
+      if (updateData.description !== undefined) {
+        updateFields.push(`description = $${paramCounter}`);
+        updateValues.push(updateData.description);
+        paramCounter++;
+      }
+      
+      if (updateData.status !== undefined) {
+        updateFields.push(`status = $${paramCounter}`);
+        updateValues.push(updateData.status);
+        paramCounter++;
+      }
+      
+      if (updateData.priority !== undefined) {
+        updateFields.push(`priority = $${paramCounter}`);
+        updateValues.push(updateData.priority);
+        paramCounter++;
+      }
+      
+      if (updateData.assignee_id !== undefined) {
+        updateFields.push(`assignee_id = $${paramCounter}`);
+        updateValues.push(updateData.assignee_id);
+        paramCounter++;
+      }
+      
+      if (updateData.due_date !== undefined) {
+        updateFields.push(`due_date = $${paramCounter}`);
+        updateValues.push(updateData.due_date);
+        paramCounter++;
+      }
+      
+      if (updateData.estimated_hours !== undefined) {
+        updateFields.push(`estimated_hours = $${paramCounter}`);
+        updateValues.push(updateData.estimated_hours);
+        paramCounter++;
+      }
+      
+      if (updateData.task_type !== undefined) {
+        updateFields.push(`task_type = $${paramCounter}`);
+        updateValues.push(updateData.task_type);
+        paramCounter++;
+      }
+      
+      if (updateFields.length === 0) {
+        return { success: false, error: 'No fields to update' };
+      }
+      
+      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+      updateValues.push(taskId);
+      
+      const updateQuery = `
+        UPDATE tasks 
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramCounter}
+        RETURNING *
+      `;
+      
+      const result = await db.query(updateQuery, updateValues);
+      const updatedTask = result.rows[0];
+      
+      // Update project task counts if status changed
+      if (updateData.status !== undefined) {
+        await this.updateProjectTaskCounts(task.project_id);
+      }
+      
+      // Log activities for changed fields
+      if (updateData.status !== undefined && updateData.status !== task.status) {
+        await this.logTaskActivity(taskId, userId, 'status_changed', 'status', task.status, updateData.status);
+      }
+      
+      if (updateData.assignee_id !== undefined && updateData.assignee_id !== task.assignee_id) {
+        const oldAssigneeName = task.assignee_id ? (await db.query('SELECT name FROM users WHERE id = $1', [task.assignee_id])).rows[0]?.name : 'Unassigned';
+        const newAssigneeName = updateData.assignee_id ? (await db.query('SELECT name FROM users WHERE id = $1', [updateData.assignee_id])).rows[0]?.name : 'Unassigned';
+        await this.logTaskActivity(taskId, userId, 'assignee_changed', 'assignee', oldAssigneeName, newAssigneeName);
+      }
+      
+      if (updateData.priority !== undefined && updateData.priority !== task.priority) {
+        await this.logTaskActivity(taskId, userId, 'priority_changed', 'priority', task.priority, updateData.priority);
+      }
+      
+      return { success: true, task: updatedTask };
+      
+    } catch (error) {
+      console.error('Error updating task:', error);
+      return { success: false, error: 'Failed to update task' };
+    }
+  }
+
+  /**
+   * Delete task
+   */
+  static async deleteTask(
+    taskId: string,
+    userId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Get current task
+      const currentTask = await db.query('SELECT * FROM tasks WHERE id = $1', [taskId]);
+      
+      if (currentTask.rows.length === 0) {
+        return { success: false, error: 'Task not found' };
+      }
+      
+      const task = currentTask.rows[0];
+      
+      // Check permissions
+      const permissions = await ProjectPermissionService.getUserPermissions(userId, task.project_id);
+      if (!permissions.canDeleteTasks) {
+        return { success: false, error: 'Insufficient permissions to delete task' };
+      }
+      
+      // Delete task (cascading will handle related records)
+      await db.query('DELETE FROM tasks WHERE id = $1', [taskId]);
+      
+      // Update project task counts
+      await this.updateProjectTaskCounts(task.project_id);
+      
+      // Log activity
+      await this.logTaskActivity(taskId, userId, 'task_deleted', null, null, null, `Task "${task.title}" was deleted`);
+      
+      return { success: true };
+      
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      return { success: false, error: 'Failed to delete task' };
     }
   }
 }

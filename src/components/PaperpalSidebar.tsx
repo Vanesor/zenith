@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Home,
+  Home,  
   Users,
   Calendar,
   BookOpen,
@@ -152,13 +152,34 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
     },
   ];
 
-  // Add admin access if user has proper role - Updated for club coordinators only
-  const hasAdminAccess = user && [
-    'coordinator', 
-    'co_coordinator', 
+  // Enhanced role-based access for admin features
+  const userRole = user?.role?.toLowerCase() || '';
+  
+  // Zenith Committee Members - can see admin panel for all clubs
+  const isZenithCommittee = user && [
+    'president',
+    'vice_president', 
+    'innovation_head',
+    'secretary',
+    'treasurer',
+    'outreach_coordinator',
+    'media_coordinator',
+    'zenith_committee'
+  ].includes(userRole);
+
+  // Club Coordinators - can see club management
+  const isClubCoordinator = user && [
+    'coordinator',
+    'co_coordinator',
     'club_coordinator',
     'co-coordinator'
-  ].includes(user.role?.toLowerCase() || '');
+  ].includes(userRole);
+
+  // System Admin - full access
+  const isSystemAdmin = userRole === 'admin';
+
+  // Any admin access (either club or system level)
+  const hasAdminAccess = isZenithCommittee || isClubCoordinator || isSystemAdmin;
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -451,22 +472,43 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                         Administration
                       </h3>
                       <div className="space-y-1">
-                        <Link
-                          href="/admin/club-management"
-                          className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                            isActive('/admin/club-management') || isActive('/admin')
-                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
-                              : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
-                          }`}
-                        >
-                          <Shield className={`w-5 h-5 mr-3 ${
-                            isActive('/admin/club-management') || isActive('/admin') ? 'text-purple-600' : 'zenith-text-muted'
-                          }`} />
-                          <div className="flex-1">
-                            <div className="font-medium">Club Management</div>
-                            <div className="text-xs zenith-text-muted">Manage clubs & members</div>
-                          </div>
-                        </Link>
+                        {(isZenithCommittee || isSystemAdmin) ? (
+                          // Zenith committee members and system admins see "Admin Panel" (all clubs)
+                          <Link
+                            href="/admin"
+                            className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                              isActive('/admin')
+                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                                : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
+                            }`}
+                          >
+                            <Shield className={`w-5 h-5 mr-3 ${
+                              isActive('/admin') ? 'text-purple-600' : 'zenith-text-muted'
+                            }`} />
+                            <div className="flex-1">
+                              <div className="font-medium">Admin Panel</div>
+                              <div className="text-xs zenith-text-muted">Manage all clubs</div>
+                            </div>
+                          </Link>
+                        ) : (
+                          // Club coordinators see "Club Management" (their specific club)
+                          <Link
+                            href="/club-management"
+                            className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                              isActive('/club-management')
+                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                                : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
+                            }`}
+                          >
+                            <Shield className={`w-5 h-5 mr-3 ${
+                              isActive('/club-management') ? 'text-purple-600' : 'zenith-text-muted'
+                            }`} />
+                            <div className="flex-1">
+                              <div className="font-medium">Club Management</div>
+                              <div className="text-xs zenith-text-muted">Manage your club</div>
+                            </div>
+                          </Link>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -479,19 +521,37 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                       transition={{ delay: 0.5 }}
                       className="mt-4"
                     >
-                      <Link
-                        href="/admin/club-management"
-                        className={`flex items-center justify-center w-12 h-12 mx-auto rounded-lg transition-colors ${
-                          isActive('/admin/club-management') || isActive('/admin')
-                            ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
-                            : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
-                        }`}
-                        title="Club Management"
-                      >
-                        <Shield className={`w-6 h-6 ${
-                          isActive('/admin/club-management') || isActive('/admin') ? 'text-purple-600' : 'zenith-text-muted'
-                        }`} />
-                      </Link>
+                      {(isZenithCommittee || isSystemAdmin) ? (
+                        // Zenith committee members and system admins see "Admin Panel" icon
+                        <Link
+                          href="/admin"
+                          className={`flex items-center justify-center w-12 h-12 mx-auto rounded-lg transition-colors ${
+                            isActive('/admin')
+                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                              : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
+                          }`}
+                          title="Admin Panel"
+                        >
+                          <Shield className={`w-6 h-6 ${
+                            isActive('/admin') ? 'text-purple-600' : 'zenith-text-muted'
+                          }`} />
+                        </Link>
+                      ) : (
+                        // Club coordinators see "Club Management" icon
+                        <Link
+                          href="/club-management"
+                          className={`flex items-center justify-center w-12 h-12 mx-auto rounded-lg transition-colors ${
+                            isActive('/club-management')
+                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                              : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
+                          }`}
+                          title="Club Management"
+                        >
+                          <Shield className={`w-6 h-6 ${
+                            isActive('/club-management') ? 'text-purple-600' : 'zenith-text-muted'
+                          }`} />
+                        </Link>
+                      )}
                     </motion.div>
                   )}
                 </div>

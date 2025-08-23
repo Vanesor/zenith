@@ -25,6 +25,12 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [projectResult, setProjectResult] = useState<{
+    project_key: string;
+    access_password: string;
+    name: string;
+  } | null>(null);
   const [permissions, setPermissions] = useState<any>(null);
   const [permissionsLoading, setPermissionsLoading] = useState(true);
   const [clubs, setClubs] = useState<any[]>([]);
@@ -81,6 +87,15 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess(false);
+    setProjectResult(null);
+
+    // Validate project name length
+    if (formData.name.length < 5) {
+      setError('Project name must be at least 5 characters long');
+      setLoading(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem('zenith-token');
@@ -96,7 +111,14 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
       const data = await response.json();
 
       if (response.ok) {
-        onProjectCreated();
+        setSuccess(true);
+        setProjectResult({
+          project_key: data.project.project_key,
+          access_password: data.project.access_password,
+          name: data.project.name
+        });
+        
+        // Reset form for next use
         setFormData({
           name: '',
           description: '',
@@ -106,8 +128,14 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
           target_end_date: '',
           is_public: false
         });
+        
+        // Don't close modal immediately - show success message first
       } else {
-        setError(data.error || 'Failed to create project');
+        if (data.error?.includes('unique constraint') || data.error?.includes('already exists')) {
+          setError('A project with this name already exists. Please choose a different name.');
+        } else {
+          setError(data.error || 'Failed to create project');
+        }
       }
     } catch (error) {
       setError('Failed to create project');
@@ -273,7 +301,94 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     </motion.div>
                   )}
 
-                  {/* Form Grid */}
+                  {success && projectResult && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      className="p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl"
+                    >
+                      <div className="flex items-center space-x-3 mb-4">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 0.5 }}
+                          className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center"
+                        >
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </motion.div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-green-800 dark:text-green-300">
+                            Project Created Successfully!
+                          </h3>
+                          <p className="text-green-600 dark:text-green-400 text-sm">
+                            {projectResult.name} has been created
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-green-200 dark:border-green-700">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Project Key
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <code className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg font-mono text-lg font-bold text-blue-600 dark:text-blue-400">
+                              {projectResult.project_key}
+                            </code>
+                            <button
+                              type="button"
+                              onClick={() => navigator.clipboard.writeText(projectResult.project_key)}
+                              className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-green-200 dark:border-green-700">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Access Password
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <code className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg font-mono text-lg font-bold text-purple-600 dark:text-purple-400">
+                              {projectResult.access_password}
+                            </code>
+                            <button
+                              type="button"
+                              onClick={() => navigator.clipboard.writeText(projectResult.access_password)}
+                              className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          <strong>Important:</strong> Save these credentials! Team members will need both the Project Key and Access Password to join this project.
+                        </p>
+                      </div>
+                      
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onProjectCreated();
+                            setSuccess(false);
+                            setProjectResult(null);
+                          }}
+                          className="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                        >
+                          Got it, Close
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Form Grid - only show when not in success state */}
+                  {!success && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column */}
                     <div className="space-y-6">
@@ -440,8 +555,10 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                       </motion.div>
                     </div>
                   </div>
+                  )}
 
-                  {/* Public Option */}
+                  {/* Public Option - only show when not in success state */}
+                  {!success && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -484,8 +601,10 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                       </div>
                     </div>
                   </motion.div>
+                  )}
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons - only show when not in success state */}
+                  {!success && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -525,6 +644,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                       </Button>
                     </motion.div>
                   </motion.div>
+                  )}
                 </motion.form>
               )}
             </div>

@@ -1,0 +1,1 @@
+I'll restore the CreateProjectModal by just making the simple change - remove the onProjectCreated() call and add a close button in the success message.

@@ -1,188 +1,372 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Users, 
-  Calendar, 
-  Target, 
-  TrendingUp, 
-  Plus,
-  Settings,
-  Mail,
-  Key,
-  Filter,
-  Search,
-  Grid3X3,
-  List,
-  CheckCircle,
-  Circle,
-  PlayCircle,
-  PauseCircle,
-  Clock,
-  Flag,
-  User
-} from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import TaskCard from '@/components/projects/TaskCard';
-import CreateTaskModal from '@/components/projects/CreateTaskModal';
-import InviteMemberModal from '@/components/projects/InviteMemberModal';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  assignee_name?: string;
-  assignee_id?: string;
-  created_at: string;
-  due_date?: string;
-  task_key: string;
-}
+import { Textarea } from '@/components/ui/textarea';
+import { toast as notify } from 'react-hot-toast';
+import { 
+  Users, 
+  Settings, 
+  Key, 
+  Copy, 
+  Mail, 
+  UserPlus, 
+  Calendar,
+  CheckCircle,
+  Target,
+  Trash2,
+  Edit,
+  X
+} from 'lucide-react';
+import KanbanBoard from '@/components/projects/KanbanBoard';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Project {
   id: string;
   name: string;
   description: string;
   project_key: string;
-  club_name: string;
+  access_password: string;
+  created_by: string;
   creator_name: string;
-  status: string;
-  priority: string;
-  progress_percentage: number;
   total_tasks: number;
   completed_tasks: number;
   member_count: number;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'planning' | 'active' | 'on_hold' | 'completed';
   created_at: string;
-  target_end_date?: string;
-  access_password?: string;
+  due_date?: string;
+  invite_key?: string;
+}
+
+interface Member {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  status: 'joined' | 'invited' | 'pending';
+  joined_at?: string;
+  permissions?: {
+    can_delete_tasks: boolean;
+    can_manage_team: boolean;
+    can_view_share_keys: boolean;
+    can_edit_project: boolean;
+  };
+}
+
+interface ProjectPermissions {
+  isOwner: boolean;
+  canManageTeam: boolean;
+  canDeleteTasks: boolean;
+  canViewShareKeys: boolean;
+  canEditProject: boolean;
 }
 
 export default function ProjectDetailPage() {
-  const { id } = useParams();
-  const router = useRouter();
+  const params = useParams();
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [userPermissions, setUserPermissions] = useState<any>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [projectDueDate, setProjectDueDate] = useState('');
+  const [activeTab, setActiveTab] = useState('board');
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [isEditingDueDate, setIsEditingDueDate] = useState(false);
+  const [managingMemberId, setManagingMemberId] = useState<string | null>(null);
+
+  const tabButtons = [
+    { id: 'board', label: 'Kanban Board' },
+    { id: 'team', label: 'Team & Timeline' },
+    { id: 'share', label: 'Share Keys' },
+    { id: 'settings', label: 'Settings' }
+  ];
+
+  const projectId = params.id as string;
 
   useEffect(() => {
-    if (id) {
-      fetchProjectDetails();
-      fetchTasks();
+    if (projectId && user) {
+      loadProject();
+      loadMembers();
     }
-  }, [id]);
+  }, [projectId, user]);
 
-  const fetchProjectDetails = async () => {
+  useEffect(() => {
+    if (project && user) {
+      calculateUserPermissions();
+    }
+  }, [project, user, members]);
+
+  const calculateUserPermissions = () => {
+    if (!project || !user) return;
+    
+    const isOwner = project.created_by === user.id;
+    const currentMember = members.find(m => m.user_id === user.id);
+    
+    setUserPermissions({
+      isOwner,
+      canManageTeam: isOwner || currentMember?.role === 'admin',
+      canDeleteTasks: isOwner || currentMember?.permissions?.can_delete_tasks || false,
+      canViewShareKeys: isOwner || currentMember?.permissions?.can_view_share_keys || false,
+      canEditProject: isOwner || currentMember?.role === 'admin'
+    });
+  };
+
+  const loadProject = async () => {
     try {
-      const token = localStorage.getItem('zenith-token');
-      const response = await fetch(`/api/projects/${id}`, {
+      const response = await fetch(`/api/projects/${projectId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        }
       });
 
       if (response.ok) {
         const data = await response.json();
-        setProject(data.project);
-        setUserPermissions(data.permissions);
-      } else if (response.status === 404) {
-        router.push('/projects');
+        const projectData = data.project || data;
+        setProject(projectData);
+        setEditDescription(projectData.description || '');
+        setProjectDueDate(projectData.due_date || '');
+      } else {
+        notify.error('Failed to load project');
       }
     } catch (error) {
-      console.error('Error fetching project details:', error);
+      console.error('Error loading project:', error);
+      notify.error('Error loading project');
     }
   };
 
-  const fetchTasks = async () => {
+  const loadMembers = async () => {
     try {
-      const token = localStorage.getItem('zenith-token');
-      const response = await fetch(`/api/projects/${id}/tasks`, {
+      const response = await fetch(`/api/projects/${projectId}/members`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        }
       });
 
       if (response.ok) {
         const data = await response.json();
-        setTasks(data.tasks);
+        setMembers(data.members || []);
       }
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      console.error('Error loading members:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.task_key.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const handleInviteUser = async () => {
+    if (!inviteEmail.trim()) {
+      notify.error('Please enter an email address');
+      return;
+    }
 
-  const getStatusIcon = (status: string) => {
+    if (!userPermissions?.canManageTeam) {
+      notify.error('You do not have permission to invite members');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/invite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        },
+        body: JSON.stringify({ email: inviteEmail })
+      });
+
+      if (response.ok) {
+        notify.success('Invitation sent successfully');
+        setInviteEmail('');
+        loadMembers();
+      } else {
+        const errorData = await response.json();
+        notify.error(errorData.message || 'Failed to send invitation');
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      notify.error('Error sending invitation');
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!userPermissions?.canManageTeam) {
+      notify.error('You do not have permission to remove members');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/members/${memberId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        }
+      });
+
+      if (response.ok) {
+        notify.success('Member removed successfully');
+        loadMembers();
+      } else {
+        notify.error('Failed to remove member');
+      }
+    } catch (error) {
+      console.error('Error removing member:', error);
+      notify.error('Error removing member');
+    }
+  };
+
+  const handleUpdateMemberRole = async (memberId: string, newRole: string) => {
+    if (!userPermissions?.canManageTeam) {
+      notify.error('You do not have permission to change member roles');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/members/${memberId}/role`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+
+      if (response.ok) {
+        notify.success('Member role updated successfully');
+        loadMembers();
+        setManagingMemberId(null);
+      } else {
+        notify.error('Failed to update member role');
+      }
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      notify.error('Error updating member role');
+    }
+  };
+
+  const handleUpdateProjectDescription = async () => {
+    if (!userPermissions?.canEditProject) {
+      notify.error('You do not have permission to edit this project');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        },
+        body: JSON.stringify({ description: editDescription })
+      });
+
+      if (response.ok) {
+        notify.success('Project description updated');
+        setProject(prev => prev ? { ...prev, description: editDescription } : null);
+        setIsEditingDescription(false);
+      } else {
+        notify.error('Failed to update description');
+      }
+    } catch (error) {
+      console.error('Error updating description:', error);
+      notify.error('Error updating description');
+    }
+  };
+
+    const handleUpdateProjectDueDate = async () => {
+    if (!userPermissions?.canEditProject) {
+      notify.error('You do not have permission to edit this project');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        },
+        body: JSON.stringify({ due_date: projectDueDate })
+      });
+
+      if (response.ok) {
+        notify.success('Due date updated successfully');
+        setProject(prev => prev ? { ...prev, due_date: projectDueDate } : null);
+        setIsEditingDueDate(false);
+      } else {
+        notify.error('Failed to update due date');
+      }
+    } catch (error) {
+      console.error('Error updating due date:', error);
+      notify.error('Error updating due date');
+    }
+  };
+
+  const handleUpdateProjectStatus = async (newStatus: string) => {
+    if (!userPermissions?.canEditProject) {
+      notify.error('You do not have permission to edit this project');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        notify.success('Project status updated successfully');
+        setProject(prev => prev ? { ...prev, status: newStatus as any } : null);
+      } else {
+        notify.error('Failed to update project status');
+      }
+    } catch (error) {
+      console.error('Error updating project status:', error);
+      notify.error('Error updating project status');
+    }
+  };
+
+  const [copiedItem, setCopiedItem] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      notify.success(`${label} copied to clipboard`);
+      setCopiedItem(label);
+      setTimeout(() => setCopiedItem(null), 2000);
+    } catch (error) {
+      notify.error('Failed to copy to clipboard');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'todo':
-        return <Circle className="w-4 h-4 text-gray-500" />;
-      case 'in_progress':
-        return <PlayCircle className="w-4 h-4 text-blue-500" />;
-      case 'in_review':
-        return <PauseCircle className="w-4 h-4 text-yellow-500" />;
-      case 'done':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      default:
-        return <Circle className="w-4 h-4 text-gray-500" />;
+      case 'planning': return 'bg-blue-500';
+      case 'active': return 'bg-green-500';
+      case 'on_hold': return 'bg-yellow-500';
+      case 'completed': return 'bg-purple-500';
+      default: return 'bg-gray-500';
     }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'high':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'medium':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'low':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
-
-  const tasksByStatus = {
-    todo: filteredTasks.filter(t => t.status === 'todo'),
-    in_progress: filteredTasks.filter(t => t.status === 'in_progress'),
-    in_review: filteredTasks.filter(t => t.status === 'in_review'),
-    done: filteredTasks.filter(t => t.status === 'done'),
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-zenith-main">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zenith-brand mx-auto"></div>
+          <p className="mt-4 text-zenith-secondary">Loading project...</p>
         </div>
       </div>
     );
@@ -190,363 +374,690 @@ export default function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-primary">Project not found</h1>
-            <Link href="/projects">
-              <Button className="mt-4">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Projects
-              </Button>
-            </Link>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-zenith-main">
+        <div className="text-center">
+          <p className="text-xl font-semibold text-zenith-primary">Project not found</p>
+          <p className="text-zenith-secondary">The project you're looking for doesn't exist or you don't have access.</p>
         </div>
       </div>
     );
   }
 
+  // Only show share keys tab if user has permission
+  const availableTabs = tabButtons.filter(tab => {
+    if (tab.id === 'share') {
+      return userPermissions?.canViewShareKeys;
+    }
+    return true;
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex items-center space-x-4">
-              <Link href="/projects">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
-              <div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-primary font-bold text-lg">
-                    {project.project_key}
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-primary">
-                      {project.name}
-                    </h1>
-                    <p className="mt-1 text-gray-600 dark:text-gray-300">
-                      {project.club_name} • Created by {project.creator_name}
-                    </p>
-                  </div>
-                </div>
-              </div>
+    <div className="min-h-screen bg-zenith-main">
+      <div className="container mx-auto px-4 py-8">
+        {/* Project Header */}
+        <div className="bg-zenith-card rounded-xl border border-zenith-border p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-zenith-primary">{project.name}</h1>
+              <p className="text-zenith-secondary mt-2">{project.description || 'No description available'}</p>
             </div>
-            
-            <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-              {userPermissions?.canInviteMembers && (
-                <Button
-                  onClick={() => setShowInviteModal(true)}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Invite
-                </Button>
-              )}
-              {project.access_password && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigator.clipboard.writeText(project.access_password || '')}
-                >
-                  <Key className="w-4 h-4 mr-2" />
-                  Copy Key
-                </Button>
-              )}
-              {userPermissions?.canCreateTasks && (
-                <Button
-                  onClick={() => setShowCreateTaskModal(true)}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Task
-                </Button>
-              )}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Project Info Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-        >
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Target className="h-8 w-8 text-blue-600" />
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-green-600" />
+                  <span className="text-sm font-medium text-zenith-secondary">Progress</span>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Progress</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-primary">{project.progress_percentage}%</p>
-                </div>
+                <p className="text-xl font-bold text-zenith-primary">
+                  {project.completed_tasks || 0}/{project.total_tasks || 0}
+                </p>
               </div>
-              <div className="mt-4">
-                <Progress value={project.progress_percentage} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <TrendingUp className="h-8 w-8 text-green-600" />
+              <div className="text-center">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm font-medium text-zenith-secondary">Members</span>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tasks</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-primary">
-                    {project.completed_tasks}/{project.total_tasks}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Users className="h-8 w-8 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Team</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-primary">{project.member_count}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Calendar className="h-8 w-8 text-orange-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Due Date</p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-primary">
-                    {project.target_end_date 
-                      ? new Date(project.target_end_date).toLocaleDateString()
-                      : 'Not set'
-                    }
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Task Board */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg mb-6">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="text-xl font-bold text-gray-900 dark:text-primary">
-                    Task Board
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">
-                    Manage and track your project tasks
-                  </CardDescription>
-                </div>
-                
-                <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Search tasks..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                  
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-primary"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="todo">To Do</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="in_review">In Review</option>
-                    <option value="done">Done</option>
-                  </select>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Kanban Board */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* To Do Column */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Circle className="w-4 h-4 text-gray-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-primary">To Do</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {tasksByStatus.todo.length}
-                  </Badge>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {tasksByStatus.todo.map((task, index) => (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <TaskCard 
-                      task={task} 
-                      getStatusIcon={getStatusIcon}
-                      getPriorityColor={getPriorityColor}
-                      onTaskUpdate={fetchTasks}
-                      userPermissions={userPermissions}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* In Progress Column */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <PlayCircle className="w-4 h-4 text-blue-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-primary">In Progress</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {tasksByStatus.in_progress.length}
-                  </Badge>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {tasksByStatus.in_progress.map((task, index) => (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <TaskCard 
-                      task={task} 
-                      getStatusIcon={getStatusIcon}
-                      getPriorityColor={getPriorityColor}
-                      onTaskUpdate={fetchTasks}
-                      userPermissions={userPermissions}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* In Review Column */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <PauseCircle className="w-4 h-4 text-yellow-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-primary">In Review</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {tasksByStatus.in_review.length}
-                  </Badge>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {tasksByStatus.in_review.map((task, index) => (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <TaskCard 
-                      task={task} 
-                      getStatusIcon={getStatusIcon}
-                      getPriorityColor={getPriorityColor}
-                      onTaskUpdate={fetchTasks}
-                      userPermissions={userPermissions}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Done Column */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-primary">Done</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {tasksByStatus.done.length}
-                  </Badge>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {tasksByStatus.done.map((task, index) => (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <TaskCard 
-                      task={task} 
-                      getStatusIcon={getStatusIcon}
-                      getPriorityColor={getPriorityColor}
-                      onTaskUpdate={fetchTasks}
-                      userPermissions={userPermissions}
-                    />
-                  </motion.div>
-                ))}
+                <p className="text-xl font-bold text-zenith-primary">{members.length}</p>
               </div>
             </div>
           </div>
-        </motion.div>
+          
+          {/* Tab Navigation */}
+          <div className="border-b border-zenith-border">
+            <nav className="-mb-px flex space-x-8">
+              {availableTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-zenith-brand text-zenith-brand'
+                      : 'border-transparent text-zenith-secondary hover:text-zenith-primary hover:border-gray-300'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="space-y-6">
+          {activeTab === 'board' && (
+            <KanbanBoard 
+              projectId={projectId} 
+              userPermissions={userPermissions}
+            />
+          )}
+
+          {activeTab === 'team' && (
+            <div className="space-y-6">
+              {/* Invite Members - Only show if user can manage team */}
+              {userPermissions?.canManageTeam && (
+                <Card className="bg-zenith-card border-zenith-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                      <UserPlus className="h-5 w-5" />
+                      Invite Team Members
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="Enter email address to invite..."
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleInviteUser()}
+                        className="bg-zenith-main border-zenith-border focus:border-zenith-brand focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <Button 
+                        onClick={handleInviteUser}
+                        className="bg-zenith-brand hover:bg-blue-700 text-white"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Invite
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Current Members */}
+              <Card className="bg-zenith-card border-zenith-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                    <Users className="h-5 w-5" />
+                    Team Members ({members.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {members.map((member) => (
+                      <motion.div
+                        key={member.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="group"
+                      >
+                        <Card className="bg-zenith-main border-zenith-border hover:shadow-md transition-all duration-200">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                                    {member.name.substring(0, 2).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-zenith-primary">{member.name}</p>
+                                    <p className="text-xs text-zenith-secondary">{member.email}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ${
+                                      member.role === 'owner' ? 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-400' :
+                                      member.role === 'admin' ? 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400' :
+                                      member.role === 'member' ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400' :
+                                      'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-400'
+                                    }`}
+                                  >
+                                    {member.role}
+                                  </Badge>
+                                  <Badge 
+                                    variant="outline"
+                                    className={`text-xs ${
+                                      member.status === 'joined' ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400' :
+                                      member.status === 'invited' ? 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                      'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-400'
+                                    }`}
+                                  >
+                                    {member.status}
+                                  </Badge>
+                                  {member.user_id === project.created_by && (
+                                    <Badge className="text-xs bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400">
+                                      Creator
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {managingMemberId === member.id ? (
+                                <div className="flex flex-col gap-2">
+                                  <select
+                                    value={member.role}
+                                    onChange={(e) => handleUpdateMemberRole(member.id, e.target.value)}
+                                    className="px-2 py-1 border border-zenith-border rounded bg-zenith-main text-zenith-primary text-xs"
+                                  >
+                                    <option value="viewer">Viewer</option>
+                                    <option value="member">Member</option>
+                                    <option value="admin">Admin</option>
+                                    {userPermissions?.isOwner && <option value="owner">Owner</option>}
+                                  </select>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setManagingMemberId(null)}
+                                    className="border-zenith-border hover:bg-zenith-hover text-xs h-7"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {userPermissions?.canManageTeam && member.user_id !== user?.id && member.user_id !== project.created_by && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setManagingMemberId(member.id)}
+                                        className="border-zenith-border hover:bg-zenith-hover text-xs h-7"
+                                      >
+                                        <Settings className="h-3 w-3 mr-1" />
+                                        Manage
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-300 text-xs h-7"
+                                        onClick={() => handleRemoveMember(member.id)}
+                                      >
+                                        <Trash2 className="h-3 w-3 mr-1" />
+                                        Remove
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'share' && userPermissions?.canViewShareKeys && (
+            <Card className="bg-zenith-card border-zenith-border">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                  <Key className="h-5 w-5" />
+                  Project Access Keys
+                </CardTitle>
+                <p className="text-sm text-zenith-secondary mt-2">
+                  Share these credentials with team members to give them access to the project
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-zenith-primary">Project Key</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={project.project_key} 
+                        readOnly 
+                        className="font-mono bg-zenith-main border-zenith-border" 
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copyToClipboard(project.project_key, 'Project key')}
+                        className="border-zenith-border hover:bg-zenith-hover"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-zenith-primary">Access Password</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={project.access_password} 
+                        readOnly 
+                        className="font-mono bg-zenith-main border-zenith-border" 
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copyToClipboard(project.access_password, 'Access password')}
+                        className="border-zenith-border hover:bg-zenith-hover"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Important:</strong> Keep these credentials secure. Anyone with access to both the project key and password can join your project.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'share' && userPermissions?.canViewShareKeys && (
+            <div className="space-y-6">
+              <Card className="bg-zenith-card border-zenith-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                    <Key className="h-5 w-5" />
+                    Project Access Credentials
+                  </CardTitle>
+                  <p className="text-sm text-zenith-secondary mt-2">
+                    Share these credentials with team members to give them access to the project
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <Card className="bg-zenith-main border-zenith-border">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <label className="text-sm font-medium text-zenith-primary flex items-center gap-2">
+                              <Key className="h-4 w-4" />
+                              Project Key
+                            </label>
+                            <div className="flex gap-2">
+                              <Input 
+                                value={project.project_key} 
+                                readOnly 
+                                className="font-mono bg-zenith-card border-zenith-border text-zenith-primary" 
+                              />
+                              <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => copyToClipboard(project.project_key, 'Project key')}
+                                  className="border-zenith-border hover:bg-zenith-hover"
+                                >
+                                  <motion.div
+                                    initial={false}
+                                    animate={{ 
+                                      rotate: copiedItem === 'Project key' ? 360 : 0,
+                                      scale: copiedItem === 'Project key' ? 1.2 : 1
+                                    }}
+                                    transition={{ duration: 0.5 }}
+                                  >
+                                    <Copy className={`h-4 w-4 ${copiedItem === 'Project key' ? 'text-green-600' : ''}`} />
+                                  </motion.div>
+                                </Button>
+                              </motion.div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <Card className="bg-zenith-main border-zenith-border">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <label className="text-sm font-medium text-zenith-primary flex items-center gap-2">
+                              <Settings className="h-4 w-4" />
+                              Access Password
+                            </label>
+                            <div className="flex gap-2">
+                              <Input 
+                                value={project.access_password} 
+                                readOnly 
+                                className="font-mono bg-zenith-card border-zenith-border text-zenith-primary" 
+                              />
+                              <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => copyToClipboard(project.access_password, 'Access password')}
+                                  className="border-zenith-border hover:bg-zenith-hover"
+                                >
+                                  <motion.div
+                                    initial={false}
+                                    animate={{ 
+                                      rotate: copiedItem === 'Access password' ? 360 : 0,
+                                      scale: copiedItem === 'Access password' ? 1.2 : 1
+                                    }}
+                                    transition={{ duration: 0.5 }}
+                                  >
+                                    <Copy className={`h-4 w-4 ${copiedItem === 'Access password' ? 'text-green-600' : ''}`} />
+                                  </motion.div>
+                                </Button>
+                              </motion.div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </div>
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                  >
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      <strong>Important:</strong> Keep these credentials secure. Anyone with access to both the project key and password can join your project.
+                    </p>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              {/* Project Status */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card className="bg-zenith-card border-zenith-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                      <Target className="h-5 w-5" />
+                      Project Status
+                    </CardTitle>
+                    <p className="text-sm text-zenith-secondary">Update the current status of your project</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { value: 'planning', label: 'Planning', icon: '📋', color: 'bg-blue-500' },
+                        { value: 'active', label: 'In Progress', icon: '⚡', color: 'bg-green-500' },
+                        { value: 'on_hold', label: 'On Hold', icon: '⏸️', color: 'bg-yellow-500' },
+                        { value: 'completed', label: 'Finished', icon: '✅', color: 'bg-purple-500' }
+                      ].map((status) => (
+                        <motion.div
+                          key={status.value}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <button
+                            onClick={() => handleUpdateProjectStatus(status.value)}
+                            disabled={!userPermissions?.canEditProject}
+                            className={`w-full p-4 rounded-lg border-2 transition-all duration-200 ${
+                              project.status === status.value
+                                ? `${status.color} text-white border-transparent shadow-lg`
+                                : 'bg-zenith-main border-zenith-border hover:border-zenith-brand text-zenith-primary hover:bg-zenith-hover'
+                            } ${!userPermissions?.canEditProject ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          >
+                            <div className="text-2xl mb-2">{status.icon}</div>
+                            <div className="font-medium text-sm">{status.label}</div>
+                          </button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Project Description */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="bg-zenith-card border-zenith-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                      <Edit className="h-5 w-5" />
+                      Project Description
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isEditingDescription ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-3"
+                      >
+                        <Textarea
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          placeholder="Enter project description..."
+                          className="bg-zenith-main border-zenith-border focus:border-zenith-brand focus:ring-2 focus:ring-blue-500/20 min-h-[100px]"
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={handleUpdateProjectDescription}
+                            className="bg-zenith-brand hover:bg-blue-700 text-white"
+                            disabled={!userPermissions?.canEditProject}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Save Changes
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setIsEditingDescription(false);
+                              setEditDescription(project.description || '');
+                            }}
+                            className="border-zenith-border hover:bg-zenith-hover"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="p-4 bg-zenith-main border border-zenith-border rounded-lg">
+                          <p className="text-zenith-primary">
+                            {project.description || 'No description available'}
+                          </p>
+                        </div>
+                        {userPermissions?.canEditProject && (
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsEditingDescription(true)}
+                            className="border-zenith-border hover:bg-zenith-hover"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Description
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Project Due Date */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="bg-zenith-card border-zenith-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                      <Calendar className="h-5 w-5" />
+                      Project Due Date
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isEditingDueDate ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-3"
+                      >
+                        <Input
+                          type="date"
+                          value={projectDueDate}
+                          onChange={(e) => setProjectDueDate(e.target.value)}
+                          className="bg-zenith-main border-zenith-border focus:border-zenith-brand focus:ring-2 focus:ring-blue-500/20"
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={handleUpdateProjectDueDate}
+                            className="bg-zenith-brand hover:bg-blue-700 text-white"
+                            disabled={!userPermissions?.canEditProject}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Save Date
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setIsEditingDueDate(false);
+                              setProjectDueDate(project.due_date || '');
+                            }}
+                            className="border-zenith-border hover:bg-zenith-hover"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-4 bg-zenith-main border border-zenith-border rounded-lg">
+                          {project.due_date ? (
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                <Calendar className="h-5 w-5 text-orange-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-zenith-primary">
+                                  {new Date(project.due_date).toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </p>
+                                <p className="text-sm text-orange-600">
+                                  Tentative due date from project creation
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                <Calendar className="h-5 w-5 text-gray-500" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-zenith-primary">No due date set</p>
+                                <p className="text-sm text-zenith-secondary">
+                                  Set a deadline to track project progress
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {userPermissions?.canEditProject && (
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsEditingDueDate(true)}
+                            className="border-zenith-border hover:bg-zenith-hover"
+                          >
+                            <Calendar className="h-4 w-4 mr-2" />
+                            {project.due_date ? 'Set New Due Date' : 'Set Due Date'}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Project Information */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card className="bg-zenith-card border-zenith-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-zenith-primary">
+                      <Settings className="h-5 w-5" />
+                      Project Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium text-zenith-primary">Project Name</label>
+                        <div className="p-3 bg-zenith-main border border-zenith-border rounded-lg">
+                          <p className="font-medium text-zenith-primary">{project.name}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium text-zenith-primary">Created By</label>
+                        <div className="p-3 bg-zenith-main border border-zenith-border rounded-lg">
+                          <p className="text-zenith-primary">{project.creator_name}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium text-zenith-primary">Created Date</label>
+                        <div className="p-3 bg-zenith-main border border-zenith-border rounded-lg">
+                          <p className="text-zenith-primary">
+                            {new Date(project.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium text-zenith-primary">Current Status</label>
+                        <div className="p-3 bg-zenith-main border border-zenith-border rounded-lg">
+                          <Badge className={`${getStatusColor(project.status)} text-white`}>
+                            {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('_', ' ')}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Modals */}
-      {showCreateTaskModal && (
-        <CreateTaskModal
-          isOpen={showCreateTaskModal}
-          onClose={() => setShowCreateTaskModal(false)}
-          onTaskCreated={() => {
-            setShowCreateTaskModal(false);
-            fetchTasks();
-            fetchProjectDetails();
-          }}
-          projectId={id as string}
-        />
-      )}
-
-      {showInviteModal && (
-        <InviteMemberModal
-          isOpen={showInviteModal}
-          onClose={() => setShowInviteModal(false)}
-          onMemberInvited={() => {
-            setShowInviteModal(false);
-            fetchProjectDetails();
-          }}
-          projectId={id as string}
-        />
-      )}
     </div>
   );
 }

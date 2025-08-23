@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 interface CreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onTaskCreated: () => void;
+  onTaskCreated: (task: any) => void;
   projectId: string;
 }
 
@@ -79,7 +79,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
       const data = await response.json();
 
       if (response.ok) {
-        onTaskCreated();
+        onTaskCreated(data);
         setFormData({
           title: '',
           description: '',
@@ -119,7 +119,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/30 to-orange-900/40 backdrop-blur-md"
+          className="absolute inset-0 bg-black/80 backdrop-blur-md"
           onClick={onClose}
         />
 
@@ -131,8 +131,9 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-hidden"
         >
-            <div className="zenith-bg-card backdrop-blur-xl border zenith-border rounded-3xl shadow-2xl">            {/* Header */}
-            <div className="relative px-8 py-6 border-b zenith-border">
+          <div className="bg-white dark:bg-gray-900 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-3xl shadow-2xl">
+            {/* Header */}
+            <div className="relative px-8 py-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
