@@ -12,6 +12,8 @@
 .github/
 /public/uploads/
 backup/
+backups/
+backup-api-routes/
 # testing
 /coverage
 

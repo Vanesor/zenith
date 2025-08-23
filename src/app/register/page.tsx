@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,6 +8,7 @@ import * as z from 'zod'
 import { toast } from 'react-hot-toast'
 import Confetti from 'react-confetti'
 import Image from 'next/image'
+import Captcha, { CaptchaRef } from '@/components/ui/Captcha'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +37,7 @@ import {
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 
 // Enhanced registration schema with comprehensive validation
 const registerSchema = z.object({
@@ -68,7 +70,7 @@ const registerSchema = z.object({
     }, 'You must be between 16 and 100 years old'),
   
   selectedClub: z.string()
-    .min(1, 'Please select a club'),
+    .min(1, 'Please select a club preference'),
   
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
@@ -91,6 +93,13 @@ type RegisterFormData = z.infer<typeof registerSchema>
 
 // Enhanced club options with better descriptions
 const clubOptions = [
+  { 
+    id: 'none', 
+    name: 'No Club Preference', 
+    description: 'I prefer not to join any club at this time', 
+    color: 'from-gray-500 to-slate-500',
+    icon: '🚫'
+  },
   { 
     id: 'ascend', 
     name: 'Ascend (Coding)', 
@@ -146,6 +155,9 @@ export default function RegisterPage() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [oauthLoading, setOAuthLoading] = useState<string | null>(null)
+  const [captchaValid, setCaptchaValid] = useState(false)
+  const captchaRef = useRef<CaptchaRef>(null)
+  const { theme, resolvedTheme } = useTheme()
   const totalSteps = 3
   const router = useRouter()
 
@@ -189,11 +201,35 @@ export default function RegisterPage() {
   const onSubmit = useCallback(async (data: RegisterFormData) => {
     setIsSubmitting(true)
     
+    // Validate captcha when form is submitted
+    const isCaptchaValid = captchaRef.current?.validate();
+    
+    if (!isCaptchaValid) {
+      toast.error('CAPTCHA verification failed. Please try again.', {
+        duration: 3000,
+        position: 'top-center',
+      });
+      setIsSubmitting(false)
+      return;
+    }
+
+    console.log('CAPTCHA passed, proceeding with registration...');
+    
     try {
+      // Prepare registration data - send all required fields
+      const registrationData = {
+        name: `${data.firstName.trim()} ${data.lastName.trim()}`,
+        email: data.email.trim(),
+        password: data.password,
+        phone: data.phone?.trim() || null,
+        dateOfBirth: data.dateOfBirth || null,
+        selectedClub: data.selectedClub || 'none',
+      };
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(registrationData),
       })
 
       const result = await response.json()
@@ -202,6 +238,7 @@ export default function RegisterPage() {
         toast.success('Account created successfully! Welcome to Zenith! 🎉', {
           duration: 4000,
           icon: '🚀',
+          position: 'top-center',
         })
         
         setShowConfetti(true)
@@ -211,13 +248,20 @@ export default function RegisterPage() {
         
         // Redirect after success animation
         setTimeout(() => {
-          router.push('/verify-email?type=registration')
-        }, 3000)
+          router.push('/login?registered=true')
+        }, 2000)
       } else {
-        toast.error(result.error || 'Registration failed. Please try again.')
+        toast.error(result.error || 'Registration failed. Please try again.', {
+          duration: 4000,
+          position: 'top-center',
+        })
       }
     } catch (error) {
-      toast.error('Registration failed. Please try again.')
+      console.error('Registration error:', error)
+      toast.error('Network error. Please try again.', {
+        duration: 4000,
+        position: 'top-center',
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -375,12 +419,12 @@ export default function RegisterPage() {
               <label htmlFor="dateOfBirth" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Date of Birth *
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
+              <div className="relative isolate">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
+                <input
                   id="dateOfBirth"
                   type="date"
-                  className="pl-10"
+                  className="flex h-14 w-full rounded-2xl border border-gray-200/80 bg-white/80 px-6 py-4 pl-10 text-base text-gray-900 dark:text-gray-100 ring-offset-white file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 dark:focus-visible:ring-blue-400/20 focus-visible:ring-offset-2 focus-visible:border-blue-500 dark:focus-visible:border-blue-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700/80 dark:bg-gray-800/80 dark:ring-offset-gray-950 transition-all duration-300 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 shadow-sm backdrop-blur-sm caret-blue-600 dark:caret-blue-400 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
                   {...register('dateOfBirth')}
                 />
               </div>
@@ -585,6 +629,15 @@ export default function RegisterPage() {
                 <label htmlFor="marketingOptIn" className="text-sm leading-5 text-gray-600 dark:text-gray-400">
                   I would like to receive updates about events, activities, and opportunities from Zenith
                 </label>
+              </div>
+
+              {/* Security Verification */}
+              <div className="mt-6">
+                <Captcha
+                  ref={captchaRef}
+                  onVerify={setCaptchaValid}
+                  className="w-full"
+                />
               </div>
             </div>
           </motion.div>

@@ -45,10 +45,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Parse and validate request body
-    const { name, email, password } = await request.json();
+    const { name, email, password, phone, dateOfBirth, selectedClub } = await request.json();
     console.log('Registration request received:', { 
       name, 
       email, 
+      phone,
+      dateOfBirth,
+      selectedClub,
       password: '[HIDDEN]' 
     });
 
@@ -60,15 +63,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Validate name
-    if (name.length < 2 || name.length > 50) {
+    // 4. Validate phone if provided
+    if (phone && !/^\+?[\d\s\-\(\)]{10,}$/.test(phone)) {
       return NextResponse.json(
-        { error: "Name must be between 2 and 50 characters" },
+        { error: "Invalid phone number format" },
         { status: 400 }
       );
     }
 
-    // 5. Validate email format
+    // 5. Validate date of birth if provided
+    if (dateOfBirth) {
+      const dob = new Date(dateOfBirth);
+      const now = new Date();
+      const age = now.getFullYear() - dob.getFullYear();
+      
+      if (age < 13 || age > 120) {
+        return NextResponse.json(
+          { error: "Invalid date of birth" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 6. Validate name
+    if (name.length < 2 || name.length > 100) {
+      return NextResponse.json(
+        { error: "Name must be between 2 and 100 characters" },
+        { status: 400 }
+      );
+    }
+
+    // 7. Validate email format
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -77,7 +102,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Validate password strength
+    // 8. Validate password strength
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return NextResponse.json(
@@ -88,11 +113,14 @@ export async function POST(request: NextRequest) {
 
     console.log('Validation passed, attempting registration...');
 
-    // 7. Register user with optimized auth system
+    // 9. Register user with optimized auth system
     const user = await createUser({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: password,
+      phone: phone?.trim() || null,
+      dateOfBirth: dateOfBirth || null,
+      club_id: selectedClub === 'none' ? null : selectedClub,
     });
 
     if (!user) {

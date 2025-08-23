@@ -127,20 +127,24 @@ export async function createUser(userData: {
   name: string;
   role?: string;
   club_id?: string;
+  phone?: string;
+  dateOfBirth?: string;
 }): Promise<User | null> {
   try {
     const hashedPassword = await hashPassword(userData.password);
 
     const result = await db.query(
-      `INSERT INTO users (email, password_hash, name, role, club_id, email_verified, has_password, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-       RETURNING id, email, name, role, club_id`,
+      `INSERT INTO users (email, password_hash, name, role, club_id, phone, date_of_birth, email_verified, has_password, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+       RETURNING id, email, name, role, club_id, phone, date_of_birth`,
       [
         userData.email.toLowerCase(),
         hashedPassword,
         userData.name,
         userData.role || 'student',
         userData.club_id || null,
+        userData.phone || null,
+        userData.dateOfBirth || null,
         false,
         true
       ]

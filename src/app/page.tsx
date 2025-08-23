@@ -15,6 +15,12 @@ import {
   Heart,
   MapPin,
   Clock,
+  ChevronLeft,
+  Pause,
+  Play,
+  FileText,
+  Shield,
+  Crown,
   TrendingUp,
   Award,
   Star,
@@ -24,8 +30,13 @@ import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import ClubLogo from "@/components/ClubLogo";
 import { UniversalLoader } from "@/components/UniversalLoader";
-import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { PageLoader } from "@/components/UniversalLoader";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import SafeAvatar from "@/components/SafeAvatar";
+
+
 
 // Icon mapping for clubs
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -38,7 +49,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 // Club color mapping for text display
 const getClubTextColor = (clubName: string) => {
   const clubColors: Record<string, string> = {
-    'Ascend': 'text-primary',    // Blue for ASCEND
+    'Ascend': 'text-zenith-primary',    // Blue for ASCEND
     'Aster': 'text-pink-500',     // Pink for ASTER  
     'Achievers': 'text-purple-500', // Purple for ACHIEVERS
     'Altogether': 'text-green-500', // Green for ALTOGETHER
@@ -98,10 +109,44 @@ interface HomeStats {
   totalPosts: number;
 }
 
+interface Leadership {
+  coordinator: { 
+    name: string;
+    photo?: string;
+    email?: string;
+  } | null;
+  coCoordinator: { 
+    name: string;
+    photo?: string;
+    email?: string;
+  } | null;
+  secretary: { 
+    name: string;
+    photo?: string;
+    email?: string;
+  } | null;
+  treasurer: { 
+    name: string;
+    photo?: string;
+    email?: string;
+  } | null;
+  innovationHead: { 
+    name: string;
+    photo?: string;
+    email?: string;
+  } | null;
+  media: { 
+    name: string;
+    photo?: string;
+    email?: string;
+  } | null;
+}
+
 interface HomeData {
   stats: HomeStats;
   clubs: Club[];
   upcomingEvents: Event[];
+  leadership?: Leadership;
 }
 
 export default function HomePage() {
@@ -110,6 +155,74 @@ export default function HomePage() {
   const [homeData, setHomeData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Carousel state
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Carousel images data - Configuration for hero slideshow
+  const carouselImages = [
+    {
+      id: 1,
+      // url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      url: "images/community.jpg",
+      title: "Welcome to Zenith Forum",
+      subtitle: "DRIVEN BY PASSION, BUILT FOR EXCELLENCE",
+      description: "Join our vibrant college community and discover your potential"
+    },
+    {
+      id: 2,
+      // url: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      url:"images/father.jpg",
+      title: "Specialized Clubs",
+      subtitle: "Find Your Passion",
+      description: "Explore our diverse range of clubs and activities"
+    },
+    {
+      id: 3,
+      // url: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      url:"images/yash.jpg",
+      title: "Events & Workshops",
+      subtitle: "Learn & Grow Together",
+      description: "Participate in exciting events and skill-building workshops"
+    },
+    {
+      id: 4,
+      url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      title: "Innovation Hub",
+      subtitle: "Transform Ideas into Reality",
+      description: "Collaborate on projects and bring your innovations to life"
+    }
+  ];
+
+  // Carousel auto-play functionality
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, carouselImages.length]);
+
+  // Carousel navigation functions
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  const toggleAutoPlay = () => {
+    setIsAutoPlaying(!isAutoPlaying);
+  };
+
+
 
   useEffect(() => {
     // If user is authenticated, redirect to dashboard
@@ -150,13 +263,13 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-zenith-main flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-primary mb-4">
+          <h1 className="text-2xl font-bold text-zenith-primary mb-4">
             Unable to load data
           </h1>
           <p className="text-zenith-secondary mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-zenith-accent text-primary rounded-lg hover:bg-zenith-accent transition-colors"
+            className="px-4 py-2 bg-zenith-accent text-white rounded-lg hover:bg-zenith-accent transition-colors"
           >
             Retry
           </button>
@@ -165,56 +278,155 @@ export default function HomePage() {
     );
   }
 
-  const { stats, clubs, upcomingEvents } = homeData;
+  const { stats, clubs, upcomingEvents, leadership } = homeData;
 
+  // ============================================================================
+  // MAIN LANDING PAGE COMPONENT - ZENITH FORUM HOMEPAGE
+  // ============================================================================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 transition-colors duration-300">
+    <div className="min-h-screen bg-zenith-main transition-colors duration-300">
+      {/* ===== FLOATING COMPONENTS ===== */}
       <ZenChatbot />
+      
+      {/* Theme Toggle Button - Fixed positioning for accessibility */}
+      <div className="fixed top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
+      
+      {/* Unified Header - Currently commented out */}
+      {/* <UnifiedHeader showNavigation={true} /> */}
 
-      {/* Hero Section with built-in header */}
-      <section className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-purple-400/30 dark:to-pink-400/30 blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 dark:from-blue-400/30 dark:to-cyan-400/30 blur-3xl animate-pulse delay-1000"></div>
+      {/* ===== HERO SECTION - IMAGE CAROUSEL ===== */}
+      {/* Full-width carousel showcasing college events and activities */}
+      <section className="relative h-96 md:h-[500px] lg:h-[600px] overflow-hidden">
+        
+        <div className="relative w-full h-full">
+          {/* Carousel slides with smooth transitions and animations */}
+          {carouselImages.map((image, index) => (
+            <motion.div
+              key={image.id}
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: currentSlide === index ? 1 : 0,
+                scale: currentSlide === index ? 1 : 1.1 
+              }}
+              transition={{ duration: 0.7, ease: "easeInOut" }}
+              className={`absolute inset-0 w-full h-full ${
+                currentSlide === index ? 'z-10' : 'z-0'
+              }`}
+            >
+              <div
+                className="w-full h-full bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${image.url})` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                <div className="relative z-10 flex items-end justify-center h-full pb-12">
+                  <div className="text-center text-white px-6 max-w-5xl mx-auto">
+                    <motion.h1
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
+                      className="text-3xl md:text-5xl lg:text-6xl font-bold mb-3 text-white drop-shadow-2xl"
+                    >
+                      {image.title}
+                    </motion.h1>
+                    <motion.h2
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.4 }}
+                      className="text-lg md:text-xl lg:text-2xl font-semibold mb-4 text-yellow-300 drop-shadow-lg"
+                    >
+                      {image.subtitle}
+                    </motion.h2>
+                    <motion.p
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.6 }}
+                      className="text-base md:text-lg mb-6 text-white/95 drop-shadow-lg max-w-2xl mx-auto"
+                    >
+                      {image.description}
+                    </motion.p>
+                    <motion.div
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
+                      transition={{ duration: 0.8, delay: 0.8 }}
+                      className="flex flex-col sm:flex-row gap-3 justify-center"
+                    >
+                      <Link
+                        href="/register"
+                        className="bg-zenith-accent hover:bg-zenith-accent/90 text-white px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 inline-flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                      >
+                        Get Started
+                        <ChevronRight className="ml-2 w-4 h-4" />
+                      </Link>
+                      <Link
+                        href="#clubs"
+                        className="glass text-white hover:bg-white/25 px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      >
+                        Explore Clubs
+                      </Link>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Header */}
-        <div className="relative z-20 max-w-7xl mx-auto mb-16">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Zap className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-primary">Zenith</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">CS Department Forum</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/login"
-                className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-primary hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/register"
-                className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary text-sm font-medium rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
-        </div>
+        {/* Carousel Navigation Controls */}
+        {/* Previous/Next arrows for manual navigation */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 glass hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 glass hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
 
-        <div className="relative z-10 max-w-7xl mx-auto text-center">
+        {/* Auto-play toggle control */}
+        <button
+          onClick={toggleAutoPlay}
+          className="absolute top-4 right-4 z-20 glass hover:bg-black/50 text-white p-2 rounded-full transition-all duration-300"
+          aria-label={isAutoPlaying ? "Pause slideshow" : "Play slideshow"}
+        >
+          {isAutoPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+        </button>
+
+        {/* Slide indicator dots */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+          {carouselImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                currentSlide === index
+                  ? 'bg-zenith-card scale-125'
+                  : 'bg-zenith-card/60 hover:bg-zenith-card/80 hover:scale-110'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </section>
+      
+      {/* ===== MAIN CONTENT BODY STARTS HERE ===== */}
+      
+      {/* HERO TEXT SECTION - Welcome message and primary CTAs */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8">{/* Further reduced since parent has more padding */}
+        <div className="max-w-7xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-primary mb-6">
+          > 
+            <h1 className="text-5xl md:text-7xl font-bold text-zenith-primary mb-6">
               Welcome to{" "}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ZENITH
@@ -230,14 +442,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
               >
                 Get Started
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-primary border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>
@@ -246,7 +458,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Statistics */}
+      {/* STATISTICS SECTION - Key metrics display */}
       <section className="py-16 bg-zenith-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -291,7 +503,267 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Clubs Section */}
+      {/* ===== LEADERSHIP TEAM SECTION ===== */}
+      {leadership && (
+        <section className="py-16 bg-zenith-main">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl font-bold text-zenith-primary mb-4">Leadership Team</h2>
+              <p className="text-xl text-zenith-secondary">
+                Meet the dedicated leaders who guide Zenith Forum
+              </p>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* President */}
+              {leadership.coordinator && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative">
+                    <div className="w-full h-48 bg-gradient-to-br from-orange-400 to-orange-600 relative overflow-hidden">
+                      {leadership.coordinator.photo ? (
+                        <img
+                          src={leadership.coordinator.photo}
+                          alt={`${leadership.coordinator.name}'s photo`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                          {leadership.coordinator.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-4 right-4 bg-orange-500 text-white p-2 rounded-full shadow-lg">
+                      <Crown className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                      {leadership.coordinator.name}
+                    </h3>
+                    <div className="inline-block bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                      President
+                    </div>
+                    <p className="text-sm text-zenith-muted leading-relaxed">
+                      Leading the forum vision and strategic direction
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Vice President */}
+              {leadership.coCoordinator && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative">
+                    <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-blue-600 relative overflow-hidden">
+                      {leadership.coCoordinator.photo ? (
+                        <img
+                          src={leadership.coCoordinator.photo}
+                          alt={`${leadership.coCoordinator.name}'s photo`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                          {leadership.coCoordinator.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-full shadow-lg">
+                      <Shield className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                      {leadership.coCoordinator.name}
+                    </h3>
+                    <div className="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                      Vice President
+                    </div>
+                    <p className="text-sm text-zenith-muted leading-relaxed">
+                      Supporting coordination and member engagement
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Secretary */}
+              {leadership.secretary && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative">
+                    <div className="w-full h-48 bg-gradient-to-br from-green-400 to-green-600 relative overflow-hidden">
+                      {leadership.secretary.photo ? (
+                        <img
+                          src={leadership.secretary.photo}
+                          alt={`${leadership.secretary.name}'s photo`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                          {leadership.secretary.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-4 right-4 bg-green-500 text-white p-2 rounded-full shadow-lg">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                      {leadership.secretary.name}
+                    </h3>
+                    <div className="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                      Secretary
+                    </div>
+                    <p className="text-sm text-zenith-muted leading-relaxed">
+                      Managing documentation and communications
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Treasurer */}
+              {leadership.treasurer && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative">
+                    <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-blue-700 relative overflow-hidden">
+                      {leadership.treasurer.photo ? (
+                        <img
+                          src={leadership.treasurer.photo}
+                          alt={`${leadership.treasurer.name}'s photo`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                          {leadership.treasurer.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-4 right-4 bg-blue-600 text-white p-2 rounded-full shadow-lg">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                      {leadership.treasurer.name}
+                    </h3>
+                    <div className="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                      Treasurer
+                    </div>
+                    <p className="text-sm text-zenith-muted leading-relaxed">
+                      Managing finances and budget planning
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Innovation Head */}
+              {leadership.innovationHead && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative">
+                    <div className="w-full h-48 bg-gradient-to-br from-purple-400 to-purple-600 relative overflow-hidden">
+                      {leadership.innovationHead.photo ? (
+                        <img
+                          src={leadership.innovationHead.photo}
+                          alt={`${leadership.innovationHead.name}'s photo`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                          {leadership.innovationHead.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-4 right-4 bg-purple-500 text-white p-2 rounded-full shadow-lg">
+                      <Lightbulb className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                      {leadership.innovationHead.name}
+                    </h3>
+                    <div className="inline-block bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                      Innovation Head
+                    </div>
+                    <p className="text-sm text-zenith-muted leading-relaxed">
+                      Leading innovation and technology initiatives
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Media Head */}
+              {leadership.media && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative">
+                    <div className="w-full h-48 bg-gradient-to-br from-pink-400 to-pink-600 relative overflow-hidden">
+                      {leadership.media.photo ? (
+                        <img
+                          src={leadership.media.photo}
+                          alt={`${leadership.media.name}'s photo`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                          {leadership.media.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-4 right-4 bg-pink-500 text-white p-2 rounded-full shadow-lg">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                      {leadership.media.name}
+                    </h3>
+                    <div className="inline-block bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                      Media Head
+                    </div>
+                    <p className="text-sm text-zenith-muted leading-relaxed">
+                      Managing social media and publicity
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+  {/* CLUBS SHOWCASE SECTION - Featured clubs with descriptions */}
       <section
         id="clubs"
         className="py-20 bg-zenith-main"
@@ -321,25 +793,25 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                  className="bg-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+                  className="bg-zenith-card rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
                 >
                   <div
-                    className={`bg-gradient-to-r ${club.color} p-6 text-primary`}
+                    className={`bg-gradient-to-r ${club.color} p-6 text-white`}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-card/20 rounded-xl flex items-center justify-center">
+                        <div className="w-16 h-16 bg-zenith-card/20 rounded-xl flex items-center justify-center">
                           <ClubLogo 
                             clubId={club.id}
                             clubName={club.name}
                             size="lg"
                             fallbackIcon={club.icon}
-                            className="text-primary"
+                            className="text-white"
                           />
                         </div>
                         <div>
                           <h3 className={`text-2xl font-bold ${getClubTextColor(club.name)}`}>{club.name}</h3>
-                          <p className={`text-primary/80 ${getClubTextColor(club.name)}`}>{club.type}</p>
+                          <p className={`text-white/80 ${getClubTextColor(club.name)}`}>{club.type}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -362,7 +834,7 @@ export default function HomePage() {
                         {club.upcoming_events} upcoming events
                       </div>
                       <Link
-                        href={`/clubs/${club.id}`}
+                        href={`/homeclub/${club.id}`}
                         className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold transition-colors"
                       >
                         Learn More
@@ -377,7 +849,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Upcoming Events */}
+      {/* UPCOMING EVENTS SECTION - Latest events and workshops */}
       <section id="events" className="py-20 bg-zenith-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -401,20 +873,20 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-                className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith"
+                className="bg-zenith-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith"
               >
                 <div className={`bg-gradient-to-r ${event.club_color} p-4`}>
-                  <div className="flex justify-between items-center text-primary">
+                  <div className="flex justify-between items-center text-white">
                     <span className="text-sm font-medium">
                       {event.club_name}
                     </span>
-                    <span className="text-xs bg-card/20 px-2 py-1 rounded">
+                    <span className="text-xs bg-zenith-card/20 px-2 py-1 rounded">
                       {new Date(event.event_date).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-primary mb-2">
+                  <h3 className="text-xl font-semibold text-zenith-primary mb-2">
                     {event.title}
                   </h3>
                   <p className="text-zenith-secondary mb-4 line-clamp-2">
@@ -451,7 +923,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* What is Zenith */}
+      {/* ABOUT ZENITH SECTION - Platform description and features */}
       <section className="py-20 bg-zenith-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -472,11 +944,11 @@ export default function HomePage() {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-primary" />
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Users className="w-4 h-4 text-zenith-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary">
+                    <h3 className="font-semibold text-zenith-primary">
                       Community Driven
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -485,11 +957,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-4 h-4 text-green-600" />
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-4 h-4 text-zenith-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary">
+                    <h3 className="font-semibold text-zenith-primary">
                       Skill Development
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -498,11 +970,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lightbulb className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-4 h-4 text-zenith-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary">
+                    <h3 className="font-semibold text-zenith-primary">
                       Innovation Hub
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -511,11 +983,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-4 h-4 text-pink-600" />
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-zenith-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary">
+                    <h3 className="font-semibold text-zenith-primary">
                       Regular Events
                     </h3>
                     <p className="text-sm text-zenith-muted">
@@ -531,7 +1003,7 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.5 }}
               className="relative"
             >
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-primary">
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
                 <div className="text-center">
                   <ZenithLogo size="xl" className="mb-6" />
                   <p className="text-lg opacity-90 mb-6">
@@ -559,7 +1031,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CALL-TO-ACTION SECTION - Final conversion section */}
       <section className="py-20 bg-zenith-accent">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -567,24 +1039,24 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <h2 className="text-4xl font-bold text-primary mb-6">
+            <h2 className="text-4xl font-bold text-white mb-6">
               Ready to Reach Your Zenith?
             </h2>
-            <p className="text-xl text-primary/90 mb-8">
+            <p className="text-xl text-white/90 mb-8">
               Join thousands of students who are already part of our growing
               community. Your journey to excellence starts here.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-card text-zenith-accent hover:bg-zenith-section px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
+                className="bg-zenith-card text-zenith-accent hover:bg-zenith-section px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
               >
                 Join Zenith Today
                 <ChevronRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="#clubs"
-                className="border-2 border-white text-primary hover:bg-card hover:text-zenith-accent px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+                className="border-2 border-white text-white hover:bg-zenith-card hover:text-zenith-accent px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
               >
                 Explore Clubs
               </Link>
@@ -604,9 +1076,9 @@ export default function HomePage() {
           >
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Users className="w-8 h-8 text-primary" />
+                <Users className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
                 {stats.totalClubs}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -615,9 +1087,9 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Users className="w-8 h-8 text-primary" />
+                <Users className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
                 {stats.totalMembers}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -626,9 +1098,9 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Calendar className="w-8 h-8 text-primary" />
+                <Calendar className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
                 {stats.upcomingEvents}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -637,9 +1109,9 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <MessageSquare className="w-8 h-8 text-primary" />
+                <MessageSquare className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-primary">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
                 {stats.totalPosts}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -650,8 +1122,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-primary py-12">
+      {/* FOOTER SECTION - Site links and information */}
+      <footer className="bg-zenith-section py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
@@ -665,12 +1137,12 @@ export default function HomePage() {
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+              <h3 className="text-lg font-semibold text-zenith-primary mb-4">Quick Links</h3>
               <ul className="space-y-2 text-zenith-muted">
                 <li>
                   <Link
                     href="#clubs"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     Clubs
                   </Link>
@@ -678,7 +1150,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="#events"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     Events
                   </Link>
@@ -686,7 +1158,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/forums"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     Forums
                   </Link>
@@ -694,7 +1166,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/about"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     About
                   </Link>
@@ -702,12 +1174,12 @@ export default function HomePage() {
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Support</h3>
+              <h3 className="text-lg font-semibold text-zenith-primary mb-4">Support</h3>
               <ul className="space-y-2 text-zenith-muted">
                 <li>
                   <Link
                     href="/help"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     Help Center
                   </Link>
@@ -715,7 +1187,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/contact"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     Contact Us
                   </Link>
@@ -723,7 +1195,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/guidelines"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     Guidelines
                   </Link>
@@ -731,7 +1203,7 @@ export default function HomePage() {
                 <li>
                   <Link
                     href="/privacy"
-                    className="hover:text-primary transition-colors"
+                    className="hover:text-zenith-accent transition-colors"
                   >
                     Privacy
                   </Link>
@@ -739,7 +1211,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-zenith-muted">
+          <div className="border-t border-zenith-border mt-8 pt-8 text-center text-zenith-muted">
             <p>&copy; 2025 Zenith Forum. All rights reserved.</p>
           </div>
         </div>
@@ -747,3 +1219,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+// ============================================================================
+// END OF LANDING PAGE COMPONENT
+// ============================================================================

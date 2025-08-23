@@ -138,7 +138,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-gradient-to-br from-black/50 via-blue-900/30 to-purple-900/40 backdrop-blur-md"
+          className="absolute inset-0 modal-backdrop-gradient backdrop-blur-md"
           onClick={onClose}
         />
 
@@ -150,19 +150,19 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-hidden"
         >
-          <div className="zenith-bg-card backdrop-blur-xl border zenith-border rounded-3xl shadow-2xl">
+          <div className="modal-bg-gradient backdrop-blur-xl border border-custom rounded-3xl shadow-2xl">
             {/* Header */}
-            <div className="relative px-8 py-6 border-b zenith-border zenith-bg-section">
+            <div className="relative px-8 py-6 border-b border-custom modal-border-gradient bg-section">
               <div className="flex items-center justify-between">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  <h2 className="text-3xl font-bold gradient-text-primary">
                     Create New Project
                   </h2>
-                  <p className="zenith-text-secondary mt-1">
+                  <p className="text-secondary mt-1">
                     Set up a new project with team collaboration features
                   </p>
                 </motion.div>
@@ -171,18 +171,18 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
-                  className="p-2 rounded-full zenith-bg-hover hover:zenith-bg-hover border zenith-border transition-colors"
+                  className="p-2 rounded-full bg-hover hover:bg-hover border border-custom transition-colors"
                 >
-                  <X className="w-5 h-5 zenith-text-muted" />
+                  <X className="w-5 h-5 text-muted" />
                 </motion.button>
               </div>
               
               {/* Decorative Elements */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500"></div>
+              <div className="absolute top-0 left-0 w-full h-1 modal-header-gradient"></div>
             </div>
 
             {/* Content */}
-            <div className="px-8 py-6 max-h-[calc(90vh-100px)] overflow-y-auto zenith-bg-card">
+            <div className="px-8 py-6 max-h-[calc(90vh-100px)] overflow-y-auto modal-bg-gradient">
               {permissionsLoading ? (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -192,16 +192,16 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-12 h-12 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full mb-4"
+                    className="w-12 h-12 border-4 border-custom border-t-accent rounded-full mb-4"
                   />
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="zenith-text-secondary text-center"
+                    className="text-secondary text-center"
                   >
                     <p className="text-lg font-medium">Checking permissions...</p>
-                    <p className="text-sm zenith-text-muted mt-2">Please wait while we verify your access</p>
+                    <p className="text-sm text-muted mt-2">Please wait while we verify your access</p>
                   </motion.div>
                 </motion.div>
               ) : !permissions?.canCreateProject ? (
@@ -214,9 +214,9 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", damping: 15 }}
-                    className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 rounded-full flex items-center justify-center mx-auto mb-6"
+                    className="w-24 h-24 bg-section rounded-full flex items-center justify-center mx-auto mb-6"
                   >
-                    <Shield className="w-12 h-12 text-gray-500 dark:text-gray-400" />
+                    <Shield className="w-12 h-12 text-muted" />
                   </motion.div>
                   
                   <motion.div
@@ -224,13 +224,13 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-primary mb-3">
+                    <h3 className="text-2xl font-bold text-primary mb-3">
                       Insufficient Permissions
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-2">
+                    <p className="text-secondary mb-2">
                       You need to be a Club Coordinator, Co-coordinator, or Zenith Committee member to create projects.
                     </p>
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-sm text-gray-600 dark:text-gray-300 mb-8">
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-section text-sm text-secondary mb-8">
                       Current role: <span className="font-medium ml-1 capitalize">{permissions?.role || 'member'}</span>
                     </div>
                   </motion.div>
@@ -261,7 +261,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     <motion.div
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      className="flex items-center space-x-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-2xl"
+                      className="flex items-center space-x-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl"
                     >
                       <motion.div
                         animate={{ rotate: [0, 10, -10, 0] }}
@@ -284,8 +284,8 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                         transition={{ delay: 0.3 }}
                         className="space-y-3"
                       >
-                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                          <Target className="w-4 h-4 mr-2 text-blue-600" />
+                        <label className="text-sm font-semibold text-secondary flex items-center">
+                          <Target className="w-4 h-4 mr-2 text-accent" />
                           Project Name *
                         </label>
                         <div className="relative group">
@@ -294,10 +294,10 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             value={formData.name}
                             onChange={handleChange}
                             placeholder="Enter an exciting project name..."
-                            className="h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-gray-500"
+                            className="h-12 pl-12 pr-4 rounded-xl border-2 border-custom bg-card backdrop-blur-sm focus:border-accent focus:ring-4 focus:ring-accent/20 transition-all duration-300 group-hover:border-hover"
                             required
                           />
-                          <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors w-4 h-4" />
+                          <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors w-4 h-4" />
                         </div>
                       </motion.div>
 
@@ -308,8 +308,8 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                         transition={{ delay: 0.4 }}
                         className="space-y-3"
                       >
-                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                          <Users className="w-4 h-4 mr-2 text-purple-600" />
+                        <label className="text-sm font-semibold text-secondary flex items-center">
+                          <Users className="w-4 h-4 mr-2 text-accent" />
                           Select Club *
                         </label>
                         <div className="relative group">
@@ -317,7 +317,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             name="club_id"
                             value={formData.club_id}
                             onChange={handleChange}
-                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 text-gray-900 dark:text-primary appearance-none cursor-pointer"
+                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-custom bg-card backdrop-blur-sm focus:border-accent focus:ring-4 focus:ring-accent/20 transition-all duration-300 text-primary appearance-none cursor-pointer"
                             required
                           >
                             <option value="">Choose your club...</option>
@@ -327,12 +327,12 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                               </option>
                             ))}
                           </select>
-                          <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors w-4 h-4 pointer-events-none" />
+                          <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors w-4 h-4 pointer-events-none" />
                           <motion.div
                             animate={{ rotate: formData.club_id ? 180 : 0 }}
                             className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
                           >
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                           </motion.div>
@@ -346,8 +346,8 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                         transition={{ delay: 0.5 }}
                         className="space-y-3"
                       >
-                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                          <Target className="w-4 h-4 mr-2 text-indigo-600" />
+                        <label className="text-sm font-semibold text-secondary flex items-center">
+                          <Target className="w-4 h-4 mr-2 text-accent" />
                           Project Type *
                         </label>
                         <div className="relative group">
@@ -355,7 +355,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             name="project_type"
                             value={formData.project_type}
                             onChange={handleChange}
-                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all duration-300 text-gray-900 dark:text-primary appearance-none cursor-pointer"
+                            className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-custom bg-card backdrop-blur-sm focus:border-accent focus:ring-4 focus:ring-accent/20 transition-all duration-300 text-primary appearance-none cursor-pointer"
                             required
                           >
                             <option value="innovation">🚀 Innovation</option>
@@ -365,7 +365,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                             <option value="education">📚 Education</option>
                             <option value="outreach">🌍 Outreach</option>
                           </select>
-                          <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors w-4 h-4 pointer-events-none" />
+                          <Target className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors w-4 h-4 pointer-events-none" />
                         </div>
                       </motion.div>
                     </div>
@@ -380,14 +380,14 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                           transition={{ delay: 0.6 }}
                           className="space-y-3"
                         >
-                          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          <label className="text-sm font-semibold text-secondary">
                             Priority
                           </label>
                           <select
                             name="priority"
                             value={formData.priority}
                             onChange={handleChange}
-                            className="w-full h-12 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 text-gray-900 dark:text-primary appearance-none cursor-pointer"
+                            className="w-full h-12 px-4 rounded-xl border-2 border-custom bg-card backdrop-blur-sm focus:border-accent focus:ring-4 focus:ring-accent/20 transition-all duration-300 text-primary appearance-none cursor-pointer"
                           >
                             <option value="low">🟢 Low</option>
                             <option value="medium">🟡 Medium</option>
@@ -402,8 +402,8 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                           transition={{ delay: 0.7 }}
                           className="space-y-3"
                         >
-                          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                            <Calendar className="w-4 h-4 mr-2 text-green-600" />
+                          <label className="text-sm font-semibold text-secondary flex items-center">
+                            <Calendar className="w-4 h-4 mr-2 text-accent" />
                             Target Date
                           </label>
                           <div className="relative group">
@@ -412,9 +412,9 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                               type="date"
                               value={formData.target_end_date}
                               onChange={handleChange}
-                              className="h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-green-500 focus:ring-4 focus:ring-green-500/20 transition-all duration-300"
+                              className="h-12 pl-12 pr-4 rounded-xl border-2 border-custom bg-card backdrop-blur-sm focus:border-accent focus:ring-4 focus:ring-accent/20 transition-all duration-300"
                             />
-                            <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-green-500 transition-colors w-4 h-4 pointer-events-none" />
+                            <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors w-4 h-4 pointer-events-none" />
                           </div>
                         </motion.div>
                       </div>
@@ -426,7 +426,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                         transition={{ delay: 0.8 }}
                         className="space-y-3"
                       >
-                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        <label className="text-sm font-semibold text-secondary">
                           Description *
                         </label>
                         <textarea
@@ -434,7 +434,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                           value={formData.description}
                           onChange={handleChange}
                           placeholder="Describe your project goals, objectives, and expected outcomes..."
-                          className="w-full h-32 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                          className="w-full h-32 p-4 rounded-xl border-2 border-custom bg-card backdrop-blur-sm focus:border-accent focus:ring-4 focus:ring-accent/20 transition-all duration-300 text-primary placeholder:text-muted resize-none"
                           required
                         />
                       </motion.div>
@@ -446,7 +446,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.9 }}
-                    className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800"
+                    className="p-6 bg-section rounded-2xl border border-custom"
                   >
                     <div className="flex items-center space-x-4">
                       <motion.div
@@ -460,7 +460,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                           name="is_public"
                           checked={formData.is_public}
                           onChange={(e) => setFormData(prev => ({...prev, is_public: e.target.checked}))}
-                          className="w-6 h-6 text-blue-600 bg-white border-2 border-blue-300 rounded-lg focus:ring-blue-500 focus:ring-2 transition-all duration-300"
+                          className="w-6 h-6 text-accent bg-card border-2 border-custom rounded-lg focus:ring-accent focus:ring-2 transition-all duration-300"
                         />
                         {formData.is_public && (
                           <motion.div
@@ -475,10 +475,10 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                         )}
                       </motion.div>
                       <div>
-                        <label htmlFor="is_public" className="text-base font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <label htmlFor="is_public" className="text-base font-semibold text-primary cursor-pointer">
                           Make this project public
                         </label>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-secondary mt-1">
                           Public projects are visible to all users and can attract more collaborators
                         </p>
                       </div>
@@ -490,7 +490,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1.0 }}
-                    className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700"
+                    className="flex justify-end space-x-4 pt-6 border-t border-custom"
                   >
                     <Button
                       type="button"
@@ -505,7 +505,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                       <Button
                         type="submit"
                         disabled={loading || !formData.name || !formData.description || !formData.club_id}
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-primary font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="px-8 py-3 rounded-xl bg-accent hover:opacity-90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         {loading ? (
                           <motion.div className="flex items-center">

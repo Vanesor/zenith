@@ -27,6 +27,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { PlaygroundCodeEditor } from '@/components/playground/PlaygroundCodeEditor';
+import { MonacoThemeSwitch } from '@/components/playground/MonacoThemeSwitch';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useToast } from '@/contexts/ToastContext';
 import { AnimatedPlaygroundIcon } from '@/components/icons/AnimatedPlaygroundIcon';
@@ -127,7 +128,7 @@ function PlaygroundPage() {
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fontSize, setFontSize] = useState(14);
-  const [theme, setTheme] = useState<'vs-dark' | 'light'>('vs-dark');
+  const [monacoTheme, setMonacoTheme] = useState<string>('vs-dark');
   
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -277,6 +278,12 @@ function PlaygroundPage() {
               </select>
             </div>
 
+            {/* Monaco Theme Switcher - Moved next to language selector */}
+            <MonacoThemeSwitch 
+              currentTheme={monacoTheme}
+              onThemeChange={setMonacoTheme}
+            />
+
             {/* Controls */}
             <div className="flex items-center space-x-1 bg-card rounded-lg p-1">
               <button
@@ -350,7 +357,7 @@ function PlaygroundPage() {
               value={code}
               onChange={setCode}
               language={selectedLanguage.id}
-              theme={theme}
+              theme={monacoTheme}
               fontSize={fontSize}
               className="h-full"
             />

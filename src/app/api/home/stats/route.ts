@@ -66,6 +66,42 @@ export async function GET() {
       LIMIT 4
     `);
 
+    // Get leadership team from committee structure (proper leadership)
+    const leadershipResult = await queryRawSQL(`
+      SELECT 
+        cr.name as position,
+        u.name,
+        COALESCE(u.avatar, u.profile_image_url) as photo,
+        u.email,
+        u.role,
+        cm.status,
+        c.name as committee_name,
+        cr.hierarchy
+      FROM committees c
+      JOIN committee_roles cr ON c.id = cr.committee_id
+      JOIN committee_members cm ON cr.id = cm.role_id
+      JOIN users u ON cm.user_id = u.id
+      WHERE c.name = 'Student Executive Committee' 
+        AND cm.status = 'active'
+        AND cr.name IN ('President', 'Vice President', 'Secretary', 'Treasurer', 'Innovation Head', 'Media Head')
+      ORDER BY cr.hierarchy
+    `);
+
+    // Format leadership data - map committee roles to expected leadership roles
+    const getLeaderByPosition = (position: string) => {
+      const member = leadershipResult.rows.find(m => m.position === position);
+      return member ? { name: member.name, photo: member.photo, email: member.email } : null;
+    };
+    
+    const leadership = leadershipResult.rows.length > 0 ? {
+      coordinator: getLeaderByPosition('President'),
+      coCoordinator: getLeaderByPosition('Vice President'),
+      secretary: getLeaderByPosition('Secretary'),
+      treasurer: getLeaderByPosition('Treasurer'),
+      innovationHead: getLeaderByPosition('Innovation Head'),
+      media: getLeaderByPosition('Media Head'),
+    } : null;
+
     const stats = {
       totalClubs: parseInt(statsResult.rows[0].total_clubs),
       totalMembers: parseInt(statsResult.rows[0].total_users),
@@ -79,6 +115,7 @@ export async function GET() {
       clubs: clubStatsResult.rows,
       upcomingEvents: upcomingEventsResult.rows,
       recentPosts: recentPostsResult.rows,
+      leadership,
     });
   } catch (error) {
     console.error("Home stats error:", error);

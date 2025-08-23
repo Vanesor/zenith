@@ -2,6 +2,18 @@
 
 import { useEffect, useRef } from 'react';
 import { Editor } from '@monaco-editor/react';
+import { useTheme } from 'next-themes';
+
+// Define theme options
+const EDITOR_THEMES = [
+  { value: 'vs-dark', label: 'VS Dark' },
+  { value: 'vs-dark-plus', label: 'VS Dark+' },
+  { value: 'vs', label: 'VS Light' },
+  { value: 'monokai', label: 'Monokai' },
+  { value: 'github', label: 'GitHub' },
+  { value: 'solarized-dark', label: 'Solarized Dark' },
+  { value: 'solarized-light', label: 'Solarized Light' },
+];
 
 interface PlaygroundCodeEditorProps {
   value: string;
@@ -26,6 +38,17 @@ export function PlaygroundCodeEditor({
 }: PlaygroundCodeEditorProps) {
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
+  const { theme: globalTheme, resolvedTheme, systemTheme } = useTheme();
+
+  // Auto-sync Monaco theme with global theme when user hasn't set a specific theme
+  const getAutoTheme = () => {
+    if (theme === 'vs-dark' || theme === 'vs') {
+      // Use a fallback chain to ensure we always have a theme value
+      const effectiveTheme = resolvedTheme || globalTheme || systemTheme || 'light';
+      return effectiveTheme === 'dark' ? 'vs-dark' : 'vs';
+    }
+    return theme; // Keep user's custom theme choice
+  };
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
@@ -144,7 +167,7 @@ export function PlaygroundCodeEditor({
     });
 
     // Set theme
-    monaco.editor.setTheme(theme);
+    monaco.editor.setTheme(getAutoTheme());
   };
 
   const handleEditorChange = (newValue: string | undefined) => {
@@ -158,20 +181,29 @@ export function PlaygroundCodeEditor({
   }, [fontSize]);
 
   useEffect(() => {
+    // Ensure we have a valid theme with fallback chain
+    const effectiveTheme = getAutoTheme() || theme || 'vs-dark';
     if (monacoRef.current) {
-      monacoRef.current.editor.setTheme(theme);
+      monacoRef.current.editor.setTheme(effectiveTheme);
     }
-  }, [theme]);
+  }, [theme, globalTheme, resolvedTheme]);
+
+  // Use a fallback chain to ensure we always have a theme
+  const effectiveTheme = getAutoTheme() || theme || 'vs-dark';
 
   return (
-    <div className={`h-full ${className}`}>
+    <div className={`h-full ${className} relative`} data-theme={effectiveTheme}>
+      {/* Theme indicator - visible only when setting up */}
+      <div className="absolute top-2 right-2 z-10 bg-card px-2 py-1 rounded-md border border-custom text-xs text-muted opacity-80 pointer-events-none">
+        Theme: {EDITOR_THEMES.find((t) => t.value === effectiveTheme)?.label || effectiveTheme}
+      </div>
       <Editor
         height="100%"
         language={language}
         value={value}
         onChange={handleEditorChange}
         onMount={handleEditorDidMount}
-        theme={theme}
+        theme={effectiveTheme}
         options={{
           fontSize: 14,
           minimap: { enabled: false },

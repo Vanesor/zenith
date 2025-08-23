@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, Sparkles, Shield, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const GlobalAuthModal = () => {
   const { isAuthModalOpen, closeAuthModal, authModalReason, shouldRedirectOnClose, redirectPath } = useAuthModal();
@@ -19,14 +20,20 @@ const GlobalAuthModal = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const handleLogin = async (email: string, password: string) => {
+    if (!captchaToken) {
+      throw new Error('Please complete the CAPTCHA verification');
+    }
+    
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, captchaToken }),
     });
 
     const data = await response.json();
@@ -43,12 +50,16 @@ const GlobalAuthModal = () => {
   };
 
   const handleRegister = async (name: string, email: string, password: string) => {
+    if (!captchaToken) {
+      throw new Error('Please complete the CAPTCHA verification');
+    }
+    
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, captchaToken }),
     });
 
     const data = await response.json();
@@ -66,18 +77,34 @@ const GlobalAuthModal = () => {
     setIsLoading(true);
 
     try {
+      if (!captchaToken) {
+        throw new Error('Please complete the CAPTCHA verification');
+      }
+      
       let data;
+      
       if (isLogin) {
         data = await handleLogin(formData.email, formData.password);
       } else {
         data = await handleRegister(formData.name, formData.email, formData.password);
       }
       
-      login(data.token, data.user);
-      closeAuthModal();
-      setFormData({ email: '', password: '', name: '' });
-    } catch (error: any) {
-      setError(error.message || 'Authentication failed');
+      if (data && data.token && data.user) {
+        await login(data.token, data.user);
+        setFormData({ email: '', password: '', name: '' });
+        closeAuthModal();
+        
+        if (shouldRedirectOnClose && redirectPath) {
+          router.push(redirectPath);
+        }
+      }
+    } catch (err: any) {
+      setError(err.message);
+      // Reset CAPTCHA on error
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+        setCaptchaToken(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -102,23 +129,23 @@ const GlobalAuthModal = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 modal-backdrop-gradient backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 
+          className="modal-bg-gradient
                      rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto
-                     border border-gray-200 dark:border-gray-700"
+                     border border-custom modal-border-gradient"
         >
           {/* Header */}
           <div className="relative p-6 pb-2">
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800 
-                         hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full bg-hover 
+                         hover:bg-hover transition-colors"
             >
-              <X className="w-4 h-4 text-zenith-muted" />
+              <X className="w-4 h-4 text-muted" />
             </button>
             
             <div className="text-center">
@@ -126,10 +153,10 @@ const GlobalAuthModal = () => {
                               rounded-full flex items-center justify-center mb-4">
                 <Shield className="w-6 h-6 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-primary">
+              <h2 className="text-2xl font-bold gradient-text-primary">
                 {isLogin ? 'Welcome Back' : 'Join Zenith'}
               </h2>
-              <p className="text-zenith-muted mt-1">
+              <p className="text-muted mt-1">
                 {authModalReason}
               </p>
             </div>
@@ -148,13 +175,13 @@ const GlobalAuthModal = () => {
                 <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-1">
                   <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 </div>
-                <span className="text-xs text-gray-600 dark:text-gray-300">Assignments</span>
+                <span className="text-xs text-muted">Assignments</span>
               </div>
               <div className="flex flex-col items-center p-2">
                 <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-1">
                   <User className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
-                <span className="text-xs text-gray-600 dark:text-gray-300">Community</span>
+                <span className="text-xs text-muted">Community</span>
               </div>
             </div>
           </div>
@@ -164,48 +191,48 @@ const GlobalAuthModal = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted" />
                   <input
                     type="text"
                     placeholder="Full name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required={!isLogin}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 
-                               border border-gray-200 dark:border-gray-700 
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-section 
+                               border border-custom 
                                focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
-                               text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400"
+                               text-primary placeholder-muted"
                   />
                 </div>
               )}
 
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted" />
                 <input
                   type="email"
                   placeholder="Email address"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 
-                             border border-gray-200 dark:border-gray-700 
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-section 
+                             border border-custom 
                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
-                             text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400"
+                             text-primary placeholder-muted"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted" />
                 <input
                   type="password"
                   placeholder="Password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 
-                             border border-gray-200 dark:border-gray-700 
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-section 
+                             border border-custom 
                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
-                             text-gray-900 dark:text-primary placeholder-gray-500 dark:placeholder-gray-400"
+                             text-primary placeholder-muted"
                 />
               </div>
 
@@ -215,6 +242,17 @@ const GlobalAuthModal = () => {
                   {error}
                 </div>
               )}
+
+              {/* reCAPTCHA component */}
+              <div className="flex justify-center my-4">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                  onChange={(token) => setCaptchaToken(token)}
+                  theme={typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                  className="transform scale-90 sm:scale-100 mx-auto"
+                />
+              </div>
 
               <button
                 type="submit"

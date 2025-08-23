@@ -131,16 +131,16 @@ function EditMessageModal({ isOpen, onClose, message, onMessageEdited }: EditMes
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10"></div>
             <div className="relative flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                <h2 className="text-xl font-bold text-accent">
                   Edit Message
                 </h2>
-                <p className="text-gray-400 mt-1">Make changes to your message</p>
+                <p className="text-muted mt-1">Make changes to your message</p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="rounded-full p-2 h-auto text-gray-400 hover:text-primary hover:bg-white/10"
+                className="rounded-full p-2 h-auto text-muted hover:text-primary hover:bg-hover"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -162,11 +162,11 @@ function EditMessageModal({ isOpen, onClose, message, onMessageEdited }: EditMes
                 <Edit3 className="h-4 w-4 inline mr-2" />
                 Message
               </label>
-              <textarea
+                            <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Type your message..."
-                className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
+                className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-accent focus:ring focus:ring-accent/20 resize-none h-32 transition-all"
                 required
               />
             </div>
@@ -177,14 +177,14 @@ function EditMessageModal({ isOpen, onClose, message, onMessageEdited }: EditMes
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
-                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-primary rounded-xl"
+                className="px-6 py-2 border-custom text-secondary hover:bg-hover hover:text-primary rounded-xl transition-all"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading || !content.trim()}
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-primary rounded-xl font-semibold"
+                className="px-6 py-2 bg-accent hover:opacity-90 text-white rounded-xl font-semibold transition-all"
               >
                 {loading ? (
                   <>
@@ -279,16 +279,16 @@ function DeleteMessageModal({ isOpen, onClose, message, onMessageDeleted }: Dele
             <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-pink-600/10"></div>
             <div className="relative flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
+                <h2 className="text-xl font-bold text-red-500">
                   Delete Message
                 </h2>
-                <p className="text-gray-400 mt-1">This action cannot be undone</p>
+                <p className="text-muted mt-1">This action cannot be undone</p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="rounded-full p-2 h-auto text-gray-400 hover:text-primary hover:bg-white/10"
+                className="rounded-full p-2 h-auto text-muted hover:text-primary hover:bg-hover"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -305,12 +305,12 @@ function DeleteMessageModal({ isOpen, onClose, message, onMessageDeleted }: Dele
               </div>
             )}
 
-            <div className="mb-6 bg-slate-800/30 border border-slate-600 rounded-xl p-4">
+            <div className="mb-6 bg-section border border-custom rounded-xl p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <Trash2 className="h-5 w-5 text-red-400" />
                 <p className="text-red-300 font-medium">Warning</p>
               </div>
-              <p className="text-gray-300">
+              <p className="text-secondary">
                 Are you sure you want to delete this message? This action cannot be undone and the message will be permanently removed.
               </p>
             </div>
@@ -321,7 +321,7 @@ function DeleteMessageModal({ isOpen, onClose, message, onMessageDeleted }: Dele
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
-                className="px-6 py-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-primary rounded-xl"
+                className="px-6 py-2 border-custom text-secondary hover:bg-hover hover:text-primary rounded-xl transition-all"
               >
                 Cancel
               </Button>
@@ -920,9 +920,9 @@ export default function ChatPage() {
         {/* Room List */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-4 text-center text-gray-500">Loading chats...</div>
+            <div className="p-4 text-center text-muted">Loading chats...</div>
           ) : filteredRooms.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
+            <div className="p-4 text-center text-muted">
               {searchTerm ? 'No chats found' : 'No chats available'}
             </div>
           ) : (
@@ -930,8 +930,8 @@ export default function ChatPage() {
               <motion.div
                 key={room.id}
                 onClick={() => setSelectedRoom(room)}
-                className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                  selectedRoom?.id === room.id ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''
+                className={`p-4 border-b border-custom cursor-pointer hover:bg-hover transition-colors ${
+                  selectedRoom?.id === room.id ? 'bg-section border-r-2 border-accent' : ''
                 }`}
                 whileHover={{ x: 4 }}
                 transition={{ duration: 0.2 }}

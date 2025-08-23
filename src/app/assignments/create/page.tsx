@@ -373,7 +373,7 @@ export default function CreateAssignment() {
           type="text"
           value={formData.title}
           onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+          className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all"
           placeholder="Enter assignment title..."
           required
         />
@@ -387,7 +387,7 @@ export default function CreateAssignment() {
         <textarea
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20 resize-none h-32"
+          className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all resize-none h-32"
           placeholder="Describe the assignment objectives and requirements..."
           required
         />
@@ -402,7 +402,7 @@ export default function CreateAssignment() {
           type="datetime-local"
           value={formData.dueDate}
           onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+          className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all"
           required
         />
       </div>
@@ -414,7 +414,7 @@ export default function CreateAssignment() {
         <select
           value={formData.assignmentType}
           onChange={(e) => setFormData(prev => ({ ...prev, assignmentType: e.target.value as any }))}
-          className="w-full bg-slate-800/50 border border-slate-600 text-primary rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+          className="w-full bg-card border border-custom text-primary rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all"
         >
           <option value="mixed">Mixed Questions</option>
           <option value="objective">Objective Only</option>
@@ -437,7 +437,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.timeLimit}
             onChange={(e) => setFormData(prev => ({ ...prev, timeLimit: parseInt(e.target.value) || 60 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all"
             min="1"
             required
           />
@@ -452,7 +452,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.maxAttempts}
             onChange={(e) => setFormData(prev => ({ ...prev, maxAttempts: parseInt(e.target.value) || 1 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all"
             min="1"
             max="10"
             required
@@ -468,9 +468,9 @@ export default function CreateAssignment() {
             type="checkbox"
             checked={formData.allowNavigation}
             onChange={(e) => setFormData(prev => ({ ...prev, allowNavigation: e.target.checked }))}
-            className="w-5 h-5 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+            className="w-5 h-5 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
           />
-          <span className="text-slate-200">Allow navigation between questions</span>
+          <span className="text-primary">Allow navigation between questions</span>
         </label>
 
         <label className="flex items-center space-x-3">
@@ -478,9 +478,9 @@ export default function CreateAssignment() {
             type="checkbox"
             checked={formData.allowCalculator}
             onChange={(e) => setFormData(prev => ({ ...prev, allowCalculator: e.target.checked }))}
-            className="w-5 h-5 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+            className="w-5 h-5 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
           />
-          <span className="text-slate-200">Allow calculator access</span>
+          <span className="text-primary">Allow calculator access</span>
         </label>
 
         <label className="flex items-center space-x-3">
@@ -488,9 +488,9 @@ export default function CreateAssignment() {
             type="checkbox"
             checked={formData.shuffleQuestions}
             onChange={(e) => setFormData(prev => ({ ...prev, shuffleQuestions: e.target.checked }))}
-            className="w-5 h-5 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+            className="w-5 h-5 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
           />
-          <span className="text-slate-200">Shuffle question order</span>
+          <span className="text-primary">Shuffle question order</span>
         </label>
       </div>
 
@@ -502,21 +502,21 @@ export default function CreateAssignment() {
             type="checkbox"
             checked={formData.isProctored}
             onChange={(e) => setFormData(prev => ({ ...prev, isProctored: e.target.checked }))}
-            className="w-5 h-5 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+            className="w-5 h-5 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
           />
-          <span className="text-slate-200">Enable proctoring features</span>
+          <span className="text-primary">Enable proctoring features</span>
         </label>
 
         {formData.isProctored && (
-          <div className="ml-8 space-y-3 p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+          <div className="ml-8 space-y-3 p-4 bg-section border border-custom rounded-xl">
             <label className="flex items-center space-x-3">
               <input
                 type="checkbox"
                 checked={formData.requireCamera}
                 onChange={(e) => setFormData(prev => ({ ...prev, requireCamera: e.target.checked }))}
-                className="w-4 h-4 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+                className="w-4 h-4 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
               />
-              <span className="text-purple-200 text-sm">Require camera access</span>
+              <span className="text-secondary text-sm">Require camera access</span>
             </label>
 
             <label className="flex items-center space-x-3">
@@ -524,9 +524,9 @@ export default function CreateAssignment() {
                 type="checkbox"
                 checked={formData.requireFullscreen}
                 onChange={(e) => setFormData(prev => ({ ...prev, requireFullscreen: e.target.checked }))}
-                className="w-4 h-4 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+                className="w-4 h-4 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
               />
-              <span className="text-purple-200 text-sm">Force fullscreen mode</span>
+              <span className="text-secondary text-sm">Force fullscreen mode</span>
             </label>
           </div>
         )}
@@ -546,7 +546,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.maxPoints}
             onChange={(e) => setFormData(prev => ({ ...prev, maxPoints: parseInt(e.target.value) || 100 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all"
             min="1"
             required
           />
@@ -560,7 +560,7 @@ export default function CreateAssignment() {
             type="number"
             value={formData.passingScore}
             onChange={(e) => setFormData(prev => ({ ...prev, passingScore: parseInt(e.target.value) || 60 }))}
-            className="w-full bg-slate-800/50 border border-slate-600 text-primary placeholder-slate-400 rounded-xl p-4 focus:border-purple-400 focus:ring-purple-400/20"
+            className="w-full bg-card border border-custom text-primary placeholder:text-muted rounded-xl p-4 focus:border-custom focus:ring focus:ring-primary-brand/20 transition-all"
             min="0"
             max="100"
             required
@@ -576,9 +576,9 @@ export default function CreateAssignment() {
             type="checkbox"
             checked={formData.showResults}
             onChange={(e) => setFormData(prev => ({ ...prev, showResults: e.target.checked }))}
-            className="w-5 h-5 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+            className="w-5 h-5 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
           />
-          <span className="text-slate-200">Show results immediately after submission</span>
+          <span className="text-primary">Show results immediately after submission</span>
         </label>
 
         <label className="flex items-center space-x-3">
@@ -586,9 +586,9 @@ export default function CreateAssignment() {
             type="checkbox"
             checked={formData.allowReview}
             onChange={(e) => setFormData(prev => ({ ...prev, allowReview: e.target.checked }))}
-            className="w-5 h-5 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500"
+            className="w-5 h-5 text-accent bg-card border-custom rounded focus:ring-primary-brand transition-all"
           />
-          <span className="text-slate-200">Allow students to review their answers</span>
+          <span className="text-primary">Allow students to review their answers</span>
         </label>
       </div>
     </div>
@@ -598,7 +598,7 @@ export default function CreateAssignment() {
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-lg font-semibold text-purple-300 mb-4">Questions Management</h3>
-        <p className="text-slate-400 mb-6">Add and configure questions for your assignment</p>
+        <p className="text-muted mb-6">Add and configure questions for your assignment</p>
         
         <button 
           onClick={addQuestion}
@@ -612,16 +612,16 @@ export default function CreateAssignment() {
       {questions.length > 0 ? (
         <div className="space-y-4">
           {questions.map((question, index) => (
-            <div key={question.id} className="bg-slate-800/50 border border-slate-600 rounded-xl p-6">
+            <div key={question.id} className="bg-card border border-custom rounded-xl p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h4 className="text-primary font-semibold">{question.title || `Question ${index + 1}`}</h4>
-                  <p className="text-slate-400 text-sm">{question.type} • {question.points} points</p>
+                  <p className="text-muted text-sm">{question.type} • {question.points} points</p>
                 </div>
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => editQuestion(question)}
-                    className="p-2 text-purple-400 hover:text-purple-300 transition-colors"
+                    className="p-2 text-accent hover:text-primary transition-colors"
                   >
                     <Eye className="w-4 h-4" />
                   </button>
@@ -633,12 +633,12 @@ export default function CreateAssignment() {
                   </button>
                 </div>
               </div>
-              <p className="text-slate-300 text-sm">{question.description}</p>
+              <p className="text-secondary text-sm">{question.description}</p>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12 text-muted">
           <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No questions added yet. Click "Add Question" to get started.</p>
         </div>
@@ -688,22 +688,22 @@ export default function CreateAssignment() {
                   disabled={!canNavigateToStage(stage.id)}
                   className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 border-2 font-bold text-lg transition-all ${
                     currentStage === stage.id 
-                      ? 'border-purple-400 bg-purple-600 text-primary shadow-lg' 
+                      ? 'border-accent bg-accent text-white shadow-lg' 
                       : canNavigateToStage(stage.id)
-                        ? 'border-slate-600 bg-slate-800 text-slate-300 hover:border-purple-500 hover:bg-slate-700 cursor-pointer'
-                        : 'border-slate-700 bg-slate-900 text-slate-600 cursor-not-allowed opacity-50'
+                        ? 'border-custom bg-card text-secondary hover:border-accent hover:bg-hover cursor-pointer'
+                        : 'border-custom bg-section text-muted cursor-not-allowed opacity-50'
                   }`}
                 >
                   {idx + 1}
                 </button>
-                <span className="text-xs font-medium text-slate-300 uppercase tracking-wider text-center">
+                <span className="text-xs font-medium text-secondary uppercase tracking-wider text-center">
                   {stage.title}
                 </span>
                 {idx < stages.length - 1 && (
                   <div className={`h-1 w-full mt-2 ${
                     currentStage === stage.id || stages.findIndex(s => s.id === currentStage) > idx
-                      ? 'bg-gradient-to-r from-purple-400 to-blue-400'
-                      : 'bg-slate-700'
+                      ? 'bg-gradient-to-r from-accent to-primary-brand'
+                      : 'bg-section'
                   }`} />
                 )}
               </div>
@@ -712,12 +712,12 @@ export default function CreateAssignment() {
         </div>
 
         {/* Main Content Card */}
-        <div className="zenith-bg-card rounded-2xl shadow-xl border zenith-border p-8 md:p-10 mb-8">
+        <div className="bg-card rounded-2xl shadow-xl border border-custom p-8 md:p-10 mb-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-accent to-primary-brand bg-clip-text text-transparent mb-2">
               {stages.find(s => s.id === currentStage)?.title}
             </h2>
-            <p className="zenith-text-secondary">
+            <p className="text-secondary">
               {stages.find(s => s.id === currentStage)?.description}
             </p>
           </div>
