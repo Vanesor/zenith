@@ -3,7 +3,7 @@ import { TwoFactorAuthService } from "@/lib/TwoFactorAuthService";
 import db from '@/lib/database';
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 export async function POST(req: NextRequest) {
   try {
@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("Error during 2FA verification:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to verify 2FA code" },
       { status: 500 }

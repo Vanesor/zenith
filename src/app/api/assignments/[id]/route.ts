@@ -138,7 +138,7 @@ export async function GET(
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Error fetching assignment:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -181,7 +181,7 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error updating assignment:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ 
       error: "Error updating assignment", 
       details: (error as Error).message 
@@ -300,7 +300,7 @@ export async function DELETE(
       console.error("Error during rollback:", rollbackError);
     }
     
-    console.error('Error deleting assignment:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ 
       error: "Error deleting assignment", 
       details: (error as Error).message 

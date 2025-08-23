@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import db from '@/lib/database';
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { verifyAuth } from "@/lib/auth-unified";
 
 // POST /api/posts/[postId]/bookmark - Toggle bookmark on a post
 export async function POST(
@@ -10,15 +8,15 @@ export async function POST(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
     const postId = params.postId;
 
     // For now, we'll use a simple approach - check if there's a "bookmark" entry in likes table
@@ -37,7 +35,7 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Error toggling bookmark:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

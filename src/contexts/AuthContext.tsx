@@ -284,6 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       localStorage.removeItem("zenith-token");
       localStorage.removeItem("zenith-user");
+      localStorage.removeItem("zenith-refresh-token");
       // Only redirect if explicitly requested and we're in browser
       if (redirect) {
         window.location.href = "/";

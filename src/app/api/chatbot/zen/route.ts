@@ -318,7 +318,7 @@ Current context: User is on ${currentPage} page.`;
 
     return NextResponse.json({ response: text });
   } catch (error) {
-    console.error("Zen Chatbot API error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Zen is temporarily unavailable. Please try again later." },
       { status: 500 }

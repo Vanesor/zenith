@@ -22,7 +22,7 @@ function safeJsonParse(jsonString: string, defaultValue: unknown = null) {
     // If it's neither an object nor a string, return default
     return defaultValue;
   } catch (error) {
-    console.error('Error parsing JSON:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return defaultValue;
   }
 }
@@ -54,7 +54,7 @@ async function generateCodeAnalysis(code: string, language: string): Promise<str
     const response = result.response;
     return response.text();
   } catch (error) {
-    console.error('Error generating code analysis:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return "Unable to generate code analysis at this time.";
   }
 }
@@ -291,7 +291,7 @@ export async function GET(
           userAnswer = { code: '', language: '' };
           correctAnswer = null;
           analysisContent = "Error analyzing code submission.";
-          console.error('Error processing coding question:', error);
+          console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
         }
       }
       else if ((question as any).question_type === 'integer') {
@@ -403,7 +403,7 @@ export async function GET(
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error('Error fetching results:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ badges: badgeResults.rows });
   } catch (error) {
-    console.error("Error fetching user badges:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch user badges" },
       { status: 500 }
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ badge: result.rows[0] }, { status: 201 });
   } catch (error) {
-    console.error("Error creating user badge:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to create badge" },
       { status: 500 }

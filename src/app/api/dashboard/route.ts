@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from '@/lib/database';
 import { verifyAuth } from "@/lib/auth-unified";
-import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 export async function GET(request: NextRequest) {
   // Debug auth headers and cookies
@@ -14,98 +12,13 @@ export async function GET(request: NextRequest) {
   const authResult = await verifyAuth(request);
   
   if (!authResult.success) {
-    try {
-      // If token expired but we generated a new one from refresh token
-      if (authResult.error?.includes("expired") && authResult.newToken) {
-        // Create a response with the new token
-        const response = NextResponse.json({
-          tokenRefreshed: true,
-          message: "Token refreshed successfully"
-        });
-        
-        // Set the new token as a cookie
-        response.cookies.set('zenith-token', authResult.newToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 24 * 60 * 60, // 24 hours
-        });
-        
-        return response;
-      }
-      
-      // If the session is invalid but we have a valid token, create a new session
-      if (authResult.error === "Session expired or invalid") {
-        // Try to extract user info from the token
-        const token = request.headers.get("authorization")?.replace("Bearer ", "") || 
-                     request.cookies.get("zenith-token")?.value;
-        
-        if (token) {
-          try {
-            const decoded = jwt.verify(token, JWT_SECRET) as any;
-            
-            if (decoded && decoded.userId) {
-              // Generate a new session token
-              const sessionToken = `zenith_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-              
-              // Create a new session in the database
-              try {
-                await db.query(`
-                  INSERT INTO sessions (user_id, token, expires_at, user_agent, ip_address, last_active_at)
-                  VALUES ($1, $2, NOW() + INTERVAL '24 hours', $3, $4, NOW())
-                `, [
-                  decoded.userId,
-                  sessionToken,
-                  request.headers.get('user-agent') || 'Unknown',
-                  request.headers.get('x-forwarded-for') || '127.0.0.1'
-                ]);
-                
-                console.log("Created new session for user:", decoded.userId);
-                
-                // Continue with request using the decoded user info
-                const user = {
-                  id: decoded.userId,
-                  email: decoded.email,
-                  role: decoded.role,
-                  sessionId: sessionToken
-                };
-                
-                // Set the session cookie
-                const response = NextResponse.json({
-                  sessionRestored: true,
-                  message: "Session restored successfully"
-                });
-                
-                response.cookies.set('zenith-session', sessionToken, {
-                  httpOnly: true,
-                  secure: process.env.NODE_ENV === 'production',
-                  sameSite: 'lax',
-                  path: '/',
-                  maxAge: 24 * 60 * 60, // 24 hours
-                });
-                
-                return response;
-              } catch (dbError) {
-                console.error("Failed to create new session:", dbError);
-              }
-            }
-          } catch (jwtError) {
-            console.error("Failed to verify token for session creation:", jwtError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error handling authentication failure:", error);
-    }
-    
     console.log("Dashboard API - Auth failed:", authResult.error);
     return NextResponse.json(
       { error: authResult.error || "Unauthorized" },
       { status: 401 }
     );
   }
-  
+
   const userId = authResult.user!.id;
   try {
     // Get all clubs with member counts and upcoming events
@@ -278,7 +191,7 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     
     // Return more specific error information to help debug
     let errorMessage = "Failed to fetch dashboard data";
@@ -290,7 +203,7 @@ export async function GET(request: NextRequest) {
         console.error("Schema mismatch detected. Please check database schema and queries.");
       } else if (error.message.includes("operator does not exist")) {
         errorMessage = `Type casting error: ${error.message}`;
-        console.error("Type casting error. Please check parameter types in queries.");
+        console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
       }
     }
     

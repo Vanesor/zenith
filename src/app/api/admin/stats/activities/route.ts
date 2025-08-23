@@ -100,7 +100,7 @@ export async function GET() {
     
     return new NextResponse(JSON.stringify({ activities: formattedActivities }));
   } catch (error) {
-    console.error('Error fetching activities:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     
     // Return fallback data
     return new NextResponse(JSON.stringify({

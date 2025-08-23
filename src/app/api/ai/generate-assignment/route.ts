@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(assignment);
     }
   } catch (error) {
-    console.error('Error in generate-assignment API:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to process request. Please try again.' },
       { status: 500 }
@@ -79,7 +79,7 @@ Respond with ONLY the JSON object, no other text.`;
       return localAnalyzeContent(content);
     }
   } catch (error) {
-    console.error('Error analyzing content with Gemini:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     // Fallback to local analysis
     return localAnalyzeContent(content);
   }
@@ -190,7 +190,7 @@ Generate ${questionCount} high-quality questions now:`;
       throw new Error('Failed to generate assignment. Please try again.');
     }
   } catch (error) {
-    console.error('Error generating assignment with Gemini:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     throw new Error('Failed to generate assignment. Please check your API key and try again.');
   }
 }

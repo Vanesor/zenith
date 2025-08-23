@@ -1,24 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/database";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from '@/lib/auth-unified';
 
 // PUT /api/comments/[id] - Update comment
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     const { id } = await params;
     const { content } = await request.json();
@@ -61,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ comment: result.rows[0] });
   } catch (error) {
-    console.error("Error updating comment:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -72,14 +65,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 // DELETE /api/comments/[id] - Delete comment
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     const { id } = await params;
 
@@ -122,7 +114,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     return NextResponse.json({ message: "Comment deleted successfully" });
   } catch (error) {
-    console.error("Error deleting comment:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -151,7 +143,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ comment: result.rows[0] });
   } catch (error) {
-    console.error("Error fetching comment:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

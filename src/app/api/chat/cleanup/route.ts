@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error in cleanup route:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ 
       success: false, 
       message: error instanceof Error ? error.message : 'Unknown error'

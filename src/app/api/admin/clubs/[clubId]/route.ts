@@ -13,7 +13,7 @@ export async function GET(request: Request, { params }: { params: { clubId: stri
     
     return NextResponse.json(clubData);
   } catch (error) {
-    console.error(`Error fetching club details: ${error}`);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Failed to fetch club details' }, { status: 500 });
   }
 }

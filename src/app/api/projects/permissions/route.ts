@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization');
+    // Use unified auth system with automatic token refresh
+    const authResult = await verifyAuth(request);
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ 
+        error: 'Authentication required',
+        expired: authResult.expired || false,
+        message: authResult.expired ? 'Session expired. Please sign in again.' : 'Please sign in to access this feature.'
+      }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     // Get user's permissions for project creation
     const permissions = await ProjectPermissionService.getUserPermissions(userId);
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       permissions: {
         canCreateProject: permissions.canCreateProject,
         canManageAllProjects: permissions.canManageAllProjects,
@@ -27,8 +30,21 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Set new token if it was refreshed
+    if (authResult.newToken) {
+      response.cookies.set('zenith-token', authResult.newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60, // 1 day
+        path: '/'
+      });
+    }
+
+    return response;
+
   } catch (error) {
-    console.error('Error checking user permissions:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

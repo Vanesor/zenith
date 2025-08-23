@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error checking code execution service health:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     
     return NextResponse.json(
       { 

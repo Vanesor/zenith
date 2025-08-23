@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ProjectManagementService } from '@/lib/ProjectManagementService';
 import { TaskManagementService } from '@/lib/TaskManagementService';
 import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { verifyAuth } from '@/lib/auth-unified';
 
 // GET /api/projects/[id] - Get project details
 export async function GET(
@@ -15,29 +13,18 @@ export async function GET(
     const { id } = await params;
     
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
-    }
-
-    if (!token) {
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: "No authentication token provided" },
+        { 
+          error: authResult.error || "Authentication required",
+          expired: authResult.expired || false
+        },
         { status: 401 }
       );
     }
 
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
-    }
-
-    const result = await ProjectManagementService.getProjectDetails(id, decoded.userId);
+    const result = await ProjectManagementService.getProjectDetails(id, authResult.user?.id || '');
 
     if (!result.success) {
       return NextResponse.json(
@@ -56,7 +43,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error getting project details:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to get project details' },
       { status: 500 }
@@ -71,24 +58,13 @@ export async function DELETE(
 ) {
   try {
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
-    }
-
-    if (!token) {
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
+        { 
+          error: authResult.error || "Authentication required",
+          expired: authResult.expired || false
+        },
         { status: 401 }
       );
     }
@@ -97,7 +73,7 @@ export async function DELETE(
     const projectId = resolvedParams.id;
 
     // Check user permissions
-    const permissions = await ProjectPermissionService.getUserPermissions(decoded.userId, projectId);
+    const permissions = await ProjectPermissionService.getUserPermissions(authResult.user?.id || '', projectId);
     
     if (!permissions.canDeleteProject) {
       return NextResponse.json(
@@ -110,7 +86,7 @@ export async function DELETE(
     }
 
     // Delete the project
-    const result = await ProjectManagementService.deleteProject(projectId, decoded.userId);
+    const result = await ProjectManagementService.deleteProject(projectId, authResult.user?.id || '');
     
     if (!result.success) {
       return NextResponse.json(
@@ -125,7 +101,7 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error deleting project:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to delete project' },
       { status: 500 }

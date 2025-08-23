@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-unified';
 import { DatabaseImageService } from '@/lib/DatabaseImageService';
+import { verifyAuth } from '@/lib/auth-unified';
 import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // POST /api/images/upload
 export async function POST(request: NextRequest) {
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      decoded = verifyAuth(request) as { userId: string; email: string };
     } catch (error) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
     const result = await DatabaseImageService.uploadImage(
       file,
       file.name,
-      decoded.userId,
+      authResult.user?.id,
       {
         context,
         referenceId,
@@ -93,7 +95,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to upload image' },
       { status: 500 }

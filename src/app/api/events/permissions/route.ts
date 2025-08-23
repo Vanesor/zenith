@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     // Get user's permissions (reuse project permission service as it has similar logic)
     const permissions = await ProjectPermissionService.getUserPermissions(userId);
@@ -35,7 +31,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error checking event permissions:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

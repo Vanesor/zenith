@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import db from "@/lib/database";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "your-refresh-secret-key";
 
 interface RefreshTokenPayload {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Token refresh error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to refresh token" },
       { status: 500 }

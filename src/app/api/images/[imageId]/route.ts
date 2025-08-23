@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-unified';
 import { DatabaseImageService } from '@/lib/DatabaseImageService';
+import { verifyAuth } from '@/lib/auth-unified';
 import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // GET /api/images/[imageId]?size=original|thumbnail|medium&token=accessToken
 export async function GET(
@@ -38,7 +40,7 @@ export async function GET(
     
     return response;
   } catch (error) {
-    console.error('Error serving image:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      decoded = verifyAuth(request) as { userId: string; email: string };
     } catch (error) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
@@ -100,7 +102,7 @@ export async function POST(request: NextRequest) {
     const result = await DatabaseImageService.uploadImage(
       file,
       file.name,
-      decoded.userId,
+      authResult.user?.id,
       {
         context,
         referenceId,
@@ -135,7 +137,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to upload image' },
       { status: 500 }
@@ -165,7 +167,7 @@ export async function DELETE(
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      decoded = verifyAuth(request) as { userId: string; email: string };
     } catch (error) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
@@ -173,7 +175,7 @@ export async function DELETE(
       );
     }
 
-    const result = await DatabaseImageService.deleteImage(params.imageId, decoded.userId);
+    const result = await DatabaseImageService.deleteImage(params.imageId, authResult.user?.id);
 
     if (!result.success) {
       return NextResponse.json(
@@ -185,7 +187,7 @@ export async function DELETE(
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Error deleting image:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to delete image' },
       { status: 500 }

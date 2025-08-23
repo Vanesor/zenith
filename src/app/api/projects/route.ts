@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ProjectManagementService } from '@/lib/ProjectManagementService';
 import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // GET /api/projects - Get user's projects
 export async function GET(request: NextRequest) {
@@ -23,10 +22,21 @@ export async function GET(request: NextRequest) {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      // Use unified auth system with automatic token refresh
+      const authResult = await verifyAuth(request);
+      
+      if (!authResult.success || !authResult.user) {
+        return NextResponse.json({ 
+          error: 'Authentication required',
+          expired: authResult.expired || false,
+          message: authResult.expired ? 'Session expired. Please sign in again.' : 'Please sign in to access this feature.'
+        }, { status: 401 });
+      }
+
+      decoded = { userId: authResult.user.id, email: authResult.user.email };
     } catch (error) {
       return NextResponse.json(
-        { error: "Invalid or expired token" },
+        { error: "Authentication failed" },
         { status: 401 }
       );
     }
@@ -46,7 +56,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error getting projects:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to get projects' },
       { status: 500 }
@@ -57,28 +67,18 @@ export async function GET(request: NextRequest) {
 // POST /api/projects - Create new project
 export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
+    // Verify authentication using unified auth system
+    const authResult = await verifyAuth(request);
+    
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ 
+        error: 'Authentication required',
+        expired: authResult.expired || false,
+        message: authResult.expired ? 'Session expired. Please sign in again.' : 'Please sign in to access this feature.'
+      }, { status: 401 });
     }
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
-    }
+    const decoded = { userId: authResult.user.id, email: authResult.user.email };
 
     const body = await request.json();
     const {
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating project:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to create project' },
       { status: 500 }

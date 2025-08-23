@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ isLiked });
   } catch (error) {
-    console.error("Error checking user comment like:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

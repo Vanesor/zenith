@@ -146,7 +146,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       },
     });
   } catch (error) {
-    console.error("Error fetching club management data:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

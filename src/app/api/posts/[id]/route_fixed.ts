@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: Props) {
       comments: commentsResult.rows,
     });
   } catch (error) {
-    console.error("Error fetching post:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -127,7 +127,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     });
 
   } catch (error) {
-    console.error("Error updating post:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -183,7 +183,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     });
 
   } catch (error) {
-    console.error("Error deleting post:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

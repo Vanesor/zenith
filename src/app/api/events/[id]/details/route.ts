@@ -67,7 +67,7 @@ export async function GET(
       recent_registrations: registrationsResult.rows,
     });
   } catch (error) {
-    console.error("Error fetching event details:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch event details" },
       { status: 500 }
@@ -158,7 +158,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ event_details: result.rows[0] });
   } catch (error) {
-    console.error("Error updating event details:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to update event details" },
       { status: 500 }

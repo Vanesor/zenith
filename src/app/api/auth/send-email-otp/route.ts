@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error("Send email OTP error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -10,6 +10,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch';
 
 interface CreatePostModalProps {
   clubId: string;
@@ -18,6 +19,7 @@ interface CreatePostModalProps {
 }
 
 export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePostModalProps) {
+  const authenticatedFetch = useAuthenticatedFetch();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -74,8 +76,6 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
     setError('');
 
     try {
-      const token = localStorage.getItem('zenith-token');
-      
       // Generate slug from title
       const slug = formData.title
         .toLowerCase()
@@ -93,12 +93,8 @@ export default function CreatePostModal({ clubId, onClose, onSuccess }: CreatePo
         featured_image_url: formData.featured_image_url || null
       };
 
-      const response = await fetch(`/api/clubs/${clubId}/posts`, {
+      const response = await authenticatedFetch(`/api/clubs/${clubId}/posts`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(postData),
       });
 

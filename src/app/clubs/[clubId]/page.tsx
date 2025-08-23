@@ -18,9 +18,12 @@ import {
   Heart,
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
-import { useAuth } from "@/contexts/AuthContext";
+import { useOptionalAuth, useClubManagementGuard } from "@/hooks/useAuthGuard";
 import UserAvatar from "@/components/UserAvatar";
 import ClubLogo from "@/components/ClubLogo";
+import { ProtectedContent } from "@/components/ProtectedContent";
+import { AuthButton, JoinEventButton, CreatePostButton } from "@/components/AuthButton";
+import { SectionLoader } from "@/components/UniversalLoader";
 
 interface ClubData {
   club: {
@@ -94,35 +97,26 @@ const getClubTextColor = (clubName: string) => {
 export default function ClubPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const auth = useOptionalAuth();
+  const currentClubId = params.clubId as string;
+  const clubGuard = useClubManagementGuard(currentClubId);
   const [isJoined, setIsJoined] = useState(false);
   const [clubData, setClubData] = useState<ClubData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const clubId = params?.clubId as string;
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, isLoading, router]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        const token = localStorage.getItem("zenith-token");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        const response = await fetch(`/api/clubs/${clubId}`, {
+        const response = await fetch(`/api/clubs/${currentClubId}`, {
+          credentials: 'include', // Include cookies for authentication
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            ...(auth.user && localStorage.getItem("zenith-token") && {
+              Authorization: `Bearer ${localStorage.getItem("zenith-token")}`
+            })
           },
         });
 
@@ -140,18 +134,16 @@ export default function ClubPage() {
       }
     };
 
-    if (user && clubId) {
-      setIsJoined(user.club_id === clubId);
+    if (currentClubId) {
+      if (auth.user) {
+        setIsJoined(auth.user.club_id === currentClubId);
+      }
       fetchData();
     }
-  }, [user, clubId, router]);
+  }, [auth.user, currentClubId]);
 
-  if (isLoading || loading || !user) {
-    return (
-      <div className="min-h-screen bg-zenith-main flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+  if (auth.isLoading || loading) {
+    return <SectionLoader message="Loading club information..." />;
   }
 
   if (error || !clubData) {
@@ -203,23 +195,32 @@ export default function ClubPage() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
-                <button
+                <AuthButton
                   onClick={handleJoinClub}
                   className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                     isJoined
                       ? "bg-card/20 text-primary border border-white/30 hover:bg-card/30"
                       : "bg-card text-primary hover:bg-zenith-section"
                   }`}
+                  requireAuth={true}
+                  authPrompt={`Please sign in to ${isJoined ? 'manage your membership in' : 'join'} ${club.name}`}
+                  fallbackText={isJoined ? "Member" : "Sign In to Join"}
+                  variant="secondary"
                 >
                   {isJoined ? "Joined" : "Join Club"}
-                </button>
-                <Link
-                  href={`/clubs/${clubId}/discussions`}
+                </AuthButton>
+                
+                <AuthButton
+                  onClick={() => router.push(`/clubs/${currentClubId}/discussions`)}
                   className="px-6 py-3 bg-card/20 text-primary rounded-lg border border-white/30 hover:bg-card/30 transition-all inline-flex items-center"
+                  requireAuth={true}
+                  authPrompt="Please sign in to access discussions"
+                  fallbackText="Sign In for Discussions"
+                  variant="ghost"
+                  icon={<MessageSquare size={20} className="mr-2" />}
                 >
-                  <MessageSquare size={20} className="mr-2" />
                   Discussions
-                </Link>
+                </AuthButton>
               </div>
             </div>
           </div>
@@ -282,9 +283,21 @@ export default function ClubPage() {
 
             {/* Recent Posts */}
             <div className="bg-card rounded-xl p-6 shadow-lg">
-              <h2 className="text-xl font-semibold text-primary mb-6">
-                Recent Posts
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-primary">
+                  Recent Posts
+                </h2>
+                <ProtectedContent
+                  requiredRoles={['admin', 'coordinator', 'co_coordinator', 'committee_member', 'student']}
+                  fallback={null}
+                  showAuthButton={false}
+                >
+                  <CreatePostButton 
+                    onCreate={() => router.push(`/clubs/${currentClubId}/posts/create`)}
+                    className="px-4 py-2"
+                  />
+                </ProtectedContent>
+              </div>
               <div className="space-y-4">
                 {posts.length > 0 ? (
                   posts.map((post) => (
@@ -395,26 +408,50 @@ export default function ClubPage() {
 
             {/* Upcoming Events */}
             <div className="bg-card rounded-xl p-6 shadow-lg">
-              <h2 className="text-lg font-semibold text-primary mb-4">
-                Upcoming Events
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-primary">
+                  Upcoming Events
+                </h2>
+                <ProtectedContent
+                  requiredRoles={['admin', 'coordinator', 'co_coordinator', 'committee_member']}
+                  fallback={null}
+                  showAuthButton={false}
+                >
+                  <AuthButton
+                    onClick={() => router.push(`/clubs/${currentClubId}/events/create`)}
+                    className="px-3 py-1 text-sm"
+                    size="sm"
+                    authPrompt="Please sign in to create events"
+                    fallbackText="Sign In to Create"
+                  >
+                    Create Event
+                  </AuthButton>
+                </ProtectedContent>
+              </div>
               <div className="space-y-4">
                 {events.length > 0 ? (
                   events.map((event) => (
                     <div
                       key={event.id}
-                      className="border-l-4 border-zenith-primary pl-4"
+                      className="border-l-4 border-zenith-primary pl-4 pr-2 flex justify-between items-start"
                     >
-                      <h3 className="font-medium text-primary text-sm">
-                        {event.title}
-                      </h3>
-                      <p className="text-xs text-zenith-muted mt-1">
-                        {new Date(event.date).toLocaleDateString()} at{" "}
-                        {event.time}
-                      </p>
-                      <p className="text-xs text-zenith-muted">
-                        {event.location}
-                      </p>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-primary text-sm">
+                          {event.title}
+                        </h3>
+                        <p className="text-xs text-zenith-muted mt-1">
+                          {new Date(event.date).toLocaleDateString()} at{" "}
+                          {event.time}
+                        </p>
+                        <p className="text-xs text-zenith-muted">
+                          {event.location}
+                        </p>
+                      </div>
+                      <JoinEventButton
+                        onJoin={() => console.log(`Joining event ${event.id}`)}
+                        className="px-2 py-1 text-xs ml-2"
+                        eventTitle={event.title}
+                      />
                     </div>
                   ))
                 ) : (
@@ -437,24 +474,49 @@ export default function ClubPage() {
                     View Events
                   </span>
                 </button>
-                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
+                
+                <AuthButton
+                  onClick={() => router.push(`/clubs/${currentClubId}/discussions`)}
+                  className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left bg-transparent border-0 shadow-none"
+                  variant="ghost"
+                  requireAuth={true}
+                  authPrompt="Please sign in to join discussions"
+                  fallbackText="Sign In to Join Discussion"
+                >
                   <MessageSquare size={16} className="stat-members" />
                   <span className="text-sm text-primary">
                     Join Discussion
                   </span>
-                </button>
+                </AuthButton>
+                
                 <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
                   <FileText size={16} className="stat-posts" />
                   <span className="text-sm text-primary">
                     View Resources
                   </span>
                 </button>
-                <button className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left">
-                  <Settings size={16} className="text-zenith-secondary" />
-                  <span className="text-sm text-primary">
-                    Settings
-                  </span>
-                </button>
+                
+                <ProtectedContent
+                  requiredRoles={['admin', 'coordinator', 'co_coordinator']}
+                  fallback={
+                    <div className="w-full flex items-center space-x-3 p-3 rounded-lg opacity-50">
+                      <Settings size={16} className="text-zenith-secondary" />
+                      <span className="text-sm text-gray-400">
+                        Settings (Management Only)
+                      </span>
+                    </div>
+                  }
+                >
+                  <button 
+                    onClick={() => router.push(`/clubs/${currentClubId}/settings`)}
+                    className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-zenith-hover transition-colors text-left"
+                  >
+                    <Settings size={16} className="text-zenith-secondary" />
+                    <span className="text-sm text-primary">
+                      Settings
+                    </span>
+                  </button>
+                </ProtectedContent>
               </div>
             </div>
           </div>

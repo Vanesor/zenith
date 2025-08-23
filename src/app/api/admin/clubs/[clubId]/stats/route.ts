@@ -1,24 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/database';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { clubId: string } }
 ) {
   try {
-    // Verify authorization
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication and authorization
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     
     // Check if user has admin access
     const adminRoles = ['president', 'vice_president', 'innovation_head', 'treasurer', 'outreach', 'zenith_committee'];
-    if (!adminRoles.includes(decoded.role)) {
+    if (!adminRoles.includes(authResult.user.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -159,7 +156,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, stats });
   } catch (error) {
-    console.error('Error fetching club stats:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to fetch club statistics' },
       { status: 500 }

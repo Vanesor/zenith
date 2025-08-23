@@ -1,62 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from '@/lib/database';
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { verifyAuth } from '@/lib/auth-unified';
 
 // Get user profile data
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Profile API GET request received');
     
-    // Get token from header or cookie
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
-    } else {
-      // Try to get from cookie
-      const cookieToken = request.cookies.get("token")?.value;
-      if (cookieToken) {
-        token = cookieToken;
-      }
-    }
-
-    console.log('🔍 Token found:', token ? 'Yes' : 'No');
-
-    if (!token) {
-      console.log('❌ No authentication token provided');
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      console.log('❌ Authentication failed:', authResult.error);
       return NextResponse.json(
-        { error: "No authentication token provided" },
+        { 
+          error: authResult.error || "Authentication required",
+          expired: authResult.expired || false
+        },
         { status: 401 }
       );
     }
 
-    // Verify token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-      console.log('✅ Token verified for user:', decoded.userId);
-    } catch (error) {
-      console.log('❌ Token verification failed:', error instanceof Error ? error.message : String(error));
-      console.log('🔍 Token first 20 chars:', token.substring(0, 20));
-      console.log('🔍 JWT_SECRET defined:', JWT_SECRET ? 'Yes' : 'No');
-      return NextResponse.json(
-        { error: "Invalid or expired token. Please log in again." },
-        { status: 401 }
-      );
-    }
+    console.log('✅ Token verified for user:', authResult.user?.id);
 
     // Get user data from database using SQL query
     let user;
     try {
-      console.log('🔍 Querying database for user:', decoded.userId);
+      console.log('🔍 Querying database for user:', authResult.user?.id);
       const userResult = await db.query(`
         SELECT 
           id, email, name, username, role, club_id, avatar, bio, 
           created_at, phone, location, website, github, linkedin, twitter
         FROM users 
         WHERE id = $1 AND deleted_at IS NULL
-      `, [decoded.userId]);
+      `, [authResult.user?.id]);
       
       user = userResult.rows[0];
       console.log('✅ SQL query successful, user found:', user ? 'Yes' : 'No');
@@ -126,7 +101,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Profile fetch error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -139,39 +114,19 @@ export async function PUT(request: NextRequest) {
   try {
     console.log('🔍 Profile API PUT request received');
     
-    // Get token
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
-    } else {
-      const cookieToken = request.cookies.get("token")?.value;
-      if (cookieToken) {
-        token = cookieToken;
-      }
-    }
-
-    console.log('🔍 Token found for update:', token ? 'Yes' : 'No');
-
-    if (!token) {
-      console.log('❌ No authentication token provided for update');
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      console.log('❌ Authentication failed for update:', authResult.error);
       return NextResponse.json(
-        { error: "No authentication token provided" },
+        { 
+          error: authResult.error || "Authentication required",
+          expired: authResult.expired || false
+        },
         { status: 401 }
       );
     }
 
-    // Verify token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-      console.log('✅ Token verified for update, user:', decoded.userId);
-    } catch (error) {
-      console.log('❌ Token verification failed for update:', error instanceof Error ? error.message : String(error));
-      return NextResponse.json(
-        { error: "Invalid or expired token. Please log in again." },
-        { status: 401 }
-      );
-    }
+    console.log('✅ Token verified for update, user:', authResult.user?.id);
 
     const updateData = await request.json();
     console.log('🔍 Update data received:', Object.keys(updateData));
@@ -182,7 +137,7 @@ export async function PUT(request: NextRequest) {
     // Update user profile in database using SQL query
     let user;
     try {
-      console.log('🔍 Attempting profile update for user:', decoded.userId);
+      console.log('🔍 Attempting profile update for user:', authResult.user?.id);
       const updateResult = await db.query(`
         UPDATE users 
         SET 
@@ -212,7 +167,7 @@ export async function PUT(request: NextRequest) {
         updateData.github || null,
         updateData.linkedin || null,
         updateData.twitter || null,
-        decoded.userId
+        authResult.user?.id
       ]);
       
       user = updateResult.rows[0];
@@ -265,7 +220,7 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Profile update error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

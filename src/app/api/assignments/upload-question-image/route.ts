@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 import { LocalStorageService } from "@/lib/storage";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for question images
 
 // File validation function
@@ -28,27 +27,9 @@ function validateFile(file: File, type: string, maxSize: number): { valid: boole
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
-    }
-
-    if (!token) {
-      return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    // Verify token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
     const formData = await request.formData();
@@ -94,7 +75,7 @@ export async function POST(request: NextRequest) {
        }, { status: 500 });
     }
 
-    console.log(`✅ Question image uploaded for question ${questionId} by user ${decoded.userId}`);
+    console.log(`✅ Question image uploaded for question ${questionId} by user ${authResult.user.id}`);
     
     return NextResponse.json({
       success: true,
@@ -104,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Question image upload error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       {
          success: false,

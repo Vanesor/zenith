@@ -40,7 +40,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { 
         success: false, 

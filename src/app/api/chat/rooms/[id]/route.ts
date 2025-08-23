@@ -107,7 +107,7 @@ export async function GET(
     return NextResponse.json({ room });
 
   } catch (error) {
-    console.error("Error fetching room details:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch room details" },
       { status: 500 }
@@ -188,7 +188,7 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error("Error updating room:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to update room" },
       { status: 500 }
@@ -274,7 +274,7 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error("Error deleting room:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to delete room" },
       { status: 500 }

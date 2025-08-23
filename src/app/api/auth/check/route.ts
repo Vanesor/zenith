@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
     return response;
 
   } catch (error) {
-    console.error('Auth check error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
 
     // Extract IP and User Agent for audit logging
     const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Auth check POST error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
 
     // Extract IP and User Agent for audit logging
     const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 

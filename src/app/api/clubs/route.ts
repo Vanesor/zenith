@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     console.log(`📋 Returning ${clubsWithStats.length} clubs with full data`);
     return NextResponse.json({ success: true, clubs: clubsWithStats });
   } catch (error) {
-    console.error("Error fetching clubs:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch clubs" },
       { status: 500 }

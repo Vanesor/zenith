@@ -19,7 +19,8 @@ import {
   PlayCircle,
   PauseCircle
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthRequired } from '@/hooks/useAuthGuard';
+import { SectionLoader } from '@/components/UniversalLoader';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +48,9 @@ interface Project {
 }
 
 export default function ProjectsPage() {
-  const { user } = useAuth();
+  const auth = useAuthRequired({
+    redirectReason: 'Please sign in to access your projects',
+  });
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,17 +60,22 @@ export default function ProjectsPage() {
   const [userPermissions, setUserPermissions] = useState<any>(null);
 
   useEffect(() => {
-    fetchProjects();
-    checkUserPermissions();
-  }, []);
+    if (auth.user) {
+      fetchProjects();
+      checkUserPermissions();
+    }
+  }, [auth.user]);
 
   const fetchProjects = async () => {
     try {
-      const token = localStorage.getItem('zenith-token');
       const response = await fetch('/api/projects', {
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+          'Content-Type': 'application/json',
+          ...(auth.user && localStorage.getItem("zenith-token") && {
+            Authorization: `Bearer ${localStorage.getItem("zenith-token")}`
+          })
+        }
       });
 
       if (response.ok) {
@@ -146,13 +154,11 @@ export default function ProjectsPage() {
     overdue: projects.filter(p => p.target_end_date && new Date(p.target_end_date) < new Date() && p.status !== 'completed').length,
   };
 
-  if (loading) {
+  if (auth.isLoading || loading) {
     return (
       <div className="min-h-screen bg-main">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          </div>
+          <SectionLoader message="Loading your projects..." />
         </div>
       </div>
     );
@@ -355,7 +361,7 @@ export default function ProjectsPage() {
                     getStatusIcon={getStatusIcon}
                     getPriorityColor={getPriorityColor}
                     onProjectUpdate={fetchProjects}
-                    currentUserId={user?.id}
+                    currentUserId={auth.user?.id}
                   />
                 </motion.div>
               ))}

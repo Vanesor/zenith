@@ -76,7 +76,7 @@ export async function GET() {
       success: true
     });
   } catch (error) {
-    console.error('Error fetching club stats:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     
     // Fallback data in case of database error
     const fallbackClubs = [

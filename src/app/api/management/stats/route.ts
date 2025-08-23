@@ -1,25 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, queryRawSQL } from '@/lib/database';
-import jwt from "jsonwebtoken";
+import { verifyAuth } from '@/lib/auth-unified';
 
 // GET /api/management/stats
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { 
+          error: authResult.error || "Authentication required",
+          expired: authResult.expired || false
+        },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: string;
-    };
-    const userId = decoded.userId;
+    const userId = authResult.user?.id || '';
 
     // Check if user is a manager (has management role)
     const userResult = await queryRawSQL(
       "SELECT role FROM users WHERE id = $1",
-      userId
+      [userId]
     );
 
     if (userResult.rows.length === 0) {
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest) {
     // Get unread notifications count for current user
     const unreadNotificationsResult = await queryRawSQL(
       "SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND read = FALSE",
-      userId
+      [userId]
     );
 
     const stats = {
@@ -73,7 +75,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error("Error fetching management stats:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

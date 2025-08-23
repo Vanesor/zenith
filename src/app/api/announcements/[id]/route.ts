@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     return NextResponse.json(announcement);
   } catch (error) {
-    console.error("Error fetching announcement:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -111,7 +111,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
 
     return NextResponse.json(updatedAnnouncement);
   } catch (error) {
-    console.error("Error updating announcement:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -183,7 +183,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ message: "Announcement deleted successfully" });
   } catch (error) {
-    console.error("Error deleting announcement:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 
 const db = DatabaseClient;
 
+// Server-side auth utilities
 export async function getAuthUser(request: NextRequest) {
   try {
     // Get the token from the request headers
@@ -27,3 +28,67 @@ export async function getAuthUser(request: NextRequest) {
     return null;
   }
 }
+
+// Client-side auth utilities
+export const handleApiResponse = async (
+  response: Response, 
+  logout: (redirect?: boolean) => void,
+  openAuthModal: (reason: string) => void
+) => {
+  if (response.status === 401) {
+    try {
+      const data = await response.json();
+      
+      // Check if the error indicates an expired token
+      if (data.expired || data.message?.includes('expired') || data.error?.includes('expired')) {
+        // Clear local storage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('zenith-token');
+          localStorage.removeItem('zenith-user');
+          localStorage.removeItem('zenith-refresh-token');
+        }
+        
+        // Log out the user
+        logout(false);
+        
+        // Show auth modal with session expired message
+        openAuthModal('Your session has expired. Please sign in again to continue.');
+        
+        throw new Error('Session expired');
+      }
+    } catch (parseError) {
+      // If we can't parse the response, still handle it as an auth error
+      logout(false);
+      openAuthModal('Authentication required. Please sign in to continue.');
+      throw new Error('Authentication failed');
+    }
+  }
+  
+  return response;
+};
+
+// Enhanced fetch function that automatically handles expired tokens
+export const fetchWithAuth = async (
+  url: string, 
+  options: RequestInit = {},
+  logout: (redirect?: boolean) => void,
+  openAuthModal: (reason: string) => void
+): Promise<Response> => {
+  // Add auth headers if token exists
+  const token = typeof window !== 'undefined' ? localStorage.getItem('zenith-token') : null;
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+    ...(token && { Authorization: `Bearer ${token}` })
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers
+  });
+
+  // Handle expired tokens automatically
+  return handleApiResponse(response, logout, openAuthModal);
+};

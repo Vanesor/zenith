@@ -15,7 +15,8 @@ import {
   FileText,
   Zap
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthRequired } from '@/hooks/useAuthGuard';
+import { SectionLoader } from '@/components/UniversalLoader';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -28,14 +29,22 @@ interface DashboardStats {
 }
 
 export default function ModernDashboard() {
-  const { user } = useAuth();
+  const auth = useAuthRequired();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/dashboard/stats');
+        const response = await fetch('/api/dashboard/stats', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(auth.user && localStorage.getItem("zenith-token") && {
+              Authorization: `Bearer ${localStorage.getItem("zenith-token")}`
+            })
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           setStats(data.stats);
@@ -47,10 +56,14 @@ export default function ModernDashboard() {
       }
     };
 
-    if (user) {
+    if (auth.user) {
       fetchStats();
     }
-  }, [user]);
+  }, [auth.user]);
+
+  if (auth.isLoading || loading) {
+    return <SectionLoader message="Loading your dashboard..." />;
+  }
 
   const statsCards = [
     {
@@ -133,7 +146,7 @@ export default function ModernDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-primary">
-              Welcome back, {user?.firstName || 'Student'}! 👋
+              Welcome back, {auth.user?.firstName || auth.user?.name || 'Student'}! 👋
             </h1>
             <p className="text-secondary text-lg">
               Here's what's happening in your clubs today

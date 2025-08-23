@@ -14,7 +14,7 @@ export async function GET() {
       const result = await db.query(`SELECT COUNT(*) as count FROM users`);
       currentCount = parseInt(result.rows[0]?.count) || 854;
     } catch (error) {
-      console.error('Error fetching user count, using default value:', error);
+      console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
       currentCount = 854; // Default fallback value
     }
     
@@ -32,7 +32,7 @@ export async function GET() {
       trend
     }));
   } catch (error) {
-    console.error('Error fetching user stats:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return new NextResponse(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
   }
 }

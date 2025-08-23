@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-unified';
 import { TaskManagementService } from '@/lib/TaskManagementService';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // PATCH /api/tasks/[id]/status - Update task status
 export async function PATCH(
@@ -11,26 +9,17 @@ export async function PATCH(
 ) {
   try {
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json({ 
+        error: authResult.error || 'Authentication required',
+        expired: authResult.expired || false 
+      }, { status: 401 });
     }
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
+    const userId = authResult.user?.id;
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -51,7 +40,7 @@ export async function PATCH(
       );
     }
 
-    const result = await TaskManagementService.updateTaskStatus(params.id, status, decoded.userId);
+    const result = await TaskManagementService.updateTaskStatus(params.id, status, userId);
 
     if (!result.success) {
       return NextResponse.json(
@@ -66,7 +55,7 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error('Error updating task status:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to update task status' },
       { status: 500 }

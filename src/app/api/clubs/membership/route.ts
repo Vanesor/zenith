@@ -1,41 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/auth-unified";
 import db from "@/lib/database";
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-fallback-secret";
-
-
-// Helper function to get user from token
-async function getUserFromToken(request: NextRequest) {
-  const token =
-    request.cookies.get("token")?.value ||
-    request.headers.get("authorization")?.replace("Bearer ", "");
-
-  if (!token) return null;
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-    const userResult = await db.query(
-      `SELECT id, email, name, role, club_id FROM users WHERE id = $1 AND deleted_at IS NULL`,
-      [decoded.userId]
-    );
-    return userResult.rows.length > 0 ? userResult.rows[0] : null;
-  } catch {
-    return null;
-  }
-}
 
 // POST /api/clubs/join - Join a club (single club restriction)
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromToken(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
+
+    const user = authResult.user;
 
     const { clubId } = await request.json();
 
@@ -73,7 +49,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: unknown) {
-    console.error("Join club error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
 
     // Handle specific database constraint errors
     if (error instanceof Error && error.message?.includes("already a member")) {
@@ -87,13 +63,13 @@ export async function POST(request: NextRequest) {
 // DELETE /api/clubs/leave - Leave current club
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getUserFromToken(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
+
+    const user = authResult.user;
 
     if (!user.club_id) {
       return NextResponse.json(
@@ -112,7 +88,7 @@ export async function DELETE(request: NextRequest) {
       message: `Successfully left ${currentClub?.name}!`,
     });
   } catch (error) {
-    console.error("Leave club error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to leave club" },
       { status: 500 }
@@ -123,13 +99,13 @@ export async function DELETE(request: NextRequest) {
 // PUT /api/clubs/switch - Switch to a different club
 export async function PUT(request: NextRequest) {
   try {
-    const user = await getUserFromToken(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
+
+    const user = authResult.user;
 
     const { newClubId } = await request.json();
 
@@ -164,7 +140,7 @@ export async function PUT(request: NextRequest) {
       newClub: newClub.name,
     });
   } catch (error) {
-    console.error("Switch club error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to switch club" },
       { status: 500 }

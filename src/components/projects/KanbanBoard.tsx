@@ -17,7 +17,8 @@ import {
   Eye,
   Edit,
   Trash2,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { toast as notify } from 'react-hot-toast';
 import CreateTaskModal from './CreateTaskModal';
+import TaskDetailModal from './TaskDetailModal';
+import EditTaskModal from './EditTaskModal';
+import DeleteTaskModal from './DeleteTaskModal';
 
 interface Task {
   id: string;
@@ -106,6 +110,15 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState<string>('to_do');
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [isDragOver, setIsDragOver] = useState<string | null>(null);
+  
+  // New modal states
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  
   const [taskForm, setTaskForm] = useState<TaskFormData>({
     title: '',
     description: '',
@@ -212,13 +225,34 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
     e.dataTransfer.dropEffect = 'move';
   };
 
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, status: string) => {
+    e.preventDefault();
+    if (draggedTask && draggedTask.status !== status) {
+      setIsDragOver(status);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(null);
+  };
+
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>, newStatus: string) => {
     e.preventDefault();
+    setIsDragOver(null);
     
     if (!draggedTask || draggedTask.status === newStatus) {
       setDraggedTask(null);
       return;
     }
+
+    // Optimistically update UI first
+    const updatedTasks = localTasks.map(task => 
+      task.id === draggedTask.id 
+        ? { ...task, status: newStatus as Task['status'] }
+        : task
+    );
+    setLocalTasks(updatedTasks);
 
     try {
       const token = localStorage.getItem('zenith-token');
@@ -232,20 +266,21 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
       });
 
       if (response.ok) {
-        const updatedTasks = tasks.map(task => 
-          task.id === draggedTask.id 
-            ? { ...task, status: newStatus as Task['status'] }
-            : task
-        );
+        // If callback provided, also update parent state
         if (onTaskUpdate) {
           onTaskUpdate(updatedTasks);
-        } else {
-          // Update local state if callback not provided
-          setLocalTasks(updatedTasks);
         }
+        notify.success('Task status updated successfully!');
+      } else {
+        // Revert optimistic update on failure
+        setLocalTasks(localTasks);
+        notify.error('Failed to update task status');
       }
     } catch (error) {
       console.error('Error updating task status:', error);
+      // Revert optimistic update on failure
+      setLocalTasks(localTasks);
+      notify.error('Error updating task status');
     }
 
     setDraggedTask(null);
@@ -257,15 +292,96 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
   };
 
   const handleTaskCreated = (newTask: Task) => {
-    // Add the new task to local state
+    // Add the new task to local state immediately
     setLocalTasks(prevTasks => [...prevTasks, newTask]);
+    
+    // Also update parent state if callback provided
+    if (onTaskUpdate) {
+      onTaskUpdate([...localTasks, newTask]);
+    }
+    
     setShowCreateModal(false);
     notify.success('Task created successfully!');
   };
 
+  const handleDeleteTask = async (taskId: string) => {
+    if (!userPermissions?.canDeleteTasks) {
+      notify.error('You do not have permission to delete tasks');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('zenith-token');
+      const response = await fetch(`/api/projects/${projectId}/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Update local state immediately
+        const updatedTasks = localTasks.filter(task => task.id !== taskId);
+        setLocalTasks(updatedTasks);
+        
+        // Also update parent state if callback provided
+        if (onTaskUpdate) {
+          onTaskUpdate(updatedTasks);
+        }
+        
+        notify.success('Task deleted successfully!');
+      } else {
+        notify.error('Failed to delete task');
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      notify.error('Error deleting task');
+    }
+  };
+
+  // New modal handlers
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setShowDetailModal(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setShowDetailModal(false);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteClick = (task: Task) => {
+    setTaskToDelete(task);
+    setShowDetailModal(false);
+    setShowDeleteModal(true);
+  };
+
+  const handleTaskUpdated = (updatedTask: Task) => {
+    const updatedTasks = localTasks.map(task => 
+      task.id === updatedTask.id ? updatedTask : task
+    );
+    setLocalTasks(updatedTasks);
+    
+    if (onTaskUpdate) {
+      onTaskUpdate(updatedTasks);
+    }
+    
+    setShowEditModal(false);
+    setSelectedTask(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (taskToDelete) {
+      await handleDeleteTask(taskToDelete.id);
+      setTaskToDelete(null);
+      setShowDeleteModal(false);
+    }
+  };
+
   return (
     <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
         {Object.entries(columnConfig).map(([status, config]) => {
           const columnTasks = getTasksByStatus(status);
           const IconComponent = config.icon;
@@ -275,12 +391,16 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
               key={status}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`rounded-lg border-2 ${config.color} min-h-[600px] flex flex-col`}
+              className={`rounded-lg border-2 ${config.color} flex flex-col transition-all duration-200 ${
+                isDragOver === status ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/10 scale-[1.02]' : ''
+              }`}
               onDragOver={handleDragOver}
+              onDragEnter={(e) => handleDragEnter(e, status)}
+              onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, status)}
             >
-              {/* Column Header */}
-              <div className={`${config.headerColor} p-4 rounded-t-lg border-b-2 border-zenith-border`}>
+              {/* Column Header - Fixed Height */}
+              <div className={`${config.headerColor} p-4 rounded-t-lg border-b-2 border-zenith-border flex-shrink-0`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
@@ -305,8 +425,8 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                 )}
               </div>
 
-              {/* Tasks */}
-              <div className="flex-1 p-3 space-y-3 overflow-y-auto">
+              {/* Tasks - Scrollable Container */}
+              <div className="flex-1 p-3 space-y-3 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zenith-border scrollbar-track-transparent hover:scrollbar-thumb-zenith-muted">
                 <AnimatePresence>
                   {columnTasks.map((task) => (
                     <motion.div
@@ -320,15 +440,18 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                       draggable="true"
                       onDragStart={(e: any) => handleDragStart(e, task)}
                     >
-                                            <Card className={`bg-zenith-card shadow-sm hover:shadow-md transition-shadow duration-200 border ${
-                        isOverdue(task.due_date) 
-                          ? 'border-red-500 bg-red-50 dark:bg-red-950/30' 
-                          : 'border-zenith-border'
-                      }`}>
+                      <Card 
+                        className={`bg-zenith-card shadow-sm hover:shadow-md transition-all duration-200 border group ${
+                          isOverdue(task.due_date) 
+                            ? 'border-red-500 bg-red-50 dark:bg-red-950/30' 
+                            : 'border-zenith-border hover:border-zenith-brand'
+                        }`}
+                        onClick={() => handleTaskClick(task)}
+                      >
                         <CardHeader className="p-3 pb-2">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2 mb-1">
+                              <div className="flex items-center space-x-2 mb-2">
                                 <Badge 
                                   variant="outline" 
                                   className={getTypeColor(task.type)}
@@ -337,41 +460,70 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                                 </Badge>
                                 <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
                               </div>
-                              <h4 className="font-medium text-sm text-zenith-primary line-clamp-2">
+                              <h4 className="font-medium text-sm text-zenith-primary line-clamp-2 mb-1">
                                 {task.title}
                               </h4>
-                              <p className="text-xs text-zenith-muted mt-1">{task.task_key}</p>
+                              <p className="text-xs text-zenith-muted">{task.task_key}</p>
                             </div>
                             
-                            {/* Task Actions */}
-                            <details className="relative">
-                              <summary className="list-none cursor-pointer p-1">
-                                <MoreVertical className="w-4 h-4 text-zenith-muted hover:text-zenith-primary" />
-                              </summary>
-                              <div className="absolute right-0 top-6 w-32 bg-zenith-card border border-zenith-border rounded-md shadow-lg z-50">
-                                <button className="flex items-center w-full px-3 py-2 text-xs text-zenith-primary hover:bg-zenith-hover">
-                                  <Edit className="w-3 h-3 mr-2" />
-                                  Edit
-                                </button>
-                                {userPermissions?.canDeleteTasks && (
-                                  <button className="flex items-center w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                    <Trash2 className="w-3 h-3 mr-2" />
-                                    Delete
+                            {/* Task Actions Dropdown */}
+                            <div className="relative">
+                              <details className="group/dropdown">
+                                <summary 
+                                  className="list-none cursor-pointer p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MoreVertical className="w-4 h-4 text-zenith-muted hover:text-zenith-primary" />
+                                </summary>
+                                <div className="absolute right-0 top-6 w-40 bg-zenith-card border border-zenith-border rounded-md shadow-lg z-50">
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleTaskClick(task);
+                                    }}
+                                    className="flex items-center w-full px-3 py-2 text-xs text-zenith-primary hover:bg-zenith-hover"
+                                  >
+                                    <FileText className="w-3 h-3 mr-2" />
+                                    View Details
                                   </button>
-                                )}
-                              </div>
-                            </details>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditTask(task);
+                                    }}
+                                    className="flex items-center w-full px-3 py-2 text-xs text-zenith-primary hover:bg-zenith-hover"
+                                  >
+                                    <Edit className="w-3 h-3 mr-2" />
+                                    Edit
+                                  </button>
+                                  {userPermissions?.canDeleteTasks && (
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteClick(task);
+                                      }}
+                                      className="flex items-center w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    >
+                                      <Trash2 className="w-3 h-3 mr-2" />
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
+                              </details>
+                            </div>
                           </div>
                         </CardHeader>
                         
                         <CardContent className="p-3 pt-0">
-                          {task.description && (
+                          {/* Compact description - only show if short */}
+                          {task.description && task.description.length <= 60 && (
                             <p className="text-xs text-zenith-secondary mb-3 line-clamp-2">
                               {task.description}
                             </p>
                           )}
                           
                           <div className="space-y-2">
+                            {/* Assignee */}
                             {task.assignee_name && (
                               <div className="flex items-center space-x-2">
                                 <Avatar className="w-5 h-5">
@@ -385,6 +537,7 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                               </div>
                             )}
                             
+                            {/* Due Date */}
                             {task.due_date && (
                               <div className={`flex items-center space-x-1 ${isOverdue(task.due_date) ? 'text-red-600' : 'text-zenith-secondary'}`}>
                                 {isOverdue(task.due_date) ? (
@@ -416,6 +569,7 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
         })}
       </div>
 
+      {/* Modals */}
       {showCreateModal && (
         <CreateTaskModal
           isOpen={showCreateModal}
@@ -424,6 +578,46 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
           onClose={() => setShowCreateModal(false)}
         />
       )}
+
+      <TaskDetailModal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedTask(null);
+        }}
+        task={selectedTask}
+        onEdit={handleEditTask}
+        onDelete={handleDeleteClick}
+        userPermissions={{
+          canDeleteTasks: userPermissions?.canDeleteTasks || false,
+          canEditTasks: true // Assuming all users can edit tasks
+        }}
+      />
+
+      <EditTaskModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedTask(null);
+        }}
+        task={selectedTask}
+        projectId={projectId}
+        onTaskUpdated={handleTaskUpdated}
+      />
+
+      <DeleteTaskModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setTaskToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        task={taskToDelete ? {
+          title: taskToDelete.title,
+          task_key: taskToDelete.task_key,
+          type: taskToDelete.type
+        } : null}
+      />
     </div>
   );
 }

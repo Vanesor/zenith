@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     // Redirect to success page
     return NextResponse.redirect(new URL("/verify-email?success=true", request.url));
   } catch (error) {
-    console.error("Error verifying email:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.redirect(new URL("/verify-email?error=server-error", request.url));
   }
 }

@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from '@/lib/database';
-import jwt from "jsonwebtoken";
 import AuditLogger from "@/lib/audit-logger";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
   params: { id: string };
@@ -17,15 +11,16 @@ interface Props {
 export async function GET(request: NextRequest, { params }: Props) {
   try {
     const { id } = await params;
-    const authHeader = request.headers.get("authorization");
     
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
     
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
 
     const query = `
       SELECT 
@@ -82,7 +77,7 @@ export async function GET(request: NextRequest, { params }: Props) {
     
     return NextResponse.json(event);
   } catch (error) {
-    console.error("Error fetching event:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -93,15 +88,15 @@ export async function GET(request: NextRequest, { params }: Props) {
 // PUT /api/events/[id] - Update event (only by organizer or managers)
 export async function PUT(request: NextRequest, { params }: Props) {
   try {
-    // Use centralized authentication system
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
 
     const { id } = await params;
     
@@ -216,7 +211,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     
     return NextResponse.json({ id, success: true }, { status: 200 });
   } catch (error) {
-    console.error("Error updating event:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -227,14 +222,15 @@ export async function PUT(request: NextRequest, { params }: Props) {
 // DELETE /api/events/[id] - Delete event
 export async function DELETE(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error || "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user!.id;
 
     const { id } = await params;
     
@@ -336,7 +332,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ success: true, message: "Event deleted successfully" });
   } catch (error) {
-    console.error("Error deleting event:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

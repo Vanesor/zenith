@@ -1,22 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from '@/lib/database';
-import jwt from 'jsonwebtoken';
-
-// Helper function to verify JWT token
-async function verifyToken(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
-  }
-
-  const token = authHeader.substring(7);
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
+import { verifyAuth } from '@/lib/auth-unified';
 
 // Add reaction to message
 export async function POST(
@@ -24,9 +8,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await verifyToken(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
     const { emoji } = await request.json();
@@ -35,44 +20,46 @@ export async function POST(
       return NextResponse.json({ error: 'Emoji is required' }, { status: 400 });
     }
 
-    // Get current message using PrismaDB
+    // Get current message using SQL
     const resolvedParams = await params;
-    const message = await db.chat_messages.findUnique({
-      where: { id: resolvedParams.id },
-      select: { reactions: true }
-    });
+    const messageResult = await db.query(
+      'SELECT id, reactions FROM chat_messages WHERE id = $1',
+      [resolvedParams.id]
+    );
 
-    if (!message) {
+    if (messageResult.rows.length === 0) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 });
     }
 
+    const message = messageResult.rows[0];
+
     // Update reactions
-    const currentReactions = (message.reactions as any) || {};
+    const currentReactions = message.reactions || {};
     if (!currentReactions[emoji]) {
       currentReactions[emoji] = [];
     }
 
     // Toggle reaction
-    const userIndex = currentReactions[emoji].indexOf(user.userId);
+    const userIndex = currentReactions[emoji].indexOf(authResult.user.id);
     if (userIndex > -1) {
       currentReactions[emoji].splice(userIndex, 1);
       if (currentReactions[emoji].length === 0) {
         delete currentReactions[emoji];
       }
     } else {
-      currentReactions[emoji].push(user.userId);
+      currentReactions[emoji].push(authResult.user.id);
     }
 
-    // Update message using PrismaDB
-    await db.chat_messages.update({
-      where: { id: resolvedParams.id },
-      data: { reactions: currentReactions }
-    });
+    // Update message using SQL
+    await db.query(
+      'UPDATE chat_messages SET reactions = $1 WHERE id = $2',
+      [JSON.stringify(currentReactions), resolvedParams.id]
+    );
 
     return NextResponse.json({ success: true, reactions: currentReactions });
 
   } catch (error) {
-    console.error('Reaction error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

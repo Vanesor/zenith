@@ -178,7 +178,7 @@ export async function GET(
 
     return NextResponse.json(questionsToReturn);
   } catch (error: unknown) {
-    console.error("Error fetching assignment questions:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }

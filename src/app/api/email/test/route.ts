@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error("Error in email test:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { 
         error: "Internal server error",
@@ -84,7 +84,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error("Error getting email service status:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { 
         error: "Failed to get service status",

@@ -66,7 +66,7 @@ export async function GET() {
     return NextResponse.json(healthData, { status: statusCode });
 
   } catch (error) {
-    console.error("Health check error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     
     return NextResponse.json({
       status: 'unhealthy',

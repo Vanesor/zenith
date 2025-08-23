@@ -135,7 +135,7 @@ async function fetchAdminStats(): Promise<AdminStatsResponse> {
       }))
     };
   } catch (error) {
-    console.error('Error fetching admin stats:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }
@@ -191,7 +191,7 @@ async function fetchClubStats(clubId: string): Promise<ClubStatsResponse> {
       recentActivity
     };
   } catch (error) {
-    console.error('Error fetching club stats:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }
@@ -262,7 +262,7 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('API Error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

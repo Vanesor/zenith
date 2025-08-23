@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from '@/lib/database';
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from '@/lib/auth-unified';
 
 interface Props {
   params: Promise<{ clubId: string }>;
@@ -15,14 +9,12 @@ interface Props {
 // GET /api/clubs/[clubId]/members - Get club members
 export async function GET(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
     const { clubId } = await params;
 
     // Get club members using direct SQL query
@@ -48,7 +40,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ members });
   } catch (error) {
-    console.error("Error fetching club members:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch club members" },
       { status: 500 }
@@ -59,14 +51,13 @@ export async function GET(request: NextRequest, { params }: Props) {
 // POST /api/clubs/[clubId]/members - Add member to club
 export async function POST(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     const { clubId } = await params;
     const { email } = await request.json();
@@ -130,7 +121,7 @@ export async function POST(request: NextRequest, { params }: Props) {
       member: updatedUser
     });
   } catch (error) {
-    console.error("Error adding club member:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

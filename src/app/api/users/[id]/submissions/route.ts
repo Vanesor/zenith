@@ -159,7 +159,7 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error("Error fetching user submissions:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -50,7 +50,7 @@ export const GET = withAuth(async () => {
     });
 
   } catch (error) {
-    console.error("Error fetching system stats:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch system statistics" },
       { status: 500 }
@@ -74,7 +74,7 @@ async function getSessionDetails() {
       }
     };
   } catch (error) {
-    console.error("Error getting session details:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return { recent: [], trends: { hourly: [], daily: [] } };
   }
 }
@@ -147,7 +147,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     }
 
   } catch (error) {
-    console.error("Error exporting metrics:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to export metrics" },
       { status: 500 }

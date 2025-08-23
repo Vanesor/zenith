@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { PlaygroundCodeEditor } from '@/components/playground/PlaygroundCodeEditor';
 import { MonacoThemeSwitch } from '@/components/playground/MonacoThemeSwitch';
+import { useAuthRequired } from '@/hooks/useAuthGuard';
+import { SectionLoader } from '@/components/UniversalLoader';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useToast } from '@/contexts/ToastContext';
 import { AnimatedPlaygroundIcon } from '@/components/icons/AnimatedPlaygroundIcon';
@@ -518,9 +520,17 @@ function PlaygroundPage() {
 
 // Protected Playground Page
 export default function ProtectedPlaygroundPage() {
-  return (
-    <ProtectedRoute>
-      <PlaygroundPage />
-    </ProtectedRoute>
-  );
+  const auth = useAuthRequired({
+    redirectReason: 'Please sign in to access the code playground',
+  });
+
+  if (auth.isLoading) {
+    return <SectionLoader message="Loading playground..." />;
+  }
+
+  if (!auth.canAccess) {
+    return null; // Auth guard will handle the redirect
+  }
+
+  return <PlaygroundPage />;
 }

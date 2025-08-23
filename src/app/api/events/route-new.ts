@@ -47,14 +47,14 @@ export async function GET(request: NextRequest) {
         count: events.length
       });
     } catch (dbError) {
-      console.error('❌ Database error in events API:', dbError);
+      console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
       return NextResponse.json(
         { error: "Database error occurred" },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('❌ Events API error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -100,14 +100,14 @@ export async function POST(request: NextRequest) {
         data: result.rows[0]
       });
     } catch (dbError) {
-      console.error('❌ Database error creating event:', dbError);
+      console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
       return NextResponse.json(
         { error: "Failed to create event" },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('❌ Events POST API error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

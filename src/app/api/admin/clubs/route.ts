@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error fetching admin clubs data:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch admin clubs data" },
       { status: 500 }
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error creating club:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to create club" },
       { status: 500 }

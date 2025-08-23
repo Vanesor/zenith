@@ -118,7 +118,7 @@ export async function GET() {
       leadership,
     });
   } catch (error) {
-    console.error("Home stats error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch home statistics" },
       { status: 500 }

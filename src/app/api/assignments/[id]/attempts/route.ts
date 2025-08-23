@@ -66,7 +66,7 @@ export async function GET(
     return NextResponse.json({ attempts });
 
   } catch (error) {
-    console.error('Error fetching attempts:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -154,7 +154,7 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
 
   } catch (error) {
-    console.error('Error updating attempt:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

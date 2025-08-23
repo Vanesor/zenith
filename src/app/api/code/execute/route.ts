@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(formatResponse(result, testCases));
 
   } catch (error) {
-    console.error('Code execution error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     console.error('Compiler service URL:', COMPILER_SERVICE_URL);
     
     // If there's a network error, try local fallback

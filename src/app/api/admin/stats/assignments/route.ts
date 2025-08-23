@@ -39,7 +39,7 @@ export async function GET() {
       trend
     }));
   } catch (error) {
-    console.error('Error fetching assignment stats:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return new NextResponse(JSON.stringify({ 
       count: 32,
       change: "+5%",

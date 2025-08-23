@@ -84,7 +84,7 @@ export async function POST(
       submissionId
     });
   } catch (error: any) {
-    console.error("Error recording violation:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: error.message || "Internal server error" },
       { status: 500 }

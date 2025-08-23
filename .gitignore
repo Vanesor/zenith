@@ -48,3 +48,5 @@ next-env.d.ts
 /src/generated/prisma
 
 /src/generated/prisma
+AI_DEVELOPMENT_INSTRUCTIONS.md
+AUTH_CLEANUP_STATUS.md

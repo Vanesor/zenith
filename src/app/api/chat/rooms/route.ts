@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({ rooms: transformedRooms });
   } catch (error) {
-    console.error("Error fetching chat rooms:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch chat rooms" },
       { status: 500 }
@@ -243,7 +243,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
-    console.error("Error creating chat room:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to create chat room" },
       { status: 500 }

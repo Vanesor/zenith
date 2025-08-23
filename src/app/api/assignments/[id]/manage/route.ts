@@ -142,7 +142,7 @@ export async function GET(
     return NextResponse.json(formattedAssignment);
     
   } catch (error) {
-    console.error("Error fetching assignment details:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -360,7 +360,7 @@ export async function PUT(
     });
     
   } catch (error) {
-    console.error("Error updating assignment:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -472,7 +472,7 @@ export async function DELETE(
     });
     
   } catch (error) {
-    console.error("Error deleting assignment:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

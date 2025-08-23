@@ -265,7 +265,8 @@ export class TwoFactorAuthService {
       exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
     };
 
-    return jwt.sign(payload, process.env.JWT_SECRET || 'fallback-secret');
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+    return jwt.sign(payload, JWT_SECRET);
   }
 
   // Check if user has 2FA enabled

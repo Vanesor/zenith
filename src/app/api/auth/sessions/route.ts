@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
       { status: 501 }
     );
   } catch (error) {
-    console.error("API error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

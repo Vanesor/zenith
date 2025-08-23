@@ -11,8 +11,28 @@ import { jwtVerify } from 'jose';
 import DatabaseClient from './database';
 
 const db = DatabaseClient;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret';
+
+// Environment variables - fail fast if not set in production
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Missing required JWT secrets in production environment');
+  }
+  console.warn('⚠️  JWT secrets not set - this is only acceptable in development');
+}
+
+// Helper functions to ensure secrets are defined
+const getJwtSecret = (): string => {
+  if (!JWT_SECRET) throw new Error('JWT_SECRET not configured');
+  return JWT_SECRET;
+};
+
+const getRefreshSecret = (): string => {
+  if (!JWT_REFRESH_SECRET) throw new Error('JWT_REFRESH_SECRET not configured');
+  return JWT_REFRESH_SECRET;
+};
 
 // ==================== INTERFACES ====================
 
@@ -77,7 +97,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 // ==================== JWT UTILITIES ====================
 
 export function generateToken(payload: object, expiresIn: string = '24h'): string {
-  return jwt.sign(payload, JWT_SECRET, { 
+  return jwt.sign(payload, getJwtSecret(), { 
     expiresIn,
     issuer: 'zenith-auth',
     audience: 'zenith-users'
@@ -85,7 +105,7 @@ export function generateToken(payload: object, expiresIn: string = '24h'): strin
 }
 
 export function generateRefreshToken(payload: object): string {
-  return jwt.sign(payload, JWT_REFRESH_SECRET, { 
+  return jwt.sign(payload, getRefreshSecret(), { 
     expiresIn: '7d',
     issuer: 'zenith-auth',
     audience: 'zenith-users'
@@ -94,7 +114,7 @@ export function generateRefreshToken(payload: object): string {
 
 export function verifyToken(token: string): any {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, getJwtSecret());
   } catch (error) {
     return null;
   }
@@ -102,7 +122,7 @@ export function verifyToken(token: string): any {
 
 export function verifyRefreshToken(token: string): any {
   try {
-    return jwt.verify(token, JWT_REFRESH_SECRET);
+    return jwt.verify(token, getRefreshSecret());
   } catch (error) {
     return null;
   }
@@ -480,7 +500,7 @@ export async function getAuthUser(request: NextRequest): Promise<User | null> {
     const token = request.headers.get('authorization')?.split(' ')[1];
     if (!token) return null;
 
-    const JWT_SECRET_ENCODED = new TextEncoder().encode(JWT_SECRET);
+    const JWT_SECRET_ENCODED = new TextEncoder().encode(getJwtSecret());
     const { payload } = await jwtVerify(token, JWT_SECRET_ENCODED);
     if (!payload || !payload.sub) return null;
 
@@ -530,7 +550,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
 
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as {
+      decoded = jwt.verify(token, getJwtSecret()) as {
         userId: string;
         email: string;
         role: string;
@@ -544,7 +564,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
         const refreshToken = request.cookies.get("zenith-refresh-token")?.value;
         if (refreshToken) {
           try {
-            const refreshDecoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as {
+            const refreshDecoded = jwt.verify(refreshToken, getRefreshSecret()) as {
               userId: string;
               sessionId: string;
               type: string;

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       otpauth: otpauth
     });
   } catch (error) {
-    console.error('❌ Test QR generation failed:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'QR generation failed' },
       { status: 500 }

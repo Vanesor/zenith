@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-unified';
 import { TaskManagementService } from '@/lib/TaskManagementService';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // GET /api/projects/[id]/tasks - Get project tasks
 export async function GET(
@@ -13,26 +11,17 @@ export async function GET(
     const { id } = await params;
     
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json({
+        error: authResult.error || 'Authentication required',
+        expired: authResult.expired || false
+      }, { status: 401 });
     }
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
+    const userId = authResult.user?.id;
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -44,7 +33,7 @@ export async function GET(
       search: searchParams.get('search') || undefined,
     };
 
-    const result = await TaskManagementService.getProjectTasks(id, decoded.userId, filters);
+    const result = await TaskManagementService.getProjectTasks(id, userId, filters);
 
     if (!result.success) {
       return NextResponse.json(
@@ -59,7 +48,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error getting project tasks:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to get project tasks' },
       { status: 500 }
@@ -74,27 +63,19 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
+    
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json({
+        error: authResult.error || 'Authentication required',
+        expired: authResult.expired || false
+      }, { status: 401 });
     }
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
+    const userId = authResult.user?.id;
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -124,7 +105,7 @@ export async function POST(
       task_type,
       priority,
       assignee_id,
-      reporter_id: decoded.userId,
+      reporter_id: userId,
       parent_task_id,
       due_date,
       estimated_hours,
@@ -144,7 +125,7 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Error creating task:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to create task' },
       { status: 500 }

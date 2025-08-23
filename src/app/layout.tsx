@@ -8,6 +8,7 @@ import { ToastProvider as OldToastProvider } from "@/contexts/ToastContext";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { PaperpalLayoutWrapper } from "@/components/PaperpalLayoutWrapper";
 import GlobalAuthModal from "@/components/GlobalAuthModal";
+import GlobalAuthGuard from "@/components/GlobalAuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +40,9 @@ export default function RootLayout({
           <AuthProvider>
             <AuthModalProvider>
               <OldToastProvider>
-                <PaperpalLayoutWrapper>{children}</PaperpalLayoutWrapper>
+                <GlobalAuthGuard>
+                  <PaperpalLayoutWrapper>{children}</PaperpalLayoutWrapper>
+                </GlobalAuthGuard>
                 <GlobalAuthModal />
                 <ToastProvider />
               </OldToastProvider>

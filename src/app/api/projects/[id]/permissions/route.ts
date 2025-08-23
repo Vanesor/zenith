@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-unified';
 import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
+import { verifyAuth } from '@/lib/auth-unified';
 
 export async function GET(
   request: NextRequest,
@@ -14,8 +17,8 @@ export async function GET(
     }
 
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    const userId = decoded.userId;
+    const decoded = verifyAuth(request) as any;
+    const userId = authResult.user?.id;
     const { id: projectId } = await params;    // Get user's permissions for this specific project
     const permissions = await ProjectPermissionService.getUserPermissions(userId, projectId);
     
@@ -35,7 +38,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error checking project permissions:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -72,7 +72,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     });
 
   } catch (error) {
-    console.error("Error toggling comment like:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to toggle like" },
       { status: 500 }

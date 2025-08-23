@@ -37,7 +37,7 @@ export async function GET() {
       trend: 'up'
     }));
   } catch (error) {
-    console.error('Error fetching engagement stats:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return new NextResponse(JSON.stringify({ 
       percentage: '73%',
       change: '+8%',

@@ -24,6 +24,7 @@ import {
   X
 } from 'lucide-react';
 import KanbanBoard from '@/components/projects/KanbanBoard';
+import TeamMemberCard from '@/components/projects/TeamMemberCard';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Project {
@@ -492,108 +493,23 @@ export default function ProjectDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {members.map((member) => (
-                      <motion.div
+                      <TeamMemberCard
                         key={member.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="group"
-                      >
-                        <Card className="bg-zenith-main border-zenith-border hover:shadow-md transition-all duration-200">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                                    {member.name.substring(0, 2).toUpperCase()}
-                                  </div>
-                                  <div>
-                                    <p className="font-medium text-zenith-primary">{member.name}</p>
-                                    <p className="text-xs text-zenith-secondary">{member.email}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-xs ${
-                                      member.role === 'owner' ? 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-400' :
-                                      member.role === 'admin' ? 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400' :
-                                      member.role === 'member' ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400' :
-                                      'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-400'
-                                    }`}
-                                  >
-                                    {member.role}
-                                  </Badge>
-                                  <Badge 
-                                    variant="outline"
-                                    className={`text-xs ${
-                                      member.status === 'joined' ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400' :
-                                      member.status === 'invited' ? 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                      'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-400'
-                                    }`}
-                                  >
-                                    {member.status}
-                                  </Badge>
-                                  {member.user_id === project.created_by && (
-                                    <Badge className="text-xs bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400">
-                                      Creator
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {managingMemberId === member.id ? (
-                                <div className="flex flex-col gap-2">
-                                  <select
-                                    value={member.role}
-                                    onChange={(e) => handleUpdateMemberRole(member.id, e.target.value)}
-                                    className="px-2 py-1 border border-zenith-border rounded bg-zenith-main text-zenith-primary text-xs"
-                                  >
-                                    <option value="viewer">Viewer</option>
-                                    <option value="member">Member</option>
-                                    <option value="admin">Admin</option>
-                                    {userPermissions?.isOwner && <option value="owner">Owner</option>}
-                                  </select>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setManagingMemberId(null)}
-                                    className="border-zenith-border hover:bg-zenith-hover text-xs h-7"
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  {userPermissions?.canManageTeam && member.user_id !== user?.id && member.user_id !== project.created_by && (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setManagingMemberId(member.id)}
-                                        className="border-zenith-border hover:bg-zenith-hover text-xs h-7"
-                                      >
-                                        <Settings className="h-3 w-3 mr-1" />
-                                        Manage
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-300 text-xs h-7"
-                                        onClick={() => handleRemoveMember(member.id)}
-                                      >
-                                        <Trash2 className="h-3 w-3 mr-1" />
-                                        Remove
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
+                        member={member}
+                        project={project}
+                        currentUserId={user?.id}
+                        userPermissions={{
+                          canManageTeam: userPermissions?.canManageTeam || false
+                        }}
+                        onManage={setManagingMemberId}
+                        onRemove={handleRemoveMember}
+                        managingMemberId={managingMemberId}
+                        onCancelManage={() => setManagingMemberId(null)}
+                        onUpdateRole={handleUpdateMemberRole}
+                        projectId={projectId}
+                      />
                     ))}
                   </div>
                 </CardContent>

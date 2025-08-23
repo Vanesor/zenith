@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-unified';
 import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 import { LocalStorageService } from '@/lib/storage';
+import { verifyAuth } from '@/lib/auth-unified';
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      decoded = verifyAuth(request) as { userId: string; email: string };
     } catch (error) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
        }, { status: 500 });
     }
     
-    console.log(`✅ Profile image uploaded for user ${decoded.userId}: ${uploadResult.url}`);
+    console.log(`✅ Profile image uploaded for user ${authResult.user?.id}: ${uploadResult.url}`);
     
     return NextResponse.json({
       success: true,
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Profile image upload error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { 
         success: false,

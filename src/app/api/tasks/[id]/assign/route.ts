@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-unified';
 import { TaskManagementService } from '@/lib/TaskManagementService';
+import { verifyAuth } from '@/lib/auth-unified';
 import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // PATCH /api/tasks/[id]/assign - Assign task to user
 export async function PATCH(
@@ -25,7 +27,7 @@ export async function PATCH(
 
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      decoded = verifyAuth(request) as { userId: string; email: string };
     } catch (error) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
@@ -36,7 +38,7 @@ export async function PATCH(
     const body = await request.json();
     const { assignee_id } = body;
 
-    const result = await TaskManagementService.assignTask(params.id, assignee_id, decoded.userId);
+    const result = await TaskManagementService.assignTask(params.id, assignee_id, authResult.user?.id);
 
     if (!result.success) {
       return NextResponse.json(
@@ -51,7 +53,7 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error('Error assigning task:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to assign task' },
       { status: 500 }

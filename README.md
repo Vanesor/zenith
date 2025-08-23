@@ -2,7 +2,19 @@
 
 A modern, cross-platform forum application built for college communities. This project provides both web and mobile applications using React technologies.
 
-## 🚀 Tech Stack
+## � Development Guidelines
+
+**🚨 IMPORTANT**: Before developing any features, please review:
+- [`AI_DEVELOPMENT_INSTRUCTIONS.md`](./AI_DEVELOPMENT_INSTRUCTIONS.md) - Mandatory AI assistant instructions
+- [`DEVELOPMENT_GUIDELINES.md`](./DEVELOPMENT_GUIDELINES.md) - Comprehensive development standards  
+- [`QUICK_REFERENCE.md`](./QUICK_REFERENCE.md) - Quick checklist for common tasks
+
+### Key Requirements:
+- **Authentication**: MUST use unified auth system (`verifyAuth`)
+- **Database**: MUST validate against `schema.sql` structure
+- **Security**: NO manual JWT verification in business logic routes
+
+## �🚀 Tech Stack
 
 ### Web Application
 

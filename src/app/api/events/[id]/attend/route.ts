@@ -91,7 +91,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     return NextResponse.json({ success: true });
   } catch (error) {
     const { id: eventId } = await params;
-    console.error(`Error joining event ${eventId}:`, error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to join event" },
       { status: 500 }
@@ -167,7 +167,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     return NextResponse.json({ success: true });
   } catch (error) {
     const { id: eventId } = await params;
-    console.error(`Error leaving event ${eventId}:`, error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to leave event" },
       { status: 500 }

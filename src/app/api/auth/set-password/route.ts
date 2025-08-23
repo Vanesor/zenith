@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       message: "Password set successfully",
     });
   } catch (error) {
-    console.error("Error setting password:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "An error occurred while setting your password" },
       { status: 500 }

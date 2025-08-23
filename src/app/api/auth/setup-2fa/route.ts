@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       message: "2FA status check - feature in development" 
     });
   } catch (error) {
-    console.error("Error getting 2FA status:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       backupCodes: backupCodes,
     });
   } catch (error) {
-    console.error("❌ Error setting up 2FA:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

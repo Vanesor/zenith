@@ -4,11 +4,11 @@ import { verifyAuth } from "@/lib/auth-unified";
 
 // Helper function to handle errors consistently
 function handleApiError(error: any) {
-  console.error("Error submitting assignment:", error);
+  console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
   
   // More detailed error logging
   if (error.code) {
-    console.error(`Database error code: $1`);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
   }
   if (error.stack) {
     console.error(`Error stack: $1`);

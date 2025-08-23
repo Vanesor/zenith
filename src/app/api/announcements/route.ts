@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(announcementsWithDetails);
   } catch (error) {
-    console.error("Failed to fetch announcements:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch announcements" },
       { status: 500 }
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       club: clubResult.rows[0]
     }, { status: 201 });
   } catch (error) {
-    console.error("Failed to create announcement:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to create announcement" },
       { status: 500 }

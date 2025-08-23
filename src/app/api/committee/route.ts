@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Committee API error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({
       error: 'Failed to fetch committee data',
       message: 'An unexpected error occurred'
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Committee management error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({
       error: 'Committee management failed',
       message: error instanceof Error ? error.message : 'An unexpected error occurred'

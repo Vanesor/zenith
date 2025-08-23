@@ -471,7 +471,10 @@ export class ProjectManagementService {
       hmac.update(stage1);
       hmac.update(projectName);
       hmac.update(Date.now().toString());
-      hmac.update(process.env.NEXTAUTH_SECRET || 'zenith-fallback-secret');
+      if (!process.env.NEXTAUTH_SECRET) {
+        throw new Error('NEXTAUTH_SECRET not configured for project key generation');
+      }
+      hmac.update(process.env.NEXTAUTH_SECRET);
       
       const hashResult = hmac.digest('hex');
       

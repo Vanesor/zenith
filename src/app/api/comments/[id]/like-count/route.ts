@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ count });
   } catch (error) {
-    console.error("Error fetching comment like count:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

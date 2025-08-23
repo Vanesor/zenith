@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from '@/lib/database';
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from '@/lib/auth-unified';
 
 // POST /api/events/[id]/join - Join an event
 export async function POST(
@@ -17,14 +11,13 @@ export async function POST(
     // In Next.js 13+, params needs to be accessed from context
     const { id } = context.params;
     
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     const eventId = id;
 
@@ -97,7 +90,7 @@ export async function POST(
       isAttending: true
     });
   } catch (error) {
-    console.error("Error joining event:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to join event" },
       { status: 500 }
@@ -114,14 +107,13 @@ export async function DELETE(
     // In Next.js 13+, params needs to be accessed from context
     const { id } = context.params;
     
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     const eventId = id;
 
@@ -158,7 +150,7 @@ export async function DELETE(
       isAttending: false
     });
   } catch (error) {
-    console.error("Error leaving event:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to leave event" },
       { status: 500 }
@@ -253,7 +245,7 @@ async function createNotification(params: {
     
     return true;
   } catch (error) {
-    console.error("Error creating notification:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return false;
   }
 }

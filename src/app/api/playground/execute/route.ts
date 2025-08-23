@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(mockResult);
   } catch (error) {
-    console.error('Playground execution error:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       {
         output: '',

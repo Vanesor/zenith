@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/database";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface JwtPayload {
-  userId: string;
-}
+import { verifyAuth } from '@/lib/auth-unified';
 
 interface Props {
   params: Promise<{ clubId: string; memberId: string }>;
@@ -15,14 +9,13 @@ interface Props {
 // DELETE /api/clubs/[clubId]/members/[memberId] - Remove member from club
 export async function DELETE(request: NextRequest, { params }: Props) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: authResult.error || 'Authentication failed' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    const userId = decoded.userId;
+    const userId = authResult.user.id;
 
     const { clubId, memberId } = await params;
 
@@ -104,7 +97,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       message: "Member removed successfully",
     });
   } catch (error) {
-    console.error("Error removing club member:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

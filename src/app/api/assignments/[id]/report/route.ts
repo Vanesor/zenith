@@ -199,7 +199,7 @@ export async function GET(
     return NextResponse.json(report);
     
   } catch (error) {
-    console.error("Error generating assignment report:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

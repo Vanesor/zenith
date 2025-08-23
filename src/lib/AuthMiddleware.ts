@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { SessionManager } from "./SessionManager";
 import { CacheManager, CacheKeys } from "./CacheManager";
-import { db, executeRawSQL, queryRawSQL } from "./database";
-import DatabaseClient from "./database";
+import db from "./database";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -86,7 +85,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
     let decoded;
     try {
       // Verify JWT token
-      decoded = jwt.verify(token, JWT_SECRET) as {
+      decoded = jwt.verify(token, JWT_SECRET) as unknown as {
         userId: string;
         email: string;
         role: string;
@@ -102,7 +101,7 @@ export async function verifyAuth(request: NextRequest): Promise<{
         if (refreshToken) {
           try {
             // Verify refresh token
-            const refreshDecoded = jwt.verify(refreshToken, JWT_SECRET) as {
+            const refreshDecoded = jwt.verify(refreshToken, JWT_SECRET) as unknown as {
               userId: string;
               sessionId: string;
               type: string;
@@ -140,8 +139,8 @@ export async function verifyAuth(request: NextRequest): Promise<{
                 // Process parameters to handle UUID types correctly
                 const params = [refreshDecoded.userId];
                 
-                const userResult = await queryRawSQL(
-                  "SELECT email, role FROM users WHERE id = $1::uuid",
+                const userResult = await db.query(
+                  "SELECT email, role FROM users WHERE id = $1",
                   params
                 );
                 
@@ -250,12 +249,9 @@ export async function verifyAuth(request: NextRequest): Promise<{
     } else {
       // Try to fetch from database
       try {
-        // Import UUIDUtils for proper UUID handling
-        // We no longer need UUIDUtils with the new database interface
-        
         try {
-          const userResult = await queryRawSQL(
-            "SELECT club_id FROM users WHERE id = $1::uuid",
+          const userResult = await db.query(
+            "SELECT club_id FROM users WHERE id = $1",
             [decoded.userId]
           );
           
@@ -263,17 +259,8 @@ export async function verifyAuth(request: NextRequest): Promise<{
             club_id = userResult.rows[0].club_id;
           }
         } catch (queryError) {
-          console.error("Error in raw query for user club_id:", queryError);
-          
-          // Fallback to standard Prisma
-          const user = await db.users.findUnique({
-            where: { id: decoded.userId },
-            select: { club_id: true }
-          });
-          
-          if (user) {
-            club_id = user.club_id;
-          }
+          console.error("Error in query for user club_id:", queryError);
+          // We can set club_id to null if query fails
         }
       } catch (dbError) {
         console.error("Error fetching user club_id:", dbError);

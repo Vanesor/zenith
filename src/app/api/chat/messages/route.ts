@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ messages });
 
   } catch (error) {
-    console.error('Error fetching messages:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
       { status: 500 }
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: response }, { status: 201 });
 
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to send message' },
       { status: 500 }
@@ -311,7 +311,7 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error editing message:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to edit message' },
       { status: 500 }
@@ -379,7 +379,7 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error deleting message:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: 'Failed to delete message' },
       { status: 500 }

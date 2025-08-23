@@ -110,7 +110,7 @@ export async function GET(
       hasMore: messages.length === limit 
     });
   } catch (error) {
-    console.error("Error fetching chat messages:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Error fetching chat messages: " + error },
       { status: 500 }
@@ -194,7 +194,7 @@ export async function POST(
 
     return NextResponse.json(formattedMessage);
   } catch (error) {
-    console.error("Error sending message:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Error sending message: " + error },
       { status: 500 }

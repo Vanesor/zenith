@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       const inviteUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/chat/invite/${invitationToken}`;
       await sendInvitationEmail(inviteeEmail, inviterName || 'Someone', inviteUrl, message);
     } catch (emailError) {
-      console.error('Email sending error:', emailError);
+      console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
       // Don't fail the request if email fails, just log it
     }
 
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating invitation:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ 
       success: false, 
       error: 'Internal server error' 
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching invitations:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ 
       success: false, 
       error: 'Internal server error' 

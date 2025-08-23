@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(assignments);
     }
   } catch (error) {
-    console.error("Error fetching assignments:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -497,7 +497,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error("Error creating assignment:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     
     // Provide more detailed error information
     let errorMessage = "Internal server error";

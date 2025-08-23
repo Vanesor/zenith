@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth-unified';
 import db from '@/lib/database';
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // GET /api/posts/[postId]/comments - Get comments for a post
 export async function GET(
@@ -10,15 +8,19 @@ export async function GET(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json({ 
+        error: authResult.error || 'Authentication required',
+        expired: authResult.expired || false 
+      }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const userId = decoded.userId;
+    const userId = authResult.user?.id;
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 401 });
+    }
+
     const postId = params.postId;
 
     // Get comments for the post with author info
@@ -43,7 +45,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error fetching comments:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -54,15 +56,19 @@ export async function POST(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json({ 
+        error: authResult.error || 'Authentication required',
+        expired: authResult.expired || false 
+      }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const userId = decoded.userId;
+    const userId = authResult.user?.id;
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 401 });
+    }
+
     const postId = params.postId;
 
     const body = await request.json();
@@ -115,7 +121,7 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Error creating comment:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

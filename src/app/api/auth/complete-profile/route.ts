@@ -52,14 +52,14 @@ export async function POST(request: NextRequest) {
         message: "Profile completed successfully"
       });
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
       return NextResponse.json(
         { error: "Failed to update profile" },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error("Error completing profile:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "An error occurred while updating your profile" },
       { status: 500 }

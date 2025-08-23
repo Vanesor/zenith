@@ -69,7 +69,7 @@ export async function GET() {
     
     return new NextResponse(JSON.stringify({ assignments: assignmentsWithDetails }));
   } catch (error) {
-    console.error('Error fetching assignment details:', error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     
     // Return fallback data
     return new NextResponse(JSON.stringify({

@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { CacheManager, CacheKeys } from './CacheManager';
 import { SessionManager } from './SessionManager';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+
 interface AuthenticatedSocket extends Socket {
   userId?: string;
   userRole?: string;
@@ -66,7 +68,7 @@ export class WebSocketManager {
           return next(new Error('Authentication error: No token provided'));
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { 
+        const decoded = jwt.verify(token, JWT_SECRET) as unknown as { 
           id: string; 
           role: string; 
           sessionId: string; 

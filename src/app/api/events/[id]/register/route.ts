@@ -58,7 +58,7 @@ export async function POST(request: NextRequest, { params }: Props) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error registering for event:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to register for event" },
       { status: 500 }
@@ -97,7 +97,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       message: "Registration cancelled successfully",
     });
   } catch (error) {
-    console.error("Error cancelling registration:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to cancel registration" },
       { status: 500 }
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ registrations: registrationsResult.rows });
   } catch (error) {
-    console.error("Error fetching event registrations:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch registrations" },
       { status: 500 }
