@@ -23,7 +23,7 @@ error() {
 }
 
 # Configuration
-PROJECT_DIR="/opt/zenith"
+PROJECT_DIR="/home/bitnami/zenith"
 DB_NAME="zenith"
 DB_USER="zenithpostgres"
 DB_PASSWORD="AtharvaAyush"
@@ -102,8 +102,8 @@ log "Database setup completed"
 log "Setting up project..."
 
 # Create project directory
-sudo mkdir -p $PROJECT_DIR
-sudo chown -R $USER:$USER $PROJECT_DIR
+mkdir -p $PROJECT_DIR
+sudo chown -R bitnami:daemon $PROJECT_DIR
 
 # Copy project files (excluding unnecessary files)
 log "Copying project files..."
@@ -242,17 +242,17 @@ log "Starting application with PM2..."
 pm2 start ecosystem.config.js
 pm2 save
 
-# Setup PM2 startup
-sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER --hp $(eval echo ~$USER)
+# Setup PM2 startup (Bitnami version)
+sudo env PATH=$PATH:/opt/bitnami/node/bin /opt/bitnami/node/lib/node_modules/pm2/bin/pm2 startup systemd -u bitnami --hp /home/bitnami
 
 # =============================================================================
 # 5. Setup Nginx with HTTPS
 # =============================================================================
 
-log "Setting up Nginx..."
+log "Setting up Nginx for Bitnami..."
 
-# Create Nginx config
-sudo tee /etc/nginx/sites-available/zenith << EOF
+# Create Nginx vhost config for Bitnami
+sudo tee /opt/bitnami/nginx/conf/vhosts/zenith.conf << EOF
 server {
     listen 80;
     server_name $DOMAIN;
@@ -282,18 +282,20 @@ server {
 }
 EOF
 
-# Remove default site and enable our site
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo ln -sf /etc/nginx/sites-available/zenith /etc/nginx/sites-enabled/
+# Restart Nginx using Bitnami control script
+sudo /opt/bitnami/ctlscript.sh restart nginx
 
-# Test and start Nginx
-sudo nginx -t
-sudo systemctl restart nginx
-sudo systemctl enable nginx
+# Setup SSL using Bitnami's tool
+log "Setting up SSL certificate using Bitnami's bncert-tool..."
+log "IMPORTANT: Make sure your domain '$DOMAIN' is pointing to this server's IP address."
+echo "Press [Enter] to continue once you have confirmed the DNS is set up, or Ctrl+C to cancel."
+read -p ""
 
-# Setup SSL
-log "Setting up SSL certificate..."
-sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN
+log "Running Bitnami's SSL configuration tool..."
+sudo /opt/bitnami/bncert-tool \
+    --domain $DOMAIN \
+    --agree-to-terms \
+    --reinstall || log "SSL setup may have failed, but continuing..."
 
 # =============================================================================
 # Complete
