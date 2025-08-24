@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-// import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -75,6 +74,17 @@ interface ClubData {
     description?: string;
     max_attendees: number;
     banner_image_url?: string;
+    status?: 'upcoming' | 'ongoing' | 'completed';
+  }>;
+  pastEvents: Array<{
+    id: string;
+    title: string;
+    event_date: string;
+    location: string;
+    description?: string;
+    attendees_count?: number;
+    banner_image_url?: string;
+    gallery_images?: string[];
   }>;
   posts: Array<{
     id: string;
@@ -99,7 +109,6 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 export default function PublicClubPage() {
   const params = useParams();
   const router = useRouter();
-  // const { user } = useAuth();
   const [clubData, setClubData] = useState<ClubData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,33 +117,73 @@ export default function PublicClubPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Club gallery images (you can make this dynamic from API later)
-  const clubGallery = [
-    {
-      id: 1,
-      url: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-      title: "Club Activities",
-      description: "Our members actively participating in workshops and events"
-    },
-    {
-      id: 2,
-      url: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-      title: "Team Collaboration",
-      description: "Working together on innovative projects and solutions"
-    },
-    {
-      id: 3,
-      url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-      title: "Innovation Hub",
-      description: "Creating and implementing groundbreaking ideas"
-    },
-    {
-      id: 4,
-      url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-      title: "Community Events",
-      description: "Engaging with the broader college community"
-    }
-  ];
+  // Get club-specific gallery images
+  const getClubGalleryImages = (clubId: string) => {
+    const baseImages = [
+      {
+        id: 1,
+        url: `https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80`,
+        title: "Club Activities",
+        description: "Our members actively participating in workshops and events"
+      },
+      {
+        id: 2,
+        url: `https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80`,
+        title: "Team Collaboration", 
+        description: "Working together on innovative projects and solutions"
+      },
+      {
+        id: 3,
+        url: `https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80`,
+        title: "Innovation Hub",
+        description: "Creating and implementing groundbreaking ideas"
+      },
+      {
+        id: 4,
+        url: `https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80`,
+        title: "Community Events",
+        description: "Engaging with the broader college community"
+      }
+    ];
+
+    // Try to load club-specific images from the public/carousel folder
+    // In a real app, you would check if files exist and load them dynamically
+    const clubSpecificImages = [
+      {
+        id: 1,
+        url: `/carousel/${clubId.toLowerCase()}/event1.jpg`,
+        title: `${clubId.toUpperCase()} Workshop`,
+        description: "Interactive learning session with industry experts",
+        fallback: baseImages[0].url
+      },
+      {
+        id: 2,
+        url: `/carousel/${clubId.toLowerCase()}/event2.jpg`,
+        title: `${clubId.toUpperCase()} Project Demo`,
+        description: "Student presentations and project showcases",
+        fallback: baseImages[1].url
+      },
+      {
+        id: 3,
+        url: `/carousel/${clubId.toLowerCase()}/event3.jpg`,
+        title: `${clubId.toUpperCase()} Competition`,
+        description: "Competitive coding and innovation challenges",
+        fallback: baseImages[2].url
+      },
+      {
+        id: 4,
+        url: `/carousel/${clubId.toLowerCase()}/event4.jpg`,
+        title: `${clubId.toUpperCase()} Networking`,
+        description: "Building connections and collaborative partnerships",
+        fallback: baseImages[3].url
+      }
+    ];
+
+    return clubSpecificImages;
+  };
+
+  // Club gallery images (now dynamic based on clubId)
+  const [clubGallery, setClubGallery] = useState<any[]>([]);
 
   // Carousel auto-play functionality
   useEffect(() => {
@@ -170,6 +219,10 @@ export default function PublicClubPage() {
       
       try {
         setLoading(true);
+        
+        // Set club-specific gallery images
+        const galleryImages = getClubGalleryImages(params.clubId as string);
+        setClubGallery(galleryImages);
         
         // Fetch club data without authentication
         const response = await fetch(`/api/clubs/${params.clubId}/public`);
@@ -217,8 +270,21 @@ export default function PublicClubPage() {
     );
   }
 
-  const { club, events, posts } = clubData;
+  const { club, events, pastEvents = [], posts } = clubData;
   const IconComponent = iconMap[club.icon] || Code;
+
+  // Separate upcoming and past events
+  const upcomingEvents = events.filter(event => {
+    const eventDate = new Date(event.event_date);
+    const now = new Date();
+    return eventDate >= now || event.status === 'upcoming';
+  });
+
+  const completedEvents = events.filter(event => {
+    const eventDate = new Date(event.event_date);
+    const now = new Date();
+    return eventDate < now || event.status === 'completed';
+  });
 
   return (
     <div className="min-h-screen bg-zenith-main">
@@ -651,7 +717,7 @@ export default function PublicClubPage() {
       </section>
 
       {/* Upcoming Events */}
-      {events.length > 0 && (
+      {upcomingEvents.length > 0 && (
         <section className="py-16 bg-zenith-main">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -667,42 +733,292 @@ export default function PublicClubPage() {
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {events.slice(0, 6).map((event, index) => (
+              {upcomingEvents.slice(0, 6).map((event, index) => (
                 <motion.div
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="bg-zenith-card rounded-xl shadow-lg p-6 border border-zenith-border hover:shadow-xl transition-shadow"
+                  className="bg-zenith-card rounded-xl shadow-lg border border-zenith-border hover:shadow-xl transition-all duration-300 overflow-hidden group"
                 >
-                  <h3 className="text-xl font-semibold text-zenith-primary mb-3">
-                    {event.title}
-                  </h3>
-                  {event.description && (
-                    <p className="text-zenith-secondary mb-4 line-clamp-2">
-                      {event.description}
-                    </p>
+                  {event.banner_image_url && (
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={event.banner_image_url}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <div className="bg-zenith-accent text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          Upcoming
+                        </div>
+                      </div>
+                    </div>
                   )}
-                  <div className="space-y-2 text-sm text-zenith-muted">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      {new Date(event.event_date).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-2" />
-                      {new Date(event.event_date).toLocaleTimeString()}
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {event.location}
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-2" />
-                      {event.max_attendees} max attendees
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-zenith-primary mb-3">
+                      {event.title}
+                    </h3>
+                    {event.description && (
+                      <p className="text-zenith-secondary mb-4 line-clamp-2">
+                        {event.description}
+                      </p>
+                    )}
+                    <div className="space-y-2 text-sm text-zenith-muted">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-zenith-accent" />
+                        {new Date(event.event_date).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="w-4 h-4 mr-2 text-zenith-accent" />
+                        {new Date(event.event_date).toLocaleTimeString()}
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2 text-zenith-accent" />
+                        {event.location}
+                      </div>
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 mr-2 text-zenith-accent" />
+                        {event.max_attendees} max attendees
+                      </div>
                     </div>
                   </div>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Past Events */}
+      {(completedEvents.length > 0 || pastEvents.length > 0) && (
+        <section className="py-16 bg-zenith-section">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl font-bold text-zenith-primary mb-4">Past Events</h2>
+              <p className="text-xl text-zenith-secondary">
+                Explore our successful events and memorable moments
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Show completed regular events */}
+              {completedEvents.slice(0, 3).map((event, index) => (
+                <motion.div
+                  key={`completed-${event.id}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="bg-zenith-card rounded-xl shadow-lg border border-zenith-border hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                >
+                  {event.banner_image_url && (
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={event.banner_image_url}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          Completed
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-zenith-primary mb-3">
+                      {event.title}
+                    </h3>
+                    {event.description && (
+                      <p className="text-zenith-secondary mb-4 line-clamp-2">
+                        {event.description}
+                      </p>
+                    )}
+                    <div className="space-y-2 text-sm text-zenith-muted">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                        {new Date(event.event_date).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                        {event.location}
+                      </div>
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 mr-2 text-gray-500" />
+                        {event.max_attendees} attendees
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Show past events from pastEvents array */}
+              {pastEvents.slice(0, 3).map((event, index) => (
+                <motion.div
+                  key={`past-${event.id}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: (completedEvents.length + index) * 0.1 }}
+                  className="bg-zenith-card rounded-xl shadow-lg border border-zenith-border hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                >
+                  {event.banner_image_url && (
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={event.banner_image_url}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          Success
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-zenith-primary mb-3">
+                      {event.title}
+                    </h3>
+                    {event.description && (
+                      <p className="text-zenith-secondary mb-4 line-clamp-2">
+                        {event.description}
+                      </p>
+                    )}
+                    <div className="space-y-2 text-sm text-zenith-muted">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                        {new Date(event.event_date).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                        {event.location}
+                      </div>
+                      {event.attendees_count && (
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-2 text-gray-500" />
+                          {event.attendees_count} attended
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Past Events Image Gallery */}
+      {pastEvents.length > 0 && (
+        <section className="py-16 bg-zenith-main">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl font-bold text-zenith-primary mb-4">Event Memories</h2>
+              <p className="text-xl text-zenith-secondary">
+                Relive the moments from our amazing events
+              </p>
+            </motion.div>
+
+            {/* Club-specific event image carousel */}
+            <div className="relative h-96 md:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative w-full h-full">
+                {clubGallery.map((image, index) => (
+                  <motion.div
+                    key={image.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ 
+                      opacity: currentSlide === index ? 1 : 0,
+                      scale: currentSlide === index ? 1 : 1.05 
+                    }}
+                    transition={{ duration: 0.7, ease: "easeInOut" }}
+                    className={`absolute inset-0 w-full h-full ${
+                      currentSlide === index ? 'z-10' : 'z-0'
+                    }`}
+                  >
+                    <div
+                      className="w-full h-full bg-cover bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${image.url})` }}
+                      onError={(e) => {
+                        // If club-specific image fails, use fallback
+                        e.currentTarget.style.backgroundImage = `url(${image.fallback})`;
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-black/30"></div>
+                      <div className="relative z-10 flex items-end h-full p-8">
+                        <div className="text-white">
+                          <motion.h3
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="text-2xl md:text-3xl font-bold mb-2"
+                          >
+                            {image.title}
+                          </motion.h3>
+                          <motion.p
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
+                            transition={{ duration: 0.6, delay: 0.4 }}
+                            className="text-lg opacity-90"
+                          >
+                            {image.description}
+                          </motion.p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Navigation Controls */}
+              <button
+                onClick={prevSlide}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-colors"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-colors"
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+
+              {/* Auto-play toggle */}
+              <button
+                onClick={toggleAutoPlay}
+                className="absolute top-4 right-4 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-2 rounded-full transition-colors"
+                aria-label={isAutoPlaying ? "Pause slideshow" : "Play slideshow"}
+              >
+                {isAutoPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              </button>
+
+              {/* Dots Indicator */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+                {clubGallery.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`w-3 h-3 rounded-full transition-colors ${
+                      currentSlide === index
+                        ? 'bg-white'
+                        : 'bg-white/50 hover:bg-white/70'
+                    }`}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -782,11 +1098,6 @@ export default function PublicClubPage() {
           </motion.div>
         </div>
       </section>
-      
-      {/* Zen Assistant - Only visible to privileged users */}
-      {/* {user && (user.role === 'admin' || user.role === 'coordinator' || user.role === 'co_coordinator' || user.role === 'zenith_committee') && (
-        <ZenChatbot />
-      )} */}
     </div>
   );
 }

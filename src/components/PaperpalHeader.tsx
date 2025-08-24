@@ -148,8 +148,8 @@ export function PaperpalHeader({
             {/* Logo and Title (show prominently when not authenticated) */}
             {(!user || expandedHeader) && (
               <Link href="/" className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Zap className="w-6 h-6 text-primary" />
+                <div className="w-10 h-10 flex items-center justify-center shadow-lg">
+                  <img src="/zenithlogo.png" alt="Zenith Logo" className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-primary">Zenith</h1>

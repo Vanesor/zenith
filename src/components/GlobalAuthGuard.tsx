@@ -34,7 +34,11 @@ const authConfig: AuthGuardConfig = {
     '/verify-email',
     '/privacy',
     '/terms',
+    '/support',
+    '/help',
+    '/contact',
     '/clubs', // Public club listing
+    '/homeclub/[clubId]', // Public club pages
     '/loader-demo', // Demo page
   ],
   mixedRoutes: [

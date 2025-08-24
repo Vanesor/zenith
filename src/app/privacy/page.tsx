@@ -1,27 +1,51 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { UnifiedHeader } from '@/components/UnifiedHeader';
+import { ArrowLeft, Home, Shield } from 'lucide-react';
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-main transition-colors duration-300">
-      {/* <UnifiedHeader showNavigation={true} /> */}
+    <div className="min-h-screen bg-zenith-main">
+      {/* Header */}
+      <header className="bg-zenith-nav border-b border-zenith-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              className="inline-flex items-center text-zenith-muted hover:text-zenith-primary transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Link>
+            
+            <Link
+              href="/"
+              className="flex items-center space-x-2"
+            >
+              <Home className="w-5 h-5 text-zenith-primary" />
+              <span className="font-semibold text-zenith-primary">Zenith Forum</span>
+            </Link>
+          </div>
+        </div>
+      </header>
       
-      <div className="pt-40 pb-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Link */}
-          <Link
-            href="/register"
-            className="inline-flex items-center text-secondary hover:text-primary mb-8 transition-colors duration-200"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Registration
-          </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Page Header */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-16 h-16 bg-zenith-accent rounded-full flex items-center justify-center">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <h1 className="text-4xl font-bold text-zenith-primary mb-4">Privacy Policy</h1>
+          <p className="text-xl text-zenith-secondary max-w-2xl mx-auto">
+            Learn how we collect, use, and protect your personal information
+          </p>
+        </div>
 
-          {/* Privacy Content */}
-          <div className="bg-card rounded-2xl shadow-xl p-8 border border-custom transition-colors duration-200">
+        {/* Privacy Content */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-zenith-card rounded-2xl shadow-xl p-8 border border-zenith-border">
             <div className="prose prose-gray dark:prose-invert max-w-none">
               <h1 className="text-3xl font-bold text-primary mb-6 transition-colors duration-200">
                 Privacy Policy

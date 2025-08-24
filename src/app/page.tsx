@@ -508,6 +508,96 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+      
+      {/* ===== FACULTY MENTORS SECTION ===== */}
+      <section className="py-16 bg-zenith-card/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold text-zenith-primary mb-4">Faculty Mentors</h2>
+            <p className="text-xl text-zenith-secondary">
+              Our dedicated faculty members who guide and support our journey
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 justify-center max-w-4xl mx-auto">
+            {/* Head of Department */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
+            >
+              <div className="relative mb-8">
+                <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                  <img 
+                    src="/manoj_sir.jpg"
+                    alt="Manoj's avatar"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute -top-3 -right-3 bg-purple-600 text-white p-3 rounded-full shadow-lg">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl font-bold text-zenith-primary">
+                  Dr. Manoj V. Bramhe
+                </h3>
+                <div className="inline-block bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  Head of Department
+                </div>
+                <br />  
+                <div className="text-sm text-zenith-muted bg-zenith-main px-3 py-1 rounded-full inline-block">
+                  Computer Science and Engineering
+                </div>
+                <p className="text-base text-zenith-muted leading-relaxed mt-4">
+                  Leading the Computer Science and Engineering department with expertise and vision
+                </p>
+              </div>
+            </motion.div>
+            
+            {/* Faculty Mentor */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
+            >
+              <div className="relative mb-8">
+                <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                  <img 
+                    src="/vaibhav_sir.jpg"
+                    alt="Vaibhav's avatar"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute -top-3 -right-3 bg-primary-brand text-white p-3 rounded-full shadow-lg">
+                  <Users className="w-6 h-6" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl font-bold text-zenith-primary">  
+                Mr. Vaibhav V. Deshpande
+                </h3>
+                <div className="inline-block bg-primary-brand text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  Faculty Mentor
+                </div>
+                <br />  
+                <div className="text-sm text-zenith-muted bg-zenith-main px-3 py-1 rounded-full inline-block">
+                  Computer Science and Engineering
+                </div>
+                <p className="text-base text-zenith-muted leading-relaxed mt-4">
+                  Mentoring students and fostering academic excellence
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
       {/* ===== LEADERSHIP TEAM SECTION ===== */}
       {leadership && (
@@ -524,41 +614,35 @@ export default function HomePage() {
                 Meet the dedicated leaders who guide Zenith Forum
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {/* President */}
               {leadership.coordinator && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
                 >
-                  <div className="relative">
-                    <div className="w-full h-48 bg-gradient-to-br from-orange-400 to-orange-600 relative overflow-hidden">
-                      {leadership.coordinator.photo ? (
-                        <img
-                          src={leadership.coordinator.photo}
-                          alt={`${leadership.coordinator.name}'s photo`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
-                          {leadership.coordinator.name.charAt(0)}
-                        </div>
-                      )}
+                  <div className="relative mb-8">
+                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                      <img 
+                        src={leadership.coordinator.photo}
+                        alt={`${leadership.coordinator.name}'s avatar`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="absolute top-4 right-4 bg-orange-500 text-white p-2 rounded-full shadow-lg">
-                      <Crown className="w-5 h-5" />
+                    <div className="absolute -top-3 -right-3 bg-warning-orange text-white p-3 rounded-full shadow-lg">
+                      <Crown className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-zenith-primary">
                       {leadership.coordinator.name}
                     </h3>
-                    <div className="inline-block bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                    <div className="inline-block bg-warning-orange text-white px-4 py-1 rounded-full text-sm font-semibold">
                       President
                     </div>
-                    <p className="text-sm text-zenith-muted leading-relaxed">
+                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
                       Leading the forum vision and strategic direction
                     </p>
                   </div>
@@ -571,34 +655,28 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
                 >
-                  <div className="relative">
-                    <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-blue-600 relative overflow-hidden">
-                      {leadership.coCoordinator.photo ? (
-                        <img
-                          src={leadership.coCoordinator.photo}
-                          alt={`${leadership.coCoordinator.name}'s photo`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
-                          {leadership.coCoordinator.name.charAt(0)}
-                        </div>
-                      )}
+                  <div className="relative mb-8">
+                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                      <img 
+                        src={leadership.coCoordinator.photo}
+                        alt={`${leadership.coCoordinator.name}'s avatar`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-full shadow-lg">
-                      <Shield className="w-5 h-5" />
+                    <div className="absolute -top-3 -right-3 bg-primary-brand text-white p-3 rounded-full shadow-lg">
+                      <Shield className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-zenith-primary">
                       {leadership.coCoordinator.name}
                     </h3>
-                    <div className="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                    <div className="inline-block bg-primary-brand text-white px-4 py-1 rounded-full text-sm font-semibold">
                       Vice President
                     </div>
-                    <p className="text-sm text-zenith-muted leading-relaxed">
+                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
                       Supporting coordination and member engagement
                     </p>
                   </div>
@@ -611,34 +689,28 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
                 >
-                  <div className="relative">
-                    <div className="w-full h-48 bg-gradient-to-br from-green-400 to-green-600 relative overflow-hidden">
-                      {leadership.secretary.photo ? (
-                        <img
-                          src={leadership.secretary.photo}
-                          alt={`${leadership.secretary.name}'s photo`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
-                          {leadership.secretary.name.charAt(0)}
-                        </div>
-                      )}
+                  <div className="relative mb-8">
+                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                      <img 
+                        src={leadership.secretary.photo}
+                        alt={`${leadership.secretary.name}'s avatar`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="absolute top-4 right-4 bg-green-500 text-white p-2 rounded-full shadow-lg">
-                      <FileText className="w-5 h-5" />
+                    <div className="absolute -top-3 -right-3 bg-success-green text-white p-3 rounded-full shadow-lg">
+                      <FileText className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-zenith-primary">
                       {leadership.secretary.name}
                     </h3>
-                    <div className="inline-block bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                    <div className="inline-block bg-success-green text-white px-4 py-1 rounded-full text-sm font-semibold">
                       Secretary
                     </div>
-                    <p className="text-sm text-zenith-muted leading-relaxed">
+                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
                       Managing documentation and communications
                     </p>
                   </div>
@@ -651,34 +723,28 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
-                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
                 >
-                  <div className="relative">
-                    <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-blue-700 relative overflow-hidden">
-                      {leadership.treasurer.photo ? (
-                        <img
-                          src={leadership.treasurer.photo}
-                          alt={`${leadership.treasurer.name}'s photo`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
-                          {leadership.treasurer.name.charAt(0)}
-                        </div>
-                      )}
+                  <div className="relative mb-8">
+                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                      <img 
+                        src={leadership.treasurer.photo}
+                        alt={`${leadership.treasurer.name}'s avatar`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="absolute top-4 right-4 bg-blue-600 text-white p-2 rounded-full shadow-lg">
-                      <FileText className="w-5 h-5" />
+                    <div className="absolute -top-3 -right-3 bg-blue-500 text-white p-3 rounded-full shadow-lg">
+                      <FileText className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-zenith-primary">
                       {leadership.treasurer.name}
                     </h3>
-                    <div className="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                    <div className="inline-block bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
                       Treasurer
                     </div>
-                    <p className="text-sm text-zenith-muted leading-relaxed">
+                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
                       Managing finances and budget planning
                     </p>
                   </div>
@@ -691,34 +757,28 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.5 }}
-                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
                 >
-                  <div className="relative">
-                    <div className="w-full h-48 bg-gradient-to-br from-purple-400 to-purple-600 relative overflow-hidden">
-                      {leadership.innovationHead.photo ? (
-                        <img
-                          src={leadership.innovationHead.photo}
-                          alt={`${leadership.innovationHead.name}'s photo`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
-                          {leadership.innovationHead.name.charAt(0)}
-                        </div>
-                      )}
+                  <div className="relative mb-8">
+                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                      <img 
+                        src={leadership.innovationHead.photo}
+                        alt={`${leadership.innovationHead.name}'s avatar`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="absolute top-4 right-4 bg-purple-500 text-white p-2 rounded-full shadow-lg">
-                      <Lightbulb className="w-5 h-5" />
+                    <div className="absolute -top-3 -right-3 bg-purple-500 text-white p-3 rounded-full shadow-lg">
+                      <Lightbulb className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-zenith-primary">
                       {leadership.innovationHead.name}
                     </h3>
-                    <div className="inline-block bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                    <div className="inline-block bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
                       Innovation Head
                     </div>
-                    <p className="text-sm text-zenith-muted leading-relaxed">
+                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
                       Leading innovation and technology initiatives
                     </p>
                   </div>
@@ -731,34 +791,28 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.6 }}
-                  className="bg-zenith-card rounded-2xl shadow-lg border border-zenith-border overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
                 >
-                  <div className="relative">
-                    <div className="w-full h-48 bg-gradient-to-br from-pink-400 to-pink-600 relative overflow-hidden">
-                      {leadership.media.photo ? (
-                        <img
-                          src={leadership.media.photo}
-                          alt={`${leadership.media.name}'s photo`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
-                          {leadership.media.name.charAt(0)}
-                        </div>
-                      )}
+                  <div className="relative mb-8">
+                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
+                      <img 
+                        src={leadership.media.photo}
+                        alt={`${leadership.media.name}'s avatar`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="absolute top-4 right-4 bg-pink-500 text-white p-2 rounded-full shadow-lg">
-                      <MessageSquare className="w-5 h-5" />
+                    <div className="absolute -top-3 -right-3 bg-red-500 text-white p-3 rounded-full shadow-lg">
+                      <MessageSquare className="w-6 h-6" />
                     </div>
                   </div>
-                  <div className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-zenith-primary mb-2">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-zenith-primary">
                       {leadership.media.name}
                     </h3>
-                    <div className="inline-block bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                    <div className="inline-block bg-red-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
                       Media Head
                     </div>
-                    <p className="text-sm text-zenith-muted leading-relaxed">
+                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
                       Managing social media and publicity
                     </p>
                   </div>
@@ -768,6 +822,7 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
 
   {/* CLUBS SHOWCASE SECTION - Featured clubs with descriptions */}
       <section

@@ -107,10 +107,10 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link 
-                  href="/members" 
+                  href="/clubs" 
                   className="text-sm text-zenith-secondary dark:text-zenith-muted hover:text-primary dark:hover:text-blue-400 transition-colors"
                 >
-                  Members
+                  Clubs
                 </Link>
               </li>
             </ul>
