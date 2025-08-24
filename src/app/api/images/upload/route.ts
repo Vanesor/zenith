@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-unified';
-import { DatabaseImageService } from '@/lib/DatabaseImageService';
-import { verifyAuth } from '@/lib/auth-unified';
+import { MediaService } from '@/lib/MediaService';
 import jwt from 'jsonwebtoken';
-import { verifyAuth } from '@/lib/auth-unified';
 
 
 // POST /api/images/upload
@@ -23,9 +21,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify token
-    let decoded;
+    let authResult;
     try {
-      decoded = verifyAuth(request) as { userId: string; email: string };
+      authResult = await verifyAuth(request);
+      if (!authResult.success || !authResult.user) {
+        return NextResponse.json(
+          { error: "Invalid or expired token" },
+          { status: 401 }
+        );
+      }
     } catch (error) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
@@ -57,36 +61,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await DatabaseImageService.uploadImage(
+    const result = await MediaService.uploadFile(
       file,
-      file.name,
-      authResult.user?.id,
+      authResult.user.id,
+      context || 'general',
+      referenceId || '',
       {
-        context,
+        uploadContext: context,
         referenceId,
         isPublic,
         altText,
         description,
-        expiresIn,
-        generateThumbnail: true,
-        generateMedium: true
+        metadata: expiresIn ? { expiresIn } : undefined
       }
     );
 
-    if (!result.success) {
+    if (!result) {
       return NextResponse.json(
-        { error: result.error },
+        { error: 'Failed to upload image' },
         { status: 400 }
       );
     }
 
     // Generate URLs for different sizes
-    const baseUrl = `${request.nextUrl.origin}/api/images/${result.imageId}`;
-    const accessToken = isPublic ? '' : `?token=${result.imageId}`; // Simplified token for demo
+    const baseUrl = `${request.nextUrl.origin}/api/images/${result.id}`;
+    const accessToken = isPublic ? '' : `&token=${token}`; // Use the actual auth token
     
     return NextResponse.json({
       success: true,
-      imageId: result.imageId,
+      imageId: result.id,
+      fileUrl: result.file_url,
       urls: {
         original: `${baseUrl}?size=original${accessToken}`,
         thumbnail: `${baseUrl}?size=thumbnail${accessToken}`,

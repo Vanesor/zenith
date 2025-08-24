@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-unified';
-import { DatabaseImageService } from '@/lib/DatabaseImageService';
-import { verifyAuth } from '@/lib/auth-unified';
+import { MediaService } from '@/lib/MediaService';
 import jwt from 'jsonwebtoken';
-import { verifyAuth } from '@/lib/auth-unified';
+import fs from 'fs';
+import path from 'path';
 
 
 // GET /api/images/[imageId]?size=original|thumbnail|medium&token=accessToken
@@ -16,26 +16,70 @@ export async function GET(
     const size = searchParams.get('size') as 'original' | 'thumbnail' | 'medium' || 'original';
     const accessToken = searchParams.get('token');
     
-    const result = await DatabaseImageService.getImage(params.imageId, size, accessToken || undefined);
+    // Get media file from database
+    const mediaFile = await MediaService.getMediaFileById(params.imageId);
     
-    if (!result.success) {
+    if (!mediaFile) {
       return NextResponse.json(
-        { error: result.error },
-        { status: result.error === 'Access denied' ? 403 : 404 }
+        { error: 'Image not found' },
+        { status: 404 }
       );
     }
     
+    // Check if file is public or verify access token
+    if (!mediaFile.is_public) {
+      if (!accessToken) {
+        return NextResponse.json(
+          { error: 'Access token required for private image' },
+          { status: 401 }
+        );
+      }
+      
+      // Verify token for private images
+      try {
+        const authResult = await verifyAuth(request);
+        if (!authResult.success) {
+          return NextResponse.json(
+            { error: 'Invalid access token' },
+            { status: 403 }
+          );
+        }
+      } catch (error) {
+        return NextResponse.json(
+          { error: 'Invalid access token' },
+          { status: 403 }
+        );
+      }
+    }
+    
+    // Get file path - MediaService stores relative paths
+    let filePath = mediaFile.filename;
+    if (!path.isAbsolute(filePath)) {
+      filePath = path.join(process.cwd(), 'public', filePath);
+    }
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json(
+        { error: 'Image file not found on disk' },
+        { status: 404 }
+      );
+    }
+    
+    // Read file and return
+    const fileBuffer = fs.readFileSync(filePath);
+    
     // Return image with proper headers
-    const response = new NextResponse(result.data as BodyInit);
-    response.headers.set('Content-Type', result.metadata!.mimeType);
-    response.headers.set('Content-Length', result.data!.length.toString());
+    const response = new NextResponse(fileBuffer);
+    response.headers.set('Content-Type', mediaFile.mime_type);
+    response.headers.set('Content-Length', fileBuffer.length.toString());
     response.headers.set('Cache-Control', 'public, max-age=31536000'); // 1 year cache
     response.headers.set('ETag', `"${params.imageId}-${size}"`);
     
     // Set filename for download
     response.headers.set(
       'Content-Disposition', 
-      `inline; filename="${result.metadata!.originalFilename}"`
+      `inline; filename="${mediaFile.original_filename}"`
     );
     
     return response;
@@ -48,103 +92,6 @@ export async function GET(
   }
 }
 
-// POST /api/images/upload
-export async function POST(request: NextRequest) {
-  try {
-    // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
-    }
-
-    if (!token) {
-      return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    // Verify token
-    let decoded;
-    try {
-      decoded = verifyAuth(request) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
-    }
-
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const context = formData.get('context') as string || 'general';
-    const referenceId = formData.get('referenceId') as string;
-    const isPublic = formData.get('isPublic') === 'true';
-    const altText = formData.get('altText') as string;
-    const description = formData.get('description') as string;
-    const expiresIn = formData.get('expiresIn') ? parseInt(formData.get('expiresIn') as string) : undefined;
-    
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: 'File must be an image' },
-        { status: 400 }
-      );
-    }
-
-    const result = await DatabaseImageService.uploadImage(
-      file,
-      file.name,
-      authResult.user?.id,
-      {
-        context,
-        referenceId,
-        isPublic,
-        altText,
-        description,
-        expiresIn,
-        generateThumbnail: true,
-        generateMedium: true
-      }
-    );
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
-    }
-
-    // Generate URLs for different sizes
-    const baseUrl = `${request.nextUrl.origin}/api/images/${result.imageId}`;
-    const accessToken = isPublic ? '' : `?token=${result.imageId}`; // Simplified token for demo
-    
-    return NextResponse.json({
-      success: true,
-      imageId: result.imageId,
-      urls: {
-        original: `${baseUrl}?size=original${accessToken}`,
-        thumbnail: `${baseUrl}?size=thumbnail${accessToken}`,
-        medium: `${baseUrl}?size=medium${accessToken}`
-      }
-    });
-
-  } catch (error) {
-    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
-    return NextResponse.json(
-      { error: 'Failed to upload image' },
-      { status: 500 }
-    );
-  }
-}
-
 // DELETE /api/images/[imageId]
 export async function DELETE(
   request: NextRequest,
@@ -152,39 +99,49 @@ export async function DELETE(
 ) {
   try {
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
-    }
-
-    if (!token) {
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
       return NextResponse.json(
-        { error: "No authentication token provided" },
+        { error: "Authentication required" },
         { status: 401 }
       );
     }
 
-    // Verify token
-    let decoded;
-    try {
-      decoded = verifyAuth(request) as { userId: string; email: string };
-    } catch (error) {
+    // Get media file to check ownership
+    const mediaFile = await MediaService.getMediaFileById(params.imageId);
+    
+    if (!mediaFile) {
       return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
-    }
-
-    const result = await DatabaseImageService.deleteImage(params.imageId, authResult.user?.id);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
+        { error: "Image not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true });
+    // Check if user owns the file or has admin permissions
+    if (mediaFile.uploaded_by !== authResult.user.id && authResult.user.role !== 'admin') {
+      return NextResponse.json(
+        { error: "Permission denied" },
+        { status: 403 }
+      );
+    }
+
+    // Delete file from filesystem
+    let filePath = mediaFile.filename;
+    if (!path.isAbsolute(filePath)) {
+      filePath = path.join(process.cwd(), 'public', filePath);
+    }
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Delete database record
+    await MediaService.deleteMediaFile(params.imageId);
+
+    return NextResponse.json({ 
+      success: true,
+      message: "Image deleted successfully" 
+    });
 
   } catch (error) {
     console.error("API Error:", error instanceof Error ? error.message : "Unknown error");

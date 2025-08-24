@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-unified';
 import jwt from 'jsonwebtoken';
-import { verifyAuth } from '@/lib/auth-unified';
 import { ProjectPermissionService } from '@/lib/ProjectPermissionService';
-import { verifyAuth } from '@/lib/auth-unified';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('Authorization');
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const decoded = verifyAuth(request) as any;
     const userId = authResult.user?.id;
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 401 });
+    }
+    
     const { id: projectId } = await params;    // Get user's permissions for this specific project
     const permissions = await ProjectPermissionService.getUserPermissions(userId, projectId);
     
