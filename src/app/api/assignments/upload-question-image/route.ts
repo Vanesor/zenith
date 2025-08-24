@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-unified';
-import { LocalStorageService } from "@/lib/storage";
+import { MediaService } from '@/lib/MediaService';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for question images
 
@@ -61,14 +61,24 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Upload question image using LocalStorageService
-    const uploadResult = await LocalStorageService.uploadFile(
+    // Upload question image using MediaService
+    const mediaFile = await MediaService.uploadFile(
       file,
+      authResult.user.id,
       'assignments',
-      `questions/${questionId}`
+      `questions/${questionId}`,
+      {
+        uploadContext: 'assignment_questions',
+        referenceId: questionId,
+        isPublic: false, // Question images are typically private
+        metadata: {
+          questionId,
+          uploadedBy: authResult.user.id
+        }
+      }
     );
 
-    if (!uploadResult) {
+    if (!mediaFile) {
       return NextResponse.json({
          success: false,
         error: 'Failed to upload question image'
@@ -80,8 +90,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Question image uploaded successfully',
-      imageUrl: uploadResult.url,
-      filePath: uploadResult.path
+      imageUrl: mediaFile.file_url,
+      filePath: mediaFile.filename,
+      fileId: mediaFile.id
     });
 
   } catch (error) {

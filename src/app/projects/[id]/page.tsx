@@ -41,7 +41,7 @@ interface Project {
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'planning' | 'active' | 'on_hold' | 'completed';
   created_at: string;
-  due_date?: string;
+  target_end_date?: string;
   invite_key?: string;
 }
 
@@ -134,7 +134,7 @@ export default function ProjectDetailPage() {
         const projectData = data.project || data;
         setProject(projectData);
         setEditDescription(projectData.description || '');
-        setProjectDueDate(projectData.due_date || '');
+        setProjectDueDate(projectData.target_end_date || '');
       } else {
         notify.error('Failed to load project');
       }
@@ -295,12 +295,12 @@ export default function ProjectDetailPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('zenith-token')}`
         },
-        body: JSON.stringify({ due_date: projectDueDate })
+        body: JSON.stringify({ target_end_date: projectDueDate })
       });
 
       if (response.ok) {
         notify.success('Due date updated successfully');
-        setProject(prev => prev ? { ...prev, due_date: projectDueDate } : null);
+        setProject(prev => prev ? { ...prev, target_end_date: projectDueDate } : null);
         setIsEditingDueDate(false);
       } else {
         notify.error('Failed to update due date');
@@ -448,6 +448,7 @@ export default function ProjectDetailPage() {
             <KanbanBoard 
               projectId={projectId} 
               userPermissions={userPermissions}
+              projectDueDate={project?.target_end_date}
             />
           )}
 
@@ -515,67 +516,6 @@ export default function ProjectDetailPage() {
                 </CardContent>
               </Card>
             </div>
-          )}
-
-          {activeTab === 'share' && userPermissions?.canViewShareKeys && (
-            <Card className="bg-zenith-card border-zenith-border">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-zenith-primary">
-                  <Key className="h-5 w-5" />
-                  Project Access Keys
-                </CardTitle>
-                <p className="text-sm text-zenith-secondary mt-2">
-                  Share these credentials with team members to give them access to the project
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-zenith-primary">Project Key</label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={project.project_key} 
-                        readOnly 
-                        className="font-mono bg-zenith-main border-zenith-border" 
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => copyToClipboard(project.project_key, 'Project key')}
-                        className="border-zenith-border hover:bg-zenith-hover"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-zenith-primary">Access Password</label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={project.access_password} 
-                        readOnly 
-                        className="font-mono bg-zenith-main border-zenith-border" 
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => copyToClipboard(project.access_password, 'Access password')}
-                        className="border-zenith-border hover:bg-zenith-hover"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
-                    <strong>Important:</strong> Keep these credentials secure. Anyone with access to both the project key and password can join your project.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           )}
 
           {activeTab === 'share' && userPermissions?.canViewShareKeys && (
@@ -858,7 +798,7 @@ export default function ProjectDetailPage() {
                             variant="outline" 
                             onClick={() => {
                               setIsEditingDueDate(false);
-                              setProjectDueDate(project.due_date || '');
+                              setProjectDueDate(project.target_end_date || '');
                             }}
                             className="border-zenith-border hover:bg-zenith-hover"
                           >
@@ -870,14 +810,14 @@ export default function ProjectDetailPage() {
                     ) : (
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 p-4 bg-zenith-main border border-zenith-border rounded-lg">
-                          {project.due_date ? (
+                          {project.target_end_date ? (
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                                 <Calendar className="h-5 w-5 text-orange-600" />
                               </div>
                               <div>
                                 <p className="font-medium text-zenith-primary">
-                                  {new Date(project.due_date).toLocaleDateString('en-US', {
+                                  {new Date(project.target_end_date).toLocaleDateString('en-US', {
                                     weekday: 'long',
                                     year: 'numeric',
                                     month: 'long',
@@ -910,7 +850,7 @@ export default function ProjectDetailPage() {
                             className="border-zenith-border hover:bg-zenith-hover"
                           >
                             <Calendar className="h-4 w-4 mr-2" />
-                            {project.due_date ? 'Set New Due Date' : 'Set Due Date'}
+                            {project.target_end_date ? 'Set New Due Date' : 'Set Due Date'}
                           </Button>
                         )}
                       </div>

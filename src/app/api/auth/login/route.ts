@@ -80,6 +80,8 @@ export async function POST(request: NextRequest) {
         name: authResult.user!.name,
         role: authResult.user!.role,
         club_id: authResult.user!.club_id,
+        avatar: authResult.user!.avatar,
+        profile_image_url: authResult.user!.profile_image_url,
       },
       message: "Login successful"
     });

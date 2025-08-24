@@ -1,38 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-unified';
-import jwt from 'jsonwebtoken';
-import { verifyAuth } from '@/lib/auth-unified';
-import { LocalStorageService } from '@/lib/storage';
-import { verifyAuth } from '@/lib/auth-unified';
+import { MediaService } from '@/lib/MediaService';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    let token = request.headers.get("authorization");
-    if (token?.startsWith("Bearer ")) {
-      token = token.substring(7);
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ 
+        error: authResult.error || 'Authentication required',
+        expired: authResult.expired || false 
+      }, { status: 401 });
     }
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "No authentication token provided" },
-        { status: 401 }
-      );
-    }
-
-    // Verify token
-    let decoded;
-    try {
-      decoded = verifyAuth(request) as { userId: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
-    }
-
+    const userId = authResult.user.id;
+    
     const formData = await request.formData();
     const file = formData.get('avatar') as File;
     
@@ -43,8 +27,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate file using SupabaseStorageService
-    // Validate file size
+    // Validate file
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json({ 
         error: 'File too large. Maximum size is 5MB.' 
@@ -58,28 +41,40 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Upload new avatar using Local Storage
-    const uploadResult = await LocalStorageService.uploadFile(
+    // Upload new avatar using MediaService
+    const mediaFile = await MediaService.uploadFile(
       file,
+      userId,
       'profiles',
-      'avatars'
+      'avatars',
+      {
+        uploadContext: 'profiles',
+        isPublic: true,
+        metadata: {
+          type: 'avatar',
+          userId: userId
+        }
+      }
     );
 
-    if (!uploadResult) {
+    if (!mediaFile) {
       return NextResponse.json({
-         success: false,
+        success: false,
         error: 'Failed to upload file'
-       }, { status: 500 });
+      }, { status: 500 });
     }
     
-    console.log(`✅ Profile image uploaded for user ${authResult.user?.id}: ${uploadResult.url}`);
+    // Update user's profile_image_url in the users table
+    await MediaService.updateUserAvatar(userId, mediaFile.file_url);
+    
+    console.log(`✅ Profile image uploaded for user ${userId}: ${mediaFile.file_url}`);
     
     return NextResponse.json({
       success: true,
       message: 'Profile image uploaded successfully',
-      avatarUrl: uploadResult.url,
-      fileId: uploadResult.path,
-      thumbnailUrl: uploadResult.url
+      avatarUrl: mediaFile.file_url,
+      fileId: mediaFile.id,
+      thumbnailUrl: mediaFile.thumbnail_url || mediaFile.file_url
     });
 
   } catch (error) {

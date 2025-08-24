@@ -4,8 +4,10 @@ import React from 'react';
 import SafeAvatar from './SafeAvatar';
 
 interface UserAvatarProps {
-  /** User's avatar URL */
+  /** User's avatar URL (legacy Supabase) */
   avatar?: string;
+  /** User's profile image URL (new uploads) */
+  profile_image_url?: string;
   /** User's name for fallback initials */
   name?: string;
   /** User's email for fallback initials */
@@ -50,6 +52,7 @@ const textSizeClasses = {
 
 export function UserAvatar({
   avatar,
+  profile_image_url,
   name,
   email,
   size = 'md',
@@ -102,7 +105,7 @@ export function UserAvatar({
   return (
     <div className="relative inline-flex" onClick={onClick}>
       <SafeAvatar
-        src={avatar}
+        src={profile_image_url || avatar}
         alt={alt || `${name || email || 'User'}'s avatar`}
         size={size === 'xs' ? 'sm' : size === 'xl' ? 'xl' : size === 'lg' ? 'lg' : 'md'}
         className={className}

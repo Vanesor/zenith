@@ -519,7 +519,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                         >
                           <label className="text-sm font-semibold text-secondary flex items-center">
                             <Calendar className="w-4 h-4 mr-2 text-accent" />
-                            Target Date
+                            Due Date
                           </label>
                           <div className="relative group">
                             <Input
@@ -527,6 +527,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                               type="date"
                               value={formData.target_end_date}
                               onChange={handleChange}
+                              min={new Date().toISOString().split('T')[0]}
                               className="h-12 pl-12 pr-4 rounded-xl border-2 border-custom bg-card backdrop-blur-sm focus:border-accent focus:ring-4 focus:ring-accent/20 transition-all duration-300"
                             />
                             <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors w-4 h-4 pointer-events-none" />

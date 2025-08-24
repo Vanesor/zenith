@@ -3,15 +3,15 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Image as ImageIcon, Upload } from 'lucide-react';
-import { uploadImageToStorage } from '@/lib/imageUtils';
 
 interface ChatImageUploadProps {
   onImageUploaded: (url: string) => void;
   onCancel: () => void;
   initialImage?: File | null;
+  roomId?: string;
 }
 
-export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null }: ChatImageUploadProps) {
+export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null, roomId }: ChatImageUploadProps) {
   const [image, setImage] = useState<File | null>(initialImage);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -48,9 +48,9 @@ export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null
       return;
     }
     
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB');
+    // Validate file size (max 10MB for chat images)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image size should be less than 10MB');
       return;
     }
     
@@ -58,7 +58,7 @@ export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null
     setError(null);
   };
   
-  // Handle upload
+  // Handle upload using MediaService via API
   const handleUpload = async () => {
     if (!image) return;
     
@@ -66,16 +66,28 @@ export function ChatImageUpload({ onImageUploaded, onCancel, initialImage = null
     setError(null);
     
     try {
-      const imageUrl = await uploadImageToStorage(image, 'chat-images');
-      
-      if (!imageUrl) {
-        throw new Error('Failed to upload image');
+      const formData = new FormData();
+      formData.append('file', image);
+      if (roomId) {
+        formData.append('roomId', roomId);
       }
       
-      onImageUploaded(imageUrl);
+      const response = await fetch('/api/chat/upload-attachment', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to upload image');
+      }
+      
+      onImageUploaded(result.fileUrl);
     } catch (err) {
       console.error('Error uploading image:', err);
-      setError('Failed to upload image. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
     } finally {
       setUploading(false);
     }

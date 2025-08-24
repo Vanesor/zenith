@@ -35,12 +35,10 @@ interface ClubData {
     icon: string;
     color: string;
     memberCount: number;
-    leadership: {
-      coordinator: { name: string } | null;
-      coCoordinator: { name: string } | null;
-      secretary: { name: string } | null;
-      media: { name: string } | null;
-    };
+    coordinator: { name: string; avatar?: string; profile_image_url?: string } | null;
+    co_coordinator: { name: string; avatar?: string; profile_image_url?: string } | null;
+    secretary: { name: string; avatar?: string; profile_image_url?: string } | null;
+    media: { name: string; avatar?: string; profile_image_url?: string } | null;
   };
   events: Array<{
     id: string;
@@ -345,13 +343,15 @@ export default function ClubPage() {
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <UserAvatar 
-                    name={club.leadership.coordinator?.name}
+                    name={club.coordinator?.name}
+                    avatar={club.coordinator?.avatar}
+                    profile_image_url={club.coordinator?.profile_image_url}
                     size="sm"
                   />
                   <Crown className="w-5 h-5 text-zenith-secondary" />
                   <div>
                     <p className="font-medium text-primary">
-                      {club.leadership.coordinator?.name || "Not assigned"}
+                      {club.coordinator?.name || "Not assigned"}
                     </p>
                     <p className="text-sm text-zenith-muted">
                       Coordinator
@@ -360,13 +360,15 @@ export default function ClubPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <UserAvatar 
-                    name={club.leadership.coCoordinator?.name}
+                    name={club.co_coordinator?.name}
+                    avatar={club.co_coordinator?.avatar}
+                    profile_image_url={club.co_coordinator?.profile_image_url}
                     size="sm"
                   />
                   <Shield className="w-5 h-5 text-primary" />
                   <div>
                     <p className="font-medium text-primary">
-                      {club.leadership.coCoordinator?.name || "Not assigned"}
+                      {club.co_coordinator?.name || "Not assigned"}
                     </p>
                     <p className="text-sm text-zenith-muted">
                       Co-Coordinator
@@ -375,13 +377,15 @@ export default function ClubPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <UserAvatar 
-                    name={club.leadership.secretary?.name}
+                    name={club.secretary?.name}
+                    avatar={club.secretary?.avatar}
+                    profile_image_url={club.secretary?.profile_image_url}
                     size="sm"
                   />
                   <FileText className="w-5 h-5 stat-members" />
                   <div>
                     <p className="font-medium text-primary">
-                      {club.leadership.secretary?.name || "Not assigned"}
+                      {club.secretary?.name || "Not assigned"}
                     </p>
                     <p className="text-sm text-zenith-muted">
                       Secretary
@@ -390,13 +394,15 @@ export default function ClubPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <UserAvatar 
-                    name={club.leadership.media?.name}
+                    name={club.media?.name}
+                    avatar={club.media?.avatar}
+                    profile_image_url={club.media?.profile_image_url}
                     size="sm"
                   />
                   <Edit className="w-5 h-5 stat-events" />
                   <div>
                     <p className="font-medium text-primary">
-                      {club.leadership.media?.name || "Not assigned"}
+                      {club.media?.name || "Not assigned"}
                     </p>
                     <p className="text-sm text-zenith-muted">
                       Media Head

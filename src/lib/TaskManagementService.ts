@@ -512,8 +512,6 @@ export class TaskManagementService {
       priority?: string;
       assignee_id?: string;
       due_date?: string;
-      estimated_hours?: number;
-      task_type?: string;
     }
   ): Promise<{ success: boolean; task?: any; error?: string }> {
     try {
@@ -570,18 +568,6 @@ export class TaskManagementService {
       if (updateData.due_date !== undefined) {
         updateFields.push(`due_date = $${paramCounter}`);
         updateValues.push(updateData.due_date);
-        paramCounter++;
-      }
-      
-      if (updateData.estimated_hours !== undefined) {
-        updateFields.push(`estimated_hours = $${paramCounter}`);
-        updateValues.push(updateData.estimated_hours);
-        paramCounter++;
-      }
-      
-      if (updateData.task_type !== undefined) {
-        updateFields.push(`task_type = $${paramCounter}`);
-        updateValues.push(updateData.task_type);
         paramCounter++;
       }
       
@@ -653,14 +639,19 @@ export class TaskManagementService {
         return { success: false, error: 'Insufficient permissions to delete task' };
       }
       
+      // Log activity before deleting the task to avoid foreign key constraint errors
+      try {
+        await this.logTaskActivity(taskId, userId, 'task_deleted', null, null, null, `Task "${task.title}" was deleted`);
+      } catch (error) {
+        console.error('Error logging task activity:', error);
+        // Continue with deletion even if logging fails
+      }
+      
       // Delete task (cascading will handle related records)
       await db.query('DELETE FROM tasks WHERE id = $1', [taskId]);
       
       // Update project task counts
       await this.updateProjectTaskCounts(task.project_id);
-      
-      // Log activity
-      await this.logTaskActivity(taskId, userId, 'task_deleted', null, null, null, `Task "${task.title}" was deleted`);
       
       return { success: true };
       

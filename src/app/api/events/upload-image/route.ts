@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-unified';
-import { LocalStorageService } from "@/lib/storage";
+import { MediaService } from '@/lib/MediaService';
+import db from '@/lib/database';
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for event images
 
 // File validation function
@@ -61,14 +63,27 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Upload event image
-    const uploadResult = await LocalStorageService.uploadFile(
+    // Upload event image using MediaService
+    const mediaFile = await MediaService.uploadFile(
       file,
+      authResult.user.id,
       'events',
-      `${eventId}/${imageType || 'images'}`
+      `${eventId}/${imageType || 'images'}`,
+      {
+        uploadContext: 'event_images',
+        referenceId: eventId,
+        isPublic: true,
+        altText: altText || '',
+        description: description || '',
+        metadata: {
+          eventId,
+          imageType: imageType || 'gallery',
+          uploadedBy: authResult.user.id
+        }
+      }
     );
 
-    if (!uploadResult) {
+    if (!mediaFile) {
       return NextResponse.json({
          success: false,
         error: 'Failed to upload event image'
@@ -78,11 +93,21 @@ export async function POST(request: NextRequest) {
     // Update event record based on image type
     if (imageType === 'banner') {
       // Update banner_image_url in events table
-      // This would require importing your Database module
-      console.log(`Setting banner image for event ${eventId}: ${uploadResult.url}`);
+      await db.query(
+        `UPDATE events SET banner_image_url = $1, updated_at = NOW() WHERE id = $2`,
+        [mediaFile.file_url, eventId]
+      );
+      console.log(`Setting banner image for event ${eventId}: ${mediaFile.file_url}`);
     } else {
       // Add to gallery_images array in events table
-      console.log(`Adding gallery image for event ${eventId}: ${uploadResult.url}`);
+      await db.query(
+        `UPDATE events 
+         SET gallery_images = COALESCE(gallery_images, '[]'::jsonb) || $1::jsonb,
+             updated_at = NOW()
+         WHERE id = $2`,
+        [JSON.stringify([mediaFile.file_url]), eventId]
+      );
+      console.log(`Adding gallery image for event ${eventId}: ${mediaFile.file_url}`);
     }
 
     console.log(`✅ Event image uploaded for event ${eventId} by user ${authResult.user.id}`);
@@ -90,9 +115,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Event image uploaded successfully',
-      imageUrl: uploadResult.url,
-      filePath: uploadResult.path,
-      imageType: imageType
+      imageUrl: mediaFile.file_url,
+      filePath: mediaFile.filename,
+      imageType: imageType,
+      fileId: mediaFile.id
     });
 
   } catch (error) {

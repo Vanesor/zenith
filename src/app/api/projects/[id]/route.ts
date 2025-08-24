@@ -51,6 +51,66 @@ export async function GET(
   }
 }
 
+// PATCH /api/projects/[id] - Update project details
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    // Verify authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { 
+          error: authResult.error || "Authentication required",
+          expired: authResult.expired || false
+        },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { description, target_end_date, status } = body;
+
+    // Check user permissions
+    const permissions = await ProjectPermissionService.getUserPermissions(authResult.user?.id || '', id);
+    
+    if (!permissions.canEditProject) {
+      return NextResponse.json(
+        { error: 'Insufficient permissions to edit this project' },
+        { status: 403 }
+      );
+    }
+
+    const result = await ProjectManagementService.updateProject(id, authResult.user?.id || '', {
+      description,
+      target_end_date,
+      status
+    });
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      project: result.project
+    });
+
+  } catch (error) {
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json(
+      { error: 'Failed to update project' },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/projects/[id] - Delete project
 export async function DELETE(
   request: NextRequest,

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Find project by both project key and access password
     const projectQuery = `
-      SELECT id, name, project_key, access_password, creator_id
+      SELECT id, name, project_key, access_password, created_by
       FROM projects 
       WHERE project_key = $1 AND access_password = $2 AND status != 'archived'
     `;
@@ -45,27 +45,80 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'You are already a member of this project' }, { status: 400 });
     }
 
+    // Get user information
+    const userQuery = `
+      SELECT id, name, email, club_id
+      FROM users
+      WHERE id = $1
+    `;
+    const userResult = await db.query(userQuery, [userId]);
+    const user = userResult.rows[0];
+    
     // Add user as project member
     const addMemberQuery = `
-      INSERT INTO project_members (project_id, user_id, role, status, joined_at)
-      VALUES ($1, $2, 'member', 'active', NOW())
+      INSERT INTO project_members (project_id, user_id, role, status, joined_at, permissions)
+      VALUES ($1, $2, 'member', 'joined', NOW(), '{"can_delete_tasks": false, "can_manage_team": false, "can_view_share_keys": true}')
       RETURNING id
     `;
     await db.query(addMemberQuery, [project.id, userId]);
 
-    // Log the activity
-    const activityQuery = `
-      INSERT INTO project_activities (project_id, user_id, action, description, created_at)
-      VALUES ($1, $2, 'member_joined', 'User joined the project using project key and access password', NOW())
+    // Log the activity in the audit_logs table
+    const projectClubQuery = `
+      SELECT c.name as club_name, c.id as club_id
+      FROM projects p
+      JOIN clubs c ON p.club_id = c.id
+      WHERE p.id = $1
     `;
-    await db.query(activityQuery, [project.id, userId]);
+    const projectClubResult = await db.query(projectClubQuery, [project.id]);
+    const projectClub = projectClubResult.rows[0]?.club_name || 'Unknown club';
+    const projectClubId = projectClubResult.rows[0]?.club_id;
+    
+    // Get user's club name
+    const userClubQuery = `
+      SELECT c.name as club_name
+      FROM clubs c
+      WHERE c.id = $1
+    `;
+    const userClubResult = await db.query(userClubQuery, [user.club_id]);
+    const userClub = userClubResult.rows[0]?.club_name || 'Unknown club';
+    
+    // Determine if it's a cross-club join
+    const isCrossClubJoin = user.club_id !== projectClubId;
+    const details = {
+      userName: user.name,
+      userClub: userClub,
+      projectName: project.name,
+      projectClub: projectClub,
+      isCrossClubJoin: isCrossClubJoin
+    };
+    
+    // Log to audit_logs table
+    const auditQuery = `
+      INSERT INTO audit_logs (user_id, action, resource_type, resource_id, metadata, created_at)
+      VALUES ($1, $2, $3, $4, $5, NOW())
+    `;
+    await db.query(auditQuery, [
+      userId, 
+      'project_member_joined', 
+      'project', 
+      project.id, 
+      JSON.stringify(details)
+    ]);
 
+    // Prepare response with cross-club information if applicable
+    const responseMessage = isCrossClubJoin 
+      ? `Successfully joined project "${project.name}" from ${projectClub} (cross-club collaboration)`
+      : `Successfully joined project "${project.name}"`;
+    
     return NextResponse.json({
-      message: 'Successfully joined project',
+      message: responseMessage,
       project: {
         id: project.id,
-        name: project.name
-      }
+        name: project.name,
+        projectClub: projectClub
+      },
+      isCrossClubJoin: isCrossClubJoin,
+      userClub: userClub
     });
 
   } catch (error) {

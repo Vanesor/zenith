@@ -51,7 +51,13 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(`Successfully joined project: ${data.project.name}`);
+        // Show different success message for cross-club joins
+        if (data.isCrossClubJoin) {
+          setSuccess(`Successfully joined project: ${data.project.name} from ${data.project.projectClub} (cross-club collaboration)`);
+        } else {
+          setSuccess(`Successfully joined project: ${data.project.name}`);
+        }
+        
         setTimeout(() => {
           onClose();
           // Optionally redirect to the project
@@ -164,7 +170,11 @@ export default function JoinProjectModal({ isOpen, onClose }: JoinProjectModalPr
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
-                      className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-2xl"
+                      className={`flex items-center space-x-3 p-4 ${
+                        success.includes('cross-club')
+                          ? 'bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-indigo-900/20 border border-indigo-200 dark:border-indigo-800'
+                          : 'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800'
+                      } rounded-2xl`}
                     >
                       <motion.div
                         initial={{ scale: 0 }}

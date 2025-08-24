@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { User } from 'lucide-react';
 
@@ -17,6 +17,8 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
   className = '',
   fallbackName
 }) => {
+  const [imageError, setImageError] = useState(false);
+  
   const getSizeClasses = () => {
     switch (size) {
       case 'sm': return 'w-8 h-8';
@@ -47,6 +49,20 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
     }
     return url.startsWith('/') || url.startsWith('data:');
   };
+  
+  // Ensure URL is usable (not undefined, null, or empty string)
+  const isValidUrl = (url?: string | null) => {
+    return url !== undefined && url !== null && url !== '';
+  };
+
+  // Debug logging
+  if (src) {
+    console.log('SafeAvatar src:', src, 'fallbackName:', fallbackName);
+    console.log('isValidUrl:', isValidUrl(src));
+    console.log('isSupabaseUrl:', isSupabaseUrl(src));
+    console.log('isLocalUrl:', isLocalUrl(src));
+    console.log('imageError:', imageError);
+  }
 
   const getInitials = (name?: string) => {
     if (!name) return '?';
@@ -58,8 +74,8 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
       .slice(0, 2);
   };
 
-  // If no src, show initials or default icon
-  if (!src) {
+  // If no src, invalid src, or image failed to load, show fallback
+  if (!isValidUrl(src) || imageError) {
     return (
       <div className={`${getSizeClasses()} rounded-full bg-zenith-section flex items-center justify-center ${className}`}>
         {fallbackName ? (
@@ -73,34 +89,32 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
     );
   }
 
-  // For Supabase URLs or local URLs, use Next.js Image with optimization
-  if (isSupabaseUrl(src) || isLocalUrl(src)) {
+  // For Supabase URLs, use Next.js Image with optimization
+  if (src && isSupabaseUrl(src)) {
     return (
       <div className={`${getSizeClasses()} rounded-full overflow-hidden ${className} relative`}>
         <Image
-          src={src}
+          src={src as string}
           alt={alt}
           fill
           className="object-cover"
           sizes={size === 'xl' ? '96px' : size === 'lg' ? '64px' : size === 'md' ? '48px' : '32px'}
-          onError={() => {
-            // Handle error by showing fallback
-            const target = event?.target as HTMLImageElement;
-            if (target) {
-              target.style.display = 'none';
-            }
-          }}
+          onError={() => setImageError(true)}
         />
-        {/* Fallback for error state */}
-        <div className="absolute inset-0 bg-zenith-section flex items-center justify-center opacity-0 peer-error:opacity-100">
-          {fallbackName ? (
-            <span className="text-zenith-secondary font-medium text-sm">
-              {getInitials(fallbackName)}
-            </span>
-          ) : (
-            <User className={`${getIconSize()} text-zenith-muted`} />
-          )}
-        </div>
+      </div>
+    );
+  }
+
+  // For local URLs, use regular img tag to avoid Next.js domain/path issues
+  if (src && isLocalUrl(src)) {
+    return (
+      <div className={`${getSizeClasses()} rounded-full overflow-hidden ${className} relative`}>
+        <img
+          src={src as string}
+          alt={alt}
+          className="w-full h-full object-cover"
+          onError={() => setImageError(true)}
+        />
       </div>
     );
   }
@@ -109,29 +123,11 @@ const SafeAvatar: React.FC<SafeAvatarProps> = ({
   return (
     <div className={`${getSizeClasses()} rounded-full overflow-hidden ${className} relative`}>
       <img
-        src={src}
+        src={src as string}
         alt={alt}
         className="w-full h-full object-cover"
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          // Show fallback
-          const fallback = target.nextElementSibling as HTMLElement;
-          if (fallback) {
-            fallback.style.display = 'flex';
-          }
-        }}
+        onError={() => setImageError(true)}
       />
-      {/* Fallback for error state */}
-      <div className="absolute inset-0 bg-zenith-section items-center justify-center hidden">
-        {fallbackName ? (
-          <span className="text-zenith-secondary font-medium text-sm">
-            {getInitials(fallbackName)}
-          </span>
-        ) : (
-          <User className={`${getIconSize()} text-zenith-muted`} />
-        )}
-      </div>
     </div>
   );
 };

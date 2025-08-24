@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -30,16 +30,20 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 export default function ModernProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editData, setEditData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -129,10 +133,38 @@ export default function ModernProfilePage() {
     setIsEditing(false);
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  // Handle avatar click to open file input
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Handle photo upload with comprehensive validation
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showToast({
+        type: 'error',
+        title: 'Invalid file type',
+        message: 'Please select an image file.'
+      });
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast({
+        type: 'error',
+        title: 'File too large',
+        message: 'Please select an image smaller than 5MB.'
+      });
+      return;
+    }
+
+    setUploading(true);
     const formData = new FormData();
     formData.append('avatar', file);
 
@@ -147,10 +179,53 @@ export default function ModernProfilePage() {
       });
 
       if (response.ok) {
-        await fetchProfileData();
+        await fetchProfileData(); // Refresh profile data
+        
+        // Also refresh user data in AuthContext by making a fresh API call
+        try {
+          const token = localStorage.getItem('zenith-token');
+          const userResponse = await fetch('/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            if (userData.profile?.profile_image_url) {
+              updateUser({ profile_image_url: userData.profile.profile_image_url });
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing user data:', error);
+        }
+        
+        showToast({
+          type: 'success',
+          title: 'Success!',
+          message: 'Profile picture updated successfully!'
+        });
+      } else {
+        const errorData = await response.json();
+        showToast({
+          type: 'error',
+          title: 'Upload failed',
+          message: errorData.error || 'Failed to upload profile picture'
+        });
       }
     } catch (error) {
       console.error('Error uploading photo:', error);
+      showToast({
+        type: 'error',
+        title: 'Upload failed',
+        message: 'Failed to upload profile picture'
+      });
+    } finally {
+      setUploading(false);
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -284,14 +359,44 @@ export default function ModernProfilePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
             {/* Avatar */}
             <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-primary text-3xl font-bold">
-                  {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
-                </span>
-              </div>
-              <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-primary rounded-full flex items-center justify-center transition-colors shadow-lg">
-                <Camera className="w-5 h-5" />
+              {profileData?.profile_image_url || profileData?.avatar ? (
+                <img 
+                  src={profileData.profile_image_url || profileData.avatar} 
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover shadow-lg"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-primary text-3xl font-bold">
+                    {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <button 
+                onClick={handleAvatarClick}
+                disabled={uploading}
+                className={`absolute -bottom-2 -right-2 w-10 h-10 text-primary rounded-full flex items-center justify-center transition-colors shadow-lg ${
+                  uploading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+                title={uploading ? "Uploading..." : "Change profile picture"}
+              >
+                {uploading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera className="w-5 h-5" />
+                )}
               </button>
+              
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
             </div>
 
             {/* Basic Info */}

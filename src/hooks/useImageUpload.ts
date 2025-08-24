@@ -1,20 +1,17 @@
 import { useState, useCallback } from 'react';
 
 export interface UploadedImage {
-  public_id: string;
-  urls: {
-    original: string;
-    thumbnail: string;
-    medium: string;
-    large: string;
-  };
-  width: number;
-  height: number;
-  format: string;
-  size: number;
+  success: boolean;
+  fileUrl: string;
+  fileId: string;
+  thumbnailUrl?: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
 }
 
 export interface UseImageUploadOptions {
+  endpoint?: string; // Custom endpoint to use
   folder?: string;
   maxWidth?: number;
   maxHeight?: number;
@@ -26,9 +23,9 @@ export interface UseImageUploadOptions {
 }
 
 export interface UseImageUploadReturn {
-  uploadImage: (file: File) => Promise<UploadedImage | null>;
+  uploadImage: (file: File, customData?: FormData) => Promise<UploadedImage | null>;
   uploadMultiple: (files: FileList | File[]) => Promise<UploadedImage[]>;
-  deleteImage: (publicId: string) => Promise<boolean>;
+  deleteImage: (fileId: string, endpoint?: string) => Promise<boolean>;
   isUploading: boolean;
   uploadProgress: number;
   error: string | null;
@@ -41,6 +38,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
   const [error, setError] = useState<string | null>(null);
 
   const {
+    endpoint = '/api/upload', // Default general upload endpoint
     folder = 'general',
     maxWidth,
     maxHeight,
@@ -63,7 +61,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
     return null;
   }, [allowedTypes, maxFileSize]);
 
-  const uploadImage = useCallback(async (file: File): Promise<UploadedImage | null> => {
+  const uploadImage = useCallback(async (file: File, customData?: FormData): Promise<UploadedImage | null> => {
     try {
       setError(null);
       
@@ -79,62 +77,42 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
       setUploadProgress(0);
 
       // Create form data
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', folder);
-      if (maxWidth) formData.append('maxWidth', maxWidth.toString());
-      if (maxHeight) formData.append('maxHeight', maxHeight.toString());
+      const formData = customData || new FormData();
+      if (!customData) {
+        formData.append('file', file);
+        formData.append('path', folder);
+        if (maxWidth) formData.append('maxWidth', maxWidth.toString());
+        if (maxHeight) formData.append('maxHeight', maxHeight.toString());
+      }
 
       // Upload with progress tracking
-      const xhr = new XMLHttpRequest();
-      
-      return new Promise<UploadedImage | null>((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const progress = Math.round((event.loaded / event.total) * 100);
-            setUploadProgress(progress);
-            onProgress?.(progress);
-          }
-        });
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status === 200) {
-            try {
-              const response = JSON.parse(xhr.responseText);
-              if (response.success) {
-                const uploadedImage = response.data as UploadedImage;
-                onSuccess?.(uploadedImage);
-                resolve(uploadedImage);
-              } else {
-                const errorMsg = response.error || 'Upload failed';
-                setError(errorMsg);
-                onError?.(errorMsg);
-                resolve(null);
-              }
-            } catch (parseError) {
-              const errorMsg = 'Failed to parse response';
-              setError(errorMsg);
-              onError?.(errorMsg);
-              resolve(null);
-            }
-          } else {
-            const errorMsg = `Upload failed with status ${xhr.status}`;
-            setError(errorMsg);
-            onError?.(errorMsg);
-            resolve(null);
-          }
-        });
-
-        xhr.addEventListener('error', () => {
-          const errorMsg = 'Network error during upload';
-          setError(errorMsg);
-          onError?.(errorMsg);
-          resolve(null);
-        });
-
-        xhr.open('POST', '/api/upload/images');
-        xhr.send(formData);
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
       });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        const errorMsg = result.error || 'Upload failed';
+        setError(errorMsg);
+        onError?.(errorMsg);
+        return null;
+      }
+
+      const uploadedImage: UploadedImage = {
+        success: result.success,
+        fileUrl: result.url || result.fileUrl,
+        fileId: result.fileId,
+        thumbnailUrl: result.thumbnailUrl,
+        fileName: result.fileName || file.name,
+        fileType: result.fileType || file.type,
+        fileSize: result.fileSize || file.size
+      };
+
+      onSuccess?.(uploadedImage);
+      return uploadedImage;
 
     } catch (uploadError) {
       const errorMsg = uploadError instanceof Error ? uploadError.message : 'Upload failed';
@@ -145,7 +123,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
       setIsUploading(false);
       setUploadProgress(0);
     }
-  }, [folder, maxWidth, maxHeight, validateFile, onProgress, onSuccess, onError]);
+  }, [endpoint, folder, maxWidth, maxHeight, validateFile, onProgress, onSuccess, onError]);
 
   const uploadMultiple = useCallback(async (files: FileList | File[]): Promise<UploadedImage[]> => {
     const fileArray = Array.from(files);
@@ -175,12 +153,14 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
     return results;
   }, [uploadImage, onProgress]);
 
-  const deleteImage = useCallback(async (publicId: string): Promise<boolean> => {
+  const deleteImage = useCallback(async (fileId: string, deleteEndpoint?: string): Promise<boolean> => {
     try {
       setError(null);
       
-      const response = await fetch(`/api/upload/images?public_id=${encodeURIComponent(publicId)}`, {
+      const deleteUrl = deleteEndpoint || `/api/media/${fileId}`;
+      const response = await fetch(deleteUrl, {
         method: 'DELETE',
+        credentials: 'include'
       });
 
       const result = await response.json();
@@ -188,7 +168,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
       if (response.ok && result.success) {
         return true;
       } else {
-        const errorMsg = result.error || 'Failed to delete image';
+        const errorMsg = result.error || 'Failed to delete file';
         setError(errorMsg);
         onError?.(errorMsg);
         return false;

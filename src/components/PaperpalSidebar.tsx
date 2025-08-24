@@ -59,6 +59,9 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -131,27 +134,6 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
     },
   ];
 
-  const quickActions = [
-    { 
-      name: "New Post", 
-      href: "/posts/create", 
-      icon: Plus,
-      color: "text-blue-600"
-    },
-    { 
-      name: "Join Club", 
-      href: "/clubs", 
-      icon: Users,
-      color: "text-green-600"
-    },
-    { 
-      name: "Analytics", 
-      href: "/analytics", 
-      icon: BarChart3,
-      color: "text-purple-600"
-    },
-  ];
-
   // Enhanced role-based access for admin features
   const userRole = user?.role?.toLowerCase() || '';
   
@@ -194,6 +176,29 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  // Search functionality
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    // Simulate search results - you can replace this with actual API calls
+    const mockResults = [
+      { type: 'assignment', title: 'Web Development Workshop', href: '/assignments/1' },
+      { type: 'event', title: 'AI/ML Workshop', href: '/events/1' },
+      { type: 'club', title: 'Robotics Club', href: '/clubs/robotics' },
+      { type: 'post', title: 'Latest Updates', href: '/posts/1' },
+    ].filter(item => 
+      item.title.toLowerCase().includes(query.toLowerCase())
+    );
+
+    setSearchResults(mockResults);
+    setShowSearchResults(true);
   };
 
   const sidebarVariants = {
@@ -308,8 +313,36 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                     <input
                       type="text"
                       placeholder="Search anything..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      onFocus={() => searchQuery && setShowSearchResults(true)}
+                      onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
                       className="w-full pl-10 pr-4 py-2.5 zenith-bg-section zenith-border border rounded-lg text-sm zenith-text-primary placeholder:zenith-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     />
+                    {/* Search Results Dropdown */}
+                    {showSearchResults && searchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                        {searchResults.map((result, index) => (
+                          <Link
+                            key={index}
+                            href={result.href}
+                            className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-2 h-2 rounded-full ${
+                                result.type === 'assignment' ? 'bg-blue-500' :
+                                result.type === 'event' ? 'bg-green-500' :
+                                result.type === 'club' ? 'bg-purple-500' : 'bg-gray-500'
+                              }`} />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">{result.title}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">{result.type}</div>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -380,86 +413,9 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                     </nav>
                   </div>
 
-                  {/* Quick Actions */}
-                  {!isCollapsed && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
-                    >
-                      <h3 className="text-xs font-semibold zenith-text-muted uppercase tracking-wider mb-3">
-                        Quick Actions
-                      </h3>
-                      <div className="space-y-2">
-                        {quickActions.map((action, index) => {
-                          const IconComponent = action.icon;
-                          return (
-                            <motion.div
-                              key={action.name}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.4 + index * 0.05 }}
-                            >
-                              <Link
-                                href={action.href}
-                                className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover transition-colors group"
-                              >
-                                <IconComponent className={`w-4 h-4 mr-3 ${action.color}`} />
-                                <span className="group-hover:zenith-text-primary">
-                                  {action.name}
-                                </span>
-                              </Link>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
+                  {/* Quick Actions - Removed as requested */}
 
-                  {/* Workspace Section */}
-                  {!isCollapsed && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.45 }}
-                    >
-                      <h3 className="text-xs font-semibold zenith-text-muted uppercase tracking-wider mb-3">
-                        Workspace
-                      </h3>
-                      <div className="space-y-2">
-                        <motion.div
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.45 }}
-                        >
-                          <Link
-                            href="/projects"
-                            className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover transition-colors group"
-                          >
-                            <FolderOpen className="w-4 h-4 mr-3 text-blue-600" />
-                            <span className="group-hover:zenith-text-primary">
-                              My Projects
-                            </span>
-                          </Link>
-                        </motion.div>
-                        <motion.div
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.5 }}
-                        >
-                          <button
-                            onClick={() => setShowJoinModal(true)}
-                            className="w-full flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover transition-colors group"
-                          >
-                            <UserPlus className="w-4 h-4 mr-3 text-green-600" />
-                            <span className="group-hover:zenith-text-primary">
-                              Join Project
-                            </span>
-                          </button>
-                        </motion.div>
-                      </div>
-                    </motion.div>
-                  )}
+                  {/* Workspace Section - Removed as requested */}
 
                   {/* Admin Section */}
                   {hasAdminAccess && !isCollapsed && (
@@ -557,108 +513,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                 </div>
               </div>
 
-              {/* Theme Toggle */}
-              {!isCollapsed && mounted && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="p-4 border-t zenith-border"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium zenith-text-secondary">Theme</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { name: 'Light', value: 'light', icon: Sun },
-                      { name: 'Dark', value: 'dark', icon: Moon },
-                      { name: 'System', value: 'system', icon: Monitor }
-                    ].map((option) => {
-                      const IconComponent = option.icon;
-                      return (
-                        <button
-                          key={option.value}
-                          onClick={() => setTheme(option.value)}
-                          className={`flex flex-col items-center p-2 rounded-lg text-xs transition-colors ${
-                            theme === option.value
-                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                              : 'hover:zenith-bg-hover zenith-text-muted'
-                          }`}
-                        >
-                          <IconComponent className="w-4 h-4 mb-1" />
-                          <span>{option.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* User Profile */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="p-4 border-t zenith-border"
-              >
-                {user && (
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-semibold text-sm">
-                        {user.name?.charAt(0) || user.email?.charAt(0)}
-                      </span>
-                    </div>
-                    {!isCollapsed && (
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium zenith-text-primary truncate">
-                          {user.name || user.email}
-                        </p>
-                        <p className="text-xs zenith-text-muted capitalize">
-                          {user.role?.replace('_', ' ')}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <Link
-                    href="/profile"
-                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive('/profile')
-                        ? 'zenith-bg-hover zenith-text-primary'
-                        : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
-                    }`}
-                  >
-                    <User className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                    {!isCollapsed && <span>View Profile</span>}
-                  </Link>
-                  
-                  <Link
-                    href="/settings"
-                    className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover hover:zenith-text-primary transition-colors"
-                  >
-                    <Settings className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                    {!isCollapsed && <span>Settings</span>}
-                  </Link>
-                  
-                  <Link
-                    href="/notifications"
-                    className="flex items-center px-3 py-2 text-sm font-medium zenith-text-secondary rounded-lg hover:zenith-bg-hover hover:zenith-text-primary transition-colors"
-                  >
-                    <Bell className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                    {!isCollapsed && <span>Notifications</span>}
-                  </Link>
-                  
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  >
-                    <LogOut className={`w-4 h-4 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-                    {!isCollapsed && <span>Sign Out</span>}
-                  </button>
-                </div>
-              </motion.div>
+              {/* Theme Toggle and User Profile - Removed as requested */}
             </motion.div>
           )}
         </AnimatePresence>

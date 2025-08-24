@@ -42,6 +42,8 @@ export interface User {
   name: string;
   role: string;
   club_id?: string;
+  avatar?: string;
+  profile_image_url?: string;
 }
 
 export interface UserWithPassword extends User {
@@ -190,7 +192,7 @@ export async function createUser(userData: {
 export async function getUserById(userId: string): Promise<User | null> {
   try {
     const result = await db.query(
-      `SELECT id, email, name, role, club_id FROM users WHERE id = $1`,
+      `SELECT id, email, name, role, club_id, avatar, profile_image_url FROM users WHERE id = $1`,
       [userId]
     );
 
@@ -202,7 +204,9 @@ export async function getUserById(userId: string): Promise<User | null> {
       email: user.email,
       name: user.name,
       role: user.role,
-      club_id: user.club_id || undefined
+      club_id: user.club_id || undefined,
+      avatar: user.avatar,
+      profile_image_url: user.profile_image_url
     };
 
   } catch (error) {
@@ -214,7 +218,7 @@ export async function getUserById(userId: string): Promise<User | null> {
 export async function getUserByEmail(email: string): Promise<UserWithPassword | null> {
   try {
     const result = await db.query(
-      `SELECT id, email, name, role, club_id, password_hash, email_verified, totp_enabled, has_password, created_at, updated_at 
+      `SELECT id, email, name, role, club_id, password_hash, email_verified, totp_enabled, has_password, created_at, updated_at, avatar, profile_image_url
        FROM users WHERE email = $1`,
       [email.toLowerCase()]
     );
@@ -228,6 +232,8 @@ export async function getUserByEmail(email: string): Promise<UserWithPassword | 
       name: user.name,
       role: user.role,
       club_id: user.club_id,
+      avatar: user.avatar,
+      profile_image_url: user.profile_image_url,
       password_hash: user.password_hash,
       email_verified: user.email_verified,
       totp_enabled: user.totp_enabled,
@@ -365,7 +371,9 @@ export async function authenticateUser(email: string, password: string): Promise
         email: user.email,
         name: user.name,
         role: user.role,
-        club_id: user.club_id
+        club_id: user.club_id,
+        avatar: user.avatar,
+        profile_image_url: user.profile_image_url
       },
       sessionId: session.id,
     };
@@ -525,6 +533,8 @@ export async function verifyAuth(request: NextRequest): Promise<{
     email_verified?: boolean;
     totp_enabled?: boolean;
     has_password?: boolean;
+    avatar?: string | null;
+    profile_image_url?: string | null;
   };
   sessionId?: string;
   error?: string;
@@ -590,7 +600,9 @@ export async function verifyAuth(request: NextRequest): Promise<{
                     email: user.email,
                     role: user.role,
                     sessionId: refreshDecoded.sessionId,
-                    club_id: user.club_id
+                    club_id: user.club_id,
+                    avatar: user.avatar,
+                    profile_image_url: user.profile_image_url
                   },
                   newToken
                 };
@@ -633,10 +645,12 @@ export async function verifyAuth(request: NextRequest): Promise<{
     let emailVerified = false;
     let totpEnabled = false;
     let hasPassword = true;
+    let avatar = null;
+    let profileImageUrl = null;
     
     try {
       const result = await db.query(
-        `SELECT club_id, name, email_verified, totp_enabled, has_password 
+        `SELECT club_id, name, email_verified, totp_enabled, has_password, avatar, profile_image_url 
          FROM users WHERE id = $1`,
         [decoded.userId]
       );
@@ -648,6 +662,8 @@ export async function verifyAuth(request: NextRequest): Promise<{
         emailVerified = user.email_verified || false;
         totpEnabled = user.totp_enabled || false;
         hasPassword = user.has_password !== false;
+        avatar = user.avatar;
+        profileImageUrl = user.profile_image_url;
       }
     } catch (dbError) {
       console.error("Error fetching user data:", dbError);
@@ -669,7 +685,9 @@ export async function verifyAuth(request: NextRequest): Promise<{
         name: userName,
         email_verified: emailVerified,
         totp_enabled: totpEnabled,
-        has_password: hasPassword
+        has_password: hasPassword,
+        avatar: avatar,
+        profile_image_url: profileImageUrl
       },
       sessionId: decoded.sessionId,
       tokenExpiresIn,

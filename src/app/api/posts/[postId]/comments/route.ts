@@ -28,7 +28,8 @@ export async function GET(
       SELECT 
         c.*,
         u.name as author_name,
-        u.avatar_url as author_avatar,
+        u.avatar as author_avatar,
+        u.profile_image_url as author_profile_image_url,
         0 as likes_count,
         false as is_liked
       FROM comments c

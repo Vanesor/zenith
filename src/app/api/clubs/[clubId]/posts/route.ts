@@ -23,6 +23,8 @@ export async function GET(
         p.*,
         u.name as author_name,
         u.role as author_role,
+        u.avatar as author_avatar,
+        u.profile_image_url as author_profile_image_url,
         c.name as club_name,
         COALESCE(like_counts.likes_count, 0) as likes_count,
         COALESCE(comment_counts.comments_count, 0) as comments_count,

@@ -75,6 +75,8 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
         club_id: user.club_id,
+        avatar: user.avatar,
+        profile_image_url: user.profile_image_url,
       },
     });
 

@@ -26,6 +26,7 @@ interface User {
   role: string;
   club_id: string | null; // Single club membership
   avatar?: string;
+  profile_image_url?: string;
   bio?: string;
 }
 
@@ -35,6 +36,7 @@ interface AuthContextType {
   login: (token: string, userData: User) => void;
   logout: (redirect?: boolean) => void;
   updateUser: (userData: Partial<User>) => void;
+  forceRefreshUser: () => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -62,8 +64,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (storedUser) {
           try {
             const userData = JSON.parse(storedUser);
-            setToken(storedToken || 'session-based');
-            setUser(userData);
+            // Check if stored user data has avatar fields, if not, clear it to force refresh
+            if (!userData.hasOwnProperty('avatar') && !userData.hasOwnProperty('profile_image_url')) {
+              console.log('AuthContext: Stored user data missing avatar fields, clearing cache');
+              localStorage.removeItem("zenith-user");
+              localStorage.removeItem("zenith-token");
+            } else {
+              setToken(storedToken || 'session-based');
+              setUser(userData);
+              console.log('AuthContext: Loaded cached user data:', {
+                name: userData.name,
+                avatar: userData.avatar,
+                profile_image_url: userData.profile_image_url
+              });
+            }
             // Keep isLoading true while we verify with server
           } catch (e) {
             console.error("Error parsing stored user:", e);
@@ -74,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (sessionCookie || storedToken) {
           try {
             // Fetch current user from API - include credentials to send cookies
+            console.log('AuthContext: Calling /api/auth/check with credentials');
             const response = await fetch("/api/auth/check", {
               credentials: 'include', // Important to include cookies in the request
               headers: storedToken ? {
@@ -81,9 +96,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               } : {}
             });
             
+            console.log('AuthContext: /api/auth/check response status:', response.status);
+            
             if (response.ok) {
               const data = await response.json();
+              console.log('AuthContext: /api/auth/check response data:', data);
+              
               if (data.authenticated && data.user) {
+                console.log('AuthContext: Setting user data:', {
+                  name: data.user.name,
+                  avatar: data.user.avatar,
+                  profile_image_url: data.user.profile_image_url
+                });
+                
                 // Only set token if we have a valid JWT token, not session-based auth
                 if (storedToken && isValidJWTFormat(storedToken)) {
                   setToken(storedToken);
@@ -100,11 +125,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
                 setIsLoading(false);
                 return; // Exit early since we have valid session
+              } else {
+                console.log('AuthContext: Auth check failed - not authenticated or no user data');
               }
+            } else {
+              console.log('AuthContext: Auth check response not ok:', response.status);
             }
           } catch (e) {
             console.error("Error checking session:", e);
           }
+        } else {
+          console.log('AuthContext: No session cookie or stored token found');
         }
 
         // Fall back to local storage token if session check fails
@@ -253,6 +284,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
+  const forceRefreshUser = async () => {
+    try {
+      const response = await fetch('/api/auth/check', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          console.log('AuthContext: Force refresh - got user data:', {
+            name: data.user.name,
+            avatar: data.user.avatar,
+            profile_image_url: data.user.profile_image_url
+          });
+          setUser(data.user);
+          if (data.user.name) {
+            localStorage.setItem("zenith-user", JSON.stringify(data.user));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Force refresh failed:', error);
+    }
+  };
+
   const login = (newToken: string, userData: User) => {
     // Validate token format before storing
     if (!isValidJWTFormat(newToken)) {
@@ -298,6 +355,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     updateUser,
+    forceRefreshUser,
     isLoading,
     isAuthenticated: !!token && !!user,
   };

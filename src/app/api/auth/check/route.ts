@@ -85,6 +85,8 @@ export async function GET(request: NextRequest) {
       name: authResult.user.name,
       role: authResult.user.role,
       club_id: authResult.user.club_id,
+      avatar: authResult.user.avatar,
+      profile_image_url: authResult.user.profile_image_url,
       email_verified: authResult.user.email_verified || false,
       totp_enabled: authResult.user.totp_enabled || false,
       has_password: authResult.user.has_password || true

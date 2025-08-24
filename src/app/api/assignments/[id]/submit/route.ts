@@ -177,7 +177,7 @@ export async function POST(
 
     // Get all questions for this assignment
     const questionsResult = await db.query(
-      `SELECT id, question_type, marks FROM assignment_questions WHERE assignment_id = $1`,
+      `SELECT id, question_type, marks, correct_answer, options FROM assignment_questions WHERE assignment_id = $1`,
       [assignmentId]
     );
 
@@ -206,35 +206,38 @@ export async function POST(
 
       // For objective questions, check if the answer is correct
       if (question.question_type === 'single_choice' || question.question_type === 'multiple_choice') {
-        // Get correct options
-        const optionsResult = await db.query(
-          `SELECT id FROM question_options WHERE question_id = $1 AND is_correct = true`,
-          [questionId]
-        );
+        // Parse the correct answer from JSON
+        let correctAnswer = null;
+        try {
+          correctAnswer = question.correct_answer ? JSON.parse(question.correct_answer) : null;
+        } catch (e) {
+          console.error('Error parsing correct answer:', e);
+          correctAnswer = null;
+        }
         
-        const correctOptions = optionsResult.rows.map((row: any) => row.id);
-        
-        // Validate and filter selectedOptions to ensure they are valid UUIDs
+        // Validate and filter selectedOptions to ensure they are valid
         const validSelectedOptions = (selectedOptions || []).filter((option: any) => {
-          if (!option || typeof option !== 'string') return false;
-          // Basic UUID format check
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          return uuidRegex.test(option);
+          return option !== null && option !== undefined;
         });
         
-        // For single choice, there should be exactly one correct answer
+        // For single choice, compare the selected option with correct answer
         if (question.question_type === 'single_choice') {
           isCorrect = validSelectedOptions.length === 1 && 
-                      correctOptions.includes(validSelectedOptions[0]);
+                      validSelectedOptions[0] === correctAnswer;
         } 
         // For multiple choice, selected options should match correct options exactly
         else {
-          // Sort both arrays for comparison
-          const sortedSelected = [...validSelectedOptions].sort();
-          const sortedCorrect = [...correctOptions].sort();
-          
-          isCorrect = sortedSelected.length === sortedCorrect.length &&
-                      sortedSelected.every((value, index) => value === sortedCorrect[index]);
+          // Compare arrays
+          if (Array.isArray(correctAnswer)) {
+            // Sort both arrays for comparison
+            const sortedSelected = [...validSelectedOptions].sort();
+            const sortedCorrect = [...correctAnswer].sort();
+            
+            isCorrect = sortedSelected.length === sortedCorrect.length &&
+                        sortedSelected.every((value, index) => value === sortedCorrect[index]);
+          } else {
+            isCorrect = validSelectedOptions.length === 1 && validSelectedOptions[0] === correctAnswer;
+          }
         }
         
         // Award full marks if correct
@@ -242,6 +245,44 @@ export async function POST(
         
         // Use validated selectedOptions for database insertion
         selectedOptions = validSelectedOptions;
+      }
+      // For multi-select questions
+      else if (question.question_type === 'multi_select') {
+        // Parse the correct answer from JSON
+        let correctAnswer = [];
+        try {
+          correctAnswer = question.correct_answer ? JSON.parse(question.correct_answer) : [];
+        } catch (e) {
+          console.error('Error parsing correct answer:', e);
+          correctAnswer = [];
+        }
+        
+        const validSelectedOptions = (selectedOptions || []).filter((option: any) => {
+          return option !== null && option !== undefined;
+        });
+        
+        // Sort both arrays for comparison
+        const sortedSelected = [...validSelectedOptions].sort();
+        const sortedCorrect = [...correctAnswer].sort();
+        
+        isCorrect = sortedSelected.length === sortedCorrect.length &&
+                    sortedSelected.every((value, index) => value === sortedCorrect[index]);
+        
+        score = isCorrect ? question.marks : 0;
+        selectedOptions = validSelectedOptions;
+      }
+      // For true/false questions
+      else if (question.question_type === 'true_false') {
+        let correctAnswer = false;
+        try {
+          correctAnswer = question.correct_answer ? JSON.parse(question.correct_answer) : false;
+        } catch (e) {
+          correctAnswer = question.correct_answer === 'true' || question.correct_answer === true;
+        }
+        
+        const userAnswer = essayAnswer === 'true' || essayAnswer === true;
+        isCorrect = userAnswer === correctAnswer;
+        score = isCorrect ? question.marks : 0;
       }
       // For coding and essay questions, store the answers but don't auto-grade
       else {
@@ -261,7 +302,7 @@ export async function POST(
         [
           submissionId,
           questionId,
-          selectedOptions || [],
+          selectedOptions ? `{${selectedOptions.map((opt: any) => `"${opt}"`).join(',')}}` : '{}',
           codeAnswer || null,
           essayAnswer || null,
           isCorrect,

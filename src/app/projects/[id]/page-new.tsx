@@ -421,6 +421,7 @@ export default function ProjectDetailPage() {
             tasks={tasks}
             onTaskUpdate={handleTaskUpdate}
             userPermissions={userPermissions}
+            projectDueDate={project?.target_end_date}
           />
         </motion.div>
 

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Bell, Menu, Settings, User, ChevronDown, Plus, Zap, LogIn, UserPlus } from 'lucide-react';
+import { Search, Bell, Menu, Settings, User, ChevronDown, Plus, Zap, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import SafeAvatar from './SafeAvatar';
 
 interface PaperpalHeaderProps {
   onMenuToggle: () => void;
@@ -20,10 +21,26 @@ export function PaperpalHeader({
   showAuthButtons = false,
   expandedHeader = false 
 }: PaperpalHeaderProps) {
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { user, logout } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Debug logging for user avatar data
+  useEffect(() => {
+    if (user) {
+      console.log('Header user data:', {
+        name: user.name,
+        avatar: user.avatar,
+        profile_image_url: user.profile_image_url,
+        combined: user.profile_image_url || user.avatar
+      });
+    }
+  }, [user]);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
   const notifications = [
     {
@@ -52,44 +69,70 @@ export function PaperpalHeader({
     }
   ];
 
+  // Handle click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      setShowUserMenu(false);
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-lg border-b border-custom">
       {/* College Banner */}
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-primary">
-        <div className="max-w-7xl mx-auto px-4 py-2">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4 min-w-0 flex-1">
               <Image
                 src="/collegelogo.jpeg"
                 alt="St. Vincent Pallotti College of Engineering and Technology"
-                width={28}
-                height={28}
-                className="rounded-full ring-2 ring-white/20"
+                width={40}
+                height={40}
+                className="rounded-full ring-2 ring-white/20 flex-shrink-0"
               />
-              <div className="hidden sm:block">
-                <h1 className="text-sm font-semibold text-primary">St. Vincent Pallotti College of Engineering and Technology</h1>
-                <p className="text-xs text-blue-100">Nagpur • Department of Computer Science and Engineering</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg font-bold text-primary leading-tight">St. Vincent Pallotti College of Engineering and Technology</h1>
+                <p className="text-sm text-blue-100">Nagpur • Department of Computer Science and Engineering</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4 flex-shrink-0">
+              <div className="hidden md:block text-right">
+                <span className="text-lg font-bold text-primary">Zenith Forum</span>
+                <p className="text-sm text-blue-100">Student Hub</p>
+              </div>
               <Image
                 src="/zenithlogo.png"
                 alt="Zenith Forum"
-                width={24}
-                height={24}
-                className="rounded ring-1 ring-white/20"
+                width={32}
+                height={32}
+                className="rounded ring-1 ring-white/20 flex-shrink-0"
               />
-              <div className="hidden md:block text-right">
-                <span className="text-sm font-medium text-primary">Zenith Forum</span>
-                <p className="text-xs text-blue-100">Student Hub</p>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Header */}
-      <div className={`px-4 ${expandedHeader ? 'py-6' : 'py-4'}`}>
+      <div className={`px-4 ${expandedHeader ? 'py-4' : 'py-2'}`}>
         <div className="flex items-center justify-between">
           {/* Left Side - Menu Button (only show if authenticated) */}
           <div className="flex items-center space-x-4">
@@ -116,21 +159,7 @@ export function PaperpalHeader({
             )}
           </div>
 
-          {/* Center - Search (only when authenticated) */}
-          {user && !expandedHeader && (
-            <div className="hidden md:flex flex-1 max-w-lg mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
-                <input
-                  type="text"
-                  placeholder="Search assignments, events, clubs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-section border border-custom rounded-xl text-sm text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                />
-              </div>
-            </div>
-          )}
+          {/* Center - Removed search bar as requested */}
 
           {/* Right Side */}
           <div className="flex items-center space-x-4">
@@ -161,14 +190,6 @@ export function PaperpalHeader({
             {/* User Menu (when authenticated) */}
             {user && (
               <>
-                {/* Mobile Search Toggle */}
-                <button
-                  onClick={() => setSearchQuery(searchQuery ? '' : 'search')}
-                  className="md:hidden p-2 text-muted hover:text-secondary hover:bg-hover rounded-lg transition-colors"
-                >
-                  <Search className="w-5 h-5" />
-                </button>
-
                 {/* Quick Action Button */}
                 <Link
                   href="/posts/create"
@@ -179,7 +200,7 @@ export function PaperpalHeader({
                 </Link>
 
                 {/* Notifications */}
-                <div className="relative">
+                <div className="relative" ref={notificationsRef}>
                   <button
                     onClick={() => setShowNotifications(!showNotifications)}
                     className="relative p-2 text-muted hover:text-secondary hover:bg-hover rounded-lg transition-colors"
@@ -246,14 +267,17 @@ export function PaperpalHeader({
                 </div>
 
                 {/* User Avatar and Menu */}
-                <div className="relative">
+                <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-primary text-sm font-medium">
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
+                    <SafeAvatar 
+                      src={user.profile_image_url || user.avatar}
+                      alt={user.name}
+                      size="sm"
+                      fallbackName={user.name}
+                    />
                     <div className="hidden md:block text-left">
                       <p className="text-sm font-medium text-gray-900 dark:text-primary">{user.name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role}</p>
@@ -273,9 +297,12 @@ export function PaperpalHeader({
                       >
                         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-primary font-medium">
-                              {user.name?.charAt(0).toUpperCase() || 'U'}
-                            </div>
+                            <SafeAvatar 
+                              src={user.profile_image_url || user.avatar}
+                              alt={user.name}
+                              size="md"
+                              fallbackName={user.name}
+                            />
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-primary">{user.name}</p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
@@ -300,13 +327,10 @@ export function PaperpalHeader({
                           </Link>
                           <hr className="my-2 border-gray-200 dark:border-gray-700" />
                           <button
-                            onClick={() => {
-                              setShowUserMenu(false);
-                              // Add logout logic here
-                            }}
+                            onClick={handleLogout}
                             className="flex items-center space-x-3 w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
-                            <LogIn className="w-4 h-4" />
+                            <LogOut className="w-4 h-4" />
                             <span>Sign Out</span>
                           </button>
                         </div>
@@ -320,39 +344,7 @@ export function PaperpalHeader({
         </div>
       </div>
 
-      {/* Mobile Search */}
-      <AnimatePresence>
-        {searchQuery && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-gray-200 dark:border-gray-700 p-4"
-          >
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search anything..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-primary placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Click outside handlers */}
-      {(showUserMenu || showNotifications) && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => {
-            setShowUserMenu(false);
-            setShowNotifications(false);
-          }}
-        />
-      )}
+      {/* Mobile Search - Removed as requested */}
     </header>
   );
 }

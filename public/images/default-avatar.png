@@ -1,0 +1,6 @@
+<!-- This is a placeholder SVG for a default user avatar -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <rect width="256" height="256" fill="#E5E7EB"/>
+  <circle cx="128" cy="96" r="64" fill="#9CA3AF"/>
+  <circle cx="128" cy="248" r="120" fill="#9CA3AF"/>
+</svg>

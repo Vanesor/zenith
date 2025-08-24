@@ -62,6 +62,7 @@ interface KanbanBoardProps {
     canViewShareKeys: boolean;
     canEditProject: boolean;
   } | null;
+  projectDueDate?: string; // Add project due date prop
 }
 
 interface TaskFormData {
@@ -104,7 +105,7 @@ const columnConfig = {
   }
 };
 
-export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userPermissions }: KanbanBoardProps) {
+export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userPermissions, projectDueDate }: KanbanBoardProps) {
   const [localTasks, setLocalTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -291,8 +292,11 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
     setShowCreateModal(true);
   };
 
-  const handleTaskCreated = (newTask: Task) => {
-    // Add the new task to local state immediately
+  const handleTaskCreated = (taskData: any) => {
+    // Extract the task from the response data
+    const newTask = taskData.task || taskData;
+    
+    // Add the new task to local state immediately (optimistic update)
     setLocalTasks(prevTasks => [...prevTasks, newTask]);
     
     // Also update parent state if callback provided
@@ -380,8 +384,8 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
   };
 
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
+    <div className="p-6 h-full overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-[calc(100vh-16rem)] max-h-[calc(100vh-16rem)] overflow-hidden">
         {Object.entries(columnConfig).map(([status, config]) => {
           const columnTasks = getTasksByStatus(status);
           const IconComponent = config.icon;
@@ -391,7 +395,7 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
               key={status}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`rounded-lg border-2 ${config.color} flex flex-col transition-all duration-200 ${
+              className={`rounded-lg border-2 ${config.color} flex flex-col transition-all duration-200 h-full max-h-full ${
                 isDragOver === status ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/10 scale-[1.02]' : ''
               }`}
               onDragOver={handleDragOver}
@@ -426,8 +430,9 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
               </div>
 
               {/* Tasks - Scrollable Container */}
-              <div className="flex-1 p-3 space-y-3 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zenith-border scrollbar-track-transparent hover:scrollbar-thumb-zenith-muted">
-                <AnimatePresence>
+              <div className="flex-1 overflow-hidden">
+                <div className="h-full max-h-full p-3 space-y-3 overflow-y-auto scrollbar-thin scrollbar-thumb-zenith-border scrollbar-track-transparent hover:scrollbar-thumb-zenith-muted">
+                  <AnimatePresence>
                   {columnTasks.map((task) => (
                     <motion.div
                       key={task.id}
@@ -563,6 +568,7 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                     <p className="text-sm">No {config.title.toLowerCase()} tasks</p>
                   </div>
                 )}
+                </div>
               </div>
             </motion.div>
           );
@@ -576,6 +582,7 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
           projectId={projectId}
           onTaskCreated={handleTaskCreated}
           onClose={() => setShowCreateModal(false)}
+          projectDueDate={projectDueDate}
         />
       )}
 

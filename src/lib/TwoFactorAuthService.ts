@@ -9,8 +9,8 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  two_factor_enabled: boolean;
-  two_factor_secret?: string;
+  totp_enabled: boolean;
+  totp_secret?: string;
   totp_recovery_codes?: string;
   email_otp_enabled: boolean;
 }
@@ -43,7 +43,7 @@ export class TwoFactorAuthService {
 
       // Store the secret temporarily (not enabling 2FA yet)
       await db.query(
-        `UPDATE users SET two_factor_secret = $1, totp_recovery_codes = $2 WHERE id = $3`,
+        `UPDATE users SET totp_secret = $1, totp_recovery_codes = $2 WHERE id = $3`,
         [secret, JSON.stringify(backupCodes), userId]
       );
 
@@ -62,21 +62,21 @@ export class TwoFactorAuthService {
   static async enableTwoFactor(userId: string, token: string): Promise<boolean> {
     try {
       const result = await db.query(
-        `SELECT two_factor_secret FROM users WHERE id = $1`,
+        `SELECT totp_secret FROM users WHERE id = $1`,
         [userId]
       );
 
-      if (!result.rows.length || !result.rows[0].two_factor_secret) {
+      if (!result.rows.length || !result.rows[0].totp_secret) {
         return false;
       }
 
-      const secret = result.rows[0].two_factor_secret;
+      const secret = result.rows[0].totp_secret;
       const isValid = authenticator.verify({ token, secret });
 
       if (isValid) {
         // Enable 2FA for the user
         await db.query(
-          `UPDATE users SET two_factor_enabled = true WHERE id = $1`,
+          `UPDATE users SET totp_enabled = true WHERE id = $1`,
           [userId]
         );
         return true;
@@ -93,15 +93,15 @@ export class TwoFactorAuthService {
   static async verifyTotp(userId: string, token: string): Promise<boolean> {
     try {
       const result = await db.query(
-        `SELECT two_factor_secret FROM users WHERE id = $1 AND two_factor_enabled = true`,
+        `SELECT totp_secret FROM users WHERE id = $1 AND totp_enabled = true`,
         [userId]
       );
 
-      if (!result.rows.length || !result.rows[0].two_factor_secret) {
+      if (!result.rows.length || !result.rows[0].totp_secret) {
         return false;
       }
 
-      const secret = result.rows[0].two_factor_secret;
+      const secret = result.rows[0].totp_secret;
       return authenticator.verify({ token, secret });
     } catch (error) {
       console.error('Error verifying TOTP:', error);
@@ -113,7 +113,7 @@ export class TwoFactorAuthService {
   static async disableTwoFactor(userId: string): Promise<boolean> {
     try {
       await db.query(
-        `UPDATE users SET two_factor_enabled = false, two_factor_secret = NULL, totp_recovery_codes = NULL WHERE id = $1`,
+        `UPDATE users SET totp_enabled = false, totp_secret = NULL, totp_recovery_codes = NULL WHERE id = $1`,
         [userId]
       );
       return true;
@@ -273,11 +273,11 @@ export class TwoFactorAuthService {
   static async isTwoFactorEnabled(userId: string): Promise<boolean> {
     try {
       const result = await db.query(
-        `SELECT two_factor_enabled FROM users WHERE id = $1`,
+        `SELECT totp_enabled FROM users WHERE id = $1`,
         [userId]
       );
 
-      return result.rows.length > 0 && result.rows[0].two_factor_enabled;
+      return result.rows.length > 0 && result.rows[0].totp_enabled;
     } catch (error) {
       console.error('Error checking 2FA status:', error);
       return false;

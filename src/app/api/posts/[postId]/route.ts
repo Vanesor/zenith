@@ -3,13 +3,13 @@ import { db } from '@/lib/database';
 import { verifyAuth } from "@/lib/auth-unified";
 
 interface Props {
-  params: { id: string };
+  params: { postId: string };
 }
 
 // GET /api/posts/[id] - Get single post
 export async function GET(request: NextRequest, { params }: Props) {
   try {
-    const { id } = await params;
+    const { postId: id } = await params;
 
     const query = `
       SELECT 
@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
     }
 
     const userId = authResult.user!.id;
-    const { id } = await params;
+    const { postId: id } = await params;
     const { title, content, tags } = await request.json();
 
     // Get current post
@@ -148,7 +148,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     }
 
     const userId = authResult.user!.id;
-    const { id } = await params;
+    const { postId: id } = await params;
 
     // Get current post
     const currentPost = await db.query(

@@ -30,6 +30,7 @@ interface ClubMember {
   role: string;
   joined_at: string;
   avatar?: string;
+  profile_image_url?: string;
 }
 
 interface ClubEvent {
@@ -632,7 +633,7 @@ export default function ClubManagementPage() {
                     >
                       <div className="flex items-center space-x-4">
                         <SafeAvatar
-                          src={member.avatar}
+                          src={member.profile_image_url || member.avatar}
                           fallbackName={member.name}
                           size="md"
                         />

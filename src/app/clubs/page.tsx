@@ -37,6 +37,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
 import { LayoutWrapper } from '@/components/LayoutWrapper';
 import ZenChatbot from '@/components/ZenChatbot';
+import SafeAvatar from '@/components/SafeAvatar';
 import { useRouter } from 'next/navigation';
 
 interface Club {
@@ -61,6 +62,8 @@ interface BlogPost {
   author_id: string;
   author_name: string;
   author_role: string;
+  author_avatar?: string;
+  author_profile_image_url?: string;
   club_id: string;
   club_name: string;
   status: string;
@@ -82,6 +85,7 @@ interface Comment {
   author_id: string;
   author_name: string;
   author_avatar?: string;
+  author_profile_image_url?: string;
   parent_id?: string;
   replies?: Comment[];
   likes_count: number;
@@ -94,7 +98,8 @@ interface ClubMember {
   id: string;
   name: string;
   role: string;
-  avatar_url?: string;
+  avatar?: string;
+  profile_image_url?: string;
   joined_at: string;
 }
 
@@ -666,9 +671,12 @@ export default function ClubsPage() {
                           <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary font-medium">
-                                  {post.author_name.charAt(0)}
-                                </div>
+                                <SafeAvatar
+                                  src={post.author_avatar || post.author_profile_image_url}
+                                  alt={post.author_name}
+                                  fallbackName={post.author_name}
+                                  size="md"
+                                />
                                 <div>
                                   <div className="flex items-center gap-2">
                                     <h4 className="font-medium text-gray-900 dark:text-primary">
@@ -797,9 +805,12 @@ export default function ClubsPage() {
                               >
                                 {/* Add Comment */}
                                 <div className="flex gap-3 mb-4">
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary text-sm font-medium">
-                                    {user?.name?.charAt(0) || 'U'}
-                                  </div>
+                                  <SafeAvatar
+                                    src={user?.profile_image_url || user?.avatar}
+                                    alt={user?.name || 'User'}
+                                    fallbackName={user?.name || 'U'}
+                                    size="sm"
+                                  />
                                   <div className="flex-1 flex gap-2">
                                     <input
                                       type="text"
@@ -824,9 +835,13 @@ export default function ClubsPage() {
                                   <div className="space-y-3">
                                     {comments[post.id].map((comment) => (
                                       <div key={comment.id} className="flex gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-primary text-xs font-medium">
-                                          {comment.author_name.charAt(0)}
-                                        </div>
+                                        <SafeAvatar
+                                          src={comment.author_profile_image_url || comment.author_avatar}
+                                          alt={comment.author_name}
+                                          fallbackName={comment.author_name}
+                                          size="sm"
+                                          className="flex-shrink-0"
+                                        />
                                         <div className="flex-1">
                                           <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
                                             <div className="font-medium text-sm text-gray-900 dark:text-primary mb-1">
@@ -889,9 +904,13 @@ export default function ClubsPage() {
                         className="card rounded-xl p-6"
                       >
                         <div className="text-center">
-                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary font-bold text-xl">
-                            {member.name.charAt(0)}
-                          </div>
+                          <SafeAvatar
+                            src={member.profile_image_url || member.avatar}
+                            alt={member.name}
+                            fallbackName={member.name}
+                            size="xl"
+                            className="mx-auto mb-4"
+                          />
                           <h3 className="font-semibold text-primary mb-1">
                             {member.name}
                           </h3>

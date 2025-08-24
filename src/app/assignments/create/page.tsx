@@ -209,20 +209,62 @@ export default function CreateAssignment() {
     e.preventDefault();
     if (!user) return;
 
+    // Validate questions exist
+    if (questions.length === 0) {
+      showToast({
+        title: 'Error',
+        message: 'Please add at least one question to the assignment',
+        type: 'error'
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
-      // Implementation for assignment creation
+      // Prepare assignment data
+      const assignmentData = {
+        ...formData,
+        questions: questions.map(q => ({
+          ...q,
+          // Ensure options and test cases are properly formatted
+          options: q.options || [],
+          testCases: q.testCases || [],
+          correctAnswer: q.correctAnswer
+        })),
+        startDate: new Date().toISOString(),
+        maxPoints: questions.reduce((total, q) => total + (q.points || 0), 0)
+      };
+
+      console.log('Submitting assignment:', assignmentData);
+
+      const response = await fetch('/api/assignments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(assignmentData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create assignment');
+      }
+
       showToast({
         title: 'Success',
         message: 'Assignment created successfully!',
         type: 'success'
       });
-      router.push('/assignments');
+      
+      // Redirect to the created assignment page
+      router.push(`/assignments/${result.id}`);
     } catch (error) {
+      console.error('Assignment creation error:', error);
       showToast({
         title: 'Error',
-        message: 'Failed to create assignment',
+        message: error instanceof Error ? error.message : 'Failed to create assignment',
         type: 'error'
       });
     } finally {

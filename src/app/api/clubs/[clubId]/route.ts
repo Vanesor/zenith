@@ -14,11 +14,25 @@ export async function GET(
         c.*,
         coord.name as coordinator_name,
         coord.email as coordinator_email,
+        coord.avatar as coordinator_avatar,
+        coord.profile_image_url as coordinator_profile_image_url,
         co_coord.name as co_coordinator_name,
-        co_coord.email as co_coordinator_email
+        co_coord.email as co_coordinator_email,
+        co_coord.avatar as co_coordinator_avatar,
+        co_coord.profile_image_url as co_coordinator_profile_image_url,
+        secretary.name as secretary_name,
+        secretary.email as secretary_email,
+        secretary.avatar as secretary_avatar,
+        secretary.profile_image_url as secretary_profile_image_url,
+        media.name as media_name,
+        media.email as media_email,
+        media.avatar as media_avatar,
+        media.profile_image_url as media_profile_image_url
       FROM clubs c
       LEFT JOIN users coord ON c.coordinator_id = coord.id
       LEFT JOIN users co_coord ON c.co_coordinator_id = co_coord.id
+      LEFT JOIN users secretary ON c.secretary_id = secretary.id
+      LEFT JOIN users media ON c.media_id = media.id
       WHERE c.id = $1
     `;
     
@@ -59,11 +73,27 @@ export async function GET(
         ...club,
         coordinator: {
           name: club.coordinator_name,
-          email: club.coordinator_email
+          email: club.coordinator_email,
+          avatar: club.coordinator_avatar,
+          profile_image_url: club.coordinator_profile_image_url
         },
         co_coordinator: {
           name: club.co_coordinator_name,
-          email: club.co_coordinator_email
+          email: club.co_coordinator_email,
+          avatar: club.co_coordinator_avatar,
+          profile_image_url: club.co_coordinator_profile_image_url
+        },
+        secretary: {
+          name: club.secretary_name,
+          email: club.secretary_email,
+          avatar: club.secretary_avatar,
+          profile_image_url: club.secretary_profile_image_url
+        },
+        media: {
+          name: club.media_name,
+          email: club.media_email,
+          avatar: club.media_avatar,
+          profile_image_url: club.media_profile_image_url
         }
       },
       member_count: parseInt(memberCountResult.rows[0].count),

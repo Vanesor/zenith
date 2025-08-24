@@ -114,37 +114,11 @@ export const handleClipboardPaste = async (
   }
 };
 
-// Upload an image file to supabase storage
-export const uploadImageToStorage = async (
-  file: File, 
-  folderPath: string = 'chat'
-): Promise<string | null> => {
-  try {
-    // Generate a unique filename to avoid collisions
-    const timestamp = new Date().getTime();
-    const randomString = Math.random().toString(36).substring(2, 10);
-    const fileName = `${timestamp}_${randomString}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const fullPath = `${folderPath}/${fileName}`;
-    
-    // Create a FormData object
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('path', fullPath);
-    
-    // Send the upload request to our API route
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error('Upload failed');
-    }
-    
-    const data = await response.json();
-    return data.url;
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    return null;
-  }
-};
+// NOTE: For image uploads, use the MediaService class or appropriate API endpoints:
+// - Profile avatars: /api/profile/upload-avatar
+// - Club logos: /api/clubs/[clubId]/upload-logo  
+// - Chat attachments: /api/chat/upload-attachment
+// - Posts attachments: /api/posts/upload-attachment
+// - Submission files: /api/assignments/[assignmentId]/submissions/[submissionId]/upload-file
+// - Event images: /api/events/upload-image
+// - Assignment question images: /api/assignments/upload-question-image

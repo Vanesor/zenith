@@ -417,10 +417,11 @@ export default function AdminClubManagementPage() {
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-lg mb-8">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
+            <nav className="flex space-x-8 px-6 overflow-x-auto">
               {[
                 { id: "overview", label: "Club Overview", icon: Users },
                 { id: "members", label: "All Members", icon: UserPlus },
+                { id: "content", label: "Content Management", icon: FileText },
                 { id: "settings", label: "Settings", icon: Settings }
               ].map((tab) => {
                 const Icon = tab.icon;
@@ -650,6 +651,149 @@ export default function AdminClubManagementPage() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "content" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-6">Content Management</h3>
+                
+                {/* Content Management Options */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  
+                  {/* Landing Page Management */}
+                  {(isZenithCommittee || isSystemAdmin) && (
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200">
+                      <div className="flex items-center mb-4">
+                        <div className="bg-blue-100 p-3 rounded-full mr-4">
+                          <FileText className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900">Landing Page</h4>
+                          <p className="text-sm text-gray-600">Manage homepage content</p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => router.push('/admin/content/landing/carousel')}
+                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          Manage Carousel
+                        </button>
+                        <button
+                          onClick={() => router.push('/admin/content/landing/team')}
+                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          Manage Team Cards
+                        </button>
+                        <button
+                          onClick={() => router.push('/admin/content/landing/events')}
+                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          Featured Events
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Club Pages Management */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-green-100 p-3 rounded-full mr-4">
+                        <Users className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">Club Pages</h4>
+                        <p className="text-sm text-gray-600">Manage club-specific content</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {isZenithCommittee || isSystemAdmin ? (
+                        <>
+                          <button
+                            onClick={() => router.push('/admin/content/clubs')}
+                            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                          >
+                            Manage All Clubs
+                          </button>
+                          <p className="text-xs text-gray-500 mt-2">
+                            You can manage content for all club pages
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => router.push(`/admin/content/club/${user?.club_id || 'my-club'}`)}
+                            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                          >
+                            Manage My Club
+                          </button>
+                          <p className="text-xs text-gray-500 mt-2">
+                            You can only manage your club's content
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick Content Stats */}
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 p-6 rounded-xl border border-purple-200">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-purple-100 p-3 rounded-full mr-4">
+                        <Calendar className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">Content Stats</h4>
+                        <p className="text-sm text-gray-600">Overview of content</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Carousel Slides:</span>
+                        <span className="font-medium">--</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Team Members:</span>
+                        <span className="font-medium">--</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Featured Events:</span>
+                        <span className="font-medium">--</span>
+                      </div>
+                      <button className="w-full mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                        View Analytics
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Content Updates */}
+                <div className="mt-8 bg-white border border-gray-200 rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Recent Content Updates</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm text-gray-600">Landing page carousel updated</span>
+                      </div>
+                      <span className="text-xs text-gray-400">2 hours ago</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm text-gray-600">New team member added</span>
+                      </div>
+                      <span className="text-xs text-gray-400">1 day ago</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <span className="text-sm text-gray-600">Featured event modified</span>
+                      </div>
+                      <span className="text-xs text-gray-400">3 days ago</span>
+                    </div>
                   </div>
                 </div>
               </div>

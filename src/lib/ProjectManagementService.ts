@@ -717,4 +717,83 @@ export class ProjectManagementService {
       return null;
     }
   }
+
+  /**
+   * Update project details
+   */
+  static async updateProject(
+    projectId: string, 
+    userId: string, 
+    updateData: {
+      description?: string;
+      target_end_date?: string;
+      status?: string;
+    }
+  ): Promise<{ success: boolean; project?: any; error?: string }> {
+    try {
+      // Check if user has permission to edit the project
+      const permissions = await ProjectPermissionService.getUserPermissions(userId, projectId);
+      
+      if (!permissions.canEditProject) {
+        return { success: false, error: 'Insufficient permissions to edit this project' };
+      }
+
+      const updateFields = [];
+      const updateValues = [];
+      let paramCounter = 1;
+
+      if (updateData.description !== undefined) {
+        updateFields.push(`description = $${paramCounter}`);
+        updateValues.push(updateData.description);
+        paramCounter++;
+      }
+
+      if (updateData.target_end_date !== undefined) {
+        updateFields.push(`target_end_date = $${paramCounter}`);
+        updateValues.push(updateData.target_end_date);
+        paramCounter++;
+      }
+
+      if (updateData.status !== undefined) {
+        updateFields.push(`status = $${paramCounter}`);
+        updateValues.push(updateData.status);
+        paramCounter++;
+      }
+
+      if (updateFields.length === 0) {
+        return { success: false, error: 'No fields to update' };
+      }
+
+      // Add updated_at timestamp
+      updateFields.push('updated_at = CURRENT_TIMESTAMP');
+      
+      // Add project ID for WHERE clause
+      updateValues.push(projectId);
+
+      const updateQuery = `
+        UPDATE projects 
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramCounter}
+        RETURNING *
+      `;
+
+      const result = await db.query(updateQuery, updateValues);
+
+      if (result.rows.length === 0) {
+        return { success: false, error: 'Project not found' };
+      }
+
+      return { 
+        success: true, 
+        project: result.rows[0] 
+      };
+
+    } catch (error) {
+      console.error('Error updating project:', error);
+      return { 
+        success: false, 
+        error: 'Failed to update project' 
+      };
+    }
+  }
 }

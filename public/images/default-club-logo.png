@@ -1,0 +1,6 @@
+<!-- This is a placeholder SVG for a default club logo -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <rect width="256" height="256" fill="#DBEAFE"/>
+  <rect x="40" y="40" width="176" height="176" rx="16" fill="#3B82F6"/>
+  <path d="M80 128H176M128 80V176" stroke="white" stroke-width="16" stroke-linecap="round"/>
+</svg>

@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
       console.log('🔍 Querying database for user:', authResult.user?.id);
       const userResult = await db.query(`
         SELECT 
-          id, email, name, username, role, club_id, avatar, bio, 
+          id, email, name, username, role, club_id, avatar, profile_image_url, bio, 
           created_at, phone, location, website, github, linkedin, twitter
         FROM users 
-        WHERE id = $1 AND deleted_at IS NULL
+        WHERE id = $1
       `, [authResult.user?.id]);
       
       user = userResult.rows[0];
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         const clubResult = await db.query(`
           SELECT id, name, description 
           FROM clubs 
-          WHERE id = $1 AND deleted_at IS NULL
+          WHERE id = $1
         `, [user.club_id]);
         clubInfo = clubResult.rows[0] || null;
       } catch (clubError) {
@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
       club_id: (user as any).club_id,
       club: clubInfo,
       avatar: (user as any).avatar || "",
+      profile_image_url: (user as any).profile_image_url || "",
       bio: (user as any).bio || "",
       joinedDate: (user as any).created_at,
       // User profile fields from database (with fallbacks)
@@ -152,7 +153,7 @@ export async function PUT(request: NextRequest) {
           linkedin = $9,
           twitter = $10,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $11 AND deleted_at IS NULL
+        WHERE id = $11
         RETURNING 
           id, email, name, username, role, club_id, avatar, bio, 
           created_at, phone, location, website, github, linkedin, twitter

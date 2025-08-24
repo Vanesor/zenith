@@ -12,6 +12,7 @@ interface CreateTaskModalProps {
   onClose: () => void;
   onTaskCreated: (task: any) => void;
   projectId: string;
+  projectDueDate?: string; // Add project due date for validation
 }
 
 interface ProjectMember {
@@ -20,7 +21,7 @@ interface ProjectMember {
   email: string;
 }
 
-export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: CreateTaskModalProps) {
+export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId, projectDueDate }: CreateTaskModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -58,6 +59,25 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate due date
+    if (formData.due_date) {
+      const today = new Date().toISOString().split('T')[0];
+      const selectedDate = formData.due_date;
+      
+      // Check if due date is in the past
+      if (selectedDate < today) {
+        setError('Due date cannot be earlier than today');
+        return;
+      }
+      
+      // Check if due date is after project due date
+      if (projectDueDate && selectedDate > projectDueDate) {
+        setError('Task due date cannot be later than project due date');
+        return;
+      }
+    }
+    
     setLoading(true);
     setError('');
 
@@ -87,6 +107,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
           assignee_id: '',
           due_date: '',
         });
+        onClose(); // Close modal after successful creation
       } else {
         setError(data.error || 'Failed to create task');
       }
@@ -316,6 +337,8 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
                           type="date"
                           value={formData.due_date}
                           onChange={handleChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          max={projectDueDate || undefined}
                           className="h-12 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm focus:border-green-500 focus:ring-4 focus:ring-green-500/20 transition-all duration-300"
                         />
                         <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-green-500 transition-colors w-4 h-4 pointer-events-none" />
