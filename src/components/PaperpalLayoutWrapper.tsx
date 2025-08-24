@@ -190,15 +190,19 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
           <div className="max-w-7xl mx-auto px-6 py-6">
             <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
               <div className="flex items-center space-x-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-primary font-bold text-sm">Z</span>
-                </div>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm overflow-hidden">
+                  <img 
+                    src="/zenithlogo.png" 
+                    alt="Zenith Logo" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>  
                 <div>
                   <p className="text-sm font-medium text-primary">
                     Zenith - CS Department Forum
                   </p>
                   <p className="text-xs text-muted">
-                    St. Joseph Engineering College, Vamanjoor
+                    St. Vincent Pallotti College Engineering and Technology, Nagpur
                   </p>
                 </div>
               </div>
@@ -214,7 +218,7 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
                   Support
                 </a>
                 <span className="text-xs">
-                  © 2025 SJEC Zenith
+                  © 2025 SVPCET Zenith
                 </span>
               </div>
             </div>

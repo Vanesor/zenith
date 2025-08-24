@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-unified';
 import { TaskManagementService } from '@/lib/TaskManagementService';
-import { verifyAuth } from '@/lib/auth-unified';
 import jwt from 'jsonwebtoken';
-import { verifyAuth } from '@/lib/auth-unified';
 
 
 // PATCH /api/tasks/[id]/assign - Assign task to user
@@ -27,7 +25,14 @@ export async function PATCH(
 
     let decoded;
     try {
-      decoded = verifyAuth(request) as { userId: string; email: string };
+      const authResult = await verifyAuth(request);
+      if (!authResult.success || !authResult.user) {
+        return NextResponse.json(
+          { error: "Invalid or expired token" },
+          { status: 401 }
+        );
+      }
+      decoded = { userId: authResult.user.id, email: authResult.user.email };
     } catch (error) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
@@ -38,7 +43,7 @@ export async function PATCH(
     const body = await request.json();
     const { assignee_id } = body;
 
-    const result = await TaskManagementService.assignTask(params.id, assignee_id, authResult.user?.id);
+    const result = await TaskManagementService.assignTask(params.id, assignee_id, decoded.userId);
 
     if (!result.success) {
       return NextResponse.json(

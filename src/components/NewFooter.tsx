@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full overflow-hidden">
                 <img 
-                  src="/pallotti-logo.png"
+                  src="/collegelogo.png"
                   alt="St. Vincent Pallotti College Logo"
                   className="w-full h-full object-cover" 
                 />

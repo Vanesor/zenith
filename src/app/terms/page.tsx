@@ -7,7 +7,6 @@ import { UnifiedHeader } from '@/components/UnifiedHeader';
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-main transition-colors duration-300">
-      <UnifiedHeader showNavigation={true} />
       
       <div className="pt-40 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
@@ -137,7 +136,7 @@ export default function TermsPage() {
                   St. Vincent Pallotti College of Engineering & Technology<br />
                   Department of Computer Engineering<br />
                   Nagpur, Maharashtra<br />
-                  Email: zenith@stvincentngp.edu.in
+                  Email: zenith.forum@stvincentngp.edu.in
                 </p>
               </div>
             </div>

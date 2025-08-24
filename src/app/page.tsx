@@ -35,8 +35,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PageLoader } from "@/components/UniversalLoader";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import SafeAvatar from "@/components/SafeAvatar";
-
-
+import { Footer } from "@/components/NewFooter";
 
 // Icon mapping for clubs
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -86,9 +85,12 @@ interface Event {
   event_date: string;
   event_time: string;
   location: string;
+  club_id: string;
   club_name: string;
   club_color: string;
   organizer_name: string;
+  organizer_club_name?: string;
+  organizer_club_color?: string;
 }
 
 interface Post {
@@ -97,9 +99,12 @@ interface Post {
   content: string;
   created_at: string;
   tags: string[];
+  club_id: string;
   club_name: string;
   club_color: string;
   author_name: string;
+  author_club_name?: string;
+  author_club_color?: string;
 }
 
 interface HomeStats {
@@ -146,6 +151,7 @@ interface HomeData {
   stats: HomeStats;
   clubs: Club[];
   upcomingEvents: Event[];
+  recentPosts: Post[];
   leadership?: Leadership;
 }
 
@@ -278,7 +284,7 @@ export default function HomePage() {
     );
   }
 
-  const { stats, clubs, upcomingEvents, leadership } = homeData;
+  const { stats, clubs, upcomingEvents, recentPosts, leadership } = homeData;
 
   // ============================================================================
   // MAIN LANDING PAGE COMPONENT - ZENITH FORUM HOMEPAGE
@@ -873,7 +879,14 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-                className="bg-zenith-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith"
+                className="bg-zenith-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith cursor-pointer"
+                onClick={() => {
+                  if (!user) {
+                    router.push('/login?redirect=' + encodeURIComponent(`/clubs/${event.club_id}/events/${event.id}`));
+                  } else {
+                    router.push(`/clubs/${event.club_id}/events/${event.id}`);
+                  }
+                }}
               >
                 <div className={`bg-gradient-to-r ${event.club_color} p-4`}>
                   <div className="flex justify-between items-center text-white">
@@ -903,7 +916,14 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center">
                       <Users className="w-4 h-4 mr-2" />
-                      Organized by {event.organizer_name}
+                      <div>
+                        <div>Organized by {event.organizer_name}</div>
+                        {event.organizer_club_name && (
+                          <div className="text-xs text-zenith-accent">
+                            from {event.organizer_club_name}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -917,6 +937,95 @@ export default function HomePage() {
               className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold text-lg"
             >
               View All Events
+              <ChevronRight className="ml-2 w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* RECENT POSTS SECTION - Latest forum posts and discussions */}
+      <section className="py-20 bg-zenith-main">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-zenith-brand mb-4">
+              Latest Posts
+            </h2>
+            <p className="text-xl text-zenith-secondary">
+              Discover insights and discussions from our community
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {recentPosts.map((post, index) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
+                className="bg-zenith-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-zenith cursor-pointer"
+                onClick={() => {
+                  if (!user) {
+                    router.push('/login?redirect=' + encodeURIComponent(`/clubs/${post.club_id}/posts/${post.id}`));
+                  } else {
+                    router.push(`/clubs/${post.club_id}/posts/${post.id}`);
+                  }
+                }}
+              >
+                <div className={`bg-gradient-to-r ${post.club_color} p-4`}>
+                  <div className="flex justify-between items-center text-white">
+                    <span className="text-sm font-medium">
+                      {post.club_name}
+                    </span>
+                    <span className="text-xs bg-zenith-card/20 px-2 py-1 rounded">
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-zenith-primary mb-2">
+                    {post.title}
+                  </h3>
+                  <p className="text-zenith-secondary mb-4 line-clamp-3">
+                    {post.content?.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-zenith-muted">
+                      <div>By {post.author_name}</div>
+                      {post.author_club_name && (
+                        <div className="text-xs text-zenith-accent">
+                          from {post.author_club_name}
+                        </div>
+                      )}
+                    </div>
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex gap-1">
+                        {post.tags.slice(0, 2).map((tag, tagIndex) => (
+                          <span
+                            key={tagIndex}
+                            className="inline-block bg-zenith-hover text-zenith-accent px-2 py-1 rounded-full text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link
+              href="/posts"
+              className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold text-lg"
+            >
+              View All Posts
               <ChevronRight className="ml-2 w-5 h-5" />
             </Link>
           </div>
@@ -1115,107 +1224,14 @@ export default function HomePage() {
                 {stats.totalPosts}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Discussions
+                Posts
               </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* FOOTER SECTION - Site links and information */}
-      <footer className="bg-zenith-section py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <ZenithLogo size="lg" className="mb-4" />
-              <p className="text-zenith-muted mb-4 max-w-md">
-                A vibrant college forum community where students connect, learn,
-                and grow together through specialized clubs and activities.
-              </p>
-              <p className="text-sm text-zenith-muted">
-                St. Vincent College, Nagpur • Made with ❤️ by students
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-zenith-primary mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-zenith-muted">
-                <li>
-                  <Link
-                    href="#clubs"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    Clubs
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#events"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    Events
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/forums"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    Forums
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    About
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-zenith-primary mb-4">Support</h3>
-              <ul className="space-y-2 text-zenith-muted">
-                <li>
-                  <Link
-                    href="/help"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/guidelines"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    Guidelines
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/privacy"
-                    className="hover:text-zenith-accent transition-colors"
-                  >
-                    Privacy
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-zenith-border mt-8 pt-8 text-center text-zenith-muted">
-            <p>&copy; 2025 Zenith Forum. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer></Footer>
     </div>
   );
 }

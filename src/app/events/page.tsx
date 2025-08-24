@@ -150,29 +150,33 @@ function CalendarView({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-0">
+        {/* Calendar Flex */}
+        <div className="flex flex-col">
           {/* Day Headers */}
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-4 text-center border-b zenith-border zenith-bg-section">
-              <span className="text-sm font-medium zenith-text-primary">{day}</span>
-            </div>
-          ))}
+          <div className="flex">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="flex-1 p-4 text-center border-b zenith-border zenith-bg-section">
+                <span className="text-sm font-medium zenith-text-primary">{day}</span>
+              </div>
+            ))}
+          </div>
           
-          {/* Calendar Days */}
-          {calendarDays.map((day, index) => {
-            const dayEvents = getEventsForDay(day);
-            const isCurrentMonth = isSameMonth(day, currentDate);
-            const isTodayDate = isToday(day);
-            
-            return (
-              <div
-                key={index}
-                onClick={() => handleDayClick(day)}
-                className={`min-h-[120px] p-2 border-b border-r zenith-border cursor-pointer transition-colors ${
-                  isCurrentMonth ? 'zenith-bg-card hover:zenith-bg-hover' : 'zenith-bg-section'
-                } ${isTodayDate ? 'ring-2 ring-blue-500' : ''}`}
-              >
+          {/* Calendar Weeks */}
+          {Array.from({ length: Math.ceil(calendarDays.length / 7) }).map((_, weekIndex) => (
+            <div key={weekIndex} className="flex">
+              {calendarDays.slice(weekIndex * 7, weekIndex * 7 + 7).map((day, dayIndex) => {
+                const dayEvents = getEventsForDay(day);
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isTodayDate = isToday(day);
+                
+                return (
+                  <div
+                    key={dayIndex}
+                    onClick={() => handleDayClick(day)}
+                    className={`flex-1 min-h-[120px] p-2 border-b border-r zenith-border cursor-pointer transition-colors ${
+                      isCurrentMonth ? 'zenith-bg-card hover:zenith-bg-hover' : 'zenith-bg-section opacity-70'
+                    } ${isTodayDate ? 'ring-2 ring-blue-500' : ''}`}
+                  >
                 <div className="flex items-center justify-between mb-2">
                   <span className={`text-sm font-medium ${
                     isCurrentMonth 
@@ -205,21 +209,33 @@ function CalendarView({
                     </div>
                   )}
                 </div>
-              </div>
-            );
-          })}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
         
         {/* Legend */}
         <div className="p-4 border-t zenith-border zenith-bg-section">
           <h4 className="text-sm font-medium zenith-text-primary mb-2">Club Colors</h4>
           <div className="flex flex-wrap gap-4">
-            {clubs.map(club => (
-              <div key={club.id} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${getClubColor(club.id)}`} />
-                <span className="text-sm zenith-text-secondary">{club.name}</span>
-              </div>
-            ))}
+            <div className="flex items-center gap-2">
+              <div className={`w-12 h-2 rounded-full ${clubColors.achievers}`} />
+              <span className="text-sm zenith-text-secondary">ACHIEVERS</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-12 h-2 rounded-full ${clubColors.altogether}`} />
+              <span className="text-sm zenith-text-secondary">ALTOGETHER</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-12 h-2 rounded-full ${clubColors.ascend}`} />
+              <span className="text-sm zenith-text-secondary">ASCEND</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-12 h-2 rounded-full ${clubColors.aster}`} />
+              <span className="text-sm zenith-text-secondary">ASTER</span>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -231,13 +247,13 @@ export default function EventsPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
   
-  // Club colors mapping
+  // Club colors mapping for the four main clubs
   const clubColors: Record<string, string> = {
-    'innovation': 'bg-blue-500',
-    'web-development': 'bg-green-500', 
-    'app-development': 'bg-purple-500',
-    'cybersecurity': 'bg-red-500',
-    'default': 'bg-gray-500'
+    'achievers': 'bg-gradient-to-r from-blue-500 to-blue-700',
+    'altogether': 'bg-gradient-to-r from-green-500 to-green-700', 
+    'ascend': 'bg-gradient-to-r from-purple-500 to-purple-700',
+    'aster': 'bg-gradient-to-r from-orange-500 to-orange-700',
+    'default': 'bg-gradient-to-r from-gray-500 to-gray-700'
   };
   
   const [events, setEvents] = useState<Event[]>([]);

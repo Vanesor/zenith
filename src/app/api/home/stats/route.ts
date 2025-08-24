@@ -38,10 +38,13 @@ export async function GET() {
         e.*,
         c.name as club_name,
         c.color as club_color,
-        u.name as organizer_name
+        u.name as organizer_name,
+        uc.name as organizer_club_name,
+        uc.color as organizer_club_color
       FROM events e
       LEFT JOIN clubs c ON e.club_id = c.id
       LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN clubs uc ON u.club_id = uc.id
       WHERE e.event_date >= CURRENT_DATE
       ORDER BY e.event_date ASC, e.event_time ASC
       LIMIT 6
@@ -55,13 +58,18 @@ export async function GET() {
         p.content,
         p.created_at,
         p.tags,
+        p.club_id,
         c.name as club_name,
         c.color as club_color,
         u.name as author_name,
-        u.avatar as author_avatar
+        u.avatar as author_avatar,
+        uc.name as author_club_name,
+        uc.color as author_club_color
       FROM posts p
       LEFT JOIN clubs c ON p.club_id = c.id
       LEFT JOIN users u ON p.author_id = u.id
+      LEFT JOIN clubs uc ON u.club_id = uc.id
+      WHERE p.status = 'published'
       ORDER BY p.created_at DESC
       LIMIT 4
     `);

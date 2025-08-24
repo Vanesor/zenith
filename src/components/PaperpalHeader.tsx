@@ -103,15 +103,15 @@ export function PaperpalHeader({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 min-w-0 flex-1">
               <Image
-                src="/collegelogo.jpeg"
+                src="/collegelogo.png"
                 alt="St. Vincent Pallotti College of Engineering and Technology"
-                width={40}
-                height={40}
+                width={60}
+                height={60}
                 className="rounded-full ring-2 ring-white/20 flex-shrink-0"
               />
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg font-bold text-primary leading-tight">St. Vincent Pallotti College of Engineering and Technology</h1>
-                <p className="text-sm text-blue-100">Nagpur • Department of Computer Science and Engineering</p>
+                <p className="text-sm text-blue-100">Nagpur • Department of Computer Engineering</p>
               </div>
             </div>
             <div className="flex items-center space-x-4 flex-shrink-0">
@@ -122,8 +122,8 @@ export function PaperpalHeader({
               <Image
                 src="/zenithlogo.png"
                 alt="Zenith Forum"
-                width={32}
-                height={32}
+                width={50}
+                height={50}
                 className="rounded ring-1 ring-white/20 flex-shrink-0"
               />
             </div>
@@ -190,82 +190,6 @@ export function PaperpalHeader({
             {/* User Menu (when authenticated) */}
             {user && (
               <>
-                {/* Quick Action Button */}
-                <Link
-                  href="/posts/create"
-                  className="hidden sm:inline-flex items-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create
-                </Link>
-
-                {/* Notifications */}
-                <div className="relative" ref={notificationsRef}>
-                  <button
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    className="relative p-2 text-muted hover:text-secondary hover:bg-hover rounded-lg transition-colors"
-                  >
-                    <Bell className="w-5 h-5" />
-                    {notifications.some(n => n.unread) && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-900"></span>
-                    )}
-                  </button>
-
-                  {/* Notifications Dropdown */}
-                  <AnimatePresence>
-                    {showNotifications && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 top-full mt-2 w-80 bg-card rounded-xl shadow-2xl border-custom z-50"
-                      >
-                        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-primary">Notifications</h3>
-                        </div>
-                        <div className="max-h-80 overflow-y-auto">
-                          {notifications.map((notification) => (
-                            <div
-                              key={notification.id}
-                              className={`p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
-                                notification.unread ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
-                              }`}
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2">
-                                    <h4 className="text-sm font-medium text-gray-900 dark:text-primary">
-                                      {notification.title}
-                                    </h4>
-                                    {notification.unread && (
-                                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                    {notification.message}
-                                  </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                                    {notification.time}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-                          <Link
-                            href="/notifications"
-                            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                          >
-                            View all notifications
-                          </Link>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
                 {/* User Avatar and Menu */}
                 <div className="relative" ref={userMenuRef}>
                   <button

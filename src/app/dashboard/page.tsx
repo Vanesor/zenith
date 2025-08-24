@@ -28,10 +28,21 @@ interface DashboardStats {
   assignment_completion: number;
 }
 
+interface RecentActivity {
+  type: string;
+  id: number;
+  title: string;
+  time: string;
+  club: string;
+  author?: string;
+}
+
 export default function ModernDashboard() {
   const auth = useAuthRequired();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -56,10 +67,67 @@ export default function ModernDashboard() {
       }
     };
 
+    const fetchActivities = async () => {
+      try {
+        const response = await fetch('/api/dashboard/activities', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(auth.user && localStorage.getItem("zenith-token") && {
+              Authorization: `Bearer ${localStorage.getItem("zenith-token")}`
+            })
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRecentActivities(data.recentActivities || []);
+        }
+      } catch (error) {
+        console.error('Error fetching recent activities:', error);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
     if (auth.user) {
       fetchStats();
+      fetchActivities();
     }
   }, [auth.user]);
+
+  // Fallback data for recent activities in case API fails
+  const fallbackActivities = [
+    {
+      type: 'event',
+      id: 1,
+      title: 'Tech Talk on AI & Machine Learning',
+      time: '2 hours ago',
+      club: 'Computer Science Club',
+    },
+    {
+      type: 'post',
+      id: 2,
+      title: 'Web Development Workshop Results',
+      time: '1 day ago',
+      club: 'Coding Club',
+      author: 'John Doe'
+    },
+    {
+      type: 'post',
+      id: 3,
+      title: 'Club meeting minutes',
+      time: '2 days ago',
+      club: 'Robotics Club',
+      author: 'Jane Smith'
+    },
+    {
+      type: 'event',
+      id: 4,
+      title: 'Hackathon 2025 Registration Open',
+      time: '3 days ago',
+      club: 'Innovation Club',
+    }
+  ];
 
   if (auth.isLoading || loading) {
     return <SectionLoader message="Loading your dashboard..." />;
@@ -81,59 +149,55 @@ export default function ModernDashboard() {
       icon: Calendar,
       color: 'from-purple-500 to-pink-500',
       trend: 'up'
-    },
-    {
-      title: 'My Clubs',
-      value: stats?.user_clubs?.toString() || '0',
-      change: 'Join more clubs',
-      icon: Award,
-      color: 'from-green-500 to-emerald-500',
-      trend: 'up'
-    },
-    {
-      title: 'Activity Score',
-      value: `${stats?.activity_score || 0}%`,
-      change: 'Keep it up!',
-      icon: TrendingUp,
-      color: 'from-orange-500 to-red-500',
-      trend: 'up'
     }
   ];
 
-  const recentActivity = [
-    {
-      type: 'event',
-      title: 'Tech Talk on AI & Machine Learning',
-      time: '2 hours ago',
-      club: 'Computer Science Club',
-      icon: BookOpen,
-      color: 'text-blue-600'
-    },
-    {
-      type: 'achievement',
-      title: 'Completed Web Development Workshop',
-      time: '1 day ago',
-      club: 'Coding Club',
-      icon: Award,
-      color: 'text-green-600'
-    },
-    {
-      type: 'message',
-      title: 'New message from club coordinator',
-      time: '2 days ago',
-      club: 'Robotics Club',
-      icon: MessageSquare,
-      color: 'text-purple-600'
-    },
-    {
-      type: 'event',
-      title: 'Hackathon 2025 Registration Open',
-      time: '3 days ago',
-      club: 'Innovation Club',
-      icon: Zap,
-      color: 'text-orange-600'
+  // Use real data if available, otherwise use fallback
+  const activities = recentActivities.length > 0 ? recentActivities : fallbackActivities;
+
+  // Map activity type to icon
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'event':
+        return Calendar;
+      case 'post':
+        return FileText;
+      case 'achievement':
+        return Award;
+      case 'message':
+        return MessageSquare;
+      default:
+        return Zap;
     }
-  ];
+  };
+
+  // Map activity type to color
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'event':
+        return 'text-purple-600';
+      case 'post':
+        return 'text-blue-600';
+      case 'achievement':
+        return 'text-green-600';
+      case 'message':
+        return 'text-orange-600';
+      default:
+        return 'text-blue-600';
+    }
+  };
+
+  // Get the appropriate link for an activity
+  const getActivityLink = (activity: RecentActivity) => {
+    switch (activity.type) {
+      case 'event':
+        return `/events/${activity.id}`;
+      case 'post':
+        return `/posts/${activity.id}`;
+      default:
+        return '#';
+    }
+  };
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
@@ -232,31 +296,59 @@ export default function ModernDashboard() {
 
         <div className="card p-6">
           <div className="space-y-4">
-            {recentActivity.map((activity, index) => {
-              const IconComponent = activity.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.05 }}
-                  className="flex items-center space-x-4 p-4 rounded-lg hover:bg-section transition-colors"
-                >
-                  <div className={`w-10 h-10 bg-section rounded-full flex items-center justify-center`}>
-                    <IconComponent className={`w-5 h-5 ${activity.color}`} />
-                  </div>
+            {loadingActivities ? (
+              // Loading skeleton for activities
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="flex items-center space-x-4 p-4 animate-pulse">
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                   <div className="flex-1">
-                    <h4 className="text-primary font-medium">{activity.title}</h4>
-                    <div className="flex items-center space-x-2 text-sm text-secondary">
-                      <span>{activity.club}</span>
-                      <span>•</span>
-                      <span>{activity.time}</span>
-                    </div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-muted" />
-                </motion.div>
-              );
-            })}
+                </div>
+              ))
+            ) : (
+              activities.map((activity, index) => {
+                const IconComponent = getActivityIcon(activity.type);
+                const colorClass = getActivityColor(activity.type);
+                const activityLink = getActivityLink(activity);
+                
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + index * 0.05 }}
+                    className="flex items-center space-x-4 p-4 rounded-lg hover:bg-section transition-colors"
+                  >
+                    <div className={`w-10 h-10 bg-section rounded-full flex items-center justify-center`}>
+                      <IconComponent className={`w-5 h-5 ${colorClass}`} />
+                    </div>
+                    <div className="flex-1">
+                      <Link href={activityLink}>
+                        <h4 className="text-primary font-medium hover:text-blue-600 transition-colors">
+                          {activity.title}
+                        </h4>
+                      </Link>
+                      <div className="flex items-center space-x-2 text-sm text-secondary">
+                        <span>{activity.club}</span>
+                        {activity.author && (
+                          <>
+                            <span>•</span>
+                            <span>by {activity.author}</span>
+                          </>
+                        )}
+                        <span>•</span>
+                        <span>{activity.time}</span>
+                      </div>
+                    </div>
+                    <Link href={activityLink}>
+                      <ArrowRight className="w-4 h-4 text-muted hover:text-blue-600 transition-colors" />
+                    </Link>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
       </motion.div>

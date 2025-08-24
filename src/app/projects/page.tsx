@@ -9,6 +9,7 @@ import {
   Grid3X3,
   List,
   Users,
+  UserPlus,
   Calendar,
   Target,
   TrendingUp,
@@ -27,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
+import JoinProjectModal from '@/components/projects/JoinProjectModal';
 import ProjectCard from '@/components/projects/ProjectCard';
 
 interface Project {
@@ -57,6 +59,7 @@ export default function ProjectsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [userPermissions, setUserPermissions] = useState<any>(null);
 
   useEffect(() => {
@@ -184,14 +187,26 @@ export default function ProjectsPage() {
             </div>
             
             <div className="flex gap-3">
-              {/* Always show create button with better permission handling */}
+              {/* Only show create button to users with permission */}
+              {userPermissions?.canCreateProjects && (
+                <Button
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  size="lg"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Project
+                </Button>
+              )}
+              
+              {/* Join Project button available to all users */}
               <Button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                onClick={() => setShowJoinModal(true)}
+                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                 size="lg"
               >
-                <Plus className="w-5 h-5 mr-2" />
-                Create Project
+                <UserPlus className="w-5 h-5 mr-2" />
+                Join Project
               </Button>
             </div>
           </motion.div>
@@ -379,6 +394,14 @@ export default function ProjectsPage() {
             setShowCreateModal(false);
             fetchProjects(); // Refresh the project list
           }}
+        />
+      )}
+
+      {/* Join Project Modal */}
+      {showJoinModal && (
+        <JoinProjectModal
+          isOpen={showJoinModal}
+          onClose={() => setShowJoinModal(false)}
         />
       )}
     </div>

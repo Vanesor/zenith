@@ -45,6 +45,19 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 
 
 --
+-- Name: cleanup_expired_otps(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.cleanup_expired_otps() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    DELETE FROM email_otps WHERE expires_at < NOW();
+END;
+$$;
+
+
+--
 -- Name: generate_task_key(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -640,6 +653,18 @@ CREATE TABLE public.coding_submissions (
 
 
 --
+-- Name: comment_likes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.comment_likes (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    comment_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
 -- Name: comments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -781,6 +806,21 @@ CREATE TABLE public.email_logs (
 
 
 --
+-- Name: email_otps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.email_otps (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    email character varying(255) NOT NULL,
+    otp character varying(6) NOT NULL,
+    type character varying(20) NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT email_otps_type_check CHECK (((type)::text = ANY ((ARRAY['verification'::character varying, 'forgot_password'::character varying])::text[])))
+);
+
+
+--
 -- Name: event_attendees; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -862,7 +902,9 @@ CREATE TABLE public.likes (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     post_id uuid,
     user_id uuid,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    comment_id uuid,
+    CONSTRAINT likes_check_target CHECK ((((post_id IS NOT NULL) AND (comment_id IS NULL)) OR ((post_id IS NULL) AND (comment_id IS NOT NULL))))
 );
 
 
@@ -1061,7 +1103,9 @@ CREATE TABLE public.project_invitations (
     expires_at timestamp with time zone DEFAULT (CURRENT_TIMESTAMP + '7 days'::interval) NOT NULL,
     sent_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     accepted_at timestamp with time zone,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    project_key character varying(32),
+    access_key character varying(64)
 );
 
 
@@ -1620,6 +1664,22 @@ ALTER TABLE ONLY public.coding_submissions
 
 
 --
+-- Name: comment_likes comment_likes_comment_id_user_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comment_likes
+    ADD CONSTRAINT comment_likes_comment_id_user_id_unique UNIQUE (comment_id, user_id);
+
+
+--
+-- Name: comment_likes comment_likes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comment_likes
+    ADD CONSTRAINT comment_likes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1692,6 +1752,22 @@ ALTER TABLE ONLY public.email_logs
 
 
 --
+-- Name: email_otps email_otps_email_type_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.email_otps
+    ADD CONSTRAINT email_otps_email_type_key UNIQUE (email, type);
+
+
+--
+-- Name: email_otps email_otps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.email_otps
+    ADD CONSTRAINT email_otps_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: event_attendees event_attendees_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1724,11 +1800,27 @@ ALTER TABLE ONLY public.featured_events
 
 
 --
+-- Name: likes likes_comment_user_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT likes_comment_user_unique UNIQUE (comment_id, user_id);
+
+
+--
 -- Name: likes likes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.likes
     ADD CONSTRAINT likes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: likes likes_post_user_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT likes_post_user_unique UNIQUE (post_id, user_id);
 
 
 --
@@ -2354,6 +2446,20 @@ CREATE INDEX idx_coding_submissions_question_response_id ON public.coding_submis
 
 
 --
+-- Name: idx_comment_likes_comment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_comment_likes_comment_id ON public.comment_likes USING btree (comment_id);
+
+
+--
+-- Name: idx_comment_likes_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_comment_likes_user_id ON public.comment_likes USING btree (user_id);
+
+
+--
 -- Name: idx_comments_author_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2414,6 +2520,20 @@ CREATE INDEX idx_email_logs_recipient ON public.email_logs USING btree (recipien
 --
 
 CREATE INDEX idx_email_logs_status ON public.email_logs USING btree (status);
+
+
+--
+-- Name: idx_email_otps_email_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_email_otps_email_type ON public.email_otps USING btree (email, type);
+
+
+--
+-- Name: idx_email_otps_expires_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_email_otps_expires_at ON public.email_otps USING btree (expires_at);
 
 
 --
@@ -2589,6 +2709,20 @@ CREATE INDEX idx_posts_slug ON public.posts USING btree (slug);
 --
 
 CREATE INDEX idx_posts_status ON public.posts USING btree (status);
+
+
+--
+-- Name: idx_project_invitations_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_project_invitations_email ON public.project_invitations USING btree (email);
+
+
+--
+-- Name: idx_project_invitations_keys; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_project_invitations_keys ON public.project_invitations USING btree (project_key, access_key);
 
 
 --
@@ -2966,6 +3100,22 @@ ALTER TABLE ONLY public.chat_attachments
 
 
 --
+-- Name: comment_likes comment_likes_comment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comment_likes
+    ADD CONSTRAINT comment_likes_comment_id_fkey FOREIGN KEY (comment_id) REFERENCES public.comments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: comment_likes comment_likes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comment_likes
+    ADD CONSTRAINT comment_likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: content_permissions content_permissions_granted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3011,6 +3161,14 @@ ALTER TABLE ONLY public.chat_messages
 
 ALTER TABLE ONLY public.chat_rooms
     ADD CONSTRAINT fk_chat_rooms_edited_by FOREIGN KEY (edited_by) REFERENCES public.users(id);
+
+
+--
+-- Name: likes likes_comment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT likes_comment_id_fkey FOREIGN KEY (comment_id) REFERENCES public.comments(id) ON DELETE CASCADE;
 
 
 --

@@ -76,9 +76,13 @@ export function UniversalLoader({
                 rotate: { duration: 1.5, repeat: Infinity, ease: "linear" },
                 scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
               }}
-              className="text-white font-bold text-lg"
+              className="flex items-center justify-center w-full h-full"
             >
-              Z
+              <img 
+                src="/zenithlogo.png" 
+                alt="Zenith Logo" 
+                className="w-3/4 h-3/4 object-contain"
+              />
             </motion.div>
           </motion.div>
           

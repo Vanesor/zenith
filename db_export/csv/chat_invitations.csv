@@ -1,0 +1,1 @@
+id,room_id,inviter_id,invitee_email,invitation_token,message,status,expires_at,created_at,accepted_at

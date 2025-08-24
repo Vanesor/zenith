@@ -44,6 +44,7 @@ export interface User {
   club_id?: string;
   avatar?: string;
   profile_image_url?: string;
+  email_verified?: boolean;
 }
 
 export interface UserWithPassword extends User {
@@ -373,7 +374,8 @@ export async function authenticateUser(email: string, password: string): Promise
         role: user.role,
         club_id: user.club_id,
         avatar: user.avatar,
-        profile_image_url: user.profile_image_url
+        profile_image_url: user.profile_image_url,
+        email_verified: user.email_verified
       },
       sessionId: session.id,
     };

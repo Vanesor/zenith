@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, withAuth, authenticateUser } from "@/lib/auth-unified";
 import { RateLimiter } from "@/lib/RateLimiter";
 import { CacheManager, CacheKeys } from "@/lib/CacheManager";
+import EmailService from "@/lib/EmailService";
 
 const authLimiter = RateLimiter.createAuthLimiter();
 
@@ -43,27 +44,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 🚀 OPTIMIZED AUTHENTICATION - Replaces 5+ database queries with 1 optimized operation
+        // 🚀 OPTIMIZED AUTHENTICATION - Replaces 5+ database queries with 1 optimized operation
     const authResult = await authenticateUser(email, password);
 
     if (!authResult.success) {
-      // Increment failed attempts
-      await CacheManager.set(emailKey, attemptCount + 1, 900); // 15 minutes
-      
-      if (authResult.requiresTwoFactor) {
+      // Increment failed login attempts
+      const newAttemptCount = attemptCount + 1;
+      await CacheManager.set(emailKey, newAttemptCount, 900); // 15 minutes
+
+      if (newAttemptCount >= 5) {
         return NextResponse.json({
-          requiresTwoFactor: true,
-          userId: authResult.user?.id,
-          email: authResult.user?.email,
-          method: "totp", // Default method
-          message: "Two-factor authentication required"
-        });
+          error: "Too many failed login attempts. Account temporarily locked for 15 minutes.",
+        }, { status: 429 });
       }
 
       return NextResponse.json(
         { error: authResult.error || "Authentication failed" },
         { status: 401 }
       );
+    }
+
+    // Check email verification status
+    if (!authResult.user!.email_verified) {
+      // Send verification email if not verified
+      try {
+        await EmailService.sendVerificationEmail(authResult.user!.email, authResult.user!.name);
+      } catch (emailError) {
+        console.error('Error sending verification email:', emailError);
+      }
+
+      return NextResponse.json({
+        success: false,
+        error: "Email not verified",
+        emailVerificationRequired: true,
+        message: "Please check your email and verify your account before logging in. A new verification email has been sent."
+      }, { status: 403 });
     }
 
     // Clear failed login attempts on successful login

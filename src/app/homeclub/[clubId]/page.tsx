@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+// import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -27,6 +28,7 @@ import {
 import { ZenithLogo } from "@/components/ZenithLogo";
 import ClubLogo from "@/components/ClubLogo";
 import UserAvatar from "@/components/UserAvatar";
+import ZenChatbot from "@/components/ZenChatbot";
 import { PageLoader } from "@/components/UniversalLoader";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
@@ -40,44 +42,49 @@ interface ClubData {
     icon: string;
     color: string;
     memberCount: number;
-    leadership: {
-      coordinator: { 
-        name: string;
-        photo?: string;
-        email?: string;
-      } | null;
-      coCoordinator: { 
-        name: string;
-        photo?: string;
-        email?: string;
-      } | null;
-      secretary: { 
-        name: string;
-        photo?: string;
-        email?: string;
-      } | null;
-      media: { 
-        name: string;
-        photo?: string;
-        email?: string;
-      } | null;
-    };
+    coordinator?: { 
+      name: string;
+      email?: string;
+      avatar?: string;
+      profile_image_url?: string;
+    } | null;
+    co_coordinator?: { 
+      name: string;
+      email?: string;
+      avatar?: string;
+      profile_image_url?: string;
+    } | null;
+    secretary?: { 
+      name: string;
+      email?: string;
+      avatar?: string;
+      profile_image_url?: string;
+    } | null;
+    media?: { 
+      name: string;
+      email?: string;
+      avatar?: string;
+      profile_image_url?: string;
+    } | null;
   };
   events: Array<{
     id: string;
     title: string;
-    date: string;
-    time: string;
+    event_date: string;
     location: string;
-    attendeeCount: number;
     description?: string;
+    max_attendees: number;
+    banner_image_url?: string;
   }>;
   posts: Array<{
     id: string;
     title: string;
-    content: string;
+    excerpt: string;
     created_at: string;
     author_name: string;
+    like_count?: number;
+    comment_count?: number;
+    view_count?: number;
   }>;
 }
 
@@ -92,6 +99,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 export default function PublicClubPage() {
   const params = useParams();
   const router = useRouter();
+  // const { user } = useAuth();
   const [clubData, setClubData] = useState<ClubData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -407,7 +415,7 @@ export default function PublicClubPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
             {/* Coordinator */}
-            {club.leadership.coordinator && (
+            {club.coordinator && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -416,10 +424,10 @@ export default function PublicClubPage() {
               >
                 <div className="relative mb-8">
                   <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.leadership.coordinator.photo ? (
+                    {club.coordinator.profile_image_url ? (
                       <img 
-                        src={club.leadership.coordinator.photo}
-                        alt={club.leadership.coordinator.name}
+                        src={club.coordinator.profile_image_url}
+                        alt={club.coordinator.name}
                         className="w-full h-full object-cover object-center"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -428,10 +436,10 @@ export default function PublicClubPage() {
                       />
                     ) : null}
                     <UserAvatar 
-                      name={club.leadership.coordinator.name}
-                      avatar={club.leadership.coordinator.photo}
+                      name={club.coordinator.name}
+                      avatar={club.coordinator.profile_image_url}
                       size="xl"
-                      className={`${club.leadership.coordinator.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                      className={`${club.coordinator.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
                     />
                   </div>
                   <div className="absolute -top-3 -right-3 bg-warning-orange text-white p-3 rounded-full shadow-lg">
@@ -440,7 +448,7 @@ export default function PublicClubPage() {
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.leadership.coordinator.name}
+                    {club.coordinator.name}
                   </h3>
                   <div className="inline-block bg-warning-orange text-white px-4 py-1 rounded-full text-sm font-semibold">
                     Coordinator
@@ -453,7 +461,7 @@ export default function PublicClubPage() {
             )}
 
             {/* Co-Coordinator */}
-            {club.leadership.coCoordinator && (
+            {club.co_coordinator && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -462,10 +470,10 @@ export default function PublicClubPage() {
               >
                 <div className="relative mb-8">
                   <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.leadership.coCoordinator.photo ? (
+                    {club.co_coordinator.profile_image_url ? (
                       <img 
-                        src={club.leadership.coCoordinator.photo}
-                        alt={club.leadership.coCoordinator.name}
+                        src={club.co_coordinator.profile_image_url}
+                        alt={club.co_coordinator.name}
                         className="w-full h-full object-cover object-center"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -474,10 +482,10 @@ export default function PublicClubPage() {
                       />
                     ) : null}
                     <UserAvatar 
-                      name={club.leadership.coCoordinator.name}
-                      avatar={club.leadership.coCoordinator.photo}
+                      name={club.co_coordinator.name}
+                      avatar={club.co_coordinator.avatar}
                       size="xl"
-                      className={`${club.leadership.coCoordinator.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                      className={`${club.co_coordinator.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
                     />
                   </div>
                   <div className="absolute -top-3 -right-3 bg-primary-brand text-white p-3 rounded-full shadow-lg">
@@ -486,7 +494,7 @@ export default function PublicClubPage() {
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.leadership.coCoordinator.name}
+                    {club.co_coordinator.name}
                   </h3>
                   <div className="inline-block bg-primary-brand text-white px-4 py-1 rounded-full text-sm font-semibold">
                     Co-Coordinator
@@ -499,7 +507,7 @@ export default function PublicClubPage() {
             )}
 
             {/* Secretary */}
-            {club.leadership.secretary && (
+            {club.secretary && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -508,10 +516,10 @@ export default function PublicClubPage() {
               >
                 <div className="relative mb-8">
                   <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.leadership.secretary.photo ? (
+                    {club.secretary.profile_image_url ? (
                       <img 
-                        src={club.leadership.secretary.photo}
-                        alt={club.leadership.secretary.name}
+                        src={club.secretary.profile_image_url}
+                        alt={club.secretary.name}
                         className="w-full h-full object-cover object-center"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -520,10 +528,10 @@ export default function PublicClubPage() {
                       />
                     ) : null}
                     <UserAvatar 
-                      name={club.leadership.secretary.name}
-                      avatar={club.leadership.secretary.photo}
+                      name={club.secretary.name}
+                      avatar={club.secretary.avatar}
                       size="xl"
-                      className={`${club.leadership.secretary.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                      className={`${club.secretary.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
                     />
                   </div>
                   <div className="absolute -top-3 -right-3 bg-success-green text-white p-3 rounded-full shadow-lg">
@@ -532,7 +540,7 @@ export default function PublicClubPage() {
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.leadership.secretary.name}
+                    {club.secretary.name}
                   </h3>
                   <div className="inline-block bg-success-green text-white px-4 py-1 rounded-full text-sm font-semibold">
                     Secretary
@@ -545,7 +553,7 @@ export default function PublicClubPage() {
             )}
 
             {/* Media Head */}
-            {club.leadership.media && (
+            {club.media && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -554,10 +562,10 @@ export default function PublicClubPage() {
               >
                 <div className="relative mb-8">
                   <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.leadership.media.photo ? (
+                    {club.media.profile_image_url ? (
                       <img 
-                        src={club.leadership.media.photo}
-                        alt={club.leadership.media.name}
+                        src={club.media.profile_image_url}
+                        alt={club.media.name}
                         className="w-full h-full object-cover object-center"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -566,10 +574,10 @@ export default function PublicClubPage() {
                       />
                     ) : null}
                     <UserAvatar 
-                      name={club.leadership.media.name}
-                      avatar={club.leadership.media.photo}
+                      name={club.media.name}
+                      avatar={club.media.avatar}
                       size="xl"
-                      className={`${club.leadership.media.photo ? 'hidden' : ''} w-20 h-20 text-4xl`}
+                      className={`${club.media.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
                     />
                   </div>
                   <div className="absolute -top-3 -right-3 bg-secondary-accent text-white p-3 rounded-full shadow-lg">
@@ -578,7 +586,7 @@ export default function PublicClubPage() {
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.leadership.media.name}
+                    {club.media.name}
                   </h3>
                   <div className="inline-block bg-secondary-accent text-white px-4 py-1 rounded-full text-sm font-semibold">
                     Media Head
@@ -678,11 +686,11 @@ export default function PublicClubPage() {
                   <div className="space-y-2 text-sm text-zenith-muted">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-2" />
-                      {new Date(event.date).toLocaleDateString()}
+                      {new Date(event.event_date).toLocaleDateString()}
                     </div>
                     <div className="flex items-center">
                       <Clock className="w-4 h-4 mr-2" />
-                      {event.time}
+                      {new Date(event.event_date).toLocaleTimeString()}
                     </div>
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-2" />
@@ -690,7 +698,7 @@ export default function PublicClubPage() {
                     </div>
                     <div className="flex items-center">
                       <Users className="w-4 h-4 mr-2" />
-                      {event.attendeeCount} attending
+                      {event.max_attendees} max attendees
                     </div>
                   </div>
                 </motion.div>
@@ -729,10 +737,10 @@ export default function PublicClubPage() {
                     {post.title}
                   </h3>
                   <p className="text-zenith-secondary mb-4 line-clamp-3">
-                    {post.content}
+                    {post.excerpt}
                   </p>
                   <div className="flex items-center justify-between text-sm text-zenith-muted">
-                    <span>By {post.author_name}</span>
+                                        <span>By {post.author_name}</span>
                     <span>{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
                 </motion.div>
@@ -774,6 +782,11 @@ export default function PublicClubPage() {
           </motion.div>
         </div>
       </section>
+      
+      {/* Zen Assistant - Only visible to privileged users */}
+      {/* {user && (user.role === 'admin' || user.role === 'coordinator' || user.role === 'co_coordinator' || user.role === 'zenith_committee') && (
+        <ZenChatbot />
+      )} */}
     </div>
   );
 }

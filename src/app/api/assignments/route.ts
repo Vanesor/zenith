@@ -500,29 +500,28 @@ export async function POST(request: NextRequest) {
       // Commit transaction
       await db.query('COMMIT');
 
-      // Create notifications for all club members
-      const clubMembersQuery = `
-        SELECT id FROM users 
-        WHERE club_id = $1 AND id != $2
-      `;
-      const clubMembersResult = await db.query(clubMembersQuery, [actualClubId, userId]);
-      const clubMembers = clubMembersResult.rows;
-
-      if (clubMembers.length > 0) {
-        const clubQuery = `SELECT name FROM clubs WHERE id = $1`;
-        const clubResult = await db.query(clubQuery, [actualClubId]);
-        const clubName = clubResult.rows[0]?.name || "Club";
-
-        const memberIds = clubMembers.map((member) => member.id);
-        
+      // Send email notifications to all club members
+      if (actualClubId) {
         try {
-          await NotificationService.notifyAssignmentCreated(
-            createdAssignment.id,
-            memberIds,
-            clubName
-          );
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/assignments/notify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              assignmentId: createdAssignment.id,
+              assignmentTitle: title,
+              dueDate: dueDate,
+              createdBy: authResult.user!.name,
+              clubId: actualClubId
+            }),
+          });
+
+          if (!response.ok) {
+            console.error('Failed to send assignment notifications');
+          }
         } catch (notificationError) {
-          console.error("Error creating notifications:", notificationError);
+          console.error("Error sending assignment email notifications:", notificationError);
           // Don't fail the assignment creation if notifications fail
         }
       }

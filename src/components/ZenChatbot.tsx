@@ -238,7 +238,7 @@ export default function ZenChatbot() {
                 </div>
 
                 {/* Quick Replies */}
-                <div className="px-4 pb-2 flex-shrink-0">
+                {/* <div className="px-4 pb-2 flex-shrink-0">
                   <div className="flex flex-wrap gap-2">
                     {quickReplies.map((reply) => (
                       <button
@@ -250,7 +250,7 @@ export default function ZenChatbot() {
                       </button>
                     ))}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Input */}
                 <div className="p-4 border-t border-custom dark:border-gray-600 flex-shrink-0">

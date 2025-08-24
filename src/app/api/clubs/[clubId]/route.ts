@@ -62,7 +62,7 @@ export async function GET(
         SELECT p.*, u.name as author_name 
         FROM posts p
         LEFT JOIN users u ON p.author_id = u.id
-        WHERE p.club_id = $1 
+        WHERE p.club_id = $1 AND p.status = 'published'
         ORDER BY p.created_at DESC 
         LIMIT 10
       `, [clubId])
@@ -71,6 +71,7 @@ export async function GET(
     return NextResponse.json({
       club: {
         ...club,
+        memberCount: parseInt(memberCountResult.rows[0].count),
         coordinator: {
           name: club.coordinator_name,
           email: club.coordinator_email,
@@ -96,7 +97,6 @@ export async function GET(
           profile_image_url: club.media_profile_image_url
         }
       },
-      member_count: parseInt(memberCountResult.rows[0].count),
       events: eventsResult.rows,
       posts: postsResult.rows
     });

@@ -5,7 +5,7 @@ import db from '@/lib/database';
 // GET /api/clubs/[clubId]/posts - Get posts for a specific club
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clubId: string } }
+  { params }: { params: Promise<{ clubId: string }> }
 ) {
   try {
     // Verify authentication
@@ -31,7 +31,7 @@ export async function GET(
         CASE WHEN user_likes.id IS NOT NULL THEN true ELSE false END as is_liked,
         CASE WHEN user_bookmarks.id IS NOT NULL THEN true ELSE false END as is_bookmarked,
         CEIL(LENGTH(p.content) / 200.0) as reading_time,
-        0 as views_count
+        p.view_count as views_count
       FROM posts p
       JOIN users u ON p.author_id = u.id
       JOIN clubs c ON p.club_id = c.id
@@ -56,11 +56,34 @@ export async function GET(
 
     const result = await db.query(postsQuery, [clubId, userId]);
     
-    // Process tags (assuming they're stored as comma-separated strings)
+    // Process and format the posts
     const posts = result.rows.map(post => ({
-      ...post,
-      tags: post.tags ? post.tags.split(',').map((tag: string) => tag.trim()) : [],
-      excerpt: post.content.substring(0, 150) + (post.content.length > 150 ? '...' : '')
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      excerpt: post.excerpt || (post.content.substring(0, 150) + (post.content.length > 150 ? '...' : '')),
+      slug: post.slug,
+      status: post.status,
+      tags: Array.isArray(post.tags) ? post.tags : [],
+      author: {
+        id: post.author_id,
+        name: post.author_name,
+        role: post.author_role,
+        avatar: post.author_avatar,
+        profile_image_url: post.author_profile_image_url,
+      },
+      club: {
+        id: post.club_id,
+        name: post.club_name,
+      },
+      likeCount: parseInt(post.likes_count) || 0,
+      commentCount: parseInt(post.comments_count) || 0,
+      viewCount: post.views_count || 0,
+      isLiked: post.is_liked,
+      isBookmarked: post.is_bookmarked,
+      readingTime: post.reading_time || 1,
+      created_at: post.created_at,
+      updated_at: post.updated_at,
     }));
 
     return NextResponse.json({

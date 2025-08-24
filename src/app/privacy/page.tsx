@@ -7,7 +7,7 @@ import { UnifiedHeader } from '@/components/UnifiedHeader';
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-main transition-colors duration-300">
-      <UnifiedHeader showNavigation={true} />
+      {/* <UnifiedHeader showNavigation={true} /> */}
       
       <div className="pt-40 pb-12 px-4">
         <div className="max-w-4xl mx-auto">

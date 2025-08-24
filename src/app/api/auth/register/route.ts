@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, withAuth, createUser } from "@/lib/auth-unified";
 import { RateLimiter } from "@/lib/RateLimiter";
+import EmailService from "@/lib/EmailService";
 
 const registrationLimiter = RateLimiter.createAuthLimiter();
 
@@ -133,7 +134,19 @@ export async function POST(request: NextRequest) {
 
     console.log('Registration successful for user:', user.email);
 
-    // 8. Create response with secure cookies
+    // 8. Send verification email
+    try {
+      const emailResult = await EmailService.sendVerificationEmail(user.email, user.name);
+      if (!emailResult.success) {
+        console.error('Failed to send verification email:', user.email);
+        // Continue with registration even if email fails
+      }
+    } catch (emailError) {
+      console.error('Email service error:', emailError);
+      // Continue with registration even if email fails
+    }
+
+    // 9. Create response with secure cookies
     const response = NextResponse.json({
       success: true,
       user: {
@@ -142,6 +155,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
         verified: false,
+        emailVerified: false,
       },
       message: "Registration successful! Please check your email for verification."
     });

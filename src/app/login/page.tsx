@@ -29,6 +29,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Captcha, { CaptchaRef } from "@/components/ui/Captcha";
+import EmailVerificationModal from "@/components/EmailVerificationModal";
+import ForgotPasswordModal from "@/components/ForgotPasswordModal";
 import { signIn } from "next-auth/react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -55,6 +57,9 @@ export default function LoginPage() {
   const [emailVerificationSent, setEmailVerificationSent] = useState(false);
   const [trustDevice, setTrustDevice] = useState(false);
   const [captchaValid, setCaptchaValid] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [emailToVerify, setEmailToVerify] = useState('');
   const captchaRef = useRef<CaptchaRef>(null);
   const router = useRouter();
   const { login } = useAuth();
@@ -162,6 +167,18 @@ export default function LoginPage() {
       } else {
         // Reset CAPTCHA on login failure
         captchaRef.current?.reset();
+        
+        // Handle email verification required
+        if (response.status === 403 && result.emailVerificationRequired) {
+          setEmailToVerify(data.email);
+          setShowEmailVerification(true);
+          toast.error('Please verify your email address before logging in.', {
+            duration: 5000,
+            position: 'top-center',
+            icon: '📧',
+          });
+          return;
+        }
         
         // Handle common error status codes
         if (response.status === 400) {
@@ -293,6 +310,16 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmailVerificationSuccess = () => {
+    setShowEmailVerification(false);
+    setEmailToVerify('');
+    toast.success('Email verified successfully! Please log in again.');
+  };
+
+  const handleForgotPasswordClick = () => {
+    setShowForgotPassword(true);
   };
 
   return (
@@ -481,12 +508,13 @@ export default function LoginPage() {
                       </span>
                     </label>
                     
-                    <Link 
-                      href="/forgot-password" 
+                    <button
+                      type="button"
+                      onClick={handleForgotPasswordClick}
                       className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-medium hover:no-underline"
                     >
                       Forgot password?
-                    </Link>
+                    </button>
                   </div>
 
                   <Button
@@ -767,6 +795,25 @@ export default function LoginPage() {
           © 2025 Zenith. All rights reserved.
         </motion.div>
       </div>
+      
+      {/* Email Verification Modal */}
+      {showEmailVerification && (
+        <EmailVerificationModal
+          isOpen={showEmailVerification}
+          onClose={() => setShowEmailVerification(false)}
+          email={emailToVerify}
+          type="verification"
+          onSuccess={handleEmailVerificationSuccess}
+        />
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <ForgotPasswordModal
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+        />
+      )}
       
       {/* CSS for grid pattern */}
       <style jsx>{`
