@@ -62,6 +62,7 @@ sudo apt install -y \
     curl \
     wget \
     git \
+    rsync \
     build-essential \
     software-properties-common \
     apt-transport-https \
@@ -161,8 +162,51 @@ sudo chown -R $USER:$USER $PROJECT_DIR
 # If this script is run from the project directory, copy files
 if [ -f "package.json" ] && [ -f "next.config.ts" ]; then
     log "Copying project files..."
-    cp -r . $PROJECT_DIR/
+    # Copy files excluding .git directory to avoid permission issues
+    rsync -av --exclude='.git' --exclude='node_modules' --exclude='.next' . $PROJECT_DIR/
     cd $PROJECT_DIR
+    
+    # Fix permissions on copied files
+    sudo chown -R $USER:$USER $PROJECT_DIR
+    chmod -R 755 $PROJECT_DIR
+    
+    # If .git directory exists in destination, fix its permissions
+    if [ -d "$PROJECT_DIR/.git" ]; then
+        log "Fixing Git directory permissions..."
+        sudo chown -R $USER:$USER $PROJECT_DIR/.git
+        chmod -R 755 $PROJECT_DIR/.git
+    fi
+    
+    # Clean up any Git issues and reinitialize if needed
+    log "Setting up Git repository..."
+    if [ -d "$PROJECT_DIR/.git" ]; then
+        # Try to clean up any problematic Git files
+        rm -rf $PROJECT_DIR/.git/objects/pack/*.idx 2>/dev/null || true
+        rm -rf $PROJECT_DIR/.git/objects/pack/*.pack 2>/dev/null || true
+        
+        # Reset Git configuration
+        cd $PROJECT_DIR
+        git config --global --add safe.directory $PROJECT_DIR
+        git config user.name "Deploy Bot"
+        git config user.email "deploy@zenith.com"
+        
+        # If there are still issues, reinitialize
+        if ! git status >/dev/null 2>&1; then
+            log "Git repository corrupted, reinitializing..."
+            rm -rf .git
+            git init
+            git add .
+            git commit -m "Initial deployment commit"
+        fi
+    else
+        # Initialize Git repository if it doesn't exist
+        cd $PROJECT_DIR
+        git init
+        git config user.name "Deploy Bot"
+        git config user.email "deploy@zenith.com"
+        git add .
+        git commit -m "Initial deployment commit"
+    fi
 else
     error "This script must be run from the Zenith project root directory"
 fi
