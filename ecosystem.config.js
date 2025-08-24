@@ -1,72 +1,34 @@
-// PM2 Configuration for production deployment
+// Simple PM2 Configuration - Only Main App
 module.exports = {
   apps: [
-    // Main application
     {
-      name: 'zenith-forum',
+      name: 'zenith',
       script: 'npm',
       args: 'start',
       cwd: './',
-      instances: 'max', // Use all CPU cores
+      instances: 1,
       exec_mode: 'cluster',
       env: {
         NODE_ENV: 'production',
         PORT: 3000
       },
-      env_production: {
-        NODE_ENV: 'production',
-        PORT: 3000
-      },
-      // Restart configuration
-      max_restarts: 5,
-      min_uptime: '10s',
-      max_memory_restart: '500M',
-      
       // Logging
       log_file: './logs/combined.log',
       out_file: './logs/out.log',
       error_file: './logs/error.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       
-      // Monitoring
-      monitoring: true,
-      pmx: true,
+      // Restart configuration
+      max_restarts: 5,
+      min_uptime: '10s',
+      max_memory_restart: '1G',
       
-      // Auto restart on file changes (disable in production)
+      // Monitoring
       watch: false,
-      ignore_watch: ['node_modules', 'logs', '.git'],
       
       // Graceful shutdown
       kill_timeout: 5000,
-      listen_timeout: 8000,
-      
-      // Health check
-      health_check_url: 'http://localhost:3000/api/health',
-      health_check_grace_period: 3000
-    },
-    // Notification cleanup cron job
-    {
-      name: 'zenith-notification-cleanup',
-      script: 'node',
-      args: './scripts/cleanup-notifications.js',
-      cron_restart: '0 0 * * *', // Run at midnight every day
-      autorestart: false,
-      watch: false,
-      env: {
-        NODE_ENV: 'production'
-      }
-    },
-    // Chat messages cleanup cron job - run weekly on Sunday at 3am
-    {
-      name: 'zenith-chat-cleanup',
-      script: 'node',
-      args: './scripts/chat-cleanup.js',
-      cron_restart: '0 3 * * 0', // Run at 3am every Sunday
-      autorestart: false,
-      watch: false,
-      env: {
-        NODE_ENV: 'production'
-      }
+      listen_timeout: 8000
     }
   ]
 };

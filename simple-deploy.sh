@@ -38,7 +38,7 @@ log "Starting Zenith deployment..."
 
 log "Installing required packages..."
 sudo apt update
-sudo apt install -y postgresql postgresql-contrib nodejs npm nginx certbot python3-certbot-nginx
+sudo apt install -y postgresql postgresql-contrib nodejs npm nginx certbot python3-certbot-nginx rsync
 
 # =============================================================================
 # 2. Setup PostgreSQL
@@ -50,14 +50,23 @@ log "Setting up PostgreSQL..."
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 
-# Create database and user
-sudo -u postgres psql << EOF
+# Create database and user (with proper error handling)
+sudo -u postgres psql << EOF || log "Database/user may already exist, continuing..."
+-- Drop existing database and user if they exist
+DROP DATABASE IF EXISTS $DB_NAME;
+DROP USER IF EXISTS $DB_USER;
+
+-- Create new user and database
 CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';
 CREATE DATABASE $DB_NAME OWNER $DB_USER;
 GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
 ALTER USER $DB_USER CREATEDB;
 ALTER USER $DB_USER SUPERUSER;
-\c $DB_NAME;
+\q
+EOF
+
+# Connect to database and create extensions
+sudo -u postgres psql -d $DB_NAME << EOF
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 \q
@@ -65,16 +74,23 @@ EOF
 
 # Import schema
 log "Importing database schema..."
-sudo -u postgres psql -d $DB_NAME < complete_schema.sql
+if [ -f "complete_schema.sql" ]; then
+    sudo -u postgres psql -d $DB_NAME < complete_schema.sql
+else
+    error "complete_schema.sql not found!"
+fi
 
 # Import data if insert scripts exist
 if [ -d "db_export/insert_scripts" ]; then
     log "Importing database data..."
     for sql_file in db_export/insert_scripts/*.sql; do
         if [ -f "$sql_file" ]; then
+            log "Importing $(basename "$sql_file")..."
             sudo -u postgres psql -d $DB_NAME < "$sql_file"
         fi
     done
+else
+    log "No insert scripts found, skipping data import..."
 fi
 
 log "Database setup completed"
@@ -90,10 +106,12 @@ sudo mkdir -p $PROJECT_DIR
 sudo chown -R $USER:$USER $PROJECT_DIR
 
 # Copy project files (excluding unnecessary files)
+log "Copying project files..."
 rsync -av --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='db_export' . $PROJECT_DIR/
 cd $PROJECT_DIR
 
 # Create production environment file
+log "Creating production environment..."
 cat > .env.local << EOF
 # Database Configuration
 DATABASE_URL="postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME"
@@ -173,36 +191,59 @@ log "Setting up PM2..."
 # Install PM2
 sudo npm install -g pm2
 
-# Create ecosystem file
-cat > ecosystem.config.js << EOF
-module.exports = {
-  apps: [{
-    name: 'zenith',
-    script: 'npm',
-    args: 'start',
-    cwd: '$PROJECT_DIR',
-    instances: 1,
-    exec_mode: 'cluster',
-    env: {
-      NODE_ENV: 'production',
-      PORT: $PORT
-    },
-    error_file: './logs/err.log',
-    out_file: './logs/out.log',
-    log_file: './logs/combined.log',
-    time: true,
-    max_memory_restart: '1G'
-  }]
-};
-EOF
+# Stop any existing PM2 processes
+pm2 kill || log "No existing PM2 processes to kill"
 
 # Create logs directory
 mkdir -p logs
 
+# Copy the fixed ecosystem config (make sure it exists)
+if [ ! -f "ecosystem.config.js" ]; then
+    log "Creating ecosystem.config.js..."
+    cat > ecosystem.config.js << 'EOF'
+module.exports = {
+  apps: [
+    {
+      name: 'zenith',
+      script: 'npm',
+      args: 'start',
+      cwd: './',
+      instances: 1,
+      exec_mode: 'cluster',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3000
+      },
+      // Logging
+      log_file: './logs/combined.log',
+      out_file: './logs/out.log',
+      error_file: './logs/error.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      
+      // Restart configuration
+      max_restarts: 5,
+      min_uptime: '10s',
+      max_memory_restart: '1G',
+      
+      // Monitoring
+      watch: false,
+      
+      // Graceful shutdown
+      kill_timeout: 5000,
+      listen_timeout: 8000
+    }
+  ]
+};
+EOF
+fi
+
 # Start with PM2
+log "Starting application with PM2..."
 pm2 start ecosystem.config.js
 pm2 save
-sudo env PATH=\$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER --hp $(eval echo ~$USER)
+
+# Setup PM2 startup
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER --hp $(eval echo ~$USER)
 
 # =============================================================================
 # 5. Setup Nginx with HTTPS
@@ -241,9 +282,9 @@ server {
 }
 EOF
 
-# Enable site
-sudo ln -sf /etc/nginx/sites-available/zenith /etc/nginx/sites-enabled/
+# Remove default site and enable our site
 sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/zenith /etc/nginx/sites-enabled/
 
 # Test and start Nginx
 sudo nginx -t
@@ -263,5 +304,6 @@ echo ""
 echo "🌐 Your application is now running at: https://$DOMAIN"
 echo "📊 Check status with: pm2 status"
 echo "📝 View logs with: pm2 logs zenith"
+echo "🔍 Check PM2 logs with: pm2 monit"
 echo ""
 log "Deployment finished! 🚀"
