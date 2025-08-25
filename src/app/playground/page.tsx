@@ -157,7 +157,7 @@ function PlaygroundPage() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/playground/execute', {
+      const response = await fetch('/api/code/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,13 +165,22 @@ function PlaygroundPage() {
         body: JSON.stringify({
           language: selectedLanguage.id,
           code,
+          input: '', // No input for playground execution
         }),
       });
 
       const data = await response.json();
-      setResult(data);
       
-      if (data.status === 'success') {
+      // Map the response to the expected format
+      setResult({
+        output: data.output || '',
+        error: data.error || '',
+        executionTime: data.executionTime || 0,
+        memoryUsed: data.memoryUsed || 0,
+        status: data.success ? 'success' : 'error'
+      });
+      
+      if (data.success) {
         showToast({ 
           title: 'Success', 
           message: 'Code executed successfully!', 

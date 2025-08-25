@@ -1,0 +1,23 @@
+    column_name    
+-------------------
+ member_count
+ coordinator_id
+ co_coordinator_id
+ secretary_id
+ media_id
+ meeting_schedule
+ created_at
+ updated_at
+ club_images
+ banner_image_url
+ id
+ name
+ type
+ description
+ long_description
+ icon
+ color
+ guidelines
+ logo_url
+(19 rows)
+

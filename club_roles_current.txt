@@ -1,0 +1,18 @@
+      role      | display_order 
+----------------+---------------
+ coordinator    |             0
+ member         |             0
+ secretary      |             0
+ coordinator    |             1
+ co_coordinator |             2
+ co_coordinator |             3
+ secretary      |             3
+ event_incharge |             4
+ mentor         |             4
+ outreach       |             4
+ secretary      |             4
+ event_incharge |             5
+ media          |             5
+ outreach       |             5
+(14 rows)
+

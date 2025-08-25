@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   MessageCircle,
   X,
@@ -32,6 +32,12 @@ export default function ZenChatbot() {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [rateLimitInfo, setRateLimitInfo] = useState<{
+    limit: number;
+    remaining: number;
+    resetTime: string;
+    authenticated: boolean;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -76,6 +82,12 @@ export default function ZenChatbot() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Update rate limit information
+        if (data.rateLimit) {
+          setRateLimitInfo(data.rateLimit);
+        }
+        
         const zenMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: data.response,
@@ -84,7 +96,40 @@ export default function ZenChatbot() {
         };
         setMessages((prev) => [...prev, zenMessage]);
       } else {
-        throw new Error("Failed to get response");
+        // Handle rate limiting and other errors
+        const errorData = await response.json();
+        
+        if (response.status === 429) {
+          // Rate limited
+          const errorMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            content: errorData.error + (errorData.authenticated ? 
+              " You can ask more questions tomorrow!" : 
+              " Please log in for more queries or try again tomorrow!"),
+            sender: "zen",
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+          
+          // Update rate limit info
+          setRateLimitInfo({
+            limit: errorData.limit,
+            remaining: 0,
+            resetTime: errorData.resetTime,
+            authenticated: errorData.authenticated
+          });
+        } else if (response.status === 400 && errorData.limit) {
+          // Input too long
+          const errorMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            content: `${errorData.error} ${errorData.suggestion || ''}`,
+            sender: "zen",
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        } else {
+          throw new Error(errorData.error || "Failed to get response");
+        }
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -254,19 +299,42 @@ export default function ZenChatbot() {
 
                 {/* Input */}
                 <div className="p-4 border-t border-custom dark:border-gray-600 flex-shrink-0">
+                  {/* Rate Limit Display */}
+                  {rateLimitInfo && (
+                    <div className="mb-3 text-xs text-secondary flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                      <span>
+                        {rateLimitInfo.remaining > 0 
+                          ? `${rateLimitInfo.remaining}/${rateLimitInfo.limit} questions left today`
+                          : "Daily limit reached"
+                        }
+                        {!rateLimitInfo.authenticated && " (Log in for more!)"}
+                      </span>
+                      {rateLimitInfo.remaining === 0 && (
+                        <span className="text-xs text-orange-500">
+                          Resets: {new Date(rateLimitInfo.resetTime).toLocaleTimeString()}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
                   <div className="flex space-x-3">
                     <input
                       type="text"
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      placeholder="Ask Zen about Zenith..."
+                      placeholder={
+                        rateLimitInfo?.remaining === 0 
+                          ? "Daily question limit reached..." 
+                          : "Ask Zen about Zenith..."
+                      }
                       className="flex-1 p-3 border border-custom dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-zenith-primary text-sm bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
-                      disabled={isLoading}
+                      disabled={isLoading || (rateLimitInfo?.remaining === 0)}
+                      maxLength={4000}
                     />
                     <button
                       onClick={sendMessage}
-                      disabled={isLoading || !inputMessage.trim()}
+                      disabled={isLoading || !inputMessage.trim() || (rateLimitInfo?.remaining === 0)}
                       className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-primary rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0"
                     >
                       <Send size={16} />

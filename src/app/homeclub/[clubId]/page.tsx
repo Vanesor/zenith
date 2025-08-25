@@ -30,6 +30,7 @@ import UserAvatar from "@/components/UserAvatar";
 import ZenChatbot from "@/components/ZenChatbot";
 import { PageLoader } from "@/components/UniversalLoader";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import TeamShowcase from "@/components/TeamShowcase";
 
 interface ClubData {
   club: {
@@ -151,31 +152,24 @@ export default function PublicClubPage() {
     const clubSpecificImages = [
       {
         id: 1,
-        url: `/carousel/${clubId.toLowerCase()}/event1.jpg`,
+        url: `/carousel/${clubId.toLowerCase()}/1.png`,
         title: `${clubId.toUpperCase()} Workshop`,
         description: "Interactive learning session with industry experts",
         fallback: baseImages[0].url
       },
       {
         id: 2,
-        url: `/carousel/${clubId.toLowerCase()}/event2.jpg`,
+        url: `/carousel/${clubId.toLowerCase()}/2.png`,
         title: `${clubId.toUpperCase()} Project Demo`,
         description: "Student presentations and project showcases",
         fallback: baseImages[1].url
       },
       {
         id: 3,
-        url: `/carousel/${clubId.toLowerCase()}/event3.jpg`,
+        url: `/carousel/${clubId.toLowerCase()}/3.png`,
         title: `${clubId.toUpperCase()} Competition`,
         description: "Competitive coding and innovation challenges",
         fallback: baseImages[2].url
-      },
-      {
-        id: 4,
-        url: `/carousel/${clubId.toLowerCase()}/event4.jpg`,
-        title: `${clubId.toUpperCase()} Networking`,
-        description: "Building connections and collaborative partnerships",
-        fallback: baseImages[3].url
       }
     ];
 
@@ -464,7 +458,7 @@ export default function PublicClubPage() {
         </div>
       </section>
 
-      {/* Management Team */}
+      {/* Club Leadership Team Carousel */}
       <section className="py-16 bg-zenith-main">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -473,200 +467,21 @@ export default function PublicClubPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-zenith-primary mb-4">Leadership Team</h2>
+            <h2 className="text-3xl font-bold text-zenith-primary mb-4">{club.name} Leadership Team</h2>
             <p className="text-xl text-zenith-secondary">
-              Meet the dedicated leaders who guide our club
+              Meet the coordinators and leaders who guide {club.name} across different academic years
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            {/* Coordinator */}
-            {club.coordinator && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-              >
-                <div className="relative mb-8">
-                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.coordinator.profile_image_url ? (
-                      <img 
-                        src={club.coordinator.profile_image_url}
-                        alt={club.coordinator.name}
-                        className="w-full h-full object-cover object-center"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <UserAvatar 
-                      name={club.coordinator.name}
-                      avatar={club.coordinator.profile_image_url}
-                      size="xl"
-                      className={`${club.coordinator.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
-                    />
-                  </div>
-                  <div className="absolute -top-3 -right-3 bg-warning-orange text-white p-3 rounded-full shadow-lg">
-                    <Crown className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.coordinator.name}
-                  </h3>
-                  <div className="inline-block bg-warning-orange text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Coordinator
-                  </div>
-                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                    Leading the club vision and strategic direction
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Co-Coordinator */}
-            {club.co_coordinator && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-              >
-                <div className="relative mb-8">
-                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.co_coordinator.profile_image_url ? (
-                      <img 
-                        src={club.co_coordinator.profile_image_url}
-                        alt={club.co_coordinator.name}
-                        className="w-full h-full object-cover object-center"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <UserAvatar 
-                      name={club.co_coordinator.name}
-                      avatar={club.co_coordinator.avatar}
-                      size="xl"
-                      className={`${club.co_coordinator.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
-                    />
-                  </div>
-                  <div className="absolute -top-3 -right-3 bg-primary-brand text-white p-3 rounded-full shadow-lg">
-                    <Shield className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.co_coordinator.name}
-                  </h3>
-                  <div className="inline-block bg-primary-brand text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Co-Coordinator
-                  </div>
-                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                    Supporting coordination and member engagement
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Secretary */}
-            {club.secretary && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-              >
-                <div className="relative mb-8">
-                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.secretary.profile_image_url ? (
-                      <img 
-                        src={club.secretary.profile_image_url}
-                        alt={club.secretary.name}
-                        className="w-full h-full object-cover object-center"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <UserAvatar 
-                      name={club.secretary.name}
-                      avatar={club.secretary.avatar}
-                      size="xl"
-                      className={`${club.secretary.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
-                    />
-                  </div>
-                  <div className="absolute -top-3 -right-3 bg-success-green text-white p-3 rounded-full shadow-lg">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.secretary.name}
-                  </h3>
-                  <div className="inline-block bg-success-green text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Secretary
-                  </div>
-                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                    Managing documentation and communications
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Media Head */}
-            {club.media && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-              >
-                <div className="relative mb-8">
-                  <div className="relative w-44 h-56 mx-auto rounded-2xl overflow-hidden shadow-lg bg-zenith-hover flex items-center justify-center">
-                    {club.media.profile_image_url ? (
-                      <img 
-                        src={club.media.profile_image_url}
-                        alt={club.media.name}
-                        className="w-full h-full object-cover object-center"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <UserAvatar 
-                      name={club.media.name}
-                      avatar={club.media.avatar}
-                      size="xl"
-                      className={`${club.media.profile_image_url ? 'hidden' : ''} w-20 h-20 text-4xl`}
-                    />
-                  </div>
-                  <div className="absolute -top-3 -right-3 bg-secondary-accent text-white p-3 rounded-full shadow-lg">
-                    <MessageSquare className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-zenith-primary">
-                    {club.media.name}
-                  </h3>
-                  <div className="inline-block bg-secondary-accent text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Media Head
-                  </div>
-                  <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                    Managing social media and publicity
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </div>
+          <TeamShowcase 
+            teamType="club"
+            teamId={club.id}
+            showYearNavigation={true}
+            autoPlay={true}
+            className="leadership-carousel"
+          />
         </div>
       </section>
-
 
       {/* Club Description */}
       <section className="py-16 bg-zenith-section">

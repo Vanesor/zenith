@@ -1,0 +1,29 @@
+                                    Table "public.club_members"
+     Column      |           Type           | Collation | Nullable |            Default             
+-----------------+--------------------------+-----------+----------+--------------------------------
+ id              | uuid                     |           | not null | uuid_generate_v4()
+ user_id         | uuid                     |           | not null | 
+ club_id         | character varying        |           | not null | 
+ is_leader       | boolean                  |           |          | false
+ joined_at       | timestamp with time zone |           |          | now()
+ academic_year   | character varying(9)     |           |          | '2024-2025'::character varying
+ role            | character varying(100)   |           |          | 'member'::character varying
+ is_current_term | boolean                  |           |          | true
+ display_order   | integer                  |           |          | 0
+ bio             | text                     |           |          | 
+ achievements    | text[]                   |           |          | 
+ created_at      | timestamp with time zone |           |          | CURRENT_TIMESTAMP
+ updated_at      | timestamp with time zone |           |          | CURRENT_TIMESTAMP
+Indexes:
+    "club_members_pkey" PRIMARY KEY, btree (id)
+    "idx_club_members_academic_year" btree (academic_year)
+    "idx_club_members_club_id" btree (club_id)
+    "idx_club_members_club_year" btree (club_id, academic_year)
+    "idx_club_members_current_term" btree (is_current_term)
+    "idx_club_members_user_id" btree (user_id)
+    "unique_club_member_year" UNIQUE CONSTRAINT, btree (user_id, club_id, academic_year)
+Foreign-key constraints:
+    "club_members_club_id_fkey" FOREIGN KEY (club_id) REFERENCES clubs(id) ON DELETE CASCADE
+Triggers:
+    update_club_privileges_trigger AFTER INSERT OR UPDATE ON club_members FOR EACH ROW EXECUTE FUNCTION update_club_privileges()
+

@@ -39,7 +39,7 @@ interface CompilerResponse {
 }
 
 // Render compiler service URL - Update this with your deployed service URL
-const COMPILER_SERVICE_URL = process.env.COMPILER_SERVICE_URL || 'https://execution-compiler.onrender.com';
+const COMPILER_SERVICE_URL = process.env.COMPILER_SERVICE_URL || process.env.CODE_EXECUTION_SERVICE_URL || 'https://your-render-app-url.onrender.com';
 
 export async function POST(request: NextRequest) {
   let code: string = '';
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Check if compiler service URL is configured
-    if (COMPILER_SERVICE_URL === 'https://your-compiler-service.onrender.com') {
+    if (COMPILER_SERVICE_URL === 'https://your-render-app-url.onrender.com') {
       console.warn('COMPILER_SERVICE_URL not configured, using local fallback');
       return NextResponse.json(getLocalFallbackResponse(code, language, input, testCases));
     }
@@ -264,7 +264,7 @@ function formatResponse(result: CompilerResponse, testCases?: any[]): any {
 }
 
 export async function GET() {
-  const isConfigured = COMPILER_SERVICE_URL !== 'https://your-compiler-service.onrender.com';
+  const isConfigured = COMPILER_SERVICE_URL !== 'https://your-render-app-url.onrender.com';
   
   return NextResponse.json({
     status: 'healthy',

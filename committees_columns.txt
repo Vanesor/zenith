@@ -1,0 +1,11 @@
+   column_name   
+-----------------
+ hierarchy_level
+ created_at
+ updated_at
+ id
+ is_active
+ name
+ description
+(7 rows)
+

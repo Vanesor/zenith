@@ -36,6 +36,7 @@ import { PageLoader } from "@/components/UniversalLoader";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import SafeAvatar from "@/components/SafeAvatar";
 import { Footer } from "@/components/NewFooter";
+import TeamShowcase from "@/components/TeamShowcase";
 
 // Icon mapping for clubs
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -51,7 +52,7 @@ const getClubTextColor = (clubName: string) => {
     'Ascend': 'text-zenith-primary',    // Blue for ASCEND
     'Aster': 'text-pink-500',     // Pink for ASTER  
     'Achievers': 'text-purple-500', // Purple for ACHIEVERS
-    'Altogether': 'text-green-500', // Green for ALTOGETHER
+    'Artovert': 'text-green-500', // Green for Artovert
   };
   
   // Find the club by checking if the name contains the key
@@ -169,7 +170,6 @@ export default function HomePage() {
   const carouselImages = [
     {
       id: 1,
-      // url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
       url: "images/community.jpg",
       title: "Welcome to Zenith Forum",
       subtitle: "DRIVEN BY PASSION, BUILT FOR EXCELLENCE",
@@ -177,7 +177,6 @@ export default function HomePage() {
     },
     {
       id: 2,
-      // url: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
       url:"images/father.jpg",
       title: "Specialized Clubs",
       subtitle: "Find Your Passion",
@@ -185,7 +184,6 @@ export default function HomePage() {
     },
     {
       id: 3,
-      // url: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
       url:"images/yash.jpg",
       title: "Events & Workshops",
       subtitle: "Learn & Grow Together",
@@ -193,7 +191,7 @@ export default function HomePage() {
     },
     {
       id: 4,
-      url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+      url: "images/image.png",
       title: "Innovation Hub",
       subtitle: "Transform Ideas into Reality",
       description: "Collaborate on projects and bring your innovations to life"
@@ -326,7 +324,7 @@ export default function HomePage() {
                 style={{ backgroundImage: `url(${image.url})` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div className="relative z-10 flex items-end justify-center h-full pb-12">
+                <div className="relative z-10 hidden md:flex items-end justify-center h-full pb-12">
                   <div className="text-center text-white px-6 max-w-5xl mx-auto">
                     <motion.h1
                       initial={{ y: 30, opacity: 0 }}
@@ -438,29 +436,124 @@ export default function HomePage() {
                 ZENITH
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-primary mb-8 max-w-3xl mx-auto leading-relaxed">
+              <span className="bg-gradient-to-r from-purple-400 to-purple-500 bg-clip-text text-transparent"> 
               DRIVEN BY PASSION, BUILT FOR EXCELLENCE
-            </p>
-            <p className="text-lg text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
-              Join our vibrant college forum community where students connect,
-              learn, and grow together through specialized clubs and activities.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/register"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
-              >
-                Get Started
-                <ChevronRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                href="#clubs"
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
-              >
-                Explore Clubs
-              </Link>
-            </div>
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-blue-400 to-blue-900 bg-clip-text text-transparent">
+              A Initiative driven by the students, For the students
+              </span>
+            </p>  
           </motion.div>
+        </div>
+      </section>
+
+      {/* ABOUT ZENITH SECTION - Platform description and features */}
+      <section className="py-20 bg-zenith-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <h2 className="text-4xl font-bold text-zenith-brand mb-6">
+                What is Zenith?
+              </h2>
+              <p className="text-lg text-zenith-secondary mb-6 leading-relaxed">
+                Zenith is more than just a college forum - it&apos;s a thriving
+                ecosystem where passionate students come together to learn,
+                grow, and excel. Our platform connects like-minded individuals
+                through specialized clubs, each designed to nurture specific
+                skills and interests.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Users className="w-4 h-4 text-zenith-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-zenith-primary">
+                      Community Driven
+                    </h3>
+                    <p className="text-sm text-zenith-muted">
+                      Built by students, for students
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-4 h-4 text-zenith-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-zenith-primary">
+                      Skill Development
+                    </h3>
+                    <p className="text-sm text-zenith-muted">
+                      Learn and grow with expert guidance
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-4 h-4 text-zenith-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-zenith-primary">
+                      Innovation Hub
+                    </h3>
+                    <p className="text-sm text-zenith-muted">
+                      Where ideas come to life
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-zenith-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-zenith-primary">
+                      Regular Events
+                    </h3>
+                    <p className="text-sm text-zenith-muted">
+                      Workshops, competitions, and more
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="relative"
+            >
+              <div className="bg-gradient-to-br  from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
+                <div className="text-center">
+                  <ZenithLogo size="xl" className="mb-6" />
+                  <p className="text-lg opacity-90 mb-6">
+                    &quot;Excellence is not a destination, it&apos;s a journey
+                    of continuous growth and learning.&quot;
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold">
+                        {stats.totalMembers}+
+                      </div>
+                      <div className="text-sm opacity-80">Active Members</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">
+                        {stats.upcomingEvents}+
+                      </div>
+                      <div className="text-sm opacity-80">Monthly Events</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -510,7 +603,7 @@ export default function HomePage() {
       </section>
       
       {/* ===== FACULTY MENTORS SECTION ===== */}
-      <section className="py-16 bg-zenith-card/50">
+      {/* <section className="py-16 bg-zenith-card/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -524,7 +617,6 @@ export default function HomePage() {
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 justify-center max-w-4xl mx-auto">
-            {/* Head of Department */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -560,7 +652,6 @@ export default function HomePage() {
               </div>
             </motion.div>
             
-            {/* Faculty Mentor */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -597,232 +688,33 @@ export default function HomePage() {
             </motion.div>
           </div>
         </div>
+      </section> */}
+
+      {/* ===== ZENITH LEADERSHIP TEAM CAROUSEL SECTION ===== */}
+      <section className="py-16 bg-zenith-main">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold text-zenith-primary mb-4">Zenith Leadership Team</h2>
+            <p className="text-xl text-zenith-secondary">
+              Meet the dedicated leaders who guide Zenith Forum across different academic years
+            </p>
+          </motion.div>
+          
+          {/* Team Showcase Carousel */}
+          <TeamShowcase 
+            teamType="committee" 
+            teamId="8f28c85b-1315-4583-923a-a827f9507a00"
+            showYearNavigation={true}
+            autoPlay={true}
+            className="leadership-carousel"
+          />
+        </div>
       </section>
-
-      {/* ===== LEADERSHIP TEAM SECTION ===== */}
-      {leadership && (
-        <section className="py-16 bg-zenith-main">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl font-bold text-zenith-primary mb-4">Leadership Team</h2>
-              <p className="text-xl text-zenith-secondary">
-                Meet the dedicated leaders who guide Zenith Forum
-              </p>
-            </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-              {/* President */}
-              {leadership.coordinator && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-                >
-                  <div className="relative mb-8">
-                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
-                      <img 
-                        src={leadership.coordinator.photo}
-                        alt={`${leadership.coordinator.name}'s avatar`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute -top-3 -right-3 bg-warning-orange text-white p-3 rounded-full shadow-lg">
-                      <Crown className="w-6 h-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-zenith-primary">
-                      {leadership.coordinator.name}
-                    </h3>
-                    <div className="inline-block bg-warning-orange text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      President
-                    </div>
-                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                      Leading the forum vision and strategic direction
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-              
-              {/* Vice President */}
-              {leadership.coCoordinator && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-                >
-                  <div className="relative mb-8">
-                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
-                      <img 
-                        src={leadership.coCoordinator.photo}
-                        alt={`${leadership.coCoordinator.name}'s avatar`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute -top-3 -right-3 bg-primary-brand text-white p-3 rounded-full shadow-lg">
-                      <Shield className="w-6 h-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-zenith-primary">
-                      {leadership.coCoordinator.name}
-                    </h3>
-                    <div className="inline-block bg-primary-brand text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      Vice President
-                    </div>
-                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                      Supporting coordination and member engagement
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-              
-              {/* Secretary */}
-              {leadership.secretary && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-                >
-                  <div className="relative mb-8">
-                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
-                      <img 
-                        src={leadership.secretary.photo}
-                        alt={`${leadership.secretary.name}'s avatar`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute -top-3 -right-3 bg-success-green text-white p-3 rounded-full shadow-lg">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-zenith-primary">
-                      {leadership.secretary.name}
-                    </h3>
-                    <div className="inline-block bg-success-green text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      Secretary
-                    </div>
-                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                      Managing documentation and communications
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-              
-              {/* Treasurer */}
-              {leadership.treasurer && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-                >
-                  <div className="relative mb-8">
-                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
-                      <img 
-                        src={leadership.treasurer.photo}
-                        alt={`${leadership.treasurer.name}'s avatar`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute -top-3 -right-3 bg-blue-500 text-white p-3 rounded-full shadow-lg">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-zenith-primary">
-                      {leadership.treasurer.name}
-                    </h3>
-                    <div className="inline-block bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      Treasurer
-                    </div>
-                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                      Managing finances and budget planning
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-              
-              {/* Innovation Head */}
-              {leadership.innovationHead && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-                >
-                  <div className="relative mb-8">
-                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
-                      <img 
-                        src={leadership.innovationHead.photo}
-                        alt={`${leadership.innovationHead.name}'s avatar`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute -top-3 -right-3 bg-purple-500 text-white p-3 rounded-full shadow-lg">
-                      <Lightbulb className="w-6 h-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-zenith-primary">
-                      {leadership.innovationHead.name}
-                    </h3>
-                    <div className="inline-block bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      Innovation Head
-                    </div>
-                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                      Leading innovation and technology initiatives
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-              
-              {/* Media Head */}
-              {leadership.media && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                  className="bg-zenith-card rounded-3xl p-8 shadow-xl border border-zenith-border text-center hover:shadow-2xl hover:scale-105 transition-all duration-300 min-h-[480px]"
-                >
-                  <div className="relative mb-8">
-                    <div className="w-44 h-56 mx-auto rounded-lg overflow-hidden shadow-lg">
-                      <img 
-                        src={leadership.media.photo}
-                        alt={`${leadership.media.name}'s avatar`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute -top-3 -right-3 bg-red-500 text-white p-3 rounded-full shadow-lg">
-                      <MessageSquare className="w-6 h-6" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-zenith-primary">
-                      {leadership.media.name}
-                    </h3>
-                    <div className="inline-block bg-red-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      Media Head
-                    </div>
-                    <p className="text-base text-zenith-muted leading-relaxed mt-4">
-                      Managing social media and publicity
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
 
   {/* CLUBS SHOWCASE SECTION - Featured clubs with descriptions */}
       <section
@@ -1077,7 +969,7 @@ export default function HomePage() {
 
           <div className="text-center mt-12">
             <Link
-              href="/posts"
+              href="/clubs"
               className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold text-lg"
             >
               View All Posts
@@ -1087,113 +979,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ABOUT ZENITH SECTION - Platform description and features */}
-      <section className="py-20 bg-zenith-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <h2 className="text-4xl font-bold text-zenith-brand mb-6">
-                What is Zenith?
-              </h2>
-              <p className="text-lg text-zenith-secondary mb-6 leading-relaxed">
-                Zenith is more than just a college forum - it&apos;s a thriving
-                ecosystem where passionate students come together to learn,
-                grow, and excel. Our platform connects like-minded individuals
-                through specialized clubs, each designed to nurture specific
-                skills and interests.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-zenith-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-zenith-primary">
-                      Community Driven
-                    </h3>
-                    <p className="text-sm text-zenith-muted">
-                      Built by students, for students
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-4 h-4 text-zenith-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-zenith-primary">
-                      Skill Development
-                    </h3>
-                    <p className="text-sm text-zenith-muted">
-                      Learn and grow with expert guidance
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lightbulb className="w-4 h-4 text-zenith-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-zenith-primary">
-                      Innovation Hub
-                    </h3>
-                    <p className="text-sm text-zenith-muted">
-                      Where ideas come to life
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-zenith-hover rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-4 h-4 text-zenith-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-zenith-primary">
-                      Regular Events
-                    </h3>
-                    <p className="text-sm text-zenith-muted">
-                      Workshops, competitions, and more
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="relative"
-            >
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
-                <div className="text-center">
-                  <ZenithLogo size="xl" className="mb-6" />
-                  <p className="text-lg opacity-90 mb-6">
-                    &quot;Excellence is not a destination, it&apos;s a journey
-                    of continuous growth and learning.&quot;
-                  </p>
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-bold">
-                        {stats.totalMembers}+
-                      </div>
-                      <div className="text-sm opacity-80">Active Members</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold">
-                        {stats.upcomingEvents}+
-                      </div>
-                      <div className="text-sm opacity-80">Monthly Events</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* CALL-TO-ACTION SECTION - Final conversion section */}
       <section className="py-20 bg-zenith-accent">

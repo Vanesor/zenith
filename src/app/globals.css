@@ -130,6 +130,40 @@ body {
 .border-custom { border-color: var(--border-color); }
 .border-hover { border-color: var(--border-hover); }
 
+/* Zenith Theme Classes */
+.bg-zenith-card { 
+  background-color: var(--bg-card); 
+  transition: background-color 0.3s ease;
+}
+.bg-zenith-section { 
+  background-color: var(--bg-section); 
+  transition: background-color 0.3s ease;
+}
+.bg-zenith-hover { 
+  background-color: var(--bg-hover); 
+  transition: background-color 0.3s ease;
+}
+.text-zenith-primary { 
+  color: var(--text-primary); 
+  transition: color 0.3s ease;
+}
+.text-zenith-secondary { 
+  color: var(--text-secondary); 
+  transition: color 0.3s ease;
+}
+.text-zenith-muted { 
+  color: var(--text-muted); 
+  transition: color 0.3s ease;
+}
+.border-zenith-border { 
+  border-color: var(--border-color); 
+  transition: border-color 0.3s ease;
+}
+.border-zenith-hover { 
+  border-color: var(--border-hover); 
+  transition: border-color 0.3s ease;
+}
+
 /* Modern Card Styles */
 .card {
   background: var(--bg-card);

@@ -155,23 +155,23 @@ export const authOptions: NextAuthOptions = {
                 
                 dbUser = existingUserByEmail.rows[0];
               } else {
-                // Create new user
+                // Create new user with proper field names matching the database schema
                 const result = await queryRawSQL(
                   `INSERT INTO users 
-                   (id, email, name, avatar, role, oauth_provider, oauth_id, oauth_data, email_verified, has_password) 
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                   (id, email, name, avatar, role, oauth_provider, oauth_id, oauth_data, email_verified, has_password, created_at, updated_at) 
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
                    RETURNING *`,
                   [
                     uuidv4(),
-                    user.email,
+                    user.email?.toLowerCase(),
                     user.name,
-                    user.image,
+                    user.image, // This maps to avatar field
                     "student", // Default role
                     account.provider,
                     account.providerAccountId,
                     JSON.stringify(account),
                     true, // Email already verified through OAuth
-                    false // User needs to set a password
+                    false // User needs to set a password for local login
                   ]
                 );
 

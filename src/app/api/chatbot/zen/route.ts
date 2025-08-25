@@ -1,7 +1,33 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth-unified";
+import { RateLimiter } from "@/lib/RateLimiter";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+
+// Rate limiters for different user types with IP-based tracking
+const unauthenticatedLimiter = RateLimiter.createChatbotLimiter(5); // 5 queries per 24 hours
+const authenticatedLimiter = RateLimiter.createChatbotLimiter(10); // 10 queries per 24 hours
+
+// Input/Output limits
+const MAX_INPUT_TOKENS = 1000; // ~750 words
+const MAX_OUTPUT_TOKENS = 1500; // ~1125 words
+const MAX_MESSAGE_LENGTH = 4000; // characters
+
+// Token estimation function (rough approximation: 1 token ≈ 0.75 words ≈ 4 characters)
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+// Get client IP address
+function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIP = request.headers.get('x-real-ip');
+  const clientIP = forwarded || realIP || 'unknown';
+  
+  // Handle comma-separated IPs (take first one)
+  return clientIP.split(',')[0].trim();
+}
 
 // Enhanced knowledge base for Zenith Forum with detailed information
 const zenithKnowledge = `
@@ -268,14 +294,80 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Use the correct Gemini model name
+    // Input validation and token limits
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        { 
+          error: `Message too long. Maximum ${MAX_MESSAGE_LENGTH} characters allowed.`,
+          limit: MAX_MESSAGE_LENGTH,
+          current: message.length
+        },
+        { status: 400 }
+      );
+    }
+
+    const inputTokens = estimateTokens(message);
+    if (inputTokens > MAX_INPUT_TOKENS) {
+      return NextResponse.json(
+        { 
+          error: `Message too long. Maximum ${MAX_INPUT_TOKENS} tokens allowed.`,
+          limit: MAX_INPUT_TOKENS,
+          current: inputTokens,
+          suggestion: "Please shorten your message and try again."
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get client IP for rate limiting
+    const clientIP = getClientIP(req);
+    
+    // Check authentication status
+    const authResult = await verifyAuth(req);
+    const isAuthenticated = authResult.success;
+
+    // Apply rate limiting based on authentication status and IP
+    const identifier = isAuthenticated ? `user:${authResult.user?.id}` : `ip:${clientIP}`;
+    const rateLimiter = isAuthenticated ? authenticatedLimiter : unauthenticatedLimiter;
+    
+    const rateLimit = await rateLimiter.checkRateLimit(identifier, 'chatbot');
+    
+    if (!rateLimit.allowed) {
+      const resetDate = new Date(rateLimit.resetTime);
+      const hoursLeft = Math.ceil((rateLimit.resetTime - Date.now()) / (1000 * 60 * 60));
+      
+      return NextResponse.json(
+        { 
+          error: isAuthenticated 
+            ? `You've reached your daily limit of ${rateLimit.limit} questions. Try again in ${hoursLeft} hours.`
+            : `You've reached your daily limit of ${rateLimit.limit} questions. Please log in for more queries or try again in ${hoursLeft} hours.`,
+          rateLimited: true,
+          limit: rateLimit.limit,
+          remaining: rateLimit.remaining,
+          resetTime: resetDate.toISOString(),
+          retryAfter: rateLimit.retryAfter,
+          authenticated: isAuthenticated
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimit.limit.toString(),
+            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+            'X-RateLimit-Reset': resetDate.toISOString(),
+            'Retry-After': rateLimit.retryAfter?.toString() || '3600'
+          }
+        }
+      );
+    }
+
+    // Use the correct Gemini model with output token limits
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       generationConfig: {
         temperature: 0.7,
         topP: 0.8,
         topK: 40,
-        maxOutputTokens: 1024,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
       },
     });
 
@@ -309,6 +401,7 @@ Response guidelines:
 - For complex queries, break down information into digestible sections
 - Always maintain a helpful, college-appropriate tone
 - If the question is outside Zenith Forum scope, politely redirect to forum topics
+- Keep responses under ${MAX_OUTPUT_TOKENS} tokens
 
 Current context: User is on ${currentPage} page.`;
 
@@ -316,7 +409,38 @@ Current context: User is on ${currentPage} page.`;
     const response = await result.response;
     const text = response.text();
 
-    return NextResponse.json({ response: text });
+    // Estimate output tokens
+    const outputTokens = estimateTokens(text);
+
+    // Return response with rate limit headers
+    return NextResponse.json(
+      { 
+        response: text,
+        tokens: {
+          input: inputTokens,
+          output: outputTokens,
+          total: inputTokens + outputTokens
+        },
+        limits: {
+          inputTokens: MAX_INPUT_TOKENS,
+          outputTokens: MAX_OUTPUT_TOKENS,
+          messageLength: MAX_MESSAGE_LENGTH
+        },
+        rateLimit: {
+          limit: rateLimit.limit,
+          remaining: rateLimit.remaining - 1, // Subtract current request
+          resetTime: new Date(rateLimit.resetTime).toISOString(),
+          authenticated: isAuthenticated
+        }
+      },
+      {
+        headers: {
+          'X-RateLimit-Limit': rateLimit.limit.toString(),
+          'X-RateLimit-Remaining': (rateLimit.remaining - 1).toString(),
+          'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+        }
+      }
+    );
   } catch (error) {
     console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(

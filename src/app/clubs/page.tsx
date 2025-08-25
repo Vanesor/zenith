@@ -162,8 +162,24 @@ export default function ClubsPage() {
                   <div className="bg-card backdrop-blur-sm rounded-2xl p-6 border border-custom shadow-lg hover:shadow-xl transition-all duration-300 h-full">
                     {/* Club Header */}
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-primary font-bold text-2xl">
-                        {club.name.charAt(0)}
+                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={`/uploads/club-logos/${club.name.toLowerCase().replace(/\s+/g, '-')}.svg`}
+                          alt={`${club.name} logo`}
+                          className="w-12 h-12 object-contain filter brightness-0 invert"
+                          onError={(e) => {
+                            // Fallback to PNG if SVG not found
+                            const target = e.target as HTMLImageElement;
+                            const pngSrc = `/uploads/club-logos/${club.name.toLowerCase().replace(/\s+/g, '-')}.png`;
+                            if (target.src !== pngSrc) {
+                              target.src = pngSrc;
+                            } else {
+                              // Final fallback to first letter if no logo found
+                              target.style.display = 'none';
+                              target.parentElement!.innerHTML = `<span class="text-white font-bold text-2xl">${club.name.charAt(0)}</span>`;
+                            }
+                          }}
+                        />
                       </div>
                       <div className="space-y-2">
                         <h3 className="font-semibold text-xl text-primary group-hover:text-purple-600 transition-colors">

@@ -1,0 +1,12 @@
+      role      | hierarchy | count 
+----------------+-----------+-------
+ coordinator    |         1 |     8
+ co_coordinator |         2 |    12
+ secretary      |         3 |     6
+ media          |         4 |     1
+ event_incharge |         5 |     2
+ member         |         5 |    20
+ mentor         |         5 |     2
+ outreach       |         5 |     3
+(8 rows)
+

@@ -4,12 +4,20 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, Phone, Calendar, Check } from "lucide-react";
+import { User, Phone, Calendar, Check, Users, Star } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
+
+interface Club {
+  id: string;
+  name: string;
+  description: string;
+  member_count: number;
+  leadership_count: number;
+}
 
 export default function OnboardingPage() {
   noStore(); // Prevent static generation
@@ -20,12 +28,38 @@ export default function OnboardingPage() {
     lastName: "",
     phone: "",
     dateOfBirth: "",
-    interests: [] as string[],
+    selectedClub: "",
     agreeToTerms: false,
   });
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  // Load clubs data
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        const response = await fetch('/api/clubs');
+        if (response.ok) {
+          const data = await response.json();
+          // Handle the API response structure
+          const clubData = data.clubs || data;
+          setClubs(clubData.map((club: any) => ({
+            id: club.id,
+            name: club.name,
+            description: club.description,
+            member_count: club.memberCount || club.member_count || 0,
+            leadership_count: club.leadership?.length || 0,
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to fetch clubs:', error);
+      }
+    };
+    
+    fetchClubs();
+  }, []);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -46,27 +80,12 @@ export default function OnboardingPage() {
     }
   }, [session]);
 
-  const clubInterests = [
-    { id: 'ascend', name: 'Ascend (Coding)', description: 'Programming & Tech' },
-    { id: 'aster', name: 'Aster (Soft Skills)', description: 'Communication & Leadership' },
-    { id: 'achievers', name: 'Achievers (Higher Studies)', description: 'Graduate Prep' },
-    { id: 'altogether', name: 'Altogether (Holistic Growth)', description: 'Wellness & Life Skills' },
-  ];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleInterestToggle = (interestId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      interests: prev.interests.includes(interestId)
-        ? prev.interests.filter((id) => id !== interestId)
-        : [...prev.interests, interestId],
     }));
   };
 
@@ -82,15 +101,22 @@ export default function OnboardingPage() {
       return;
     }
 
+    if (!formData.selectedClub) {
+      setError("Please select a club or choose 'No club affiliation'");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch("/api/auth/complete-profile", {
+      const response = await fetch("/api/auth/complete-onboarding", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...formData,
-          email: session?.user?.email,
+          selectedClub: formData.selectedClub,
+          phone: formData.phone,
+          dateOfBirth: formData.dateOfBirth,
         }),
       });
 
@@ -149,50 +175,13 @@ export default function OnboardingPage() {
 
           {/* Onboarding Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="firstName"
-                  className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
-                >
-                  First Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-zenith-muted dark:text-zenith-muted" />
-                  </div>
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                    className="block w-full pl-10 pr-3 py-3 border border-custom dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
-                    placeholder="First name"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-sm font-medium text-zenith-secondary dark:text-gray-300 mb-2"
-                >
-                  Last Name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                  className="block w-full px-3 py-3 border border-custom dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-zenith-primary focus:border-transparent bg-card dark:bg-gray-700 text-primary placeholder-gray-500 dark:placeholder-gray-400"
-                  placeholder="Last name"
-                />
-              </div>
+            {/* Welcome Message */}
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-zenith-secondary dark:text-zenith-muted">
+                Welcome, {session?.user?.name}! 
+                <br />
+                <span className="text-sm">Complete your profile to join Zenith</span>
+              </p>
             </div>
 
             {/* Phone & DOB Fields */}
@@ -243,40 +232,86 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            {/* Interests Section */}
+            {/* Club Selection Section */}
             <div>
-              <h3 className="text-lg font-medium text-primary mb-4">
-                Select Your Interests
+              <h3 className="text-lg font-medium text-primary mb-4 flex items-center">
+                <Users className="h-5 w-5 mr-2" />
+                Select Your Club Affiliation
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {clubInterests.map((interest) => (
+              <div className="space-y-3">
+                {/* No Club Option */}
+                <div
+                  onClick={() => setFormData(prev => ({ ...prev, selectedClub: 'none' }))}
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    formData.selectedClub === 'none'
+                      ? "border-zenith-primary bg-blue-50 dark:bg-blue-900/20"
+                      : "border-custom dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                        formData.selectedClub === 'none'
+                          ? "border-zenith-primary bg-zenith-primary"
+                          : "border-gray-400 dark:border-gray-500"
+                      }`}
+                    >
+                      {formData.selectedClub === 'none' && (
+                        <Check className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="font-medium text-primary">
+                        No Club Affiliation
+                      </h4>
+                      <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
+                        Join the platform without a specific club
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Club Options */}
+                {clubs.map((club) => (
                   <div
-                    key={interest.id}
-                    onClick={() => handleInterestToggle(interest.id)}
+                    key={club.id}
+                    onClick={() => setFormData(prev => ({ ...prev, selectedClub: club.id }))}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      formData.interests.includes(interest.id)
+                      formData.selectedClub === club.id
                         ? "border-zenith-primary bg-blue-50 dark:bg-blue-900/20"
-                        : "border-custom dark:border-gray-600"
+                        : "border-custom dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                     }`}
                   >
                     <div className="flex items-start">
                       <div
-                        className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                          formData.interests.includes(interest.id)
+                        className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          formData.selectedClub === club.id
                             ? "border-zenith-primary bg-zenith-primary"
                             : "border-gray-400 dark:border-gray-500"
                         }`}
                       >
-                        {formData.interests.includes(interest.id) && (
-                          <Check className="w-3 h-3 text-primary" />
+                        {formData.selectedClub === club.id && (
+                          <Check className="w-3 h-3 text-white" />
                         )}
                       </div>
-                      <div className="ml-3">
-                        <h4 className="font-medium text-primary">
-                          {interest.name}
-                        </h4>
-                        <p className="text-sm text-zenith-secondary dark:text-zenith-muted">
-                          {interest.description}
+                      <div className="ml-3 flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-primary">
+                            {club.name}
+                          </h4>
+                          <div className="flex items-center text-sm text-zenith-secondary dark:text-zenith-muted">
+                            <Users className="h-4 w-4 mr-1" />
+                            {club.member_count} members
+                            {club.leadership_count > 0 && (
+                              <>
+                                <Star className="h-4 w-4 ml-2 mr-1" />
+                                {club.leadership_count} leaders
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-zenith-secondary dark:text-zenith-muted mt-1">
+                          {club.description}
                         </p>
                       </div>
                     </div>

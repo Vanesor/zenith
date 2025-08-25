@@ -186,6 +186,14 @@ export class RateLimiter {
       message: 'Too many file uploads, please try again later.'
     });
   }
+
+  static createChatbotLimiter(maxQueries: number): RateLimiter {
+    return new RateLimiter({
+      windowMs: 24 * 60 * 60 * 1000, // 24 hours
+      maxRequests: maxQueries,
+      message: `You have reached your daily chatbot query limit of ${maxQueries} questions. Please try again tomorrow.`
+    });
+  }
 }
 
 // Middleware wrapper for easy use in API routes
