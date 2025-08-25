@@ -105,25 +105,25 @@ export function PaperpalHeader({
               <Image
                 src="/collegelogo.png"
                 alt="St. Vincent Pallotti College of Engineering and Technology"
-                width={60}
-                height={60}
+                width={50}
+                height={50}
                 className="rounded-full ring-2 ring-white/20 flex-shrink-0"
               />
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-bold text-primary leading-tight">St. Vincent Pallotti College of Engineering and Technology</h1>
+                <h1 className="text-lg font-bold text-white leading-tight">St. Vincent Pallotti College of Engineering and Technology</h1>
                 <p className="text-sm text-blue-100">Nagpur • Department of Computer Engineering</p>
               </div>
             </div>
             <div className="flex items-center space-x-4 flex-shrink-0">
               <div className="hidden md:block text-right">
-                <span className="text-lg font-bold text-primary">Zenith Forum</span>
+                <span className="text-lg font-bold text-white">Zenith Forum</span>
                 <p className="text-sm text-blue-100">Student Hub</p>
               </div>
               <Image
                 src="/zenithlogo.png"
                 alt="Zenith Forum"
-                width={50}
-                height={50}
+                width={40}
+                height={40}
                 className="rounded ring-1 ring-white/20 flex-shrink-0"
               />
             </div>

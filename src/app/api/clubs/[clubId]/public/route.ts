@@ -45,7 +45,7 @@ export async function GET(
     const club = clubResult.rows[0];
 
     // Get public stats (member count, event count, post count)
-    const [memberCountResult, eventCountResult, postCountResult, recentEventsResult, recentPostsResult] = await Promise.all([
+    const [memberCountResult, eventCountResult, postCountResult, upcomingEventsResult, pastEventsResult, recentPostsResult] = await Promise.all([
       // Get club members count
       db.query('SELECT COUNT(*) as count FROM users WHERE club_id = $1', [clubId]),
       
@@ -55,15 +55,38 @@ export async function GET(
       // Get posts count
       db.query('SELECT COUNT(*) as count FROM posts WHERE club_id = $1 AND status = $2', [clubId, 'published']),
       
-      // Get recent events (public info only)
+      // Get upcoming events only (future events)
       db.query(`
         SELECT 
           id, title, description, event_date, location, 
-          max_attendees, status, banner_image_url,
+          max_attendees, 
+          CASE 
+            WHEN event_date >= CURRENT_DATE THEN 'upcoming'
+            ELSE 'completed'
+          END as status,
+          banner_image_url,
           created_at
         FROM events 
-        WHERE club_id = $1 AND event_date >= NOW()
+        WHERE club_id = $1 AND event_date >= CURRENT_DATE
         ORDER BY event_date ASC 
+        LIMIT 10
+      `, [clubId]),
+      
+      // Get past events with additional details
+      db.query(`
+        SELECT 
+          id, title, description, event_date, location, 
+          max_attendees, 
+          CASE 
+            WHEN event_date >= CURRENT_DATE THEN 'upcoming'
+            ELSE 'completed'
+          END as status,
+          banner_image_url,
+          gallery_images, created_at,
+          (SELECT COUNT(*) FROM event_registrations WHERE event_id = events.id) as attendees_count
+        FROM events 
+        WHERE club_id = $1 AND event_date < CURRENT_DATE
+        ORDER BY event_date DESC 
         LIMIT 5
       `, [clubId]),
       
@@ -91,32 +114,33 @@ export async function GET(
         memberCount: parseInt(memberCountResult.rows[0].count),
         eventCount: parseInt(eventCountResult.rows[0].count),
         postCount: parseInt(postCountResult.rows[0].count),
-        coordinator: {
+        coordinator: club.coordinator_name ? {
           name: club.coordinator_name,
           email: club.coordinator_email,
           avatar: club.coordinator_avatar,
           profile_image_url: club.coordinator_profile_image_url
-        },
-        co_coordinator: {
+        } : null,
+        co_coordinator: club.co_coordinator_name ? {
           name: club.co_coordinator_name,
           email: club.co_coordinator_email,
           avatar: club.co_coordinator_avatar,
           profile_image_url: club.co_coordinator_profile_image_url
-        },
-        secretary: {
+        } : null,
+        secretary: club.secretary_name ? {
           name: club.secretary_name,
           email: club.secretary_email,
           avatar: club.secretary_avatar,
           profile_image_url: club.secretary_profile_image_url
-        },
-        media: {
+        } : null,
+        media: club.media_name ? {
           name: club.media_name,
           email: club.media_email,
           avatar: club.media_avatar,
           profile_image_url: club.media_profile_image_url
-        }
+        } : null
       },
-      events: recentEventsResult.rows,
+      events: upcomingEventsResult.rows,
+      pastEvents: pastEventsResult.rows,
       posts: recentPostsResult.rows
     });
 

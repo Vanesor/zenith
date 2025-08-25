@@ -1,0 +1,37 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Data for Name: events; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.events (id, title, description, club_id, created_by, event_date, event_time, location, max_attendees, status, image_url, created_at, updated_at, event_images, banner_image_url, gallery_images) FROM stdin;
+550e8400-3101-41d4-a716-446655440001	Algorithm Challenge Championship	Competitive programming contest featuring algorithmic challenges and data structures problems	ascend	550e8400-e29b-41d4-a716-446655440010	2025-07-15	14:00:00	Computer Science Lab A	80	completed	\N	2025-07-01 10:00:00.000+05:30	2025-07-20 16:30:00.000+05:30	[]	https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	["https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"]
+550e8400-3101-41d4-a716-446655440002	Web Development Bootcamp	Intensive 3-day bootcamp covering modern web technologies including React, Node.js, and database integration	ascend	550e8400-e29b-41d4-a716-446655440010	2025-09-10	09:00:00	Innovation Hub	60	upcoming	\N	2025-08-20 09:00:00.000+05:30	2025-08-20 09:00:00.000+05:30	[]	https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	[]
+550e8400-3201-41d4-a716-446655440001	Public Speaking Mastery	Interactive workshop on overcoming stage fright and developing confident public speaking skills	aster	550e8400-e29b-41d4-a716-446655440020	2025-07-20	15:30:00	Auditorium B	120	completed	\N	2025-07-05 11:00:00.000+05:30	2025-07-25 18:00:00.000+05:30	[]	https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	["https://images.unsplash.com/photo-1559223607-a43c990c692c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", "https://images.unsplash.com/photo-1517048676732-d65bc937f952?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"]
+550e8400-3201-41d4-a716-446655440002	Leadership Excellence Summit	Full-day summit featuring industry leaders sharing insights on effective leadership and team management	aster	550e8400-e29b-41d4-a716-446655440020	2025-09-15	10:00:00	Executive Conference Hall	100	upcoming	\N	2025-08-22 10:00:00.000+05:30	2025-08-22 10:00:00.000+05:30	[]	https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	[]
+550e8400-3301-41d4-a716-446655440001	Graduate School Preparation Workshop	Comprehensive guide to graduate school applications, GRE preparation, and scholarship opportunities	achievers	550e8400-e29b-41d4-a716-446655440030	2025-07-25	16:00:00	Academic Resource Center	90	completed	\N	2025-07-10 12:00:00.000+05:30	2025-07-30 19:00:00.000+05:30	[]	https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	["https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"]
+550e8400-3301-41d4-a716-446655440002	Research Methodology & Academic Writing	Advanced workshop on research techniques, academic paper writing, and publication strategies	achievers	550e8400-e29b-41d4-a716-446655440030	2025-09-20	11:00:00	Research Library	70	upcoming	\N	2025-08-25 11:00:00.000+05:30	2025-08-25 11:00:00.000+05:30	[]	https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	[]
+550e8400-3401-41d4-a716-446655440001	Digital Art Showcase	Exhibition featuring digital art creations, graphic designs, and multimedia presentations by club members	artovert	550e8400-e29b-41d4-a716-446655440040	2025-07-18	17:00:00	Art Gallery Hall	150	completed	\N	2025-07-03 13:00:00.000+05:30	2025-07-23 20:00:00.000+05:30	[]	https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	["https://images.unsplash.com/photo-1452826581805-240ef1481c85?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"]
+550e8400-3401-41d4-a716-446655440002	Creative Arts Workshop Series	Multi-day workshop series covering traditional painting, digital illustration, and mixed media art techniques	artovert	550e8400-e29b-41d4-a716-446655440040	2025-09-25	13:30:00	Creative Arts Studio	50	upcoming	\N	2025-08-28 09:00:00.000+05:30	2025-08-28 09:00:00.000+05:30	[]	https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80	[]
+\.
+
+
+--
+-- PostgreSQL database dump complete
+--

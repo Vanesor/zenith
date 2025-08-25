@@ -24,7 +24,8 @@ import {
   TrendingUp,
   Award,
   Star,
-  Zap
+  Zap,
+  Coins
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
@@ -326,7 +327,7 @@ export default function HomePage() {
                 style={{ backgroundImage: `url(${image.url})` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div className="relative z-10 flex items-end justify-center h-full pb-12">
+                <div className="relative z-10 hidden md:flex items-end justify-center h-full pb-12">
                   <div className="text-center text-white px-6 max-w-5xl mx-auto">
                     <motion.h1
                       initial={{ y: 30, opacity: 0 }}
@@ -441,25 +442,7 @@ export default function HomePage() {
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
               DRIVEN BY PASSION, BUILT FOR EXCELLENCE
             </p>
-            <p className="text-lg text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
-              Join our vibrant college forum community where students connect,
-              learn, and grow together through specialized clubs and activities.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/register"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
-              >
-                Get Started
-                <ChevronRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                href="#clubs"
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
-              >
-                Explore Clubs
-              </Link>
-            </div>
+            
           </motion.div>
         </div>
       </section>
@@ -510,7 +493,7 @@ export default function HomePage() {
       </section>
       
       {/* ===== FACULTY MENTORS SECTION ===== */}
-      <section className="py-16 bg-zenith-card/50">
+      {/* <section className="py-16 bg-zenith-card/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -525,7 +508,7 @@ export default function HomePage() {
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 justify-center max-w-4xl mx-auto">
             {/* Head of Department */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -559,9 +542,9 @@ export default function HomePage() {
                 </p>
               </div>
             </motion.div>
-            
+             */}
             {/* Faculty Mentor */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -597,7 +580,7 @@ export default function HomePage() {
             </motion.div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ===== LEADERSHIP TEAM SECTION ===== */}
       {leadership && (
@@ -734,7 +717,7 @@ export default function HomePage() {
                       />
                     </div>
                     <div className="absolute -top-3 -right-3 bg-blue-500 text-white p-3 rounded-full shadow-lg">
-                      <FileText className="w-6 h-6" />
+                      <Coins className="w-6 h-6" />
                     </div>
                   </div>
                   <div className="space-y-3">

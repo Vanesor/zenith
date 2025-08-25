@@ -15,6 +15,7 @@ import {
   Code,
   GraduationCap,
   Heart,
+  Palette,
   ChevronLeft,
   ChevronRight,
   Play,
@@ -104,6 +105,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MessageSquare: MessageSquare,
   GraduationCap: GraduationCap,
   Heart: Heart,
+  Palette: Palette,
 };
 
 export default function PublicClubPage() {
@@ -273,17 +275,49 @@ export default function PublicClubPage() {
   const { club, events, pastEvents = [], posts } = clubData;
   const IconComponent = iconMap[club.icon] || Code;
 
-  // Separate upcoming and past events
-  const upcomingEvents = events.filter(event => {
-    const eventDate = new Date(event.event_date);
-    const now = new Date();
-    return eventDate >= now || event.status === 'upcoming';
-  });
+  // Debug: Log the events data
+  console.log('Club events data:', { events, pastEvents, club: club?.name });
 
-  const completedEvents = events.filter(event => {
-    const eventDate = new Date(event.event_date);
-    const now = new Date();
-    return eventDate < now || event.status === 'completed';
+  // Separate upcoming and past events with better date handling
+  const upcomingEvents = events?.filter(event => {
+    if (!event.event_date) return false;
+    
+    try {
+      const eventDate = new Date(event.event_date);
+      const now = new Date();
+      
+      // Consider events upcoming if they're in the future OR explicitly marked as upcoming
+      const isUpcoming = eventDate >= now || event.status === 'upcoming';
+      console.log(`Event "${event.title}": ${event.event_date} -> ${isUpcoming ? 'UPCOMING' : 'PAST'}`);
+      return isUpcoming;
+    } catch (error) {
+      console.error('Date parsing error for event:', event.title, error);
+      return event.status === 'upcoming'; // Fallback to status
+    }
+  }) || [];
+
+  const completedEvents = events?.filter(event => {
+    if (!event.event_date) return false;
+    
+    try {
+      const eventDate = new Date(event.event_date);
+      const now = new Date();
+      
+      // Consider events completed if they're in the past OR explicitly marked as completed
+      const isCompleted = eventDate < now || event.status === 'completed';
+      console.log(`Event "${event.title}": ${event.event_date} -> ${isCompleted ? 'COMPLETED' : 'UPCOMING'}`);
+      return isCompleted;
+    } catch (error) {
+      console.error('Date parsing error for event:', event.title, error);
+      return event.status === 'completed'; // Fallback to status
+    }
+  }) || [];
+
+  // Debug: Log the filtered results
+  console.log('Filtered events:', { 
+    upcomingCount: upcomingEvents.length, 
+    completedCount: completedEvents.length,
+    pastEventsCount: pastEvents.length 
   });
 
   return (
@@ -344,15 +378,15 @@ export default function PublicClubPage() {
               className="flex items-center justify-center space-x-8 text-zenith-primary"
             >
               <div className="text-center">
-                <div className="text-3xl font-bold">{club.memberCount}+</div>
+                <div className="text-3xl font-bold">{club.memberCount || 0}+</div>
                 <div className="text-sm text-zenith-muted">Active Members</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold">{events.length}</div>
-                <div className="text-sm text-zenith-muted">Upcoming Events</div>
+                <div className="text-3xl font-bold">{upcomingEvents.length || events?.length || 0}</div>
+                <div className="text-sm text-zenith-muted">Events</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold">{posts.length}</div>
+                <div className="text-3xl font-bold">{posts?.length || 0}</div>
                 <div className="text-sm text-zenith-muted">Recent Posts</div>
               </div>
             </motion.div>
@@ -717,7 +751,7 @@ export default function PublicClubPage() {
       </section>
 
       {/* Upcoming Events */}
-      {upcomingEvents.length > 0 && (
+      {(upcomingEvents.length > 0 || (events && events.length > 0)) && (
         <section className="py-16 bg-zenith-main">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -726,14 +760,22 @@ export default function PublicClubPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-12"
             >
-              <h2 className="text-3xl font-bold text-zenith-primary mb-4">Upcoming Events</h2>
+              <h2 className="text-3xl font-bold text-zenith-primary mb-4">
+                Upcoming Events
+                {upcomingEvents.length === 0 && events?.length > 0 && (
+                  <span className="text-sm text-zenith-muted block">
+                    (Showing all events - {events.length} total)
+                  </span>
+                )}
+              </h2>
               <p className="text-xl text-zenith-secondary">
                 Don't miss out on these exciting opportunities
               </p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {upcomingEvents.slice(0, 6).map((event, index) => (
+              {/* Show upcoming events if available, otherwise show all events */}
+              {(upcomingEvents.length > 0 ? upcomingEvents : events || []).slice(0, 6).map((event, index) => (
                 <motion.div
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -747,10 +789,18 @@ export default function PublicClubPage() {
                         src={event.banner_image_url}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          // Hide image on error
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                       <div className="absolute top-4 right-4">
-                        <div className="bg-zenith-accent text-white px-3 py-1 rounded-full text-sm font-semibold">
-                          Upcoming
+                        <div className={`${
+                          event.status === 'upcoming' || upcomingEvents.includes(event) 
+                            ? 'bg-zenith-accent' 
+                            : 'bg-gray-500'
+                        } text-white px-3 py-1 rounded-full text-sm font-semibold`}>
+                          {event.status || 'Event'}
                         </div>
                       </div>
                     </div>
@@ -767,31 +817,44 @@ export default function PublicClubPage() {
                     <div className="space-y-2 text-sm text-zenith-muted">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2 text-zenith-accent" />
-                        {new Date(event.event_date).toLocaleDateString()}
+                        {event.event_date ? new Date(event.event_date).toLocaleDateString() : 'Date TBD'}
                       </div>
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-2 text-zenith-accent" />
-                        {new Date(event.event_date).toLocaleTimeString()}
-                      </div>
+                      {event.event_date && (
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-2 text-zenith-accent" />
+                          {new Date(event.event_date).toLocaleTimeString()}
+                        </div>
+                      )}
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 mr-2 text-zenith-accent" />
-                        {event.location}
+                        {event.location || 'Location TBD'}
                       </div>
                       <div className="flex items-center">
                         <Users className="w-4 h-4 mr-2 text-zenith-accent" />
-                        {event.max_attendees} max attendees
+                        {event.max_attendees || 'Unlimited'} max attendees
                       </div>
                     </div>
                   </div>
                 </motion.div>
               ))}
             </div>
+            
+            {/* Debug info - remove in production */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm">
+                <strong>Debug Info:</strong>
+                <p>Total events: {events?.length || 0}</p>
+                <p>Upcoming events: {upcomingEvents.length}</p>
+                <p>Completed events: {completedEvents.length}</p>
+                <p>Past events array: {pastEvents.length}</p>
+              </div>
+            )}
           </div>
         </section>
       )}
 
       {/* Past Events */}
-      {(completedEvents.length > 0 || pastEvents.length > 0) && (
+      {(completedEvents.length > 0 || pastEvents.length > 0 || (events && events.length > 0)) && (
         <section className="py-16 bg-zenith-section">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -800,14 +863,21 @@ export default function PublicClubPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-12"
             >
-              <h2 className="text-3xl font-bold text-zenith-primary mb-4">Past Events</h2>
+              <h2 className="text-3xl font-bold text-zenith-primary mb-4">
+                Past Events
+                {completedEvents.length === 0 && pastEvents.length === 0 && events?.length > 0 && (
+                  <span className="text-sm text-zenith-muted block">
+                    (Showing available events)
+                  </span>
+                )}
+              </h2>
               <p className="text-xl text-zenith-secondary">
                 Explore our successful events and memorable moments
               </p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Show completed regular events */}
+              {/* Show completed regular events first */}
               {completedEvents.slice(0, 3).map((event, index) => (
                 <motion.div
                   key={`completed-${event.id}`}
@@ -822,6 +892,9 @@ export default function PublicClubPage() {
                         src={event.banner_image_url}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                       <div className="absolute top-4 right-4">
                         <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -842,15 +915,15 @@ export default function PublicClubPage() {
                     <div className="space-y-2 text-sm text-zenith-muted">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                        {new Date(event.event_date).toLocaleDateString()}
+                        {event.event_date ? new Date(event.event_date).toLocaleDateString() : 'Date TBD'}
                       </div>
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                        {event.location}
+                        {event.location || 'Location TBD'}
                       </div>
                       <div className="flex items-center">
                         <Users className="w-4 h-4 mr-2 text-gray-500" />
-                        {event.max_attendees} attendees
+                        {event.max_attendees || 'Unlimited'} attendees
                       </div>
                     </div>
                   </div>
@@ -872,6 +945,9 @@ export default function PublicClubPage() {
                         src={event.banner_image_url}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                       <div className="absolute top-4 right-4">
                         <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -892,11 +968,11 @@ export default function PublicClubPage() {
                     <div className="space-y-2 text-sm text-zenith-muted">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                        {new Date(event.event_date).toLocaleDateString()}
+                        {event.event_date ? new Date(event.event_date).toLocaleDateString() : 'Date TBD'}
                       </div>
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                        {event.location}
+                        {event.location || 'Location TBD'}
                       </div>
                       {event.attendees_count && (
                         <div className="flex items-center">
@@ -908,6 +984,57 @@ export default function PublicClubPage() {
                   </div>
                 </motion.div>
               ))}
+              
+              {/* Fallback: Show regular events if no completed/past events */}
+              {completedEvents.length === 0 && pastEvents.length === 0 && events && events.length > 0 && (
+                events.slice(0, 3).map((event, index) => (
+                  <motion.div
+                    key={`fallback-${event.id}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className="bg-zenith-card rounded-xl shadow-lg border border-zenith-border hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                  >
+                    {event.banner_image_url && (
+                      <div className="relative h-48 overflow-hidden">
+                        <img 
+                          src={event.banner_image_url}
+                          alt={event.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                        <div className="absolute top-4 right-4">
+                          <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                            {event.status || 'Event'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold text-zenith-primary mb-3">
+                        {event.title}
+                      </h3>
+                      {event.description && (
+                        <p className="text-zenith-secondary mb-4 line-clamp-2">
+                          {event.description}
+                        </p>
+                      )}
+                      <div className="space-y-2 text-sm text-zenith-muted">
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                          {event.event_date ? new Date(event.event_date).toLocaleDateString() : 'Date TBD'}
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                          {event.location || 'Location TBD'}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
         </section>
