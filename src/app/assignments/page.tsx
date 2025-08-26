@@ -293,9 +293,12 @@ export default function AssignmentsPage() {
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-main">
-        <UniversalLoader message="Loading your assignments..." />
-      </div>
+      <UniversalLoader 
+        fullScreen={true}
+        message="Loading your assignments..."
+        size="lg"
+        variant="default"
+      />
     );
   }
 

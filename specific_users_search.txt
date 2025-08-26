@@ -1,0 +1,8 @@
+                  id                  |        name        |            email            |   role    | club_id 
+--------------------------------------+--------------------+-----------------------------+-----------+---------
+ 550e8400-e29b-41d4-a716-446655440012 | Mohit Telang       | ascend.secretary@zenith.com | secretary | ascend
+ 550e8400-e29b-41d4-a716-446655440022 | Sahil Shrivastava  | aster.secretary@zenith.com  | secretary | aster
+ 59c443c7-2e5e-41ec-96bb-0b33ca557948 | Sharawari Raut     | shubham.kaut@zenith.edu     | student   | 
+ a758760c-468e-4185-b84c-374ec2168a4a | Uday Bhoyar        | uday.bhoyar@example.com     | student   | 
+(4 rows)
+

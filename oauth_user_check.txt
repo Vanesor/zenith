@@ -1,0 +1,5 @@
+                  id                  |      name      |                email                 | oauth_provider | has_password |                        password_hash                         |           created_at            
+--------------------------------------+----------------+--------------------------------------+----------------+--------------+--------------------------------------------------------------+---------------------------------
+ 958a4c5d-8308-42e2-8136-2d0e7c0123d9 | Atharva Naitam | atharvanaitam.22@stvincentngp.edu.in | google         | f            | $2b$12$FoeP2lz4pgyjQOO1VmOTgOqcf9DEle7K0qBY6uYcYOPU3MDAkIUMW | 2025-08-26 14:37:11.52939+05:30
+(1 row)
+

@@ -1,0 +1,11 @@
+                  id                  |       name       |                email                |    position    |  club_id  | club_name | club_color 
+--------------------------------------+------------------+-------------------------------------+----------------+-----------+-----------+------------
+ 550e8400-e29b-41d4-a716-446655440021 | Gargi Udapure    | aster.co-coordinator@zenith.com     | co_coordinator | aster     | ASTER     | green
+ 550e8400-e29b-41d4-a716-446655440030 | Paritosh Magare  | achievers.coordinator@zenith.com    | coordinator    | achievers | ACHIEVERS | purple
+ 550e8400-e29b-41d4-a716-446655440031 | Aayushi Asole    | achievers.co-coordinator@zenith.com | co_coordinator | achievers | ACHIEVERS | purple
+ 550e8400-e29b-41d4-a716-446655440032 | Mayur Aglawe     | achievers.secretary@zenith.com      | secretary      | achievers | ACHIEVERS | purple
+ 550e8400-e29b-41d4-a716-446655440011 | Ayush Kshirsagar | ascend.co-coordinator@zenith.com    | co_coordinator | ascend    | ASCEND    | blue
+ 550e8400-e29b-41d4-a716-446655440010 | Atharva Bhede    | ascend.coordinator@zenith.com       | coordinator    | ascend    | ASCEND    | blue
+ 550e8400-e29b-41d4-a716-446655440020 | Radhika Salodkar | aster.coordinator@zenith.com        | coordinator    | aster     | ASTER     | green
+(7 rows)
+

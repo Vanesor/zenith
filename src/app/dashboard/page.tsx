@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuthRequired } from '@/hooks/useAuthGuard';
 import { SectionLoader } from '@/components/UniversalLoader';
+import ZenChatbot from '@/components/ZenChatbot';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -425,6 +426,9 @@ export default function ModernDashboard() {
           ))}
         </div>
       </motion.div>
+      
+      {/* ZenChatbot */}
+      <ZenChatbot />
     </div>
   );
 }

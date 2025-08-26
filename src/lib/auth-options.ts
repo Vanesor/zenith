@@ -3,7 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import DatabaseClient, { queryRawSQL, executeRawSQL } from "./database";
-import { hashPassword, verifyPassword } from "./auth-unified";
+import { hashPassword, verifyPassword, generateOAuthPasswordHash } from "./auth-unified";
 import { v4 as uuidv4 } from "uuid";
 
 const db = DatabaseClient;
@@ -135,35 +135,49 @@ export const authOptions: NextAuthOptions = {
               );
 
               if (existingUserByEmail.rows.length > 0) {
-                // Update existing user with OAuth details
-                await executeRawSQL(
-                  `UPDATE users 
+                const existingUser = existingUserByEmail.rows[0];
+                
+                // Check if user needs a password hash (for existing non-OAuth users)
+                let updateQuery = `UPDATE users 
                    SET 
                     oauth_provider = $1, 
                     oauth_id = $2,
                     oauth_data = $3,
-                    email_verified = true
-                   WHERE email = $4
-                   RETURNING *`,
-                  [
-                    account.provider,
-                    account.providerAccountId,
-                    JSON.stringify(account),
-                    user.email,
-                  ]
-                );
+                    email_verified = true`;
+                
+                let updateParams = [
+                  account.provider,
+                  account.providerAccountId,
+                  JSON.stringify(account),
+                  user.email,
+                ];
+
+                // If user doesn't have a password hash, generate one for OAuth
+                if (!existingUser.password_hash) {
+                  const oauthPasswordHash = await generateOAuthPasswordHash(user.email!, account.provider);
+                  updateQuery += `, password_hash = $5`;
+                  updateParams.splice(4, 0, oauthPasswordHash); // Insert at position 4
+                }
+
+                updateQuery += ` WHERE email = $${updateParams.length} RETURNING *`;
+
+                await executeRawSQL(updateQuery, updateParams);
                 
                 dbUser = existingUserByEmail.rows[0];
               } else {
+                // Generate OAuth password hash for the user
+                const oauthPasswordHash = await generateOAuthPasswordHash(user.email!, account.provider);
+                
                 // Create new user with proper field names matching the database schema
                 const result = await queryRawSQL(
                   `INSERT INTO users 
-                   (id, email, name, avatar, role, oauth_provider, oauth_id, oauth_data, email_verified, has_password, created_at, updated_at) 
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+                   (id, email, password_hash, name, avatar, role, oauth_provider, oauth_id, oauth_data, email_verified, has_password, created_at, updated_at) 
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
                    RETURNING *`,
                   [
                     uuidv4(),
                     user.email?.toLowerCase(),
+                    oauthPasswordHash, // OAuth-generated password hash
                     user.name,
                     user.image, // This maps to avatar field
                     "student", // Default role
@@ -171,7 +185,7 @@ export const authOptions: NextAuthOptions = {
                     account.providerAccountId,
                     JSON.stringify(account),
                     true, // Email already verified through OAuth
-                    false // User needs to set a password for local login
+                    false // User can still set a custom password later
                   ]
                 );
 

@@ -1,0 +1,35 @@
+                  id                  |                     title                      | event_date | event_time |  status  |  club_id  
+--------------------------------------+------------------------------------------------+------------+------------+----------+-----------
+ 3058b90b-3b02-45ac-bf76-e942611e2ae6 | Problem Solving Based on Aptitude              | 2024-12-15 | 14:15:00   | past     | ascend
+ df7a63c0-6b32-48a5-a53b-0bd35c6e0c71 | GRE Preparation Strategy Session               | 2025-02-10 | 11:00:00   | past     | achievers
+ 48119122-f9d4-441c-9093-a54d86e5057c | GitHub Profile Creation and Importance Session | 2025-02-13 | 12:15:00   | past     | ascend
+ 3992050a-2ed2-4bdf-999d-2e1d50d8c645 | Holistic Development Workshop                  | 2025-03-05 | 13:00:00   | past     | artovert
+ adf8f416-5282-4508-b1d0-c2abf7980527 | Women Empowerment and Career Insights          | 2025-03-07 | 12:00:00   | past     | aster
+ b1e2aec6-95c1-4425-9882-4f1801fb6e55 | C++ Programming Session                        | 2025-04-12 | 17:00:00   | past     | ascend
+ 2b747088-2329-49bb-ad6f-af30c02c1151 | IoT Made Easy Workshop                         | 2025-05-15 | 10:00:00   | past     | ascend
+ 407d84ab-d357-4e36-92e6-057db4b70a4b | Cross-Club Collaboration Meet                  | 2025-08-03 | 16:00:00   | upcoming | artovert
+ 550e8400-3004-41d4-a716-446655440002 | Cross-Club Collaboration Meet                  | 2025-08-03 | 16:30:00   | upcoming | artovert
+ 6506222f-f5ee-4aba-8797-f5904d3d524e | Research Methodology Workshop                  | 2025-08-05 | 14:30:00   | upcoming | achievers
+ 550e8400-3003-41d4-a716-446655440002 | Research Methodology Workshop                  | 2025-08-05 | 19:00:00   | upcoming | achievers
+ 0900ece1-4a39-42d6-9497-86e89cb232db | Leadership Development Session                 | 2025-08-07 | 14:00:00   | upcoming | aster
+ 550e8400-3002-41d4-a716-446655440002 | Leadership Development Session                 | 2025-08-07 | 17:00:00   | upcoming | aster
+ 550e8400-3001-41d4-a716-446655440001 | Coding Summit 2025                             | 2025-08-10 | 09:00:00   | upcoming | ascend
+ 4917e71d-4585-4779-9d26-d00950c585ae | Coding Summit 2025                             | 2025-08-10 | 09:00:00   | upcoming | ascend
+ 550e8400-3002-41d4-a716-446655440001 | Communication Skills Workshop                  | 2025-08-13 | 10:00:00   | upcoming | aster
+ b560c2a4-e115-4706-953a-76ec5a3d9160 | Communication Skills Workshop                  | 2025-08-13 | 15:30:00   | upcoming | aster
+ 9a5e68fa-01d0-483b-8157-2a5574f55e09 | Higher Studies Fair                            | 2025-08-15 | 10:00:00   | upcoming | achievers
+ 550e8400-3003-41d4-a716-446655440001 | Higher Studies Fair                            | 2025-08-15 | 16:00:00   | upcoming | achievers
+ d386c85a-01a8-4fea-b45e-f2bad317a073 | Hackathon Weekend                              | 2025-08-17 | 10:00:00   | upcoming | ascend
+ 550e8400-3001-41d4-a716-446655440002 | Hackathon Weekend                              | 2025-08-17 | 18:00:00   | upcoming | ascend
+ f34cf579-8684-4bc1-9b5c-04bdea69dabe | Holistic Development Fair                      | 2025-08-20 | 09:30:00   | upcoming | artovert
+ 550e8400-3004-41d4-a716-446655440001 | Holistic Development Fair                      | 2025-08-20 | 14:00:00   | upcoming | artovert
+ e13b4e60-9dfa-476e-ae0a-327add0a1e32 | Mental Health Awareness Campaign               | 2025-09-12 | 14:30:00   | upcoming | aster
+ 92656c6e-b896-49be-b5ee-5c89909d364d | AI & Machine Learning Workshop                 | 2025-09-15 | 10:00:00   | upcoming | ascend
+ 1a57b0e7-5a6c-47c1-af3b-332a9dc3949f | GATE Preparation Masterclass                   | 2025-09-20 | 10:30:00   | upcoming | achievers
+ 706692ae-de93-42d4-b77f-bdbdd04bf797 | Cultural Fest - Kaleidoscope 2025              | 2025-09-25 | 16:00:00   | upcoming | artovert
+ 7d58fb15-6ee7-4adf-b8ce-573556ef64ff | Volunteer Drive for Community Service          | 2025-10-05 | 11:00:00   | upcoming | aster
+ bd001cfa-1d02-4bc5-83eb-483667268857 | Full Stack Development Bootcamp                | 2025-10-08 | 09:30:00   | upcoming | ascend
+ ea7ee402-81db-42dd-8bfb-0e188f0a3600 | International Scholarship Fair                 | 2025-10-12 | 15:00:00   | upcoming | achievers
+ 486d3dc5-898b-4cb1-9c84-4c6ccfc69f96 | Creative Writing & Poetry Workshop             | 2025-10-18 | 13:30:00   | upcoming | artovert
+(31 rows)
+

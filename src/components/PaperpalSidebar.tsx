@@ -108,19 +108,19 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
       icon: Calendar,
       description: "Upcoming activities"
     },
-    { 
-      name: "Assignments", 
-      href: "/assignments", 
-      icon: BookOpen,
-      description: "Tasks & projects"
-    },
-    { 
-      name: "Analytics", 
-      href: "/analytics", 
-      icon: BarChart3,
-      description: "Performance insights",
-      requiresRole: ['coordinator', 'co_coordinator', 'president', 'vice_president', 'innovation_head', 'treasurer', 'outreach', 'zenith_committee']
-    },
+    // { 
+    //   name: "Assignments", 
+    //   href: "/assignments", 
+    //   icon: BookOpen,
+    //   description: "Tasks & projects"
+    // },
+    // { 
+    //   name: "Analytics", 
+    //   href: "/analytics", 
+    //   icon: BarChart3,
+    //   description: "Performance insights",
+    //   requiresRole: ['coordinator', 'co_coordinator', 'president', 'vice_president', 'innovation_head', 'treasurer', 'outreach', 'zenith_committee']
+    // },
     { 
       name: "Chat", 
       href: "/chat", 

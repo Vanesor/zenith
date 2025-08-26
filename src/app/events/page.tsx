@@ -29,8 +29,75 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
+import { UniversalLoader } from '@/components/UniversalLoader';
 import CreateEventModal from '@/components/events/CreateEventModal';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, isToday, parseISO } from 'date-fns';
+import ZenChatbot from '@/components/ZenChatbot';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, isToday, parseISO, isAfter, isBefore } from 'date-fns';
+
+// Helper functions
+const getEventStatus = (event: Event): 'past' | 'ongoing' | 'upcoming' => {
+  const now = new Date();
+  const eventDate = event.event_date ? parseISO(event.event_date) : parseISO(event.start_time);
+  const eventTime = event.event_time || '00:00:00';
+  const [hours, minutes] = eventTime.split(':').map(Number);
+  const eventDateTime = new Date(eventDate);
+  eventDateTime.setHours(hours, minutes);
+  
+  // Add 2 hours for event duration if no end time
+  const eventEndTime = event.end_time ? parseISO(event.end_time) : new Date(eventDateTime.getTime() + 2 * 60 * 60 * 1000);
+  
+  if (isBefore(eventEndTime, now)) {
+    return 'past';
+  } else if (isBefore(eventDateTime, now) && isAfter(eventEndTime, now)) {
+    return 'ongoing';
+  } else {
+    return 'upcoming';
+  }
+};
+
+const getStatusColor = (status: string, isDot: boolean = false) => {
+  const dotClasses = {
+    'past': 'bg-gray-400',
+    'ongoing': 'bg-yellow-400', 
+    'upcoming': 'bg-green-400',
+    'published': 'bg-green-400',
+    'draft': 'bg-yellow-400',
+    'cancelled': 'bg-red-400'
+  };
+  
+  const badgeClasses = {
+    'past': 'bg-gray-100 text-gray-700 border-gray-200',
+    'ongoing': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    'upcoming': 'bg-green-100 text-green-700 border-green-200',
+    'published': 'bg-green-100 text-green-800 border-green-200',
+    'draft': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    'cancelled': 'bg-red-100 text-red-800 border-red-200'
+  };
+  
+  return isDot ? dotClasses[status as keyof typeof dotClasses] || 'bg-gray-400' : 
+                 badgeClasses[status as keyof typeof badgeClasses] || 'bg-gray-100 text-gray-800 border-gray-200';
+};
+
+const getClubColorHelper = (clubId: string, clubs: Club[]) => {
+  const club = clubs.find(c => c.id === clubId);
+  if (!club) return 'bg-gray-500';
+  
+  // Map database colors to Tailwind classes
+  const colorMap: Record<string, string> = {
+    'blue': 'bg-blue-500',
+    'purple': 'bg-purple-500', 
+    'orange': 'bg-orange-500',
+    'green': 'bg-green-500',
+    'red': 'bg-red-500',
+    'yellow': 'bg-yellow-500',
+    'indigo': 'bg-indigo-500',
+    'pink': 'bg-pink-500',
+    'teal': 'bg-teal-500',
+    'cyan': 'bg-cyan-500'
+  };
+  
+  return colorMap[club.color] || 'bg-gray-500';
+};
 
 interface Event {
   id: string;
@@ -38,6 +105,8 @@ interface Event {
   description: string;
   start_time: string;
   end_time: string;
+  event_date: string;
+  event_time: string;
   location?: string;
   club_id: string;
   club_name: string;
@@ -46,7 +115,7 @@ interface Event {
   max_attendees?: number;
   attendees_count: number;
   category: string;
-  status: 'draft' | 'published' | 'cancelled';
+  status: 'past' | 'ongoing' | 'upcoming' | 'draft' | 'published' | 'cancelled';
   featured_image?: string;
   tags: string[];
   is_attending?: boolean;
@@ -58,6 +127,7 @@ interface Club {
   id: string;
   name: string;
   type: string;
+  color: string;
 }
 
 // Calendar View Component
@@ -68,7 +138,6 @@ interface CalendarViewProps {
   selectedDate: Date | null;
   setSelectedDate: (date: Date | null) => void;
   setShowDayDetails: (show: boolean) => void;
-  clubColors: Record<string, string>;
   clubs: Club[];
 }
 
@@ -79,7 +148,6 @@ function CalendarView({
   selectedDate, 
   setSelectedDate, 
   setShowDayDetails, 
-  clubColors,
   clubs 
 }: CalendarViewProps) {
   const monthStart = startOfMonth(currentDate);
@@ -90,15 +158,27 @@ function CalendarView({
 
   const getEventsForDay = (date: Date) => {
     return events.filter(event => {
-      const eventDate = parseISO(event.start_time);
-      return isSameDay(eventDate, date);
+      try {
+        let eventDate: Date;
+        
+        if (event.event_date) {
+          eventDate = parseISO(event.event_date);
+        } else if (event.start_time) {
+          eventDate = parseISO(event.start_time);
+        } else {
+          return false;
+        }
+        
+        return isSameDay(eventDate, date);
+      } catch (error) {
+        console.error('Error parsing event date:', error);
+        return false;
+      }
     });
   };
 
   const getClubColor = (clubId: string) => {
-    const club = clubs.find(c => c.id === clubId);
-    const clubType = club?.type?.toLowerCase() || 'default';
-    return clubColors[clubType] || clubColors.default;
+    return getClubColorHelper(clubId, clubs);
   };
 
   const handleDayClick = (date: Date) => {
@@ -196,13 +276,19 @@ function CalendarView({
                 
                 {/* Event Dots */}
                 <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map((event, eventIndex) => (
-                    <div
-                      key={eventIndex}
-                      className={`w-2 h-2 rounded-full ${getClubColor(event.club_id)}`}
-                      title={event.title}
-                    />
-                  ))}
+                  {dayEvents.slice(0, 3).map((event, eventIndex) => {
+                    const eventStatus = getEventStatus(event);
+                    return (
+                      <div
+                        key={eventIndex}
+                        className={`flex items-center gap-1`}
+                        title={`${event.title} (${eventStatus})`}
+                      >
+                        <div className={`w-2 h-2 rounded-full ${getClubColor(event.club_id)}`} />
+                        <div className={`w-1 h-1 rounded-full ${getStatusColor(eventStatus, true)}`} />
+                      </div>
+                    );
+                  })}
                   {dayEvents.length > 3 && (
                     <div className="text-xs zenith-text-muted">
                       +{dayEvents.length - 3} more
@@ -218,24 +304,30 @@ function CalendarView({
         
         {/* Legend */}
         <div className="p-4 border-t zenith-border zenith-bg-section">
-          <h4 className="text-sm font-medium zenith-text-primary mb-2">Club Colors</h4>
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="text-sm font-medium zenith-text-primary">Club Colors</h4>
+            <div className="flex items-center gap-4 text-xs zenith-text-secondary">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-400" />
+                <span>Upcoming</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-yellow-400" />
+                <span>Ongoing</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-gray-400" />
+                <span>Past</span>
+              </div>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <div className={`w-12 h-2 rounded-full ${clubColors.achievers}`} />
-              <span className="text-sm zenith-text-secondary">ACHIEVERS</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-12 h-2 rounded-full ${clubColors.altogether}`} />
-              <span className="text-sm zenith-text-secondary">ALTOGETHER</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-12 h-2 rounded-full ${clubColors.ascend}`} />
-              <span className="text-sm zenith-text-secondary">ASCEND</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-12 h-2 rounded-full ${clubColors.aster}`} />
-              <span className="text-sm zenith-text-secondary">ASTER</span>
-            </div>
+            {clubs.map(club => (
+              <div key={club.id} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${getClubColor(club.id)}`} />
+                <span className="text-sm zenith-text-secondary">{club.name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </CardContent>
@@ -247,27 +339,23 @@ export default function EventsPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
   
-  // Club colors mapping for the four main clubs
-  const clubColors: Record<string, string> = {
-    'achievers': 'bg-gradient-to-r from-blue-500 to-blue-700',
-    'altogether': 'bg-gradient-to-r from-green-500 to-green-700', 
-    'ascend': 'bg-gradient-to-r from-purple-500 to-purple-700',
-    'aster': 'bg-gradient-to-r from-orange-500 to-orange-700',
-    'default': 'bg-gradient-to-r from-gray-500 to-gray-700'
-  };
-  
   const [events, setEvents] = useState<Event[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedClub, setSelectedClub] = useState('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('calendar');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [permissions, setPermissions] = useState<any>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDayDetails, setShowDayDetails] = useState(false);
+
+  // Helper function for club colors
+  const getClubColor = (clubId: string) => {
+    return getClubColorHelper(clubId, clubs);
+  };
 
   // Fetch events
   useEffect(() => {
@@ -281,7 +369,7 @@ export default function EventsPage() {
       const response = await fetch('/api/events');
       if (response.ok) {
         const data = await response.json();
-        setEvents(data.events || []);
+        setEvents(data.data || []); // API returns events in 'data' property
       }
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -372,14 +460,32 @@ export default function EventsPage() {
   const categories = Array.from(new Set(events.map(event => event.category))).filter(Boolean);
 
   // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (event: Event) => {
+    try {
+      let date: Date;
+      
+      if (event.event_date && event.event_time) {
+        // Use event_date and event_time from database
+        const [hours, minutes] = event.event_time.split(':').map(Number);
+        date = parseISO(event.event_date);
+        date.setHours(hours, minutes);
+      } else if (event.start_time) {
+        // Fallback to start_time
+        date = parseISO(event.start_time);
+      } else {
+        return 'Invalid date';
+      }
+      
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return 'Invalid date';
+    }
   };
 
   // Get status color
@@ -394,9 +500,12 @@ export default function EventsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-main flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
+      <UniversalLoader 
+        fullScreen={true}
+        message="Loading events..."
+        size="lg"
+        variant="default"
+      />
     );
   }
 
@@ -542,20 +651,14 @@ export default function EventsPage() {
                   <div className="flex rounded-lg border border-custom">
                     <button
                       onClick={() => setViewMode('calendar')}
-                      className={`px-3 py-2 rounded-l-lg ${viewMode === 'calendar' ? 'bg-blue-600 text-primary' : 'bg-main text-secondary hover:bg-gray-100'}`}
+                      className={`px-3 py-2 rounded-l-lg ${viewMode === 'calendar' ? 'bg-blue-600 text-white' : 'zenith-bg-card zenith-text-secondary hover:zenith-bg-hover'}`}
                     >
                       <Calendar className="w-4 h-4 inline mr-1" />
                       Calendar
                     </button>
                     <button
-                      onClick={() => setViewMode('grid')}
-                      className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-blue-600 text-primary' : 'bg-main text-secondary hover:bg-gray-100'}`}
-                    >
-                      Grid
-                    </button>
-                    <button
                       onClick={() => setViewMode('list')}
-                      className={`px-3 py-2 rounded-r-lg ${viewMode === 'list' ? 'bg-blue-600 text-primary' : 'bg-main text-secondary hover:bg-gray-100'}`}
+                      className={`px-3 py-2 rounded-r-lg ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'zenith-bg-card zenith-text-secondary hover:zenith-bg-hover'}`}
                     >
                       List
                     </button>
@@ -580,7 +683,6 @@ export default function EventsPage() {
               selectedDate={selectedDate}
               setSelectedDate={setSelectedDate}
               setShowDayDetails={setShowDayDetails}
-              clubColors={clubColors}
               clubs={clubs}
             />
           ) : filteredEvents.length === 0 ? (
@@ -607,10 +709,7 @@ export default function EventsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className={viewMode === 'grid' 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "space-y-4"
-            }>
+            <div className="space-y-4">
               {filteredEvents.map((event, index) => (
                 <motion.div
                   key={event.id}
@@ -618,173 +717,59 @@ export default function EventsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="bg-card border border-custom hover:shadow-lg transition-all duration-300">
-                    {viewMode === 'grid' ? (
-                      <>
-                        {/* Featured Image */}
-                        <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden rounded-t-lg">
-                          {event.featured_image ? (
-                            <img
-                              src={event.featured_image}
-                              alt={event.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <Calendar className="w-12 h-12 text-primary opacity-50" />
-                            </div>
-                          )}
-                          
-                          {/* Status Badge */}
-                          <div className="absolute top-4 right-4">
-                            <Badge className={`${getStatusColor(event.status)} border`}>
-                              {event.status}
+                  <Card className="zenith-bg-card zenith-border hover:shadow-lg transition-all duration-300">
+                    {/* List View Event Card */}
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className={`w-4 h-4 rounded-full ${getClubColor(event.club_id)}`} />
+                            <h3 className="text-lg font-semibold zenith-text-primary">{event.title}</h3>
+                            <Badge className={`${getStatusColor(getEventStatus(event))} border text-xs`}>
+                              {getEventStatus(event)}
                             </Badge>
                           </div>
-                        </div>
-
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-3">
-                            <h3 className="text-lg font-semibold text-primary line-clamp-2">
-                              {event.title}
-                            </h3>
-                          </div>
-
-                          <p className="text-secondary text-sm mb-4 line-clamp-2">
-                            {event.description}
-                          </p>
-
-                          <div className="space-y-2 mb-4 text-sm">
-                            <div className="flex items-center text-secondary">
-                              <Clock className="w-4 h-4 mr-2" />
-                              <span>{formatDate(event.start_time)}</span>
+                          
+                          <div className="flex items-center gap-4 text-sm zenith-text-secondary mb-3">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{formatDate(event)}</span>
                             </div>
-
+                            <div className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              <span>{event.club_name}</span>
+                            </div>
                             {event.location && (
-                              <div className="flex items-center text-secondary">
-                                <MapPin className="w-4 h-4 mr-2" />
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
                                 <span>{event.location}</span>
                               </div>
                             )}
-
-                            <div className="flex items-center text-secondary">
-                              <Users className="w-4 h-4 mr-2" />
-                              <span>
-                                {event.attendees_count} {event.max_attendees ? `/ ${event.max_attendees}` : ''} attendees
-                              </span>
-                            </div>
                           </div>
-
-                          <div className="flex items-center justify-between pt-4 border-t border-custom">
-                            <div className="flex flex-col">
-                              <Badge variant="secondary" className="text-xs w-fit mb-1">
-                                {event.club_name}
-                              </Badge>
-                              <span className="text-xs text-secondary">
-                                by {event.creator_name}
-                              </span>
-                            </div>
-
-                            {event.is_attending ? (
-                              <Button 
-                                onClick={() => toggleAttendance(event.id, true)}
-                                variant="outline"
-                                size="sm"
-                                className="border-red-300 text-red-600 hover:bg-red-50"
-                              >
-                                Leave
-                              </Button>
-                            ) : (
-                              <Button 
-                                onClick={() => toggleAttendance(event.id, false)}
-                                size="sm"
-                                className="bg-blue-600 hover:bg-blue-700 text-primary"
-                                disabled={!!(event.max_attendees && event.attendees_count >= event.max_attendees)}
-                              >
-                                {event.max_attendees && event.attendees_count >= event.max_attendees ? 'Full' : 'Join'}
-                              </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </>
-                    ) : (
-                      /* List View */
-                      <CardContent className="p-6">
-                        <div className="flex items-center space-x-6">
-                          <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden">
-                            {event.featured_image ? (
-                              <img
-                                src={event.featured_image}
-                                alt={event.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex items-center justify-center h-full">
-                                <Calendar className="w-8 h-8 text-primary opacity-50" />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-primary truncate mb-1">
-                                  {event.title}
-                                </h3>
-                                <p className="text-secondary text-sm mb-2 line-clamp-1">
-                                  {event.description}
-                                </p>
-                                
-                                <div className="flex items-center space-x-4 text-sm text-secondary">
-                                  <div className="flex items-center">
-                                    <Clock className="w-4 h-4 mr-1" />
-                                    <span>{formatDate(event.start_time)}</span>
-                                  </div>
-                                  
-                                  {event.location && (
-                                    <div className="flex items-center">
-                                      <MapPin className="w-4 h-4 mr-1" />
-                                      <span>{event.location}</span>
-                                    </div>
-                                  )}
-                                  
-                                  <div className="flex items-center">
-                                    <Users className="w-4 h-4 mr-1" />
-                                    <span>{event.attendees_count} attendees</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center space-x-3 ml-4">
-                                <Badge className={`${getStatusColor(event.status)} border`}>
-                                  {event.status}
+                          
+                          <p className="zenith-text-secondary line-clamp-2 mb-4">
+                            {event.description}
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {event.tags?.slice(0, 3).map((tag, tagIndex) => (
+                                <Badge key={tagIndex} variant="outline" className="text-xs">
+                                  {tag}
                                 </Badge>
-                                
-                                {event.is_attending ? (
-                                  <Button 
-                                    onClick={() => toggleAttendance(event.id, true)}
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-red-300 text-red-600 hover:bg-red-50"
-                                  >
-                                    Leave
-                                  </Button>
-                                ) : (
-                                  <Button 
-                                    onClick={() => toggleAttendance(event.id, false)}
-                                    size="sm"
-                                    className="bg-blue-600 hover:bg-blue-700 text-primary"
-                                    disabled={!!(event.max_attendees && event.attendees_count >= event.max_attendees)}
-                                  >
-                                    {event.max_attendees && event.attendees_count >= event.max_attendees ? 'Full' : 'Join'}
-                                  </Button>
-                                )}
+                              ))}
+                            </div>
+                            
+                            <div className="flex items-center gap-2 text-xs zenith-text-secondary">
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                <span>{event.attendees_count || 0} attending</span>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </CardContent>
-                    )}
+                      </div>
+                    </CardContent>
                   </Card>
                 </motion.div>
               ))}
@@ -809,14 +794,14 @@ export default function EventsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
           onClick={() => setShowDayDetails(false)}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="zenith-bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border zenith-border"
+            className="zenith-bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border zenith-border bg-opacity-95"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-6 border-b zenith-border zenith-bg-section">
@@ -826,7 +811,21 @@ export default function EventsPage() {
                     {format(selectedDate, 'MMMM d, yyyy')}
                   </h2>
                   <p className="zenith-text-secondary">
-                    {events.filter(event => isSameDay(parseISO(event.start_time), selectedDate)).length} events
+                    {events.filter(event => {
+                      try {
+                        let eventDate: Date;
+                        if (event.event_date) {
+                          eventDate = parseISO(event.event_date);
+                        } else if (event.start_time) {
+                          eventDate = parseISO(event.start_time);
+                        } else {
+                          return false;
+                        }
+                        return isSameDay(eventDate, selectedDate);
+                      } catch {
+                        return false;
+                      }
+                    }).length} events
                   </p>
                 </div>
                 <Button
@@ -843,7 +842,21 @@ export default function EventsPage() {
             <div className="p-6 max-h-[60vh] overflow-y-auto zenith-bg-card">
               <div className="space-y-4">
                 {events
-                  .filter(event => isSameDay(parseISO(event.start_time), selectedDate))
+                  .filter(event => {
+                    try {
+                      let eventDate: Date;
+                      if (event.event_date) {
+                        eventDate = parseISO(event.event_date);
+                      } else if (event.start_time) {
+                        eventDate = parseISO(event.start_time);
+                      } else {
+                        return false;
+                      }
+                      return isSameDay(eventDate, selectedDate);
+                    } catch {
+                      return false;
+                    }
+                  })
                   .map((event, index) => (
                     <motion.div
                       key={event.id}
@@ -853,7 +866,7 @@ export default function EventsPage() {
                       className="zenith-bg-section rounded-lg p-4 border zenith-border"
                     >
                       <div className="flex items-start gap-4">
-                        <div className={`w-4 h-4 rounded-full ${clubColors[clubs.find(c => c.id === event.club_id)?.type?.toLowerCase() || 'default'] || clubColors.default} mt-1`} />
+                        <div className={`w-4 h-4 rounded-full ${getClubColor(event.club_id)} mt-1`} />
                         <div className="flex-1">
                           <h3 className="font-semibold zenith-text-primary mb-1">
                             {event.title}
@@ -864,7 +877,11 @@ export default function EventsPage() {
                           <div className="flex items-center gap-4 text-sm zenith-text-muted">
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              <span>{format(parseISO(event.start_time), 'h:mm a')}</span>
+                              <span>
+                                {event.event_time ? event.event_time.slice(0, 5) : 
+                                 event.start_time ? format(parseISO(event.start_time), 'h:mm a') : 
+                                 'Time TBA'}
+                              </span>
                             </div>
                             {event.location && (
                               <div className="flex items-center gap-1">
@@ -878,8 +895,8 @@ export default function EventsPage() {
                             </div>
                           </div>
                         </div>
-                        <Badge className={`${getStatusColor(event.status)} border`}>
-                          {event.status}
+                        <Badge className={`${getStatusColor(getEventStatus(event))} border`}>
+                          {getEventStatus(event)}
                         </Badge>
                       </div>
                     </motion.div>
@@ -889,6 +906,9 @@ export default function EventsPage() {
           </motion.div>
         </motion.div>
       )}
+      
+      {/* ZenChatbot */}
+      <ZenChatbot />
     </div>
   );
 }

@@ -1,0 +1,574 @@
+{
+  "success": true,
+  "committee": {
+    "id": "founding-committee",
+    "name": "Core Leadership Team",
+    "description": "The executive leadership team that established and guides Zenith (2024-2025)",
+    "members": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Admin User",
+        "email": "admin@zenith.com",
+        "position": "admin",
+        "club_id": "ascend",
+        "club_name": "ASCEND",
+        "club_color": "blue",
+        "year": "2025",
+        "bio": "System administrator with full access",
+        "profile_image_url": null,
+        "joined_date": "2025-07-27T08:17:32.966Z",
+        "achievements": [
+          "Founded and established Zenith platform",
+          "Led the initial development and architecture",
+          "Built the foundational framework for all clubs"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/admin-user",
+          "github": "https://github.com/adminuser"
+        }
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "name": "Super Admin",
+        "email": "superadmin@zenith.com",
+        "position": "admin",
+        "club_id": null,
+        "club_name": null,
+        "club_color": null,
+        "year": "2025",
+        "bio": "Super administrator overseeing all clubs",
+        "profile_image_url": null,
+        "joined_date": "2025-07-27T08:17:32.966Z",
+        "achievements": [
+          "Founded and established Zenith platform",
+          "Led the initial development and architecture",
+          "Built the foundational framework for all clubs"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/super-admin",
+          "github": "https://github.com/superadmin"
+        }
+      },
+      {
+        "id": "8694ff1f-1d1e-4a7b-8ecb-eebda2c937d3",
+        "name": "Yash Siddhabhatti",
+        "email": "yash.siddhabhatti@zenith.edu",
+        "position": "president",
+        "club_id": null,
+        "club_name": null,
+        "club_color": null,
+        "year": "2025",
+        "bio": null,
+        "profile_image_url": null,
+        "joined_date": "2025-08-20T06:00:17.917Z",
+        "achievements": [
+          "Led the overall Zenith community",
+          "Established governance and policies",
+          "Coordinated inter-club activities"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/yash-siddhabhatti",
+          "github": "https://github.com/yashsiddhabhatti"
+        }
+      },
+      {
+        "id": "241f4f32-458e-410e-b2f2-6dcfda992455",
+        "name": "Sarthak Thote",
+        "email": "sarthak.thote@zenith.edu",
+        "position": "vice_president",
+        "club_id": null,
+        "club_name": null,
+        "club_color": null,
+        "year": "2025",
+        "bio": null,
+        "profile_image_url": null,
+        "joined_date": "2025-08-20T06:00:17.917Z",
+        "achievements": [
+          "Supported presidential initiatives",
+          "Managed day-to-day operations",
+          "Facilitated club coordination"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/sarthak-thote",
+          "github": "https://github.com/sarthakthote"
+        }
+      },
+      {
+        "id": "53cbed56-2bc7-4faf-bd6e-5f953de4dfa5",
+        "name": "Manasvi Giradkar",
+        "email": "manasvi.giradkar@zenith.edu",
+        "position": "zenith_secretary",
+        "club_id": null,
+        "club_name": null,
+        "club_color": null,
+        "year": "2025",
+        "bio": null,
+        "profile_image_url": null,
+        "joined_date": "2025-08-20T06:00:17.917Z",
+        "achievements": [
+          "Documented all Zenith processes",
+          "Managed official communications",
+          "Maintained organizational records"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/manasvi-giradkar",
+          "github": "https://github.com/manasvigiradkar"
+        }
+      },
+      {
+        "id": "7c36ecbe-44d3-40df-8b8b-886e5385e839",
+        "name": "Yogeshvar Chaudhari",
+        "email": "yogeshvar.chaudhari@zenith.edu",
+        "position": "treasurer",
+        "club_id": null,
+        "club_name": null,
+        "club_color": null,
+        "year": "2025",
+        "bio": null,
+        "profile_image_url": null,
+        "joined_date": "2025-08-20T06:00:17.917Z",
+        "achievements": [
+          "Managed Zenith finances",
+          "Oversaw budget planning",
+          "Handled financial operations"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/yogeshvar-chaudhari",
+          "github": "https://github.com/yogeshvarchaudhari"
+        }
+      },
+      {
+        "id": "21a95efa-ccfa-4c4c-af7f-50cfa0a35053",
+        "name": "Atharva Naitam",
+        "email": "atharva.naitam@zenith.edu",
+        "position": "innovation_head",
+        "club_id": null,
+        "club_name": null,
+        "club_color": null,
+        "year": "2025",
+        "bio": null,
+        "profile_image_url": null,
+        "joined_date": "2025-08-20T06:00:17.917Z",
+        "achievements": [
+          "Led innovation initiatives",
+          "Promoted new ideas and projects",
+          "Fostered creative thinking"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/atharva-naitam",
+          "github": "https://github.com/atharvanaitam"
+        }
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440033",
+        "name": "ACHIEVERS Media Head",
+        "email": "achievers.media@zenith.com",
+        "position": "media",
+        "club_id": "achievers",
+        "club_name": "ACHIEVERS",
+        "club_color": "purple",
+        "year": "2025",
+        "bio": "Media coordinator for ACHIEVERS club",
+        "profile_image_url": null,
+        "joined_date": "2025-07-27T08:17:32.966Z",
+        "achievements": [
+          "Managed Zenith media presence",
+          "Created promotional content",
+          "Handled public relations"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/achievers-media-head",
+          "github": "https://github.com/achieversmediahead"
+        }
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440013",
+        "name": "Aditya Yelne ",
+        "email": "ascend.media@zenith.com",
+        "position": "media",
+        "club_id": "ascend",
+        "club_name": "ASCEND",
+        "club_color": "blue",
+        "year": "2025",
+        "bio": "Media coordinator for ASCEND club",
+        "profile_image_url": null,
+        "joined_date": "2025-07-27T08:17:32.966Z",
+        "achievements": [
+          "Managed Zenith media presence",
+          "Created promotional content",
+          "Handled public relations"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/aditya-yelne-",
+          "github": "https://github.com/adityayelne"
+        }
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440043",
+        "name": "ARTOVERT Media Head",
+        "email": "artovert.media@zenith.com",
+        "position": "media",
+        "club_id": "artovert",
+        "club_name": "ARTOVERT",
+        "club_color": "orange",
+        "year": "2025",
+        "bio": "Media coordinator for ARTOVERT club",
+        "profile_image_url": null,
+        "joined_date": "2025-07-27T08:17:32.966Z",
+        "achievements": [
+          "Managed Zenith media presence",
+          "Created promotional content",
+          "Handled public relations"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/artovert-media-head",
+          "github": "https://github.com/artovertmediahead"
+        }
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440023",
+        "name": "ASTER Media Head",
+        "email": "aster.media@zenith.com",
+        "position": "media",
+        "club_id": "aster",
+        "club_name": "ASTER",
+        "club_color": "green",
+        "year": "2025",
+        "bio": "Media coordinator for ASTER club",
+        "profile_image_url": null,
+        "joined_date": "2025-07-27T08:17:32.966Z",
+        "achievements": [
+          "Managed Zenith media presence",
+          "Created promotional content",
+          "Handled public relations"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/aster-media-head",
+          "github": "https://github.com/astermediahead"
+        }
+      },
+      {
+        "id": "9755eab9-39cb-443b-9cca-853d727afe40",
+        "name": "Kaiwalya Pund",
+        "email": "kaiwalya.pund@zenith.edu",
+        "position": "media",
+        "club_id": null,
+        "club_name": null,
+        "club_color": null,
+        "year": "2025",
+        "bio": null,
+        "profile_image_url": null,
+        "joined_date": "2025-08-20T06:00:17.917Z",
+        "achievements": [
+          "Managed Zenith media presence",
+          "Created promotional content",
+          "Handled public relations"
+        ],
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/kaiwalya-pund",
+          "github": "https://github.com/kaiwalyapund"
+        }
+      }
+    ]
+  },
+  "clubs": [
+    {
+      "id": "achievers",
+      "name": "ACHIEVERS",
+      "color": "purple",
+      "members": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440030",
+          "name": "Paritosh Magare",
+          "email": "achievers.coordinator@zenith.com",
+          "position": "coordinator",
+          "club_id": "achievers",
+          "club_name": "ACHIEVERS",
+          "club_color": "purple",
+          "year": "2025",
+          "bio": "Lead coordinator for ACHIEVERS higher studies club",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/paritosh-magare",
+            "github": "https://github.com/paritoshmagare"
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440031",
+          "name": "Aayushi Asole",
+          "email": "achievers.co-coordinator@zenith.com",
+          "position": "co_coordinator",
+          "club_id": "achievers",
+          "club_name": "ACHIEVERS",
+          "club_color": "purple",
+          "year": "2025",
+          "bio": "Co-coordinator supporting ACHIEVERS activities",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/aayushi-asole",
+            "github": "https://github.com/aayushiasole"
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440032",
+          "name": "Mayur Aglawe ",
+          "email": "achievers.secretary@zenith.com",
+          "position": "secretary",
+          "club_id": "achievers",
+          "club_name": "ACHIEVERS",
+          "club_color": "purple",
+          "year": "2025",
+          "bio": "Secretary managing ACHIEVERS documentation",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/mayur-aglawe ",
+            "github": "https://github.com/mayuraglawe "
+          }
+        }
+      ]
+    },
+    {
+      "id": "artovert",
+      "name": "ARTOVERT",
+      "color": "orange",
+      "members": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440040",
+          "name": "ARTOVERT Coordinator",
+          "email": "artovert.coordinator@zenith.com",
+          "position": "coordinator",
+          "club_id": "artovert",
+          "club_name": "ARTOVERT",
+          "club_color": "orange",
+          "year": "2025",
+          "bio": "Lead coordinator for ARTOVERT development club",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/artovert-coordinator",
+            "github": "https://github.com/artovertcoordinator"
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440041",
+          "name": "ARTOVERT Co-Coordinator",
+          "email": "artovert.co-coordinator@zenith.com",
+          "position": "co_coordinator",
+          "club_id": "artovert",
+          "club_name": "ARTOVERT",
+          "club_color": "orange",
+          "year": "2025",
+          "bio": "Co-coordinator supporting ARTOVERT activities",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/artovert-co-coordinator",
+            "github": "https://github.com/artovertco-coordinator"
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440042",
+          "name": "ARTOVERT Secretary",
+          "email": "artovert.secretary@zenith.com",
+          "position": "secretary",
+          "club_id": "artovert",
+          "club_name": "ARTOVERT",
+          "club_color": "orange",
+          "year": "2025",
+          "bio": "Secretary managing ARTOVERT documentation",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/artovert-secretary",
+            "github": "https://github.com/artovertsecretary"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascend",
+      "name": "ASCEND",
+      "color": "blue",
+      "members": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440010",
+          "name": "Atharva Bhede",
+          "email": "ascend.coordinator@zenith.com",
+          "position": "coordinator",
+          "club_id": "ascend",
+          "club_name": "ASCEND",
+          "club_color": "blue",
+          "year": "2025",
+          "bio": "Lead coordinator for ASCEND coding club",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/atharva-bhede",
+            "github": "https://github.com/atharvabhede"
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440011",
+          "name": "Ayush Kshirsagar",
+          "email": "ascend.co-coordinator@zenith.com",
+          "position": "co_coordinator",
+          "club_id": "ascend",
+          "club_name": "ASCEND",
+          "club_color": "blue",
+          "year": "2025",
+          "bio": "Co-coordinator supporting ASCEND activities",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/ayush-kshirsagar",
+            "github": "https://github.com/ayushkshirsagar"
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440012",
+          "name": "Mohit Telang",
+          "email": "ascend.secretary@zenith.com",
+          "position": "secretary",
+          "club_id": "ascend",
+          "club_name": "ASCEND",
+          "club_color": "blue",
+          "year": "2025",
+          "bio": "Secretary managing ASCEND documentation",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/mohit-telang",
+            "github": "https://github.com/mohittelang"
+          }
+        }
+      ]
+    },
+    {
+      "id": "aster",
+      "name": "ASTER",
+      "color": "green",
+      "members": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440020",
+          "name": "Radhika Salodkar",
+          "email": "aster.coordinator@zenith.com",
+          "position": "coordinator",
+          "club_id": "aster",
+          "club_name": "ASTER",
+          "club_color": "green",
+          "year": "2025",
+          "bio": "Lead coordinator for ASTER soft skills club",
+          "profile_image_url": "/uploads/profiles/avatars/Screenshot from 2025-08-24 13-48-12_1756024176742_333e05fb871c9932.png",
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/radhika-salodkar",
+            "github": "https://github.com/radhikasalodkar"
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440021",
+          "name": "Gargi Udapure ",
+          "email": "aster.co-coordinator@zenith.com",
+          "position": "co_coordinator",
+          "club_id": "aster",
+          "club_name": "ASTER",
+          "club_color": "green",
+          "year": "2025",
+          "bio": "Co-coordinator supporting ASTER activities",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/gargi-udapure ",
+            "github": "https://github.com/gargiudapure "
+          }
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440022",
+          "name": "Sahil Shrivastava ",
+          "email": "aster.secretary@zenith.com",
+          "position": "secretary",
+          "club_id": "aster",
+          "club_name": "ASTER",
+          "club_color": "green",
+          "year": "2025",
+          "bio": "Secretary managing ASTER documentation",
+          "profile_image_url": null,
+          "joined_date": "2025-07-27T13:47:32.966+05:30",
+          "achievements": [
+            "Early adopter and founding member",
+            "Contributed to initial club activities",
+            "Part of the pioneer batch of 2024"
+          ],
+          "social_links": {
+            "linkedin": "https://linkedin.com/in/sahil-shrivastava ",
+            "github": "https://github.com/sahilshrivastava "
+          }
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "totalFoundingMembers": 24,
+    "committeeMembers": 12,
+    "clubCount": 4,
+    "foundingPeriod": "2024-2025"
+  }
+}

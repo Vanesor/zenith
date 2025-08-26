@@ -1,0 +1,1 @@
+PGPASSWORD=AtharvaAyush psql -h localhost -p 5432 -U zenithpostgres -d zenith -c "DELETE FROM users WHERE name = 'Atharva Naitam' AND email != 'atharva.naitam@zenith.edu';"

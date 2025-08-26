@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { 
   Settings, 
   User, 
@@ -39,7 +40,6 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
   // Profile Settings
   const [profileData, setProfileData] = useState({
@@ -63,6 +63,9 @@ export default function SettingsPage() {
     new: false,
     confirm: false
   });
+
+  // Forgot Password
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
 
   // 2FA Settings
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -130,12 +133,58 @@ export default function SettingsPage() {
     }
   }, [user]);
 
+  // Check 2FA status on component mount
+  useEffect(() => {
+    const check2FAStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const token = localStorage.getItem('zenith-token');
+        const response = await fetch('/api/auth/setup-2fa', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTwoFactorEnabled(data.totpEnabled || data.emailOtpEnabled);
+        }
+      } catch (error) {
+        console.error('Error checking 2FA status:', error);
+      }
+    };
+
+    check2FAStatus();
+  }, [user]);
+
   const showMessage = (type: 'success' | 'error', text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage(null), 5000);
+    if (type === 'success') {
+      toast.success(text);
+    } else {
+      toast.error(text);
+    }
   };
 
   const handleProfileSave = async () => {
+    if (!profileData.firstName.trim() || !profileData.lastName.trim()) {
+      showMessage('error', 'First name and last name are required');
+      return;
+    }
+
+    if (!profileData.email.trim()) {
+      showMessage('error', 'Email is required');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profileData.email)) {
+      showMessage('error', 'Please enter a valid email address');
+      return;
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem('zenith-token');
@@ -151,23 +200,40 @@ export default function SettingsPage() {
       if (response.ok) {
         showMessage('success', 'Profile updated successfully!');
       } else {
-        showMessage('error', 'Failed to update profile');
+        const errorData = await response.json();
+        showMessage('error', errorData.error || 'Failed to update profile');
       }
     } catch (error) {
-      showMessage('error', 'Error updating profile');
+      console.error('Profile update error:', error);
+      showMessage('error', 'Network error while updating profile');
     } finally {
       setLoading(false);
     }
   };
 
   const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword.trim()) {
+      showMessage('error', 'Current password is required');
+      return;
+    }
+
+    if (!passwordData.newPassword.trim()) {
+      showMessage('error', 'New password is required');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      showMessage('error', 'New password must be at least 8 characters long');
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       showMessage('error', 'New passwords do not match');
       return;
     }
 
-    if (passwordData.newPassword.length < 8) {
-      showMessage('error', 'Password must be at least 8 characters long');
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      showMessage('error', 'New password must be different from current password');
       return;
     }
 
@@ -190,11 +256,50 @@ export default function SettingsPage() {
         showMessage('success', 'Password changed successfully!');
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       } else {
-        const data = await response.json();
-        showMessage('error', data.message || 'Failed to change password');
+        const errorData = await response.json();
+        showMessage('error', errorData.error || 'Failed to change password');
       }
     } catch (error) {
-      showMessage('error', 'Error changing password');
+      console.error('Password change error:', error);
+      showMessage('error', 'Network error while changing password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail.trim()) {
+      showMessage('error', 'Please enter your email address');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(forgotPasswordEmail)) {
+      showMessage('error', 'Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      if (response.ok) {
+        showMessage('success', 'Password reset link sent to your email (if account exists)');
+        setForgotPasswordEmail('');
+      } else {
+        const errorData = await response.json();
+        showMessage('error', errorData.error || 'Failed to send reset email');
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      showMessage('error', 'Network error while sending reset email');
     } finally {
       setLoading(false);
     }
@@ -215,17 +320,25 @@ export default function SettingsPage() {
         const data = await response.json();
         setQrCode(data.qrCode);
         setShowQR(true);
+        showMessage('success', 'QR code generated. Scan with your authenticator app.');
       } else {
-        showMessage('error', 'Failed to setup 2FA');
+        const errorData = await response.json();
+        showMessage('error', errorData.error || 'Failed to setup 2FA');
       }
     } catch (error) {
-      showMessage('error', 'Error setting up 2FA');
+      console.error('2FA setup error:', error);
+      showMessage('error', 'Network error while setting up 2FA');
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerify2FA = async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      showMessage('error', 'Please enter a valid 6-digit verification code');
+      return;
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem('zenith-token');
@@ -235,25 +348,34 @@ export default function SettingsPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ code: verificationCode }),
+        body: JSON.stringify({ 
+          userId: user?.id,
+          code: verificationCode 
+        }),
       });
 
       if (response.ok) {
         setTwoFactorEnabled(true);
         setShowQR(false);
         setVerificationCode('');
-        showMessage('success', 'Two-factor authentication enabled!');
+        showMessage('success', 'Two-factor authentication enabled successfully!');
       } else {
-        showMessage('error', 'Invalid verification code');
+        const errorData = await response.json();
+        showMessage('error', errorData.error || 'Invalid verification code');
       }
     } catch (error) {
-      showMessage('error', 'Error verifying 2FA');
+      console.error('2FA verification error:', error);
+      showMessage('error', 'Network error during verification');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDisable2FA = async () => {
+    if (!confirm('Are you sure you want to disable two-factor authentication? This will make your account less secure.')) {
+      return;
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem('zenith-token');
@@ -266,12 +388,17 @@ export default function SettingsPage() {
 
       if (response.ok) {
         setTwoFactorEnabled(false);
+        setShowQR(false);
+        setQrCode('');
+        setVerificationCode('');
         showMessage('success', 'Two-factor authentication disabled');
       } else {
-        showMessage('error', 'Failed to disable 2FA');
+        const errorData = await response.json();
+        showMessage('error', errorData.error || 'Failed to disable 2FA');
       }
     } catch (error) {
-      showMessage('error', 'Error disabling 2FA');
+      console.error('2FA disable error:', error);
+      showMessage('error', 'Network error while disabling 2FA');
     } finally {
       setLoading(false);
     }
@@ -774,27 +901,7 @@ export default function SettingsPage() {
         </motion.div>
 
         {/* Message Alert */}
-        <AnimatePresence>
-          {message && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className={`mb-6 p-4 rounded-lg flex items-center space-x-3 ${
-                message.type === 'success' 
-                  ? 'zenith-bg-section text-green-800 dark:text-green-100' 
-                  : 'zenith-bg-section text-red-800 dark:text-red-100'
-              }`}
-            >
-              {message.type === 'success' ? (
-                <CheckCircle className="w-5 h-5" />
-              ) : (
-                <AlertTriangle className="w-5 h-5" />
-              )}
-              <span>{message.text}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Messages now handled by react-hot-toast */}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 // Helper function to validate JWT format
 const isValidJWTFormat = (token: string): boolean => {
@@ -28,6 +29,7 @@ interface User {
   avatar?: string;
   profile_image_url?: string;
   bio?: string;
+  has_password?: boolean;
 }
 
 interface AuthContextType {
@@ -49,11 +51,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Use NextAuth session for OAuth users
+  const { data: session, status: sessionStatus } = useSession();
 
   useEffect(() => {
     // Check for stored token on mount and validate it
     const validateStoredAuth = async () => {
       if (typeof window !== "undefined") {
+        console.log('AuthContext: Starting authentication check...');
+        console.log('AuthContext: NextAuth session status:', sessionStatus);
+        console.log('AuthContext: NextAuth session data:', session);
+
+        // Priority 1: Check NextAuth session (OAuth users)
+        if (sessionStatus === 'authenticated' && session?.user) {
+          console.log('AuthContext: Found NextAuth session, setting OAuth user');
+          setUser({
+            id: session.user.id!,
+            email: session.user.email!,
+            name: session.user.name!,
+            role: session.user.role || 'student',
+            club_id: session.user.club_id || null,
+            avatar: session.user.image || undefined,
+            profile_image_url: session.user.image || undefined,
+            has_password: false // OAuth users can set passwords later
+          });
+          setToken('nextauth-session'); // Placeholder token for OAuth users
+          setIsLoading(false);
+          return;
+        }
+
+        // Priority 2: If NextAuth is loading, wait for it
+        if (sessionStatus === 'loading') {
+          console.log('AuthContext: NextAuth session loading...');
+          return; // Keep loading state
+        }
+
+        // Priority 3: Check JWT tokens (regular login users)
+        console.log('AuthContext: No NextAuth session, checking JWT tokens');
+        
         // First try to get user data from localStorage for an instant UI response
         const storedToken = localStorage.getItem("zenith-token");
         const storedUser = localStorage.getItem("zenith-user");
@@ -282,7 +318,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 5 * 60 * 1000); // Check every 5 minutes
     
     return () => clearInterval(interval);
-  }, []);
+  }, [session, sessionStatus]); // Add session dependencies
 
   const forceRefreshUser = async () => {
     try {
@@ -335,7 +371,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = (redirect = true) => {
+  const logout = async (redirect = true) => {
+    // If user is authenticated via NextAuth, sign them out
+    if (session) {
+      await signOut({ redirect: false });
+    }
+    
     setToken(null);
     setUser(null);
     if (typeof window !== "undefined") {
@@ -357,7 +398,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateUser,
     forceRefreshUser,
     isLoading,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!(token && user) || !!(session && user),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

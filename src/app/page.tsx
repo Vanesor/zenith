@@ -24,7 +24,11 @@ import {
   TrendingUp,
   Award,
   Star,
-  Zap
+  Zap,
+  Mail,
+  Linkedin,
+  Github,
+  User
 } from "lucide-react";
 import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
@@ -152,6 +156,7 @@ interface HomeData {
   stats: HomeStats;
   clubs: Club[];
   upcomingEvents: Event[];
+  pastEvents: Event[];
   recentPosts: Post[];
   leadership?: Leadership;
 }
@@ -177,7 +182,7 @@ export default function HomePage() {
     },
     {
       id: 2,
-      url:"images/father.jpg",
+      url:"images/yashsarthak.jpg",
       title: "Specialized Clubs",
       subtitle: "Find Your Passion",
       description: "Explore our diverse range of clubs and activities"
@@ -191,8 +196,8 @@ export default function HomePage() {
     },
     {
       id: 4,
-      url: "images/image.png",
-      title: "Innovation Hub",
+      url: "images/team.jpeg",
+      title: "Founding Team",
       subtitle: "Transform Ideas into Reality",
       description: "Collaborate on projects and bring your innovations to life"
     }
@@ -522,6 +527,19 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
+              {/* <div className="mt-8">
+                <Link href="/founding-team">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center px-6 py-3 bg-zenith-accent text-white font-medium rounded-lg hover:bg-zenith-accent/90 transition-colors duration-200"
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                    Meet Our Founding Team
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </motion.button>
+                </Link>
+              </div> */}
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 50 }}
@@ -1071,7 +1089,111 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-
+            {/* Developer Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-zenith-primary mb-4">Meet the Developers</h2>
+            <p className="text-lg text-zenith-secondary max-w-2xl mx-auto">
+              The talented team behind Zenith Forum, building innovative solutions for the campus community.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {/* Developer 1
+            <div className="bg-zenith-card rounded-2xl p-6 shadow-xl border border-zenith-border overflow-hidden">
+              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                <div className="w-32 h-32 rounded-xl overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                  <User className="w-16 h-16 text-white" />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-bold text-zenith-primary mb-2">Atharva Naitam</h3>
+                  <p className="text-blue-600 dark:text-blue-400 font-medium mb-3">Lead Developer</p>
+                  <p className="text-zenith-secondary mb-4">
+                    Full-stack developer with expertise in React, Next.js, and PostgreSQL. 
+                    Passionate about creating meaningful user experiences. He also serves as the Innovation Head at Zenith Forum.
+                  </p>
+                  <div className="flex space-x-4 justify-center md:justify-start">
+                    <a href="https://github.com/Vanesor" className="text-zenith-muted hover:text-blue-600 transition-colors">
+                      <Github className="w-5 h-5" />
+                    </a>
+                    <a href="https://in.linkedin.com/in/atharva-naitam-b896521b4" className="text-zenith-muted hover:text-blue-600 transition-colors">
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                    <a href="mailto:naitamatharva14@gmail.com" className="text-zenith-muted hover:text-blue-600 transition-colors">
+                      <Mail className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div> */}
+            {/* Developer 1: Atharva Naitam (Updated) */}
+            <div className="bg-zenith-card rounded-2xl p-6 shadow-xl border border-zenith-border overflow-hidden">
+              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                <div className="w-32 h-32 rounded-xl overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                  <img 
+                    src="/images/atharva.png" 
+                    alt="Atharva Naitam" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-bold text-zenith-primary mb-2">Atharva Naitam</h3>
+                  <p className="text-blue-600 dark:text-blue-400 font-medium mb-3">Software Engineer | AI/ML Developer</p>
+                  <p className="text-zenith-secondary mb-4">
+                    A highly motivated Software Engineering student with a robust passion for AI/ML and building intelligent systems. His expertise spans across AI frameworks like LangChain and TensorFlow, full-stack development with React, and decentralized technologies .As the Innovation Head and a Founding Member, he played a pivotal role in establishing the Zenith Forum.
+                  </p>
+                  <div className="flex space-x-4 justify-center md:justify-start">
+                    <a href="#" className="text-zenith-muted hover:text-blue-600 transition-colors" aria-label="GitHub Profile">
+                      <Github className="w-5 h-5" />
+                    </a>
+                    <a href="https://in.linkedin.com/in/atharva-naitam-b896521b4" className="text-zenith-muted hover:text-blue-600 transition-colors" aria-label="LinkedIn Profile">
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                    <a href="mailto:atharvanaitam14@gmail.com" className="text-zenith-muted hover:text-blue-600 transition-colors" aria-label="Send Email">
+                      <Mail className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Developer 2: Ayush Kshirsagar (Updated) */}
+            <div className="bg-zenith-card rounded-2xl p-6 shadow-xl border border-zenith-border overflow-hidden">
+              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                <div className="w-32 h-32 rounded-xl overflow-hidden bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                  <img 
+                    src="/images/ayush.png" 
+                    alt="Ayush Kshirsagar" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-bold text-zenith-primary mb-2">Ayush Kshirsagar</h3>
+                  <p className="text-purple-600 dark:text-purple-400 font-medium mb-3">Data Scientist & Full Stack Developer </p>
+                  <p className="text-zenith-secondary mb-4">
+                    A passionate developer skilled in building AI-powered solutions and responsive web applications. His experience includes training machine learning models and developing real-time gesture interpretation and translation systems using Python and OpenCV. He also serves as the Co-Coordinator for the Ascend Club at Zenith Forum.
+                  </p>
+                  <div className="flex space-x-4 justify-center md:justify-start">
+                    <a href="https://github.com/08Ayush" target="_blank" rel="noopener noreferrer" className="text-zenith-muted hover:text-purple-600 transition-colors" aria-label="GitHub Profile">
+                      <Github className="w-5 h-5" />
+                    </a>
+                    <a href="https://linkedin.com/in/ayush-kshirsagar-37766a257" target="_blank" rel="noopener noreferrer" className="text-zenith-muted hover:text-purple-600 transition-colors" aria-label="LinkedIn Profile">
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                    <a href="mailto:ayushkshirsagar28@gmail.com" className="text-zenith-muted hover:text-purple-600 transition-colors" aria-label="Send Email">
+                      <Mail className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+        <br /><br />
       <Footer></Footer>
     </div>
   );

@@ -1,0 +1,177 @@
+{
+  "success": true,
+  "clubs": [
+    {
+      "id": "achievers",
+      "name": "ACHIEVERS",
+      "description": "A club supporting students pursuing higher education and academic excellence",
+      "created_at": "2025-07-27T08:17:32.966Z",
+      "logo_url": null,
+      "banner_image_url": null,
+      "type": "Higher Studies",
+      "icon": "GraduationCap",
+      "color": "purple",
+      "member_count": 7,
+      "memberCount": 7,
+      "eventCount": 2,
+      "postCount": 1,
+      "leadership": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440031",
+          "name": "Aayushi Asole",
+          "role": "co_coordinator",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440030",
+          "name": "Paritosh Magare",
+          "role": "coordinator",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440033",
+          "name": "ACHIEVERS Media Head",
+          "role": "media",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440032",
+          "name": "Mayur Aglawe ",
+          "role": "secretary",
+          "avatar": null
+        }
+      ],
+      "coordinator_id": "550e8400-e29b-41d4-a716-446655440030",
+      "coordinator_name": "Paritosh Magare"
+    },
+    {
+      "id": "artovert",
+      "name": "ARTOVERT",
+      "description": "A comprehensive club focusing on holistic student development",
+      "created_at": "2025-07-27T08:17:32.966Z",
+      "logo_url": null,
+      "banner_image_url": null,
+      "type": "Overall Development",
+      "icon": "Target",
+      "color": "orange",
+      "member_count": 7,
+      "memberCount": 7,
+      "eventCount": 2,
+      "postCount": 1,
+      "leadership": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440041",
+          "name": "ARTOVERT Co-Coordinator",
+          "role": "co_coordinator",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440040",
+          "name": "ARTOVERT Coordinator",
+          "role": "coordinator",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440043",
+          "name": "ARTOVERT Media Head",
+          "role": "media",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440042",
+          "name": "ARTOVERT Secretary",
+          "role": "secretary",
+          "avatar": null
+        }
+      ],
+      "coordinator_id": "550e8400-e29b-41d4-a716-446655440040",
+      "coordinator_name": "ARTOVERT Coordinator"
+    },
+    {
+      "id": "ascend",
+      "name": "ASCEND",
+      "description": "A coding club focused on programming and technology",
+      "created_at": "2025-07-27T08:17:32.966Z",
+      "logo_url": null,
+      "banner_image_url": null,
+      "type": "Technical",
+      "icon": "Code",
+      "color": "blue",
+      "member_count": 11,
+      "memberCount": 11,
+      "eventCount": 2,
+      "postCount": 2,
+      "leadership": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440011",
+          "name": "Ayush Kshirsagar",
+          "role": "co_coordinator",
+          "avatar": "https://qpulpytptbwwumicyzwr.supabase.co/storage/v1/object/public/avatars/profile_550e8400-e29b-41d4-a716-446655440011_1755328377221_ayushphoto.jpg"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440010",
+          "name": "Atharva Bhede",
+          "role": "coordinator",
+          "avatar": "https://qpulpytptbwwumicyzwr.supabase.co/storage/v1/object/public/avatars/profile_550e8400-e29b-41d4-a716-446655440010_1755680000670_Screenshot%202025-08-20%20141027.png"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440013",
+          "name": "Aditya Yelne ",
+          "role": "media",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440012",
+          "name": "Mohit Telang",
+          "role": "secretary",
+          "avatar": null
+        }
+      ],
+      "coordinator_id": "550e8400-e29b-41d4-a716-446655440010",
+      "coordinator_name": "Atharva Bhede"
+    },
+    {
+      "id": "aster",
+      "name": "ASTER",
+      "description": "A club focused on developing interpersonal and communication skills",
+      "created_at": "2025-07-27T08:17:32.966Z",
+      "logo_url": null,
+      "banner_image_url": null,
+      "type": "Soft Skills",
+      "icon": "Users",
+      "color": "green",
+      "member_count": 7,
+      "memberCount": 7,
+      "eventCount": 2,
+      "postCount": 1,
+      "leadership": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440021",
+          "name": "Gargi Udapure ",
+          "role": "co_coordinator",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440020",
+          "name": "Radhika Salodkar",
+          "role": "coordinator",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440023",
+          "name": "ASTER Media Head",
+          "role": "media",
+          "avatar": null
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440022",
+          "name": "Sahil Shrivastava ",
+          "role": "secretary",
+          "avatar": null
+        }
+      ],
+      "coordinator_id": "550e8400-e29b-41d4-a716-446655440020",
+      "coordinator_name": "Radhika Salodkar"
+    }
+  ]
+}

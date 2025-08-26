@@ -1,0 +1,163 @@
+{
+  "club": {
+    "id": "ascend",
+    "name": "ASCEND",
+    "type": "Technical",
+    "description": "A coding club focused on programming and technology",
+    "long_description": "ASCEND is the premier coding club fostering programming skills, software development, and technological innovation. We organize hackathons, coding workshops, and technical seminars to help students master programming languages and development frameworks.",
+    "icon": "Code",
+    "color": "blue",
+    "coordinator_id": "550e8400-e29b-41d4-a716-446655440010",
+    "co_coordinator_id": "550e8400-e29b-41d4-a716-446655440011",
+    "secretary_id": "550e8400-e29b-41d4-a716-446655440012",
+    "media_id": "550e8400-e29b-41d4-a716-446655440013",
+    "guidelines": "Focus on coding excellence and software development",
+    "meeting_schedule": {},
+    "created_at": "2025-07-27T08:17:32.966Z",
+    "updated_at": "2025-08-25T17:13:53.290Z",
+    "logo_url": null,
+    "banner_image_url": null,
+    "club_images": [],
+    "member_count": 13,
+    "coordinator_name": "Atharva Bhede",
+    "coordinator_email": "ascend.coordinator@zenith.com",
+    "coordinator_avatar": "https://qpulpytptbwwumicyzwr.supabase.co/storage/v1/object/public/avatars/profile_550e8400-e29b-41d4-a716-446655440010_1755680000670_Screenshot%202025-08-20%20141027.png",
+    "coordinator_profile_image_url": null,
+    "co_coordinator_name": "Ayush Kshirsagar",
+    "co_coordinator_email": "ascend.co-coordinator@zenith.com",
+    "co_coordinator_avatar": "https://qpulpytptbwwumicyzwr.supabase.co/storage/v1/object/public/avatars/profile_550e8400-e29b-41d4-a716-446655440011_1755328377221_ayushphoto.jpg",
+    "co_coordinator_profile_image_url": null,
+    "secretary_name": "Mohit Telang",
+    "secretary_email": "ascend.secretary@zenith.com",
+    "secretary_avatar": null,
+    "secretary_profile_image_url": null,
+    "media_name": "Aditya Yelne ",
+    "media_email": "ascend.media@zenith.com",
+    "media_avatar": null,
+    "media_profile_image_url": null,
+    "memberCount": 13,
+    "eventCount": 8,
+    "postCount": 1,
+    "coordinator": {
+      "name": "Atharva Bhede",
+      "email": "ascend.coordinator@zenith.com",
+      "avatar": "https://qpulpytptbwwumicyzwr.supabase.co/storage/v1/object/public/avatars/profile_550e8400-e29b-41d4-a716-446655440010_1755680000670_Screenshot%202025-08-20%20141027.png",
+      "profile_image_url": null
+    },
+    "co_coordinator": {
+      "name": "Ayush Kshirsagar",
+      "email": "ascend.co-coordinator@zenith.com",
+      "avatar": "https://qpulpytptbwwumicyzwr.supabase.co/storage/v1/object/public/avatars/profile_550e8400-e29b-41d4-a716-446655440011_1755328377221_ayushphoto.jpg",
+      "profile_image_url": null
+    },
+    "secretary": {
+      "name": "Mohit Telang",
+      "email": "ascend.secretary@zenith.com",
+      "avatar": null,
+      "profile_image_url": null
+    },
+    "media": {
+      "name": "Aditya Yelne ",
+      "email": "ascend.media@zenith.com",
+      "avatar": null,
+      "profile_image_url": null
+    }
+  },
+  "events": [],
+  "pastEvents": [
+    {
+      "id": "d386c85a-01a8-4fea-b45e-f2bad317a073",
+      "title": "Hackathon Weekend",
+      "description": "Two-day coding hackathon where participants build innovative solutions to real-world problems using latest technologies.",
+      "event_date": "2025-08-16T18:30:00.000Z",
+      "location": "Computer Lab Block A",
+      "max_attendees": 50,
+      "status": "completed",
+      "banner_image_url": null,
+      "gallery_images": [],
+      "created_at": "2025-08-26T04:49:44.001Z",
+      "attendees_count": "0"
+    },
+    {
+      "id": "550e8400-3001-41d4-a716-446655440002",
+      "title": "Hackathon Weekend",
+      "description": "48-hour coding marathon to build innovative solutions",
+      "event_date": "2025-08-16T18:30:00.000Z",
+      "location": "Computer Lab Block A",
+      "max_attendees": 50,
+      "status": "completed",
+      "banner_image_url": null,
+      "gallery_images": [],
+      "created_at": "2025-07-27T08:17:32.966Z",
+      "attendees_count": "0"
+    },
+    {
+      "id": "550e8400-3001-41d4-a716-446655440001",
+      "title": "Coding Summit 2025",
+      "description": "Annual coding summit featuring industry leaders and programming challenges",
+      "event_date": "2025-08-09T18:30:00.000Z",
+      "location": "Main Auditorium",
+      "max_attendees": 200,
+      "status": "completed",
+      "banner_image_url": null,
+      "gallery_images": [],
+      "created_at": "2025-07-27T08:17:32.966Z",
+      "attendees_count": "0"
+    },
+    {
+      "id": "4917e71d-4585-4779-9d26-d00950c585ae",
+      "title": "Coding Summit 2025",
+      "description": "Annual coding summit featuring industry experts, workshops on emerging technologies, and competitive programming contests.",
+      "event_date": "2025-08-09T18:30:00.000Z",
+      "location": "Main Auditorium",
+      "max_attendees": 200,
+      "status": "completed",
+      "banner_image_url": null,
+      "gallery_images": [],
+      "created_at": "2025-08-26T04:49:44.001Z",
+      "attendees_count": "0"
+    },
+    {
+      "id": "2b747088-2329-49bb-ad6f-af30c02c1151",
+      "title": "IoT Made Easy Workshop",
+      "description": "Hands-on workshop introducing Internet of Things concepts, sensor integration, and practical IoT project development.",
+      "event_date": "2025-05-14T18:30:00.000Z",
+      "location": "Electronics Lab",
+      "max_attendees": 25,
+      "status": "completed",
+      "banner_image_url": null,
+      "gallery_images": [],
+      "created_at": "2025-08-26T04:49:44.001Z",
+      "attendees_count": "0"
+    },
+    {
+      "id": "b1e2aec6-95c1-4425-9882-4f1801fb6e55",
+      "title": "C++ Programming Session",
+      "description": "Comprehensive session covering C++ fundamentals, loops, conditionals, and competitive programming techniques.",
+      "event_date": "2025-04-11T18:30:00.000Z",
+      "location": "Online",
+      "max_attendees": 30,
+      "status": "completed",
+      "banner_image_url": null,
+      "gallery_images": [],
+      "created_at": "2025-08-26T04:49:44.001Z",
+      "attendees_count": "0"
+    }
+  ],
+  "posts": [
+    {
+      "id": "3bc000fa-d086-4977-9cb3-08105ada3771",
+      "title": "Arduino",
+      "excerpt": " Unleash Your Inner Maker: Getting Started with Arduino\n\nWelcome, ASCENDers!  This post is for anyone curious about the amazing world of Arduino – a fantastic platform for bringing your coding proje...",
+      "content": "## Unleash Your Inner Maker: Getting Started with Arduino\n\nWelcome, ASCENDers!  This post is for anyone curious about the amazing world of Arduino – a fantastic platform for bringing your coding projects to life. Whether you're a complete beginner or have some programming experience, Arduino offers a rewarding and accessible path to hardware interaction.\n\n**What is Arduino?**\n\nArduino isn't just a piece of hardware; it's a complete ecosystem. At its core, it's a microcontroller board – a tiny, programmable computer – that can be used to control a vast array of electronic components. Think LEDs, motors, sensors, and much more!  What sets Arduino apart is its ease of use.  Its intuitive programming language (based on C++) and large, supportive community make it perfect for learning and experimentation.\n\n**Why Learn Arduino?**\n\n* **Hands-on learning:**  Forget abstract concepts; Arduino lets you *see* your code in action.  You'll build projects, troubleshoot problems, and develop practical skills applicable to various fields.\n* **Creative freedom:** The possibilities are virtually endless.  Build robots, automate home appliances, create interactive art installations – the only limit is your imagination!\n* **Boost your resume:**  Demonstrating proficiency in Arduino showcases your problem-solving abilities, your understanding of embedded systems, and your dedication to learning.  Employers across various industries value these skills.\n* **Join a vibrant community:**  The Arduino community is massive and supportive.  You'll find countless tutorials, projects, and forums to help you every step of the way.\n\n\n**Getting Started: Your First Arduino Project**\n\nLet's build a simple project: blinking an LED!  This seemingly basic project will introduce you to the fundamental concepts of Arduino programming.\n\n**You'll need:**\n\n* An Arduino Uno (or similar board)\n* A LED\n* A 220-ohm resistor (crucial to prevent damage to the LED)\n* Jumper wires\n* A breadboard (optional, but highly recommended)\n\n**Steps:**\n\n1. **Download the Arduino IDE:**  Head to [https://www.arduino.cc/en/Main/Software](https://www.arduino.cc/en/Main/Software) and download the software for your operating system.\n2. **Connect the components:**  Connect the longer leg (positive anode) of the LED to digital pin 13 on your Arduino board through the 220-ohm resistor.  Connect the shorter leg (negative cathode) to ground (GND) on the Arduino board. A breadboard simplifies this process.\n3. **Write the code:** Copy and paste the following code into the Arduino IDE:\n\n```c++\nvoid setup() {\n  pinMode(13, OUTPUT); // Set pin 13 as an output\n}\n\nvoid loop() {\n  digitalWrite(13, HIGH); // Turn LED ON\n  delay(1000);          // Wait for 1 second\n  digitalWrite(13, LOW);  // Turn LED OFF\n  delay(1000);          // Wait for 1 second\n}\n```\n\n4. **Upload the code:** Connect your Arduino to your computer via USB and upload the code.  Your LED should now blink!\n\n**Next Steps:**\n\nThis is just the beginning!  Explore different sensors, motors, and libraries to expand your projects.  Consider these resources:\n\n* **Official Arduino website:** [https://www.arduino.cc/](https://www.arduino.cc/)\n* **Instructables:** A great source of project ideas and tutorials.\n* **YouTube:**  Search for \"Arduino projects for beginners\" for countless video tutorials.\n\nDon't be afraid to experiment, make mistakes, and learn from them.  The Arduino community is here to support you on your journey. Happy making, ASCENDers!\n",
+      "created_at": "2025-08-24T11:07:20.818Z",
+      "view_count": 34,
+      "author_name": "Radhika Salodkar",
+      "author_avatar": null,
+      "author_profile_image_url": "/uploads/profiles/avatars/Screenshot from 2025-08-24 13-48-12_1756024176742_333e05fb871c9932.png",
+      "author_role": "coordinator",
+      "like_count": "1",
+      "comment_count": "1"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+                email                 |      name      | oauth_provider 
+--------------------------------------+----------------+----------------
+ atharvanaitam.22@stvincentngp.edu.in | Atharva Naitam | google
+(1 row)
+

@@ -1,0 +1,92 @@
+         info          | count 
+-----------------------+-------
+ Current events count: |     8
+(1 row)
+
+psql:insert_real_events_data.sql:23: ERROR:  invalid input syntax for type uuid: "evt_ascend_001"
+LINE 3: ('evt_ascend_001', 'Problem Solving Based on Aptitude', 'Wor...
+         ^
+psql:insert_real_events_data.sql:37: ERROR:  invalid input syntax for type uuid: "evt_aster_001"
+LINE 3: ('evt_aster_001', 'Women Empowerment and Career Insights', '...
+         ^
+psql:insert_real_events_data.sql:49: ERROR:  invalid input syntax for type uuid: "evt_achievers_001"
+LINE 3: ('evt_achievers_001', 'GRE Preparation Strategy Session', 'C...
+         ^
+psql:insert_real_events_data.sql:61: ERROR:  invalid input syntax for type uuid: "evt_artovert_001"
+LINE 3: ('evt_artovert_001', 'Holistic Development Workshop', 'Works...
+         ^
+                    info                    | count 
+--------------------------------------------+-------
+ Events inserted successfully. Total count: |     8
+(1 row)
+
+      info       
+-----------------
+ Events by Club:
+(1 row)
+
+ club_name | event_count | past_events | upcoming_events 
+-----------+-------------+-------------+-----------------
+ ACHIEVERS |           2 |           0 |               2
+ ARTOVERT  |           2 |           0 |               2
+ ASCEND    |           2 |           0 |               2
+ ASTER     |           2 |           0 |               2
+(4 rows)
+
+          info          
+------------------------
+ Recent Events Details:
+(1 row)
+
+             title              | club_name | event_date |  status  |       location       | max_attendees 
+--------------------------------+-----------+------------+----------+----------------------+---------------
+ Holistic Development Fair      | ARTOVERT  | 2025-08-20 | upcoming | Main Campus          |           400
+ Hackathon Weekend              | ASCEND    | 2025-08-17 | upcoming | Computer Lab Block A |            50
+ Higher Studies Fair            | ACHIEVERS | 2025-08-15 | upcoming | Exhibition Hall      |           300
+ Communication Skills Workshop  | ASTER     | 2025-08-13 | upcoming | Seminar Hall         |           100
+ Coding Summit 2025             | ASCEND    | 2025-08-10 | upcoming | Main Auditorium      |           200
+ Leadership Development Session | ASTER     | 2025-08-07 | upcoming | Conference Room B    |            60
+ Research Methodology Workshop  | ACHIEVERS | 2025-08-05 | upcoming | Library Auditorium   |           120
+ Cross-Club Collaboration Meet  | ARTOVERT  | 2025-08-03 | upcoming | Community Center     |           150
+(8 rows)
+
+psql:insert_real_events_data.sql:110: ERROR:  column "activity_type" of relation "events" does not exist
+LINE 3:   status, created_at, updated_at, activity_type, coordinator...
+                                          ^
+psql:insert_real_events_data.sql:129: ERROR:  column "activity_type" of relation "events" does not exist
+LINE 3:   status, created_at, updated_at, activity_type, coordinator...
+                                          ^
+psql:insert_real_events_data.sql:148: ERROR:  column "activity_type" of relation "events" does not exist
+LINE 3:   status, created_at, updated_at, activity_type, coordinator...
+                                          ^
+psql:insert_real_events_data.sql:167: ERROR:  column "activity_type" of relation "events" does not exist
+LINE 3:   status, created_at, updated_at, activity_type, coordinator...
+                                          ^
+psql:insert_real_events_data.sql:186: ERROR:  column "activity_type" of relation "events" does not exist
+LINE 3:   status, created_at, updated_at, activity_type, coordinator...
+                                          ^
+psql:insert_real_events_data.sql:205: ERROR:  column "activity_type" of relation "events" does not exist
+LINE 3:   status, created_at, updated_at, activity_type, coordinator...
+                                          ^
+psql:insert_real_events_data.sql:249: ERROR:  column "activity_type" of relation "events" does not exist
+LINE 3:   status, created_at, updated_at, activity_type
+                                          ^
+psql:insert_real_events_data.sql:259: NOTICE:  relation "event_registrations" already exists, skipping
+CREATE TABLE
+psql:insert_real_events_data.sql:269: ERROR:  column "attendance_status" of relation "event_registrations" does not exist
+LINE 1: ...SERT INTO event_registrations (event_id, user_id, attendance...
+                                                             ^
+psql:insert_real_events_data.sql:278: ERROR:  column "attendance_status" of relation "event_registrations" does not exist
+LINE 1: ...SERT INTO event_registrations (event_id, user_id, attendance...
+                                                             ^
+psql:insert_real_events_data.sql:287: ERROR:  column "attendance_status" of relation "event_registrations" does not exist
+LINE 1: ...SERT INTO event_registrations (event_id, user_id, attendance...
+                                                             ^
+psql:insert_real_events_data.sql:291: NOTICE:  column "gallery_images" of relation "events" already exists, skipping
+ALTER TABLE
+psql:insert_real_events_data.sql:299: ERROR:  invalid input syntax for type uuid: "evt_aptitude_2025_07_18"
+LINE 6: WHERE id IN ('evt_aptitude_2025_07_18', 'evt_github_2025_02_...
+                     ^
+psql:insert_real_events_data.sql:306: ERROR:  invalid input syntax for type uuid: "evt_women_empowerment_2025_03_07"
+LINE 6: WHERE id = 'evt_women_empowerment_2025_03_07';
+                   ^

@@ -43,7 +43,11 @@ export class TwoFactorAuthService {
 
       // Store the secret temporarily (not enabling 2FA yet)
       await db.query(
-        `UPDATE users SET totp_secret = $1, totp_recovery_codes = $2 WHERE id = $3`,
+        `UPDATE users SET 
+          totp_temp_secret = $1, 
+          totp_temp_secret_created_at = NOW(),
+          totp_recovery_codes = $2 
+        WHERE id = $3`,
         [secret, JSON.stringify(backupCodes), userId]
       );
 
@@ -62,21 +66,27 @@ export class TwoFactorAuthService {
   static async enableTwoFactor(userId: string, token: string): Promise<boolean> {
     try {
       const result = await db.query(
-        `SELECT totp_secret FROM users WHERE id = $1`,
+        `SELECT totp_temp_secret FROM users WHERE id = $1`,
         [userId]
       );
 
-      if (!result.rows.length || !result.rows[0].totp_secret) {
+      if (!result.rows.length || !result.rows[0].totp_temp_secret) {
         return false;
       }
 
-      const secret = result.rows[0].totp_secret;
-      const isValid = authenticator.verify({ token, secret });
+      const tempSecret = result.rows[0].totp_temp_secret;
+      const isValid = this.verifyTotpWithSecret(tempSecret, token);
 
       if (isValid) {
-        // Enable 2FA for the user
+        // If verification is successful during setup, enable 2FA
         await db.query(
-          `UPDATE users SET totp_enabled = true WHERE id = $1`,
+          `UPDATE users SET 
+            totp_secret = totp_temp_secret, 
+            totp_enabled = true,
+            totp_enabled_at = NOW(),
+            totp_temp_secret = NULL,
+            totp_temp_secret_created_at = NULL
+          WHERE id = $1`,
           [userId]
         );
         return true;
@@ -267,6 +277,19 @@ export class TwoFactorAuthService {
 
     const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
     return jwt.sign(payload, JWT_SECRET);
+  }
+
+  // Verify TOTP code with a specific secret (for setup verification)
+  static verifyTotpWithSecret(secret: string, token: string): boolean {
+    try {
+      if (!secret || !token) {
+        return false;
+      }
+      return authenticator.verify({ token, secret });
+    } catch (error) {
+      console.error('Error verifying TOTP with secret:', error);
+      return false;
+    }
   }
 
   // Check if user has 2FA enabled

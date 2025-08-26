@@ -1,0 +1,11 @@
+                  id                  |          name           |               email                |      role      | club_id  |          created_at           
+--------------------------------------+-------------------------+------------------------------------+----------------+----------+-------------------------------
+ 550e8400-e29b-41d4-a716-446655440400 | Oliver Davis            | student1.artovert@zenith.com       | student        | artovert | 2025-07-27 13:47:32.966+05:30
+ 550e8400-e29b-41d4-a716-446655440401 | Sophie Chen             | student2.artovert@zenith.com       | student        | artovert | 2025-07-27 13:47:32.966+05:30
+ 550e8400-e29b-41d4-a716-446655440402 | David Park              | student3.artovert@zenith.com       | student        | artovert | 2025-07-27 13:47:32.966+05:30
+ 550e8400-e29b-41d4-a716-446655440040 | ARTOVERT Coordinator    | artovert.coordinator@zenith.com    | coordinator    | artovert | 2025-07-27 13:47:32.966+05:30
+ 550e8400-e29b-41d4-a716-446655440041 | ARTOVERT Co-Coordinator | artovert.co-coordinator@zenith.com | co_coordinator | artovert | 2025-07-27 13:47:32.966+05:30
+ 550e8400-e29b-41d4-a716-446655440042 | ARTOVERT Secretary      | artovert.secretary@zenith.com      | secretary      | artovert | 2025-07-27 13:47:32.966+05:30
+ 550e8400-e29b-41d4-a716-446655440043 | ARTOVERT Media Head     | artovert.media@zenith.com          | media          | artovert | 2025-07-27 13:47:32.966+05:30
+(7 rows)
+

@@ -1,8 +1,8 @@
-     id     |    name    |                                 description                                  |        type         | member_count 
-------------+------------+------------------------------------------------------------------------------+---------------------+--------------
- ascend     | ASCEND     | A coding club focused on programming and technology                          | Technical           |            0
- aster      | ASTER      | A club focused on developing interpersonal and communication skills          | Soft Skills         |            0
- achievers  | ACHIEVERS  | A club supporting students pursuing higher education and academic excellence | Higher Studies      |            0
- altogether | ALTOGETHER | A comprehensive club focusing on holistic student development                | Overall Development |            0
+    id     |   name    | color  
+-----------+-----------+--------
+ achievers | ACHIEVERS | purple
+ artovert  | ARTOVERT  | orange
+ ascend    | ASCEND    | blue
+ aster     | ASTER     | green
 (4 rows)
 

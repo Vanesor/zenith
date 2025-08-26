@@ -39,6 +39,7 @@ const authConfig: AuthGuardConfig = {
     '/contact',
     '/clubs', // Public club listing
     '/homeclub/[clubId]', // Public club pages
+    '/founding-team', // Public founding team page
     '/loader-demo', // Demo page
   ],
   mixedRoutes: [

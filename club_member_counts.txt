@@ -1,0 +1,8 @@
+    id     |   name    | actual_member_count 
+-----------+-----------+---------------------
+ achievers | ACHIEVERS |                   7
+ artovert  | ARTOVERT  |                   7
+ ascend    | ASCEND    |                  11
+ aster     | ASTER     |                   7
+(4 rows)
+

@@ -1,21 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from '@/lib/database';
 import { verifyAuth } from "@/lib/auth-unified";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-options";
 import AuditLogger from "@/lib/audit-logger";
 
 export async function GET(request: NextRequest) {
   try {
-    // Use centralized authentication system
-    const authResult = await verifyAuth(request);
+    // Check both JWT and NextAuth authentication
+    let userId: string | null = null;
+    let userRole = 'student';
     
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: authResult.error || "Unauthorized" }, 
-        { status: 401 }
-      );
+    // First try NextAuth session (for OAuth users)
+    const nextAuthSession = await getServerSession(authOptions);
+    if (nextAuthSession?.user?.email) {
+      try {
+        const userResult = await db.query(
+          'SELECT id, role FROM users WHERE email = $1',
+          [nextAuthSession.user.email]
+        );
+        if (userResult.rows.length > 0) {
+          userId = userResult.rows[0].id;
+          userRole = userResult.rows[0].role;
+        }
+      } catch (error) {
+        console.error('Error fetching user from NextAuth session:', error);
+      }
     }
     
-    const userId = authResult.user!.id;
+    // If no NextAuth session, try JWT authentication
+    if (!userId) {
+      const authResult = await verifyAuth(request);
+      if (authResult.success && authResult.user) {
+        userId = authResult.user.id;
+        userRole = authResult.user.role;
+      }
+    }
+    
+    // Allow public access to events for now - remove authentication requirement
+    console.log('📅 Fetching events - User ID:', userId || 'anonymous');
 
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get("limit");
@@ -62,7 +85,7 @@ export async function GET(request: NextRequest) {
         count: events.length
       });
     } catch (dbError) {
-      console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
+      console.error("Database Error:", dbError instanceof Error ? dbError.message : "Unknown database error");
       return NextResponse.json(
         { error: "Database error occurred" },
         { status: 500 }
@@ -170,7 +193,7 @@ export async function POST(request: NextRequest) {
         data: result.rows[0]
       });
     } catch (dbError) {
-      console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
+      console.error("Database Error:", dbError instanceof Error ? dbError.message : "Unknown database error");
       return NextResponse.json(
         { error: "Failed to create event" },
         { status: 500 }

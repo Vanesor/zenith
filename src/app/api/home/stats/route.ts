@@ -32,7 +32,7 @@ export async function GET() {
       ORDER BY member_count DESC
     `);
 
-    // Get upcoming events with club information
+    // Get upcoming events with club information (limited to 6)
     const upcomingEventsResult = await queryRawSQL(`
       SELECT 
         e.*,
@@ -48,6 +48,24 @@ export async function GET() {
       WHERE e.event_date >= CURRENT_DATE
       ORDER BY e.event_date ASC, e.event_time ASC
       LIMIT 6
+    `);
+
+    // Get past events with club information (limited to 3, no attendee count)
+    const pastEventsResult = await queryRawSQL(`
+      SELECT 
+        e.*,
+        c.name as club_name,
+        c.color as club_color,
+        u.name as organizer_name,
+        uc.name as organizer_club_name,
+        uc.color as organizer_club_color
+      FROM events e
+      LEFT JOIN clubs c ON e.club_id = c.id
+      LEFT JOIN users u ON e.created_by = u.id
+      LEFT JOIN clubs uc ON u.club_id = uc.id
+      WHERE e.event_date < CURRENT_DATE
+      ORDER BY e.event_date DESC, e.event_time DESC
+      LIMIT 3
     `);
 
     // Get recent posts with author and club info
@@ -122,6 +140,7 @@ export async function GET() {
       stats,
       clubs: clubStatsResult.rows,
       upcomingEvents: upcomingEventsResult.rows,
+      pastEvents: pastEventsResult.rows,
       recentPosts: recentPostsResult.rows,
       leadership,
     });

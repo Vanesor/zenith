@@ -3,6 +3,8 @@ import { verifyAuth, withAuth, authenticateUser } from "@/lib/auth-unified";
 import { RateLimiter } from "@/lib/RateLimiter";
 import { CacheManager, CacheKeys } from "@/lib/CacheManager";
 import EmailService from "@/lib/EmailService";
+import { TrustedDeviceService } from "@/lib/TrustedDeviceService";
+import db from "@/lib/database";
 
 const authLimiter = RateLimiter.createAuthLimiter();
 
@@ -83,6 +85,43 @@ export async function POST(request: NextRequest) {
 
     // Clear failed login attempts on successful login
     await CacheManager.delete(emailKey);
+
+    // Check if 2FA is required and if device is trusted
+    const twoFactorResult = await db.query(
+      `SELECT totp_enabled FROM users WHERE id = $1`,
+      [authResult.user!.id]
+    );
+    
+    const totpEnabled = twoFactorResult.rows.length > 0 && twoFactorResult.rows[0].totp_enabled;
+
+    if (totpEnabled) {
+      // Check if this device is trusted
+      const trustedDeviceCookie = request.cookies.get('zenith-trusted-device');
+      let isTrustedDevice = false;
+      
+      if (trustedDeviceCookie) {
+        try {
+          const trustedResult = await TrustedDeviceService.verifyTrustedDevice(
+            authResult.user!.id,
+            trustedDeviceCookie.value
+          );
+          isTrustedDevice = trustedResult.trusted;
+        } catch (error) {
+          console.error('Error verifying trusted device:', error);
+          isTrustedDevice = false;
+        }
+      }
+
+      // If 2FA is enabled and device is not trusted, require 2FA
+      if (!isTrustedDevice) {
+        return NextResponse.json({
+          success: false,
+          requiresTwoFactor: true,
+          userId: authResult.user!.id,
+          message: "2FA verification required"
+        }, { status: 200 });
+      }
+    }
 
     // Create response with optimized cookies
     const response = NextResponse.json({

@@ -1,0 +1,51 @@
+         info          | count 
+-----------------------+-------
+ Current events count: |     8
+(1 row)
+
+INSERT 0 6
+INSERT 0 3
+INSERT 0 3
+INSERT 0 3
+                    info                    | count 
+--------------------------------------------+-------
+ Events inserted successfully. Total count: |    23
+(1 row)
+
+      info       
+-----------------
+ Events by Club:
+(1 row)
+
+ club_name | event_count | past_events | upcoming_events 
+-----------+-------------+-------------+-----------------
+ ACHIEVERS |           5 |           1 |               4
+ ARTOVERT  |           5 |           1 |               4
+ ASCEND    |           8 |           4 |               4
+ ASTER     |           5 |           1 |               4
+(4 rows)
+
+          info          
+------------------------
+ Recent Events Details:
+(1 row)
+
+             title              | club_name | event_date | event_time |  status  |       location       | max_attendees 
+--------------------------------+-----------+------------+------------+----------+----------------------+---------------
+ Holistic Development Fair      | ARTOVERT  | 2025-08-20 | 14:00:00   | upcoming | Main Campus          |           400
+ Holistic Development Fair      | ARTOVERT  | 2025-08-20 | 09:30:00   | upcoming | Main Campus          |           400
+ Hackathon Weekend              | ASCEND    | 2025-08-17 | 18:00:00   | upcoming | Computer Lab Block A |            50
+ Hackathon Weekend              | ASCEND    | 2025-08-17 | 10:00:00   | upcoming | Computer Lab Block A |            50
+ Higher Studies Fair            | ACHIEVERS | 2025-08-15 | 16:00:00   | upcoming | Exhibition Hall      |           300
+ Higher Studies Fair            | ACHIEVERS | 2025-08-15 | 10:00:00   | upcoming | Exhibition Hall      |           300
+ Communication Skills Workshop  | ASTER     | 2025-08-13 | 15:30:00   | upcoming | Seminar Hall         |           100
+ Communication Skills Workshop  | ASTER     | 2025-08-13 | 10:00:00   | upcoming | Seminar Hall         |           100
+ Coding Summit 2025             | ASCEND    | 2025-08-10 | 09:00:00   | upcoming | Main Auditorium      |           200
+ Coding Summit 2025             | ASCEND    | 2025-08-10 | 09:00:00   | upcoming | Main Auditorium      |           200
+ Leadership Development Session | ASTER     | 2025-08-07 | 17:00:00   | upcoming | Conference Room B    |            60
+ Leadership Development Session | ASTER     | 2025-08-07 | 14:00:00   | upcoming | Conference Room B    |            60
+ Research Methodology Workshop  | ACHIEVERS | 2025-08-05 | 19:00:00   | upcoming | Library Auditorium   |           120
+ Research Methodology Workshop  | ACHIEVERS | 2025-08-05 | 14:30:00   | upcoming | Library Auditorium   |           120
+ Cross-Club Collaboration Meet  | ARTOVERT  | 2025-08-03 | 16:30:00   | upcoming | Community Center     |           150
+(15 rows)
+

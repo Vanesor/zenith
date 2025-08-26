@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
 
     const user = userResult.rows[0];
 
-    // Check which 2FA method is enabled
+    // Check which 2FA method is enabled or being set up
     const methodResult = await db.query(
-      `SELECT totp_enabled, email_otp_enabled, totp_secret FROM users WHERE id = $1`,
+      `SELECT totp_enabled, email_otp_enabled, totp_secret, totp_temp_secret FROM users WHERE id = $1`,
       [userId]
     );
     
@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
       { 
         totp_enabled: methodResult.rows[0].totp_enabled, 
         email_otp_enabled: methodResult.rows[0].email_otp_enabled,
-        has_totp_secret: !!methodResult.rows[0].totp_secret 
+        has_totp_secret: !!methodResult.rows[0].totp_secret,
+        has_temp_secret: !!methodResult.rows[0].totp_temp_secret
       } : null);
     
     if (methodResult.rows.length === 0) {
@@ -51,57 +52,22 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const { totp_enabled, email_otp_enabled, totp_secret } = methodResult.rows[0];
-    
-    if (!totp_enabled && !email_otp_enabled) {
-      return NextResponse.json(
-        { error: "Two-factor authentication is not enabled for this user" },
-        { status: 400 }
-      );
-    }
-    
+    const { totp_enabled, email_otp_enabled, totp_secret, totp_temp_secret } = methodResult.rows[0];
+
     let isValid = false;
-    
-    // Verify based on the enabled method
-    if (totp_enabled && totp_secret) {
-      // Verify the TOTP code
-      console.log('Attempting TOTP verification');
-      try {
-        isValid = await TwoFactorAuthService.verifyTotp(userId, code);
-        console.log('TOTP verification result:', isValid);
-      } catch (verifyError) {
-        console.error("Error verifying 2FA token:", verifyError);
-        return NextResponse.json(
-          { error: "Failed to verify 2FA code. Please try again." },
-          { status: 400 }
-        );
-      }
-    } else if (email_otp_enabled) {
-      // Verify email OTP
-      console.log('Attempting email OTP verification');
-      try {
-        isValid = await TwoFactorAuthService.verifyEmailOtp(userId, code);
-        console.log('Email OTP verification result:', isValid);
-      } catch (verifyError) {
-        console.error("Error verifying email OTP:", verifyError);
-        return NextResponse.json(
-          { error: "Failed to verify email code. Please try again." },
-          { status: 400 }
-        );
-      }
-    }
-    
-    if (!isValid) {
-      console.log('2FA verification failed - invalid code');
+
+    if (totp_temp_secret && !totp_enabled) {
+      // This is setup verification - use the temp secret and enable 2FA if valid
+      isValid = await TwoFactorAuthService.enableTwoFactor(user.id, code);
+    } else if (totp_enabled) {
+      // This is regular login verification
+      isValid = await TwoFactorAuthService.verifyTotp(user.id, code);
+    } else {
       return NextResponse.json(
-        { error: "Invalid verification code" },
+        { error: '2FA not properly configured' },
         { status: 400 }
       );
-    }
-
-    console.log('2FA verification successful, creating session...');
-
-    // Create session using SQL query
+    }    // Create session using SQL query
     const sessionExpiry = new Date();
     sessionExpiry.setHours(sessionExpiry.getHours() + (trustDevice ? 168 : 24)); // 7 days or 24 hours
 

@@ -1,0 +1,111 @@
+-- Committee Query (2024-2025 founding members, excluding unwanted users)
+SELECT 
+  u.id,
+  u.name,
+  u.email,
+  u.role as position,
+  u.club_id,
+  c.name as club_name,
+  c.color as club_color,
+  EXTRACT(YEAR FROM u.created_at) as year,
+  u.bio,
+  u.profile_image_url,
+  u.created_at as joined_date
+FROM users u
+LEFT JOIN clubs c ON u.club_id = c.id
+WHERE u.role IN ('coordinator', 'co_coordinator', 'secretary', 'media_head')
+AND EXTRACT(YEAR FROM u.created_at) BETWEEN 2024 AND 2025
+AND u.id NOT IN (
+  '550e8400-e29b-41d4-a716-446655440000',
+  '550e8400-e29b-41d4-a716-446655440001', 
+  '550e8400-e29b-41d4-a716-446655440013',
+  '550e8400-e29b-41d4-a716-446655440043',
+  '550e8400-e29b-41d4-a716-446655440040',
+  '550e8400-e29b-41d4-a716-446655440041',
+  '550e8400-e29b-41d4-a716-446655440042',
+  '550e8400-e29b-41d4-a716-446655440012',
+  '550e8400-e29b-41d4-a716-446655440022'
+)
+UNION ALL
+SELECT 
+  u.id,
+  u.name,
+  u.email,
+  'secretary' as position,
+  'ascend' as club_id,
+  'ASCEND' as club_name,
+  'blue' as club_color,
+  EXTRACT(YEAR FROM u.created_at) as year,
+  u.bio,
+  u.profile_image_url,
+  u.created_at as joined_date
+FROM users u
+WHERE u.id = 'a758760c-468e-4185-b84c-374ec2168a4a'
+UNION ALL
+SELECT 
+  u.id,
+  u.name,
+  u.email,
+  'secretary' as position,
+  'aster' as club_id,
+  'ASTER' as club_name,
+  'green' as club_color,
+  EXTRACT(YEAR FROM u.created_at) as year,
+  u.bio,
+  u.profile_image_url,
+  u.created_at as joined_date
+FROM users u
+WHERE u.id = '59c443c7-2e5e-41ec-96bb-0b33ca557948';
+
+-- Clubs Query (specific ARTOVERT users)
+SELECT 
+  c.id,
+  c.name,
+  c.color,
+  CASE 
+    WHEN c.id = 'artovert' THEN 
+      json_agg(
+        json_build_object(
+          'id', specific_users.id,
+          'name', specific_users.name,
+          'email', specific_users.email,
+          'position', 'founding_member',
+          'club_id', c.id,
+          'club_name', c.name,
+          'club_color', c.color,
+          'year', EXTRACT(YEAR FROM specific_users.created_at),
+          'bio', specific_users.bio,
+          'profile_image_url', specific_users.profile_image_url,
+          'joined_date', specific_users.created_at
+        ) ORDER BY specific_users.name
+      )
+    ELSE 
+      json_agg(
+        json_build_object(
+          'id', u.id,
+          'name', u.name,
+          'email', u.email,
+          'position', 'founding_member',
+          'club_id', u.club_id,
+          'club_name', c.name,
+          'club_color', c.color,
+          'year', EXTRACT(YEAR FROM u.created_at),
+          'bio', u.bio,
+          'profile_image_url', u.profile_image_url,
+          'joined_date', u.created_at
+        ) ORDER BY u.name
+      )
+  END as members
+FROM clubs c
+LEFT JOIN users u ON c.id = u.club_id AND u.role = 'student' AND EXTRACT(YEAR FROM u.created_at) BETWEEN 2024 AND 2025
+LEFT JOIN (
+  SELECT id, name, email, bio, profile_image_url, created_at
+  FROM users 
+  WHERE id IN (
+    'e75ebfdc-b1e8-440c-a987-c77306ab8348',
+    'c088cdf3-11ff-408d-b95a-1f50bb794c27', 
+    'febf3dd5-655c-4e18-86a9-2abbf245cb16'
+  )
+) specific_users ON c.id = 'artovert'
+WHERE c.id IN ('ascend', 'achievers', 'aster', 'artovert')
+GROUP BY c.id, c.name, c.color;

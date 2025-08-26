@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth, refreshTokens } from '@/lib/auth-unified';
 import { SessionManager } from '@/lib/SessionManager';
 import AuditLogger from '@/lib/audit-logger';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-options";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +18,43 @@ export async function GET(request: NextRequest) {
                      '127.0.0.1';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    // Verify authentication
+    // First check for NextAuth session (OAuth users)
+    const nextAuthSession = await getServerSession(authOptions);
+    
+    if (nextAuthSession && nextAuthSession.user) {
+      // OAuth user is authenticated via NextAuth
+      await AuditLogger.logAuth(
+        'login',
+        nextAuthSession.user.id || 'unknown',
+        { 
+          method: 'nextauth',
+          provider: 'oauth',
+          endpoint: '/api/auth/check'
+        },
+        ipAddress,
+        userAgent
+      );
+
+      return NextResponse.json({
+        authenticated: true,
+        user: {
+          id: nextAuthSession.user.id,
+          email: nextAuthSession.user.email,
+          name: nextAuthSession.user.name,
+          role: nextAuthSession.user.role || 'student',
+          club_id: nextAuthSession.user.club_id,
+          avatar: nextAuthSession.user.image, // NextAuth uses 'image' instead of 'avatar'
+          profile_image_url: nextAuthSession.user.image,
+          has_password: false // OAuth users can set passwords later
+        },
+        session: {
+          provider: 'nextauth',
+          authenticated_via: 'oauth'
+        }
+      });
+    }
+
+    // Fall back to JWT authentication (regular login users)
     const authResult = await verifyAuth(request);
 
     if (!authResult.success || !authResult.user) {

@@ -99,7 +99,7 @@ export function PaperpalHeader({
     <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-lg border-b border-custom">
       {/* College Banner */}
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-primary">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-2 md:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 min-w-0 flex-1">
               <Image
@@ -107,16 +107,16 @@ export function PaperpalHeader({
                 alt="St. Vincent Pallotti College of Engineering and Technology"
                 width={60}
                 height={60}
-                className="rounded-full ring-2 ring-white/20 flex-shrink-0"
+                className="rounded-full ring-2 ring-white/20 flex-shrink-0 w-10 h-10 md:w-15 md:h-15"
               />
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-bold text-primary leading-tight">St. Vincent Pallotti College of Engineering and Technology</h1>
-                <p className="text-sm text-blue-100">Nagpur • Department of Computer Engineering</p>
+                <h1 className="text-lg font-bold text-white leading-tight hidden md:block">St. Vincent Pallotti College of Engineering and Technology</h1>
+                <p className="text-sm text-blue-100 hidden md:block">Nagpur • Department of Computer Engineering</p>
               </div>
             </div>
             <div className="flex items-center space-x-4 flex-shrink-0">
               <div className="hidden md:block text-right">
-                <span className="text-lg font-bold text-primary">Zenith Forum</span>
+                <span className="text-lg font-bold text-white">Zenith Forum</span>
                 <p className="text-sm text-blue-100">Student Hub</p>
               </div>
               <Image
@@ -194,7 +194,7 @@ export function PaperpalHeader({
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors"
+                    className="flex items-center space-x-3 p-2 rounded-lg transition-colors"
                   >
                     <SafeAvatar 
                       src={user.profile_image_url || user.avatar}
@@ -203,7 +203,7 @@ export function PaperpalHeader({
                       fallbackName={user.name}
                     />
                     <div className="hidden md:block text-left">
-                      <p className="text-sm font-medium text-gray-900 dark:text-primary">{user.name}</p>
+                      <p className="text-sm font-medium text-gray-900 text-primary">{user.name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role}</p>
                     </div>
                     <ChevronDown className="hidden md:block w-4 h-4 text-gray-500" />
@@ -228,8 +228,8 @@ export function PaperpalHeader({
                               fallbackName={user.name}
                             />
                             <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-primary">{user.name}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                              <p className="text-sm font-medium text-gray-900 text-primary">{user.name}</p>
+                              <p className="text-xs text-primary">{user.email}</p>
                             </div>
                           </div>
                         </div>

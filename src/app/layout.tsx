@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "next-themes";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { AuthModalProvider } from "@/contexts/AuthModalContext";
-import { ToastProvider as OldToastProvider } from "@/contexts/ToastContext";
-import { ToastProvider } from "@/components/ui/toast-provider";
-import { PaperpalLayoutWrapper } from "@/components/PaperpalLayoutWrapper";
-import GlobalAuthModal from "@/components/GlobalAuthModal";
-import GlobalAuthGuard from "@/components/GlobalAuthGuard";
+import { Providers } from "@/components/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,19 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <AuthProvider>
-            <AuthModalProvider>
-              <OldToastProvider>
-                <GlobalAuthGuard>
-                  <PaperpalLayoutWrapper>{children}</PaperpalLayoutWrapper>
-                </GlobalAuthGuard>
-                <GlobalAuthModal />
-                <ToastProvider />
-              </OldToastProvider>
-            </AuthModalProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

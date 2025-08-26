@@ -1,0 +1,8 @@
+                  id                  |     name      |          email          |  role   | club_id 
+--------------------------------------+---------------+-------------------------+---------+---------
+ 550e8400-e29b-41d4-a716-446655440000 | Admin User    | admin@zenith.com        | admin   | ascend
+ 550e8400-e29b-41d4-a716-446655440001 | Super Admin   | superadmin@zenith.com   | admin   | 
+ 8203d590-1c95-472d-a9a6-643d696a04e9 | Aditya Yelne  | aditya.yethe@zenith.edu | student | 
+ 550e8400-e29b-41d4-a716-446655440013 | Aditya Yelne  | ascend.media@zenith.com | media   | ascend
+(4 rows)
+

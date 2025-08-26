@@ -1,0 +1,11 @@
+                  id                  |          name           |               email                |      role      
+--------------------------------------+-------------------------+------------------------------------+----------------
+ 550e8400-e29b-41d4-a716-446655440041 | ARTOVERT Co-Coordinator | artovert.co-coordinator@zenith.com | co_coordinator
+ 550e8400-e29b-41d4-a716-446655440040 | ARTOVERT Coordinator    | artovert.coordinator@zenith.com    | coordinator
+ 550e8400-e29b-41d4-a716-446655440043 | ARTOVERT Media Head     | artovert.media@zenith.com          | media
+ 550e8400-e29b-41d4-a716-446655440042 | ARTOVERT Secretary      | artovert.secretary@zenith.com      | secretary
+ 550e8400-e29b-41d4-a716-446655440402 | David Park              | student3.artovert@zenith.com       | student
+ 550e8400-e29b-41d4-a716-446655440400 | Oliver Davis            | student1.artovert@zenith.com       | student
+ 550e8400-e29b-41d4-a716-446655440401 | Sophie Chen             | student2.artovert@zenith.com       | student
+(7 rows)
+

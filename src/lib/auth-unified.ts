@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import DatabaseClient from './database';
+import crypto from 'crypto';
 
 const db = DatabaseClient;
 
@@ -52,6 +53,8 @@ export interface UserWithPassword extends User {
   email_verified?: boolean;
   totp_enabled?: boolean;
   has_password?: boolean;
+  oauth_provider?: string;
+  oauth_id?: string;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -139,7 +142,45 @@ export function setAuthCookie(token: string, rememberMe: boolean = false): strin
 }
 
 export function clearAuthCookie(): string {
-  return 'zenith-token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict; Secure';
+  return 'zenith-token=; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Strict; Secure';
+}
+
+// ==================== OAUTH PASSWORD UTILITIES ====================
+
+/**
+ * Generate a deterministic password hash for OAuth users
+ * This ensures OAuth users have a valid password_hash in the database
+ * The password is generated using email + salt and then hashed
+ */
+export async function generateOAuthPasswordHash(email: string, provider: string): Promise<string> {
+  const oauthSalt = process.env.OAUTH_PASSWORD_SALT || 'default_oauth_salt_zenith_2025';
+  
+  // Create a deterministic password using email, provider, and salt
+  const deterministic_password = crypto
+    .createHash('sha256')
+    .update(`${email}_${provider}_${oauthSalt}`)
+    .digest('hex');
+  
+  // Hash the deterministic password using bcrypt (same as regular passwords)
+  const passwordHash = await bcrypt.hash(deterministic_password, 12);
+  return passwordHash;
+}
+
+/**
+ * Verify OAuth user password for cases where they might need to authenticate
+ * This allows OAuth users to use their deterministic password if needed
+ */
+export async function verifyOAuthPassword(email: string, provider: string, hashedPassword: string): Promise<boolean> {
+  const oauthSalt = process.env.OAUTH_PASSWORD_SALT || 'default_oauth_salt_zenith_2025';
+  
+  // Recreate the deterministic password
+  const deterministic_password = crypto
+    .createHash('sha256')
+    .update(`${email}_${provider}_${oauthSalt}`)
+    .digest('hex');
+  
+  // Verify against the stored hash
+  return await bcrypt.compare(deterministic_password, hashedPassword);
 }
 
 // ==================== USER OPERATIONS ====================
@@ -219,7 +260,7 @@ export async function getUserById(userId: string): Promise<User | null> {
 export async function getUserByEmail(email: string): Promise<UserWithPassword | null> {
   try {
     const result = await db.query(
-      `SELECT id, email, name, role, club_id, password_hash, email_verified, totp_enabled, has_password, created_at, updated_at, avatar, profile_image_url
+      `SELECT id, email, name, role, club_id, password_hash, email_verified, totp_enabled, has_password, oauth_provider, oauth_id, created_at, updated_at, avatar, profile_image_url
        FROM users WHERE email = $1`,
       [email.toLowerCase()]
     );
@@ -239,6 +280,8 @@ export async function getUserByEmail(email: string): Promise<UserWithPassword | 
       email_verified: user.email_verified,
       totp_enabled: user.totp_enabled,
       has_password: user.has_password,
+      oauth_provider: user.oauth_provider,
+      oauth_id: user.oauth_id,
       created_at: user.created_at,
       updated_at: user.updated_at
     };
@@ -329,7 +372,20 @@ export async function authenticateUser(email: string, password: string): Promise
       };
     }
 
-    const isValidPassword = await verifyPassword(password, user.password_hash);
+    // First try regular password verification
+    let isValidPassword = await verifyPassword(password, user.password_hash);
+    
+    // If regular password fails and user has OAuth provider, try OAuth password verification
+    if (!isValidPassword && user.oauth_provider) {
+      const oauthUser = await db.query(
+        `SELECT oauth_provider FROM users WHERE email = $1`,
+        [email]
+      );
+      
+      if (oauthUser.rows.length > 0) {
+        isValidPassword = await verifyOAuthPassword(email, oauthUser.rows[0].oauth_provider, user.password_hash);
+      }
+    }
     
     if (!isValidPassword) {
       return {

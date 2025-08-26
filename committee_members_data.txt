@@ -1,0 +1,16 @@
+        name         |              email              |       role       | academic_year |       committee_name        
+---------------------+---------------------------------+------------------+---------------+-----------------------------
+ Atharva Naitam      | atharva.naitam@zenith.edu       | innovation_head  | 2024-2025     | Zenith Main Committee
+ Atharva Naitam      | atharva.naitam@zenith.edu       | innovation_head  | 2024-2025     | Student Executive Committee
+ Kaiwalya Pund       | kaiwalya.pund@zenith.edu        | media            | 2024-2025     | Student Executive Committee
+ Kaiwalya Pund       | kaivalya.pund@zenith.edu        | student          | 2024-2025     | Zenith Main Committee
+ Manasvi Giradkar    | manasvi.giradkar@zenith.edu     | zenith_secretary | 2024-2025     | Student Executive Committee
+ Mansavi Giradkar    | mansavi.giradkar@zenith.edu     | student          | 2024-2025     | Zenith Main Committee
+ Sarthak Thote       | sarthak.thote@zenith.edu        | vice_president   | 2024-2025     | Zenith Main Committee
+ Sarthak Thote       | sarthak.thote@zenith.edu        | vice_president   | 2024-2025     | Student Executive Committee
+ Yash Siddhabhatti   | yash.siddhabhatti@zenith.edu    | president        | 2024-2025     | Student Executive Committee
+ Yash Siddhabhatti   | yash.siddhabhatti@zenith.edu    | president        | 2024-2025     | Zenith Main Committee
+ Yogeshvar Chaudhari | yogeshvar.chaudhari@zenith.edu  | treasurer        | 2024-2025     | Student Executive Committee
+ Yogeshvar Chaudhari | yagneshwar.chaudhari@zenith.edu | student          | 2024-2025     | Zenith Main Committee
+(12 rows)
+

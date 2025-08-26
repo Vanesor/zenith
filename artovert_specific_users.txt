@@ -1,0 +1,7 @@
+                  id                  |       name       |           email            |  role   | club_id 
+--------------------------------------+------------------+----------------------------+---------+---------
+ e75ebfdc-b1e8-440c-a987-c77306ab8348 | Tejasi Rinait    | tejasri.rinait@zenith.edu  | student | 
+ c088cdf3-11ff-408d-b95a-1f50bb794c27 | Sanved Kabade    | sanjeed.kabarle@zenith.edu | student | 
+ febf3dd5-655c-4e18-86a9-2abbf245cb16 | Vedanti Wandhare | vedant.wardhana@zenith.edu | student | 
+(3 rows)
+

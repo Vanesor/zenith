@@ -1,0 +1,14 @@
+                  id                  |                     title                      | event_date | event_time |  status  |  club_id  | club_name 
+--------------------------------------+------------------------------------------------+------------+------------+----------+-----------+-----------
+ 3058b90b-3b02-45ac-bf76-e942611e2ae6 | Problem Solving Based on Aptitude              | 2024-12-15 | 14:15:00   | past     | ascend    | ASCEND
+ df7a63c0-6b32-48a5-a53b-0bd35c6e0c71 | GRE Preparation Strategy Session               | 2025-02-10 | 11:00:00   | past     | achievers | ACHIEVERS
+ 48119122-f9d4-441c-9093-a54d86e5057c | GitHub Profile Creation and Importance Session | 2025-02-13 | 12:15:00   | past     | ascend    | ASCEND
+ 3992050a-2ed2-4bdf-999d-2e1d50d8c645 | Holistic Development Workshop                  | 2025-03-05 | 13:00:00   | past     | artovert  | ARTOVERT
+ adf8f416-5282-4508-b1d0-c2abf7980527 | Women Empowerment and Career Insights          | 2025-03-07 | 12:00:00   | past     | aster     | ASTER
+ b1e2aec6-95c1-4425-9882-4f1801fb6e55 | C++ Programming Session                        | 2025-04-12 | 17:00:00   | past     | ascend    | ASCEND
+ 2b747088-2329-49bb-ad6f-af30c02c1151 | IoT Made Easy Workshop                         | 2025-05-15 | 10:00:00   | past     | ascend    | ASCEND
+ 550e8400-3004-41d4-a716-446655440002 | Cross-Club Collaboration Meet                  | 2025-08-03 | 16:30:00   | upcoming | artovert  | ARTOVERT
+ 407d84ab-d357-4e36-92e6-057db4b70a4b | Cross-Club Collaboration Meet                  | 2025-08-03 | 16:00:00   | upcoming | artovert  | ARTOVERT
+ 550e8400-3003-41d4-a716-446655440002 | Research Methodology Workshop                  | 2025-08-05 | 19:00:00   | upcoming | achievers | ACHIEVERS
+(10 rows)
+

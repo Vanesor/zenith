@@ -15,14 +15,14 @@ import {
   Code,
   GraduationCap,
   Heart,
-  ChevronLeft,
-  ChevronRight,
-  Play,
-  Pause,
   MapPin,
   Clock,
   ArrowLeft,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Play,
 } from "lucide-react";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import ClubLogo from "@/components/ClubLogo";
@@ -83,7 +83,6 @@ interface ClubData {
     event_date: string;
     location: string;
     description?: string;
-    attendees_count?: number;
     banner_image_url?: string;
     gallery_images?: string[];
   }>;
@@ -354,6 +353,7 @@ export default function PublicClubPage() {
         </div>
       </section>
 
+
       {/* Image Carousel */}
       <section className="py-16 bg-zenith-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -480,54 +480,6 @@ export default function PublicClubPage() {
             autoPlay={true}
             className="leadership-carousel"
           />
-        </div>
-      </section>
-
-      {/* Club Description */}
-      <section className="py-16 bg-zenith-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="text-3xl font-bold text-zenith-primary mb-6">About {club.name}</h2>
-              <div className="prose prose-lg text-zenith-secondary">
-                <p className="leading-relaxed whitespace-pre-line">
-                  {club.long_description || club.description}
-                </p>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className={`bg-gradient-to-br ${club.color} rounded-2xl p-8`}
-            >
-                {/* align logo to right */}
-              <div className="flex flex-col items-center text-center">
-                <ClubLogo
-                  clubId={club.id}
-                  clubName={club.name}
-                  size="xl"
-                  fallbackIcon={club.icon}
-                  className="text-white dark:text-white mb-6 scale-125"
-                />
-                <h3 className="text-2xl font-bold mb-4 zenith-primary">Join Our Community</h3>
-                <p className="text-lg opacity-90 mb-6 zenith-secondary">
-                  Be part of something bigger. Connect, learn, and grow with like-minded peers.
-                </p>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center bg-white dark:bg-white text-gray-900 dark:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2 text-gray-700" />
-                  Sign Up to Join
-                </Link>
-              </div>
-            </motion.div>
-          </div>
         </div>
       </section>
 
@@ -713,127 +665,10 @@ export default function PublicClubPage() {
                         <MapPin className="w-4 h-4 mr-2 text-gray-500" />
                         {event.location}
                       </div>
-                      {event.attendees_count && (
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-2 text-gray-500" />
-                          {event.attendees_count} attended
-                        </div>
-                      )}
                     </div>
                   </div>
                 </motion.div>
               ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Past Events Image Gallery */}
-      {pastEvents.length > 0 && (
-        <section className="py-16 bg-zenith-main">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl font-bold text-zenith-primary mb-4">Event Memories</h2>
-              <p className="text-xl text-zenith-secondary">
-                Relive the moments from our amazing events
-              </p>
-            </motion.div>
-
-            {/* Club-specific event image carousel */}
-            <div className="relative h-96 md:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-              <div className="relative w-full h-full">
-                {clubGallery.map((image, index) => (
-                  <motion.div
-                    key={image.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ 
-                      opacity: currentSlide === index ? 1 : 0,
-                      scale: currentSlide === index ? 1 : 1.05 
-                    }}
-                    transition={{ duration: 0.7, ease: "easeInOut" }}
-                    className={`absolute inset-0 w-full h-full ${
-                      currentSlide === index ? 'z-10' : 'z-0'
-                    }`}
-                  >
-                    <div
-                      className="w-full h-full bg-cover bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${image.url})` }}
-                      onError={(e) => {
-                        // If club-specific image fails, use fallback
-                        e.currentTarget.style.backgroundImage = `url(${image.fallback})`;
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-black/30"></div>
-                      <div className="relative z-10 flex items-end h-full p-8">
-                        <div className="text-white">
-                          <motion.h3
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                            className="text-2xl md:text-3xl font-bold mb-2"
-                          >
-                            {image.title}
-                          </motion.h3>
-                          <motion.p
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={currentSlide === index ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
-                            className="text-lg opacity-90"
-                          >
-                            {image.description}
-                          </motion.p>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Navigation Controls */}
-              <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-colors"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-colors"
-                aria-label="Next image"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-
-              {/* Auto-play toggle */}
-              <button
-                onClick={toggleAutoPlay}
-                className="absolute top-4 right-4 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-2 rounded-full transition-colors"
-                aria-label={isAutoPlaying ? "Pause slideshow" : "Play slideshow"}
-              >
-                {isAutoPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              </button>
-
-              {/* Dots Indicator */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
-                {clubGallery.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      currentSlide === index
-                        ? 'bg-white'
-                        : 'bg-white/50 hover:bg-white/70'
-                    }`}
-                    aria-label={`Go to image ${index + 1}`}
-                  />
-                ))}
-              </div>
             </div>
           </div>
         </section>
@@ -880,39 +715,54 @@ export default function PublicClubPage() {
           </div>
         </section>
       )}
-
-      {/* CTA Section */}
-      <section className={`py-20 bg-gradient-to-r ${club.color}`}>
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-4xl font-bold zenith-primary">
-              Ready to Join {club.name}?
-            </h2>
-            <p className="text-xl zenith-secondary mb-8">
-              Take the first step towards an amazing journey of learning, growth, and community.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/register"
-                className="bg-white dark:bg-white text-gray-900 dark:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-flex items-center justify-center"
-              >
-                <ExternalLink className="w-5 h-5 mr-2 text-gray-700" />
-                Join Zenith Forum
-              </Link>
-              <Link
-                href="/"
-                className="border-2 border-zenith-primary text-zenith-primary hover:bg-zenith-primary/10 px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
-              >
-                Explore Other Clubs
-              </Link>
-            </div>
-          </motion.div>
+      <br />
+      <section className="py-16 bg-zenith">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-3xl font-bold text-zenith-primary mb-6">About {club.name}</h2>
+              <div className="prose prose-lg text-zenith-secondary">
+                <p className="leading-relaxed whitespace-pre-line">
+                  {club.long_description || club.description}
+                </p>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className={`bg-gradient-to-br ${club.color} rounded-2xl p-8`}
+            >
+                {/* align logo to right */}
+              <div className="flex flex-col items-center text-center">
+                <ClubLogo
+                  clubId={club.id}
+                  clubName={club.name}
+                  size="xl"
+                  fallbackIcon={club.icon}
+                  className="text-white dark:text-white mb-6 scale-125"
+                />
+                <h3 className="text-2xl font-bold mb-4 zenith-primary">Join Our Community</h3>
+                <p className="text-lg opacity-90 mb-6 zenith-secondary">
+                  Be part of something bigger. Connect, learn, and grow with like-minded peers.
+                </p>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center bg-white dark:bg-white text-gray-900 dark:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2 text-gray-700" />
+                  Sign Up to Join
+                </Link>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
     </div>
+    
   );
 }
