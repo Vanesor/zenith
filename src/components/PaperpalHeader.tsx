@@ -101,7 +101,7 @@ export function PaperpalHeader({
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-primary">
         <div className="max-w-7xl mx-auto px-4 py-2 md:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4 min-w-0 flex-1">
+            <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
               <Image
                 src="/collegelogo.png"
                 alt="St. Vincent Pallotti College of Engineering and Technology"
@@ -114,7 +114,7 @@ export function PaperpalHeader({
                 <p className="text-sm text-blue-100 hidden md:block">Nagpur • Department of Computer Engineering</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4 flex-shrink-0">
+            <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
               <div className="hidden md:block text-right">
                 <span className="text-lg font-bold text-white">Zenith Forum</span>
                 <p className="text-sm text-blue-100">Student Hub</p>
@@ -124,7 +124,7 @@ export function PaperpalHeader({
                 alt="Zenith Forum"
                 width={50}
                 height={50}
-                className="rounded ring-1 ring-white/20 flex-shrink-0"
+                className="rounded ring-1 ring-white/20 flex-shrink-0 w-8 h-8 md:w-12 md:h-12"
               />
             </div>
           </div>
@@ -132,10 +132,10 @@ export function PaperpalHeader({
       </div>
 
       {/* Main Header */}
-      <div className={`px-4 ${expandedHeader ? 'py-4' : 'py-2'}`}>
+      <div className={`px-4 ${expandedHeader ? 'py-3 md:py-4' : 'py-1 md:py-2'}`}>
         <div className="flex items-center justify-between">
           {/* Left Side - Menu Button (only show if authenticated) */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             {user && (
               <button
                 onClick={onMenuToggle}
