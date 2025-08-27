@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Zenith - College Department Forum",
+  title: "Zenith Forum",
   description:
     "Connect with specialized clubs and enhance your college experience through Ascend, Aster, Achievers, and Altogether.",
 };
