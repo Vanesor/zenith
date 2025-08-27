@@ -49,7 +49,7 @@ export function AuthLayout({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl dark:shadow-2xl border border-white/30 dark:border-gray-700/50 p-8 md:p-10 relative overflow-hidden"
+          className="bg-zenith-card backdrop-blur-xl rounded-3xl shadow-xl border border-zenith-border p-8 md:p-10 relative overflow-hidden"
         >
           {/* Subtle gradient overlay for light mode */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-blue-50/30 dark:from-transparent dark:to-transparent rounded-3xl"></div>

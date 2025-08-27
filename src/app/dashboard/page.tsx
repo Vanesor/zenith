@@ -240,10 +240,10 @@ export default function ModernDashboard() {
           // Loading skeleton
           Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className="card p-6 animate-pulse">
-              <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="w-12 h-12 bg-zenith-hover rounded-xl mb-4"></div>
+              <div className="h-4 bg-zenith-hover rounded mb-2"></div>
+              <div className="h-8 bg-zenith-hover rounded mb-2"></div>
+              <div className="h-3 bg-zenith-hover rounded"></div>
             </div>
           ))
         ) : (

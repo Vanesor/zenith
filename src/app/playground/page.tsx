@@ -117,6 +117,60 @@ public class Main {
 }`,
     icon: '☕',
     color: 'from-red-500 to-pink-500'
+  },
+  {
+    id: 'c',
+    name: 'C',
+    version: 'GCC 11',
+    extension: 'c',
+    template: `// Welcome to Zenith Code Playground! 🚀
+#include <stdio.h>
+
+int main() {
+    printf("Hello, Zenith! 🌟\\n");
+    
+    // Example: Working with arrays
+    int numbers[] = {1, 2, 3, 4, 5};
+    int size = sizeof(numbers) / sizeof(numbers[0]);
+    
+    printf("Squared: ");
+    for (int i = 0; i < size; i++) {
+        printf("%d", numbers[i] * numbers[i]);
+        if (i < size - 1) printf(", ");
+    }
+    printf("\\n");
+    
+    return 0;
+}`,
+    icon: '🔧',
+    color: 'from-blue-600 to-purple-600'
+  },
+  {
+    id: 'cpp',
+    name: 'C++',
+    version: 'G++ 11',
+    extension: 'cpp',
+    template: `// Welcome to Zenith Code Playground! 🚀
+#include <iostream>
+#include <vector>
+
+int main() {
+    std::cout << "Hello, Zenith! 🌟" << std::endl;
+    
+    // Example: Working with vectors
+    std::vector<int> numbers = {1, 2, 3, 4, 5};
+    
+    std::cout << "Squared: ";
+    for (size_t i = 0; i < numbers.size(); i++) {
+        std::cout << numbers[i] * numbers[i];
+        if (i < numbers.size() - 1) std::cout << ", ";
+    }
+    std::cout << std::endl;
+    
+    return 0;
+}`,
+    icon: '⚡',
+    color: 'from-purple-600 to-indigo-600'
   }
 ];
 
@@ -214,6 +268,23 @@ function PlaygroundPage() {
     showToast({ 
       title: 'Copied', 
       message: 'Copied to clipboard!', 
+      type: 'success' 
+    });
+  };
+
+  const downloadCode = () => {
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `playground_code.${selectedLanguage.extension}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast({ 
+      title: 'Downloaded', 
+      message: `Code saved as playground_code.${selectedLanguage.extension}`, 
       type: 'success' 
     });
   };
@@ -359,6 +430,13 @@ function PlaygroundPage() {
                 title="Copy code"
               >
                 <Copy className="w-4 h-4 text-zenith-secondary" />
+              </button>
+              <button
+                onClick={downloadCode}
+                className="p-1.5 rounded hover:bg-zenith-section dark:hover:bg-gray-700 transition-colors"
+                title="Download code"
+              >
+                <Download className="w-4 h-4 text-zenith-secondary" />
               </button>
             </div>
           </div>

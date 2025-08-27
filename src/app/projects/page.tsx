@@ -123,7 +123,7 @@ export default function ProjectsPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'planning':
-        return <Circle className="w-4 h-4 text-gray-500" />;
+        return <Circle className="w-4 h-4 text-zenith-muted" />;
       case 'active':
         return <PlayCircle className="w-4 h-4 text-blue-500" />;
       case 'on_hold':
@@ -131,7 +131,7 @@ export default function ProjectsPage() {
       case 'completed':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       default:
-        return <Circle className="w-4 h-4 text-gray-500" />;
+        return <Circle className="w-4 h-4 text-zenith-muted" />;
     }
   };
 
@@ -144,9 +144,9 @@ export default function ProjectsPage() {
       case 'medium':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'low':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return 'bg-zenith-section text-zenith-muted border border-zenith-border';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return 'bg-zenith-section text-zenith-muted border border-zenith-border';
     }
   };
 
@@ -338,13 +338,13 @@ export default function ProjectsPage() {
           transition={{ delay: 0.3 }}
         >
           {filteredProjects.length === 0 ? (
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+            <Card className="bg-zenith-card backdrop-blur-sm border border-zenith-border shadow-lg">
               <CardContent className="p-12 text-center">
-                <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-primary mb-2">
+                <Target className="mx-auto h-12 w-12 text-zenith-muted mb-4" />
+                <h3 className="text-lg font-medium text-zenith-primary mb-2">
                   No projects found
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                <p className="text-zenith-secondary mb-6">
                   {userPermissions?.canCreateProject 
                     ? "Get started by creating your first project."
                     : "No projects match your current filters."

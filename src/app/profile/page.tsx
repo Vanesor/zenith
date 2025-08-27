@@ -402,10 +402,10 @@ export default function ModernProfilePage() {
             {/* Basic Info */}
             <div className="text-center sm:text-left">
               <h2 className="text-3xl font-bold text-primary mb-2">
-                {user.firstName} {user.lastName}
+                {profileData?.firstName || user?.firstName} {profileData?.lastName || user?.lastName}
               </h2>
               <p className="text-secondary text-lg capitalize mb-3">
-                {user.role?.replace('_', ' ')}
+                {(profileData?.role || user?.role)?.replace('_', ' ')}
               </p>
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="flex items-center space-x-2">
@@ -415,7 +415,7 @@ export default function ModernProfilePage() {
                 <div className="flex items-center space-x-2 text-secondary">
                   <Clock className="w-4 h-4" />
                   <span className="text-sm">
-                    Member since {new Date((user as any)?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    Member since {new Date((profileData?.created_at || user?.created_at || Date.now())).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </span>
                 </div>
               </div>
@@ -475,7 +475,7 @@ export default function ModernProfilePage() {
               ) : (
                 <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                   <User className="w-5 h-5 text-muted" />
-                  <span className="text-primary font-medium">{user.firstName}</span>
+                  <span className="text-primary font-medium">{profileData?.firstName || user?.firstName || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -493,7 +493,7 @@ export default function ModernProfilePage() {
               ) : (
                 <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                   <User className="w-5 h-5 text-muted" />
-                  <span className="text-primary font-medium">{user.lastName}</span>
+                  <span className="text-primary font-medium">{profileData?.lastName || user?.lastName || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -503,7 +503,7 @@ export default function ModernProfilePage() {
               <label className="text-sm font-medium text-secondary">Email Address</label>
               <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                 <Mail className="w-5 h-5 text-muted" />
-                <span className="text-primary font-medium">{user.email}</span>
+                <span className="text-primary font-medium">{profileData?.email || user?.email}</span>
                 <div className="ml-auto">
                   <CheckCircle className="w-4 h-4 text-green-600" />
                 </div>
@@ -524,7 +524,7 @@ export default function ModernProfilePage() {
               ) : (
                 <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                   <Phone className="w-5 h-5 text-muted" />
-                  <span className="text-primary font-medium">{(user as any)?.phone || 'Not provided'}</span>
+                  <span className="text-primary font-medium">{profileData?.phone || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -542,7 +542,7 @@ export default function ModernProfilePage() {
               <label className="text-sm font-medium text-secondary">Role</label>
               <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                 <Award className="w-5 h-5 text-muted" />
-                <span className="text-primary font-medium capitalize">{user.role?.replace('_', ' ')}</span>
+                <span className="text-primary font-medium capitalize">{(profileData?.role || user?.role)?.replace('_', ' ')}</span>
               </div>
             </div>
 
@@ -560,7 +560,7 @@ export default function ModernProfilePage() {
               ) : (
                 <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                   <MapPin className="w-5 h-5 text-muted" />
-                  <span className="text-primary font-medium">{(user as any)?.location || 'Not provided'}</span>
+                  <span className="text-primary font-medium">{profileData?.location || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -571,7 +571,7 @@ export default function ModernProfilePage() {
               <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                 <Clock className="w-5 h-5 text-muted" />
                 <span className="text-primary font-medium">
-                  {new Date((user as any)?.last_login || Date.now()).toLocaleDateString('en-US', {
+                  {new Date((profileData?.last_login || user?.last_login || Date.now())).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
@@ -588,7 +588,7 @@ export default function ModernProfilePage() {
               <div className="flex items-center space-x-3 p-4 bg-section rounded-lg">
                 <Calendar className="w-5 h-5 text-muted" />
                 <span className="text-primary font-medium">
-                  {new Date((user as any)?.created_at || Date.now()).toLocaleDateString('en-US', {
+                  {new Date((profileData?.created_at || user?.created_at || Date.now())).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'

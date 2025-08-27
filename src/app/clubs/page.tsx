@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import ZenChatbot from '@/components/ZenChatbot';
 import { useRouter } from 'next/navigation';
+import { getClubLogoUrl } from '@/lib/assetUtils';
 
 interface Club {
   id: string;
@@ -26,7 +27,11 @@ interface Club {
   updated_at: string;
 }
 
-export default function ClubsPage() {
+// Hardcoded club logo mapping
+const getClubLogo = (clubName: string) => {
+  // Use the utility function for proper URL handling
+  return getClubLogoUrl(clubName);
+};export default function ClubsPage() {
   const { user } = useAuth();
   const router = useRouter();
   
@@ -163,29 +168,47 @@ export default function ClubsPage() {
                     {/* Club Header */}
                     <div className="flex flex-col items-center text-center space-y-4">
                       <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
-                        <img 
-                          src={`/uploads/club-logos/${club.name.toLowerCase().replace(/\s+/g, '-')}.svg`}
-                          alt={`${club.name} logo`}
-                          className="w-12 h-12 object-contain filter brightness-0 invert"
-                          onError={(e) => {
-                            // Fallback to PNG if SVG not found
-                            const target = e.target as HTMLImageElement;
-                            const pngSrc = `/uploads/club-logos/${club.name.toLowerCase().replace(/\s+/g, '-')}.png`;
-                            if (target.src !== pngSrc) {
-                              target.src = pngSrc;
-                            } else {
-                              // Final fallback to first letter if no logo found
+                        {/* Using hardcoded SVG logos from public/uploads/club-logos */}
+                        {(() => {
+                          const logoPath = getClubLogo(club.name);
+                          return logoPath ? (
+                            <img 
+                              src={logoPath}
+                              alt={`${club.name} logo`}
+                              className="w-12 h-12 object-contain filter brightness-0 invert"
+                              onError={(e) => {
+                                // Fallback to first letter if logo not found
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.parentElement!.innerHTML = `<span class="text-white font-bold text-2xl">${club.name.charAt(0)}</span>`;
+                              }}
+                            />
+                          ) : (
+                            <span className="text-white font-bold text-2xl">{club.name.charAt(0)}</span>
+                          );
+                        })()}
+                        
+                        {/* Commented out database logo_url code */}
+                        {/* {club.logo_url ? (
+                          <img 
+                            src={club.logo_url}
+                            alt={`${club.name} logo`}
+                            className="w-12 h-12 object-contain filter brightness-0 invert"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                               target.parentElement!.innerHTML = `<span class="text-white font-bold text-2xl">${club.name.charAt(0)}</span>`;
-                            }
-                          }}
-                        />
+                            }}
+                          />
+                        ) : (
+                          <span className="text-white font-bold text-2xl">{club.name.charAt(0)}</span>
+                        )} */}
                       </div>
                       <div className="space-y-2">
                         <h3 className="font-semibold text-xl text-primary group-hover:text-purple-600 transition-colors">
                           {club.name}
                         </h3>
-                        <p className="text-sm text-secondary capitalize px-3 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                        <p className="text-sm text-zenith-secondary capitalize px-3 py-1 bg-purple-100 rounded-full">
                           {club.type}
                         </p>
                       </div>

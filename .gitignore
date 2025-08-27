@@ -10,7 +10,6 @@
 !.yarn/releases
 !.yarn/versions
 .github/
-/public/uploads/
 backup/
 backups/
 backup-api-routes/

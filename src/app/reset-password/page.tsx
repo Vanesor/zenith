@@ -149,14 +149,14 @@ export default function ResetPasswordPage() {
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-4"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-red-100 to-red-200 mb-4"
           >
-            <KeyRound className="w-8 h-8 text-red-600 dark:text-red-400" />
+            <KeyRound className="w-8 h-8 text-red-600" />
           </motion.div>
 
-          <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+          <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
             <CardContent className="p-4">
-              <p className="text-sm text-red-800 dark:text-red-200">
+              <p className="text-sm text-red-800">
                 The password reset link you're using is either invalid or has expired. 
                 Please request a new password reset link.
               </p>
@@ -197,9 +197,9 @@ export default function ResetPasswordPage() {
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4"
+              className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 mb-4"
             >
-              <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <Shield className="w-8 h-8 text-blue-600" />
             </motion.div>
           </div>
 
@@ -216,7 +216,7 @@ export default function ResetPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors z-10"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zenith-muted hover:text-zenith-secondary transition-colors z-10"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -229,7 +229,7 @@ export default function ResetPasswordPage() {
                 className="space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-zenith-secondary">
                     Password strength:
                   </span>
                   <span className={`text-sm font-medium ${
@@ -241,7 +241,7 @@ export default function ResetPasswordPage() {
                     {getPasswordStrength(password).text}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-zenith-hover rounded-full h-2">
                   <div
                     className={`${getPasswordStrength(password).color} h-2 rounded-full transition-all duration-300`}
                     style={{ width: `${(getPasswordStrength(password).level === 'weak' ? 20 : 
@@ -264,20 +264,20 @@ export default function ResetPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors z-10"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zenith-muted hover:text-zenith-secondary transition-colors z-10"
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
             <CardContent className="p-4">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                <p className="text-sm font-medium text-blue-900">
                   Password Requirements:
                 </p>
-                <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                <ul className="text-xs text-blue-700 space-y-1">
                   <li className="flex items-center space-x-2">
                     <div className={`w-1.5 h-1.5 rounded-full ${password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                     <span>At least 8 characters</span>
@@ -324,10 +324,10 @@ export default function ResetPasswordPage() {
           </motion.div>
           
           <div className="space-y-2">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-zenith-secondary">
               Your password has been successfully updated!
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">
+            <p className="text-sm text-zenith-muted">
               Redirecting to login page...
             </p>
           </div>

@@ -785,12 +785,12 @@ export default function HomePage() {
                           <p className={`text-white/80 ${getClubTextColor(club.name)}`}>{club.type}</p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      {/* <div className="text-right">
                         <p className={`text-2xl font-bold ${getClubTextColor(club.name)}`}>
                           {club.member_count}
                         </p>
                         <p className={`text-sm font-bold ${getClubTextColor(club.name)}`}>members</p>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="p-6">
@@ -801,9 +801,9 @@ export default function HomePage() {
                       {club.description}
                     </p>
                     <div className="flex justify-between items-center">
-                      <div className="text-sm text-zenith-muted">
+                      {/* <div className="text-sm text-zenith-muted">
                         {club.upcoming_events} upcoming events
-                      </div>
+                      </div> */}
                       <Link
                         href={`/homeclub/${club.id}`}
                         className="inline-flex items-center text-zenith-accent hover:text-zenith-accent font-semibold transition-colors"
@@ -1034,7 +1034,7 @@ export default function HomePage() {
       </section>
 
       {/* Statistics Section */}
-      <section className="py-16 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+      <section className="py-16 bg-zenith-section backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1046,10 +1046,10 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Users className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-zenith-primary">
                 {stats.totalClubs}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-secondary">
                 Specialized Clubs
               </div>
             </div>
@@ -1057,10 +1057,10 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Users className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-zenith-primary">
                 {stats.totalMembers}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-secondary">
                 Active Members
               </div>
             </div>
@@ -1068,10 +1068,10 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Calendar className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-zenith-primary">
                 {stats.upcomingEvents}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-secondary">
                 Upcoming Events
               </div>
             </div>
@@ -1079,10 +1079,10 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <MessageSquare className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-zenith-primary">
                 {stats.totalPosts}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-sm text-zenith-secondary">
                 Posts
               </div>
             </div>
@@ -1111,7 +1111,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex-1 text-center md:text-left">
                   <h3 className="text-2xl font-bold text-zenith-primary mb-2">Atharva Naitam</h3>
-                  <p className="text-blue-600 dark:text-blue-400 font-medium mb-3">Lead Developer</p>
+                  <p className="text-blue-600 font-medium mb-3">Lead Developer</p>
                   <p className="text-zenith-secondary mb-4">
                     Full-stack developer with expertise in React, Next.js, and PostgreSQL. 
                     Passionate about creating meaningful user experiences. He also serves as the Innovation Head at Zenith Forum.
@@ -1142,12 +1142,12 @@ export default function HomePage() {
                 </div>
                 <div className="flex-1 text-center md:text-left">
                   <h3 className="text-2xl font-bold text-zenith-primary mb-2">Atharva Naitam</h3>
-                  <p className="text-blue-600 dark:text-blue-400 font-medium mb-3">Software Engineer | AI/ML Developer</p>
+                  <p className="text-blue-600 font-medium mb-3">Software Engineer | AI/ML Developer</p>
                   <p className="text-zenith-secondary mb-4">
                     A highly motivated Software Engineering student with a robust passion for AI/ML and building intelligent systems. His expertise spans across AI frameworks like LangChain and TensorFlow, full-stack development with React, and decentralized technologies .As the Innovation Head and a Founding Member, he played a pivotal role in establishing the Zenith Forum.
                   </p>
                   <div className="flex space-x-4 justify-center md:justify-start">
-                    <a href="#" className="text-zenith-muted hover:text-blue-600 transition-colors" aria-label="GitHub Profile">
+                    <a href="https://github.com/Vanesor" className="text-zenith-muted hover:text-blue-600 transition-colors" aria-label="GitHub Profile">
                       <Github className="w-5 h-5" />
                     </a>
                     <a href="https://in.linkedin.com/in/atharva-naitam-b896521b4" className="text-zenith-muted hover:text-blue-600 transition-colors" aria-label="LinkedIn Profile">
@@ -1173,7 +1173,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex-1 text-center md:text-left">
                   <h3 className="text-2xl font-bold text-zenith-primary mb-2">Ayush Kshirsagar</h3>
-                  <p className="text-purple-600 dark:text-purple-400 font-medium mb-3">Data Scientist & Full Stack Developer </p>
+                  <p className="text-purple-600 font-medium mb-3">Data Scientist & Full Stack Developer </p>
                   <p className="text-zenith-secondary mb-4">
                     A passionate developer skilled in building AI-powered solutions and responsive web applications. His experience includes training machine learning models and developing real-time gesture interpretation and translation systems using Python and OpenCV. He also serves as the Co-Coordinator for the Ascend Club at Zenith Forum.
                   </p>

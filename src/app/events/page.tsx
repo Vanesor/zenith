@@ -57,7 +57,7 @@ const getEventStatus = (event: Event): 'past' | 'ongoing' | 'upcoming' => {
 
 const getStatusColor = (status: string, isDot: boolean = false) => {
   const dotClasses = {
-    'past': 'bg-gray-400',
+    'past': 'bg-zenith-muted',
     'ongoing': 'bg-yellow-400', 
     'upcoming': 'bg-green-400',
     'published': 'bg-green-400',
@@ -66,7 +66,7 @@ const getStatusColor = (status: string, isDot: boolean = false) => {
   };
   
   const badgeClasses = {
-    'past': 'bg-gray-100 text-gray-700 border-gray-200',
+    'past': 'bg-zenith-section text-zenith-muted border-zenith-border',
     'ongoing': 'bg-yellow-100 text-yellow-700 border-yellow-200',
     'upcoming': 'bg-green-100 text-green-700 border-green-200',
     'published': 'bg-green-100 text-green-800 border-green-200',
@@ -74,13 +74,13 @@ const getStatusColor = (status: string, isDot: boolean = false) => {
     'cancelled': 'bg-red-100 text-red-800 border-red-200'
   };
   
-  return isDot ? dotClasses[status as keyof typeof dotClasses] || 'bg-gray-400' : 
-                 badgeClasses[status as keyof typeof badgeClasses] || 'bg-gray-100 text-gray-800 border-gray-200';
+  return isDot ? dotClasses[status as keyof typeof dotClasses] || 'bg-zenith-muted' : 
+                 badgeClasses[status as keyof typeof badgeClasses] || 'bg-zenith-section text-zenith-muted border-zenith-border';
 };
 
 const getClubColorHelper = (clubId: string, clubs: Club[]) => {
   const club = clubs.find(c => c.id === clubId);
-  if (!club) return 'bg-gray-500';
+  if (!club) return 'bg-zenith-muted';
   
   // Map database colors to Tailwind classes
   const colorMap: Record<string, string> = {
@@ -96,7 +96,7 @@ const getClubColorHelper = (clubId: string, clubs: Club[]) => {
     'cyan': 'bg-cyan-500'
   };
   
-  return colorMap[club.color] || 'bg-gray-500';
+  return colorMap[club.color] || 'bg-zenith-muted';
 };
 
 interface Event {
@@ -316,7 +316,7 @@ function CalendarView({
                 <span>Ongoing</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-gray-400" />
+                <div className="w-2 h-2 rounded-full bg-zenith-muted" />
                 <span>Past</span>
               </div>
             </div>
@@ -494,7 +494,7 @@ export default function EventsPage() {
       case 'published': return 'bg-green-100 text-green-800 border-green-200';
       case 'draft': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-zenith-section text-zenith-muted border-zenith-border';
     }
   };
 
@@ -625,7 +625,7 @@ export default function EventsPage() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="min-w-[160px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg zenith-bg-card zenith-text-primary"
+                    className="min-w-[160px] px-3 py-2 border border-zenith-border rounded-lg bg-zenith-card text-zenith-primary"
                   >
                     <option value="all">All Categories</option>
                     {categories.map(category => (
@@ -638,7 +638,7 @@ export default function EventsPage() {
                   <select
                     value={selectedClub}
                     onChange={(e) => setSelectedClub(e.target.value)}
-                    className="min-w-[160px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg zenith-bg-card zenith-text-primary"
+                    className="min-w-[160px] px-3 py-2 border border-zenith-border rounded-lg bg-zenith-card text-zenith-primary"
                   >
                     <option value="all">All Clubs</option>
                     {clubs.map(club => (
@@ -794,23 +794,23 @@ export default function EventsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4"
           onClick={() => setShowDayDetails(false)}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="zenith-bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border zenith-border bg-opacity-95"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border border-gray-200 dark:border-gray-700"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-6 border-b zenith-border zenith-bg-section">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold zenith-text-primary">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {format(selectedDate, 'MMMM d, yyyy')}
                   </h2>
-                  <p className="zenith-text-secondary">
+                  <p className="text-gray-600 dark:text-gray-300">
                     {events.filter(event => {
                       try {
                         let eventDate: Date;
@@ -832,14 +832,14 @@ export default function EventsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowDayDetails(false)}
-                  className="rounded-full p-2 h-auto zenith-text-muted hover:zenith-text-primary hover:zenith-bg-hover"
+                  className="rounded-full p-2 h-auto text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <X className="h-5 w-5" />
                 </Button>
               </div>
             </div>
             
-            <div className="p-6 max-h-[60vh] overflow-y-auto zenith-bg-card">
+            <div className="p-6 max-h-[60vh] overflow-y-auto bg-white dark:bg-gray-900">
               <div className="space-y-4">
                 {events
                   .filter(event => {

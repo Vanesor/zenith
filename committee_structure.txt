@@ -1,0 +1,17 @@
+   column_name   
+-----------------
+ is_current_term
+ committee_id
+ role_id
+ user_id
+ updated_at
+ id
+ joined_at
+ term_start
+ term_end
+ achievements
+ created_at
+ status
+ academic_year
+(13 rows)
+

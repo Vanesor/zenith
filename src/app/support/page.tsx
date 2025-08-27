@@ -79,7 +79,7 @@ export default function SupportPage() {
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-zenith-primary">Email</h3>
-                    <p className="text-zenith-secondary">support@zenith-forum.com</p>
+                    <p className="text-zenith-secondary">zenith.forum@stvincentngp.edu.in</p>
                     <p className="text-zenith-muted text-sm mt-1">We'll respond within 24 hours</p>
                   </div>
                 </div>
@@ -108,16 +108,13 @@ export default function SupportPage() {
               </div>
               
               <div className="mt-8 pt-8 border-t border-zenith-border">
-                <h3 className="text-lg font-medium text-zenith-primary mb-4">Follow Us</h3>
+                <h3 className="text-lg font-medium text-zenith-primary mb-4">Contact Us</h3>
                 <div className="flex space-x-4">
+                  <a href="mailto:zenith.forum@stvincentngp.edu.in" className="bg-zenith-hover hover:bg-zenith-section p-3 rounded-full text-zenith-secondary hover:text-blue-600 transition-colors">
+                    <Mail className="w-5 h-5" />
+                  </a>
                   <a href="https://github.com/zenith-forum" className="bg-zenith-hover hover:bg-zenith-section p-3 rounded-full text-zenith-secondary hover:text-blue-600 transition-colors">
                     <Github className="w-5 h-5" />
-                  </a>
-                  <a href="https://linkedin.com/in/zenith-forum" className="bg-zenith-hover hover:bg-zenith-section p-3 rounded-full text-zenith-secondary hover:text-blue-600 transition-colors">
-                    <Linkedin className="w-5 h-5" />
-                  </a>
-                  <a href="https://twitter.com/zenith_forum" className="bg-zenith-hover hover:bg-zenith-section p-3 rounded-full text-zenith-secondary hover:text-blue-600 transition-colors">
-                    <Twitter className="w-5 h-5" />
                   </a>
                 </div>
               </div>
@@ -224,83 +221,11 @@ export default function SupportPage() {
           </div>
         </motion.div>
         
-        {/* Developer Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-zenith-primary mb-4">Meet the Developers</h2>
-            <p className="text-lg text-zenith-secondary max-w-2xl mx-auto">
-              The talented team behind Zenith Forum, building innovative solutions for the campus community.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Developer 1 */}
-            <div className="bg-zenith-card rounded-2xl p-6 shadow-xl border border-zenith-border overflow-hidden">
-              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                <div className="w-32 h-32 rounded-xl overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                  <User className="w-16 h-16 text-white" />
-                </div>
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl font-bold text-zenith-primary mb-2">Developer One</h3>
-                  <p className="text-blue-600 dark:text-blue-400 font-medium mb-3">Lead Developer</p>
-                  <p className="text-zenith-secondary mb-4">
-                    Full-stack developer with expertise in React, Next.js, and PostgreSQL. 
-                    Passionate about creating meaningful user experiences.
-                  </p>
-                  <div className="flex space-x-4 justify-center md:justify-start">
-                    <a href="#" className="text-zenith-muted hover:text-blue-600 transition-colors">
-                      <Github className="w-5 h-5" />
-                    </a>
-                    <a href="#" className="text-zenith-muted hover:text-blue-600 transition-colors">
-                      <Linkedin className="w-5 h-5" />
-                    </a>
-                    <a href="mailto:developer1@zenith-forum.com" className="text-zenith-muted hover:text-blue-600 transition-colors">
-                      <Mail className="w-5 h-5" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Developer 2 */}
-            <div className="bg-zenith-card rounded-2xl p-6 shadow-xl border border-zenith-border overflow-hidden">
-              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                <div className="w-32 h-32 rounded-xl overflow-hidden bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <User className="w-16 h-16 text-white" />
-                </div>
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl font-bold text-zenith-primary mb-2">Developer Two</h3>
-                  <p className="text-purple-600 dark:text-purple-400 font-medium mb-3">UX Designer & Frontend Developer</p>
-                  <p className="text-zenith-secondary mb-4">
-                    Specializes in UI/UX design and frontend development. 
-                    Focused on creating accessible and intuitive interfaces.
-                  </p>
-                  <div className="flex space-x-4 justify-center md:justify-start">
-                    <a href="#" className="text-zenith-muted hover:text-purple-600 transition-colors">
-                      <Github className="w-5 h-5" />
-                    </a>
-                    <a href="#" className="text-zenith-muted hover:text-purple-600 transition-colors">
-                      <Linkedin className="w-5 h-5" />
-                    </a>
-                    <a href="mailto:developer2@zenith-forum.com" className="text-zenith-muted hover:text-purple-600 transition-colors">
-                      <Mail className="w-5 h-5" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-        
         {/* FAQs Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.4 }}
           className="mt-20 bg-zenith-card rounded-2xl p-8 shadow-xl border border-zenith-border"
         >
           <h2 className="text-3xl font-bold text-zenith-primary mb-8 text-center">Frequently Asked Questions</h2>

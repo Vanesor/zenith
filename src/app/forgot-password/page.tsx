@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-main flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-zenith-main flex items-center justify-center p-4 relative overflow-hidden">
       {/* Theme Toggle Button */}
       <div className="absolute top-6 right-6 z-20">
         <ThemeToggle />
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 p-2"
+              className="text-zenith-secondary hover:text-zenith-primary p-2"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -122,10 +122,10 @@ export default function ForgotPasswordPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="bg-card backdrop-blur-xl rounded-3xl shadow-lg border border-custom p-10 md:p-12 relative overflow-hidden min-h-[600px]"
+          className="bg-zenith-card backdrop-blur-xl rounded-3xl shadow-lg border border-zenith-border p-10 md:p-12 relative overflow-hidden min-h-[600px]"
         >
           {/* Subtle gradient overlay for enhanced depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-blue-50/40 dark:from-gray-900/40 dark:to-purple-900/20 rounded-3xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 to-purple-50/40 rounded-3xl"></div>
           
           <div className="relative z-10">
             {/* Logo and branding */}
@@ -147,9 +147,10 @@ export default function ForgotPasswordPage() {
                     ease: "easeInOut"
                   }
                 }}
-                className="inline-flex items-center justify-center w-24 h-24 rounded-3xl mb-6 shadow-xl border-3 border-blue-500/20 dark:border-purple-500/30 bg-white/20 dark:bg-gray-800/20 backdrop-blur-md overflow-hidden"
+                className="inline-flex items-center justify-center w-24 h-24 rounded-3xl mb-6 shadow-xl border-3 border-blue-500/20 bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-md overflow-hidden"
                 style={{
-                  filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.4))'
+                  filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.4))',
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)'
                 }}
               >
                 <Image
@@ -166,7 +167,7 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="text-4xl font-bold text-primary mb-3"
+                className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3"
               >
                 {emailSent ? "Check Your Email" : "Forgot Password"}
               </motion.h1>
@@ -175,7 +176,7 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-secondary text-lg font-medium"
+                className="text-zenith-secondary text-lg font-medium"
               >
                 {emailSent ? "We've sent you a password reset link" : "Enter your email to reset your password"}
               </motion.p>
@@ -188,11 +189,11 @@ export default function ForgotPasswordPage() {
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-6"
+                    className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 mb-6"
                   >
-                    <KeyRound className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                    <KeyRound className="w-10 h-10 text-blue-600" />
                   </motion.div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-zenith-secondary">
                     Don't worry! It happens to everyone. Enter your email below to recover your password.
                   </p>
                 </div>
@@ -203,13 +204,13 @@ export default function ForgotPasswordPage() {
                   placeholder="Enter your email address"
                   icon={<Mail className="w-5 h-5" />}
                   error={errors.email?.message}
-                  className="h-14 text-base px-6 bg-card border-custom rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-sm hover:shadow-md placeholder:text-muted"
+                  className="h-14 text-base px-6 bg-zenith-card border-zenith-border rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-sm hover:shadow-md placeholder:text-zenith-muted"
                 />
 
                 <Button
                   type="submit"
                   disabled={isLoading || !isValid}
-                  className="w-full h-14 text-base relative overflow-hidden group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                  className="w-full h-14 text-base relative overflow-hidden group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                 >
                   <div className="relative z-10 flex items-center justify-center">
                     {isLoading ? (
@@ -227,11 +228,11 @@ export default function ForgotPasswordPage() {
                 </Button>
 
                 <div className="text-center mt-8">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-zenith-secondary">
                     Remember your password?{" "}
                     <Link 
                       href="/login" 
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors hover:no-underline"
+                      className="text-blue-600 hover:text-blue-700 font-medium transition-colors hover:no-underline"
                     >
                       Sign in
                     </Link>
@@ -243,32 +244,32 @@ export default function ForgotPasswordPage() {
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 mb-6"
+                  className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 mb-6"
                 >
-                  <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
+                  <CheckCircle className="w-12 h-12 text-green-600" />
                 </motion.div>
 
                 <div className="space-y-6">
-                  <p className="text-gray-600 dark:text-gray-400 text-lg">
+                  <p className="text-zenith-secondary text-lg">
                     We've sent a password reset link to:
                   </p>
-                  <p className="font-medium text-gray-900 dark:text-gray-100 text-xl">
+                  <p className="font-medium text-zenith-primary text-xl">
                     {getValues().email}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">
+                  <p className="text-sm text-zenith-muted">
                     The link will expire in 15 minutes for security purposes.
                   </p>
                 </div>
 
-                <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 rounded-2xl">
+                <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200 rounded-2xl">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
-                      <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400 mt-0.5" />
+                      <Mail className="w-6 h-6 text-blue-600 mt-0.5" />
                       <div className="text-left">
-                        <p className="text-base font-medium text-blue-900 dark:text-blue-100">
+                        <p className="text-base font-medium text-blue-900">
                           Didn't receive the email?
                         </p>
-                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        <p className="text-sm text-blue-700 mt-1">
                           Check your spam folder or try again
                         </p>
                       </div>
@@ -281,7 +282,7 @@ export default function ForgotPasswordPage() {
                     onClick={handleResend}
                     disabled={!canResend}
                     variant="outline"
-                    className="w-full h-14 text-base bg-white/80 dark:bg-gray-800/80 border-gray-200/80 dark:border-gray-700/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02]"
+                    className="w-full h-14 text-base bg-zenith-card border-zenith-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02]"
                   >
                     {!canResend ? (
                       <>
@@ -299,7 +300,7 @@ export default function ForgotPasswordPage() {
                   <Button
                     asChild
                     variant="ghost"
-                    className="w-full h-14 text-base rounded-2xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="w-full h-14 text-base rounded-2xl transition-all duration-300 hover:bg-zenith-hover"
                   >
                     <Link href="/login">
                       <ArrowLeft className="w-5 h-5 mr-3" />
@@ -317,7 +318,7 @@ export default function ForgotPasswordPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
-          className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400"
+          className="text-center mt-8 text-sm text-zenith-muted"
         >
           © 2025 Zenith. All rights reserved.
         </motion.div>

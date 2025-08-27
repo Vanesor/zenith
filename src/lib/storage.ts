@@ -4,7 +4,7 @@ import crypto from 'crypto';
 
 export class LocalStorageService {
   private static readonly UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
-  private static readonly BASE_URL = '/uploads';
+  private static readonly BASE_URL = process.env.NODE_ENV === 'production' ? '/api/static' : '/uploads';
 
   // Ensure upload directory exists
   private static ensureUploadDir(): void {

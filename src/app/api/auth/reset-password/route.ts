@@ -5,17 +5,17 @@ import { validatePasswordStrength } from '@/lib/password-validation';
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, newPassword } = await request.json();
+    const { token, password } = await request.json();
 
-    if (!token || !newPassword) {
+    if (!token || !password) {
       return NextResponse.json(
-        { error: "Token and new password are required" },
+        { error: "Token and password are required" },
         { status: 400 }
       );
     }
 
-    // Validate new password strength
-    const passwordValidation = validatePasswordStrength(newPassword);
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.isValid) {
       return NextResponse.json(
         { 
@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
 
     const user = userResult.rows[0];
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Update password and clear reset token
     await db.query(

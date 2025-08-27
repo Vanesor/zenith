@@ -203,7 +203,7 @@ export function PaperpalHeader({
                       fallbackName={user.name}
                     />
                     <div className="hidden md:block text-left">
-                      <p className="text-sm font-medium text-gray-900 text-primary">{user.name}</p>
+                      <p className="text-sm font-medium text-gray-900 text-primary truncate max-w-32">{user.name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role}</p>
                     </div>
                     <ChevronDown className="hidden md:block w-4 h-4 text-gray-500" />
@@ -227,9 +227,9 @@ export function PaperpalHeader({
                               size="md"
                               fallbackName={user.name}
                             />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 text-primary">{user.name}</p>
-                              <p className="text-xs text-primary">{user.email}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 text-primary truncate">{user.name}</p>
+                              <p className="text-xs text-primary truncate">{user.email}</p>
                             </div>
                           </div>
                         </div>
