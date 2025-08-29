@@ -1,0 +1,22 @@
+                                 Table "public.sessions"
+      Column       |           Type           | Collation | Nullable |      Default      
+-------------------+--------------------------+-----------+----------+-------------------
+ id                | uuid                     |           | not null | gen_random_uuid()
+ user_id           | uuid                     |           |          | 
+ token             | character varying        |           | not null | 
+ expires_at        | timestamp with time zone |           | not null | 
+ created_at        | timestamp with time zone |           |          | now()
+ last_active_at    | timestamp with time zone |           |          | now()
+ user_agent        | text                     |           |          | 
+ ip_address        | character varying        |           |          | 
+ device_info       | jsonb                    |           |          | '{}'::jsonb
+ is_trusted        | boolean                  |           |          | false
+ requires_2fa      | boolean                  |           |          | true
+ has_completed_2fa | boolean                  |           |          | false
+Indexes:
+    "sessions_pkey" PRIMARY KEY, btree (id)
+    "idx_sessions_expires_at" btree (expires_at)
+    "idx_sessions_token" btree (token)
+    "idx_sessions_user_id" btree (user_id)
+    "sessions_token_key" UNIQUE CONSTRAINT, btree (token)
+

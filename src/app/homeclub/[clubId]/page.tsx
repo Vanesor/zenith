@@ -27,7 +27,6 @@ import {
 import { ZenithLogo } from "@/components/ZenithLogo";
 import ClubLogo from "@/components/ClubLogo";
 import UserAvatar from "@/components/UserAvatar";
-import ZenChatbot from "@/components/ZenChatbot";
 import { PageLoader } from "@/components/UniversalLoader";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import TeamShowcase from "@/components/TeamShowcase";

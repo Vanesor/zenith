@@ -11,7 +11,6 @@ import {
   Search,
   ExternalLink,
 } from "lucide-react";
-import ZenChatbot from "@/components/ZenChatbot";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Event {
@@ -474,7 +473,6 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <ZenChatbot />
     </div>
   );
 }

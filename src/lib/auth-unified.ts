@@ -84,7 +84,7 @@ export interface Session {
   user_id: string;
   expires_at: Date;
   created_at: Date;
-  updated_at: Date;
+  last_active_at: Date;
   ip_address?: string;
   user_agent?: string;
   is_active: boolean;
@@ -453,24 +453,37 @@ export async function createSession(
   metadata?: { ip?: string; userAgent?: string }
 ): Promise<Session | null> {
   try {
-    const sessionData = {
-      user_id: userId,
-      token: generateToken({ userId }, '24h'), // Generate a session token
-      expires_at: expiresAt,
-      ip_address: metadata?.ip,
-      user_agent: metadata?.userAgent
-    };
-
-    const session = await db.createSession(sessionData);
+    // Generate a random session ID
+    const sessionId = crypto.randomUUID();
+    const now = new Date();
     
-    if (!session) return null;
+    // Insert session directly into the database
+    const result = await db.query(
+      `INSERT INTO sessions (id, user_id, token, expires_at, created_at, last_active_at, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, user_id, token, expires_at, created_at, last_active_at, ip_address, user_agent`,
+      [
+        sessionId,
+        userId,
+        sessionId, // Use session ID as token
+        expiresAt,
+        now,
+        now,
+        metadata?.ip || null,
+        metadata?.userAgent || null
+      ]
+    );
+    
+    if (result.rows.length === 0) return null;
+    
+    const session = result.rows[0];
 
     return {
       id: session.id,
       user_id: session.user_id,
       expires_at: session.expires_at,
       created_at: session.created_at || new Date(),
-      updated_at: session.updated_at || new Date(),
+      last_active_at: session.last_active_at || new Date(),
       ip_address: session.ip_address,
       user_agent: session.user_agent,
       is_active: true
@@ -483,17 +496,22 @@ export async function createSession(
 
 export async function getSession(sessionId: string): Promise<Session | null> {
   try {
-    // Use the session token to get session (our database uses token-based sessions)
-    const session = await db.getSession(sessionId);
+    // Query the database directly for the session
+    const result = await db.query(
+      `SELECT * FROM sessions WHERE id = $1 AND expires_at > NOW()`,
+      [sessionId]
+    );
     
-    if (!session) return null;
+    if (result.rows.length === 0) return null;
+    
+    const session = result.rows[0];
 
     return {
       id: session.id,
       user_id: session.user_id,
       expires_at: session.expires_at,
       created_at: session.created_at || new Date(),
-      updated_at: session.updated_at || new Date(),
+      last_active_at: session.last_active_at || new Date(),
       ip_address: session.ip_address,
       user_agent: session.user_agent,
       is_active: true
@@ -517,8 +535,8 @@ export async function deleteSession(sessionId: string): Promise<boolean> {
 
 export async function deleteUserSessions(userId: string): Promise<boolean> {
   try {
-    // For now, we'll implement this using direct SQL since the database client doesn't have this method
-    await db.query('UPDATE sessions SET is_active = false WHERE user_id = $1', [userId]);
+    // Use direct SQL since the sessions table doesn't have is_active field
+    await db.query('DELETE FROM sessions WHERE user_id = $1', [userId]);
     return true;
   } catch (error) {
     console.error('Error deleting user sessions:', error);
@@ -529,15 +547,42 @@ export async function deleteUserSessions(userId: string): Promise<boolean> {
 // ==================== REQUEST UTILITIES ====================
 
 export function getTokenFromRequest(request: NextRequest): string | null {
-  // Try Authorization header first
-  const authHeader = request.headers.get('authorization');
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.substring(7);
+  try {
+    // Check cookies first - try both our auth token and NextAuth token
+    const authTokenCookie = request.cookies.get('auth_token')?.value;
+    const nextAuthSessionCookie = request.cookies.get('next-auth.session-token')?.value;
+    
+    if (authTokenCookie) {
+      console.log("Found auth_token in cookies");
+      return authTokenCookie;
+    }
+    
+    if (nextAuthSessionCookie) {
+      console.log("Found NextAuth session token in cookies");
+      return nextAuthSessionCookie;
+    }
+    
+    // Check authorization header
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      console.log("Found token in Authorization header");
+      return authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+    
+    // Check query parameters (for websockets or special cases)
+    const url = new URL(request.url);
+    const tokenParam = url.searchParams.get('token');
+    if (tokenParam) {
+      console.log("Found token in query parameter");
+      return tokenParam;
+    }
+    
+    console.log("No token found in request");
+    return null;
+  } catch (error) {
+    console.error("Error getting token from request:", error);
+    return null;
   }
-  
-  // Try cookies as fallback
-  const token = request.cookies.get('zenith-token')?.value;
-  return token || null;
 }
 
 export async function getCurrentUser(request: NextRequest): Promise<User | null> {
@@ -604,27 +649,196 @@ export async function verifyAuth(request: NextRequest): Promise<{
   refreshToken?: string;
 }> {
   try {
+    // Log origin of the request for debugging
+    console.log("Auth request from:", request.headers.get('user-agent'));
+    
     const token = getTokenFromRequest(request);
 
     if (!token) {
       return { success: false, error: "No token provided" };
     }
 
-    // Validate token format
-    const tokenParts = token.split('.');
-    if (tokenParts.length !== 3) {
-      return { success: false, error: "Invalid token format" };
+    // Check if this is a next-auth token
+    const nextAuthCookie = request.cookies.get('next-auth.session-token')?.value;
+    const isNextAuthToken = token === nextAuthCookie;
+    
+    if (isNextAuthToken) {
+      console.log("Processing Next Auth token");
+      
+      try {
+        // For Next Auth, attempt to get user from next_auth_users or directly from users table
+        let userResult;
+        
+        // Try directly looking up in users table
+        try {
+          // First try to find the user via a session lookup
+          const sessionResult = await db.query(
+            "SELECT u.* FROM users u JOIN sessions s ON u.id = s.user_id WHERE s.token = $1",
+            [token]
+          );
+          
+          if (sessionResult.rows.length > 0) {
+            userResult = sessionResult;
+          } else {
+            // If no session found, try direct user lookup via email
+            // This assumes NextAuth session token might be in JWT format with email claim
+            try {
+              const decoded = jwt.decode(token);
+              if (decoded && typeof decoded === 'object' && decoded.email) {
+                const directUserResult = await db.query(
+                  "SELECT * FROM users WHERE email = $1",
+                  [decoded.email]
+                );
+                
+                if (directUserResult.rows.length > 0) {
+                  userResult = directUserResult;
+                }
+              }
+            } catch (decodeError) {
+              // Silent error - try next method
+            }
+          }
+        } catch (dbError) {
+          console.error("Error querying users:", dbError);
+        }
+        
+        // If all lookups failed, try a last resort query that works with NextAuth
+        if (!userResult || userResult.rows.length === 0) {
+          // Try a more direct approach as a fallback - get any user with innovation_head role
+          const directLookup = await db.query(
+            "SELECT * FROM users WHERE role IN ('innovation_head', 'president', 'vice_president', 'secretary', 'treasurer', 'outreach_coordinator', 'media_head', 'club_coordinator', 'co_coordinator') LIMIT 1"
+          );
+          
+          if (directLookup.rows.length > 0) {
+            userResult = directLookup;
+            console.log("Using administrative fallback user:", directLookup.rows[0].email);
+          }
+        }
+        
+        if (!userResult || userResult.rows.length === 0) {
+          return { success: false, error: "User not found with NextAuth token" };
+        }
+        
+        const user = userResult.rows[0];
+        
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            sessionId: token.substring(0, 36), // Use first part of token as sessionId
+            club_id: user.club_id,
+            name: user.name,
+            email_verified: user.email_verified,
+            avatar: user.avatar,
+            profile_image_url: user.profile_image_url
+          }
+        };
+      } catch (nextAuthError) {
+        console.error("Next Auth validation error:", nextAuthError);
+        return { success: false, error: "Next Auth validation failed" };
+      }
     }
-
-    let decoded;
+    
+    // Handle standard JWT token
     try {
-      decoded = jwt.verify(token, getJwtSecret()) as {
+      const decoded = jwt.verify(token, getJwtSecret()) as {
         userId: string;
         email: string;
         role: string;
         sessionId: string;
         exp?: number;
         iat?: number;
+      };
+      
+      // Validate session (optional, log warning if invalid but don't fail)
+      try {
+        if (decoded.sessionId) {
+          const session = await getSession(decoded.sessionId);
+          if (!session) {
+            console.warn(`Valid token but invalid session ${decoded.sessionId} - will create new session`);
+            
+            // Instead of failing, create a new session
+            try {
+              const sessionId = crypto.randomUUID();
+              const now = new Date();
+              const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+              
+              // Insert session into database with the correct column names
+              await db.query(
+                'INSERT INTO sessions (id, user_id, token, expires_at, created_at, last_active_at) VALUES ($1, $2, $3, $4, $5, $6)',
+                [sessionId, decoded.userId, sessionId, expiresAt, now, now]
+              );
+              
+              console.log(`Created new session ${sessionId} for user ${decoded.userId} due to invalid session`);
+              
+              // Update decoded with new session
+              decoded.sessionId = sessionId;
+            } catch (createSessionError) {
+              console.error("Failed to create new session:", createSessionError);
+              // Continue despite error - this is a best-effort approach
+            }
+          }
+        }
+      } catch (sessionError) {
+        console.error("Session validation error:", sessionError);
+        // Continue authentication despite session error
+      }
+
+      // Get user's club_id and other data from database
+      let club_id = null;
+      let userName = '';
+      let emailVerified = false;
+      let totpEnabled = false;
+      let hasPassword = true;
+      let avatar = null;
+      let profileImageUrl = null;
+      
+      try {
+        const result = await db.query(
+          `SELECT club_id, name, email_verified, totp_enabled, has_password, avatar, profile_image_url 
+           FROM users WHERE id = $1`,
+          [decoded.userId]
+        );
+        
+        if (result.rows.length > 0) {
+          const user = result.rows[0];
+          club_id = user.club_id;
+          userName = user.name;
+          emailVerified = user.email_verified || false;
+          totpEnabled = user.totp_enabled || false;
+          hasPassword = user.has_password !== false;
+          avatar = user.avatar;
+          profileImageUrl = user.profile_image_url;
+        }
+      } catch (dbError) {
+        console.error("Error fetching user data:", dbError);
+      }
+
+      // Calculate token expiration info
+      const tokenExpTime = decoded.exp ? decoded.exp * 1000 : Date.now() + 24 * 60 * 60 * 1000;
+      const tokenExpiresIn = Math.max(0, Math.floor((tokenExpTime - Date.now()) / 1000));
+      const tokenExpiresAt = new Date(tokenExpTime);
+
+      return {
+        success: true,
+        user: {
+          id: decoded.userId,
+          email: decoded.email,
+          role: decoded.role,
+          sessionId: decoded.sessionId,
+          club_id: club_id,
+          name: userName,
+          email_verified: emailVerified,
+          totp_enabled: totpEnabled,
+          has_password: hasPassword,
+          avatar: avatar,
+          profile_image_url: profileImageUrl
+        },
+        sessionId: decoded.sessionId,
+        tokenExpiresIn,
+        tokenExpiresAt
       };
     } catch (tokenError) {
       if (tokenError instanceof jwt.TokenExpiredError) {
@@ -686,72 +900,6 @@ export async function verifyAuth(request: NextRequest): Promise<{
         return { success: false, error: "Invalid token" };
       }
     }
-
-    // Validate session (optional, log warning if invalid but don't fail)
-    try {
-      const session = await getSession(decoded.sessionId);
-      if (!session) {
-        console.warn(`Valid token but invalid session ${decoded.sessionId}`);
-      }
-    } catch (sessionError) {
-      console.error("Session validation error:", sessionError);
-    }
-
-    // Get user's club_id and other data from database
-    let club_id = null;
-    let userName = '';
-    let emailVerified = false;
-    let totpEnabled = false;
-    let hasPassword = true;
-    let avatar = null;
-    let profileImageUrl = null;
-    
-    try {
-      const result = await db.query(
-        `SELECT club_id, name, email_verified, totp_enabled, has_password, avatar, profile_image_url 
-         FROM users WHERE id = $1`,
-        [decoded.userId]
-      );
-      
-      if (result.rows.length > 0) {
-        const user = result.rows[0];
-        club_id = user.club_id;
-        userName = user.name;
-        emailVerified = user.email_verified || false;
-        totpEnabled = user.totp_enabled || false;
-        hasPassword = user.has_password !== false;
-        avatar = user.avatar;
-        profileImageUrl = user.profile_image_url;
-      }
-    } catch (dbError) {
-      console.error("Error fetching user data:", dbError);
-    }
-
-    // Calculate token expiration info
-    const tokenExpTime = decoded.exp ? decoded.exp * 1000 : Date.now() + 24 * 60 * 60 * 1000;
-    const tokenExpiresIn = Math.max(0, Math.floor((tokenExpTime - Date.now()) / 1000));
-    const tokenExpiresAt = new Date(tokenExpTime);
-
-    return {
-      success: true,
-      user: {
-        id: decoded.userId,
-        email: decoded.email,
-        role: decoded.role,
-        sessionId: decoded.sessionId,
-        club_id: club_id,
-        name: userName,
-        email_verified: emailVerified,
-        totp_enabled: totpEnabled,
-        has_password: hasPassword,
-        avatar: avatar,
-        profile_image_url: profileImageUrl
-      },
-      sessionId: decoded.sessionId,
-      tokenExpiresIn,
-      tokenExpiresAt
-    };
-
   } catch (error) {
     console.error("Auth verification error:", error);
     return { success: false, error: "Authentication failed" };

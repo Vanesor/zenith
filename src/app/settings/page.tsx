@@ -652,7 +652,7 @@ export default function SettingsPage() {
             <Shield className="w-5 h-5" />
             <span>Two-Factor Authentication</span>
             {twoFactorEnabled && (
-              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+              <Badge className="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
                 Enabled
               </Badge>
             )}
@@ -663,7 +663,7 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="zenith-bg-section p-4 rounded-lg">
                 <div className="flex items-start space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                  <AlertTriangle className="w-5 h-5 text-zenith-warning mt-0.5" />
                   <div>
                     <h4 className="font-medium zenith-text-primary">
                       Enhance Your Security
@@ -752,7 +752,7 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="zenith-bg-section p-4 rounded-lg">
                 <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-zenith-success mt-0.5" />
                   <div>
                     <h4 className="font-medium zenith-text-primary">
                       2FA is Active
@@ -768,7 +768,7 @@ export default function SettingsPage() {
                 onClick={handleDisable2FA}
                 disabled={loading}
                 variant="outline"
-                className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20"
+                className="w-full border-zenith-error text-zenith-error hover:bg-red-50 dark:hover:bg-red-900/20"
               >
                 {loading ? (
                   <>

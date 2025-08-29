@@ -15,7 +15,6 @@ import {
   Eye,
   ArrowLeft,
 } from "lucide-react";
-import ZenChatbot from "@/components/ZenChatbot";
 import { useOptionalAuth } from "@/hooks/useAuthGuard";
 import UserAvatar from "@/components/UserAvatar";
 import ClubLogo from "@/components/ClubLogo";
@@ -89,12 +88,17 @@ export default function ClubPage() {
       try {
         setLoading(true);
 
+        // Try to get token from multiple sources
+        const zenithToken = localStorage.getItem('zenith-token');
+        const nextAuthToken = document.cookie.split('; ').find(row => row.startsWith('next-auth.session-token'))?.split('=')[1];
+        const token = zenithToken || nextAuthToken;
+        
         const response = await fetch(`/api/clubs/${currentClubId}`, {
           credentials: 'include',
           headers: {
             "Content-Type": "application/json",
-            ...(auth.user && localStorage.getItem("zenith-token") && {
-              Authorization: `Bearer ${localStorage.getItem("zenith-token")}`
+            ...(token && {
+              Authorization: `Bearer ${token}`
             })
           },
         });
@@ -108,15 +112,44 @@ export default function ClubPage() {
 
         // Check user permissions
         if (auth.user) {
+          // Create a session if needed
+          if (auth.user && (!localStorage.getItem('session-created'))) {
+            try {
+              console.log('Creating session for user:', auth.user.email);
+              const sessionResponse = await fetch('/api/auth/create-session', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                  ...(token && {
+                    Authorization: `Bearer ${token}`
+                  })
+                },
+              });
+              
+              if (sessionResponse.ok) {
+                localStorage.setItem('session-created', 'true');
+                console.log('Session created successfully');
+              }
+            } catch (sessionError) {
+              console.error('Error creating session:', sessionError);
+            }
+          }
+          
           const permResponse = await fetch('/api/clubs/permissions', {
+            credentials: 'include',
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem("zenith-token")}`,
+              ...(token && {
+                Authorization: `Bearer ${token}`
+              })
             },
           });
           
           if (permResponse.ok) {
             const permData = await permResponse.json();
             setUserPermissions(permData.permissions);
+            console.log("Permissions data received:", permData.permissions);
+          } else {
+            console.error("Failed to fetch permissions:", permResponse.status);
           }
         }
       } catch (err) {
@@ -133,12 +166,44 @@ export default function ClubPage() {
   }, [auth.user, currentClubId]);
 
   const canCreatePost = () => {
-    if (!auth.user || !userPermissions) return false;
+    if (!auth.user) {
+      console.log("No authenticated user");
+      return false;
+    }
     
-    // Allow club coordinators, co-coordinators, and zenith committee
-    return userPermissions.isCoordinator || 
-           userPermissions.isCoCoordinator || 
-           userPermissions.isZenithCommittee;
+    // Debug user permissions
+    console.log("User Permissions for Create Post:", {
+      user: auth.user,
+      role: auth.user.role,
+      permissions: userPermissions,
+    });
+    
+    // If we have explicit permissions from the API, use those
+    if (userPermissions && typeof userPermissions.canCreatePost === 'boolean') {
+      console.log(`Using API permission: canCreatePost = ${userPermissions.canCreatePost}`);
+      return userPermissions.canCreatePost;
+    }
+    
+    // Fallback: Check if user has a privileged role
+    const privilegedRoles = [
+      'innovation_head',
+      'president',
+      'vice_president',
+      'secretary',
+      'treasurer',
+      'outreach_coordinator',
+      'media_head',
+      'club_coordinator',
+      'co_coordinator',
+      'coordinator',
+      'co-coordinator'
+    ];
+    
+    const userRole = auth.user.role.toLowerCase();
+    const hasPrivilegedRole = privilegedRoles.includes(userRole);
+    console.log(`Fallback role check: ${userRole} is privileged = ${hasPrivilegedRole}`);
+    
+    return hasPrivilegedRole;
   };
 
   const handlePostClick = (postId: string) => {
@@ -440,7 +505,6 @@ export default function ClubPage() {
         </div>
       </div>
       
-      <ZenChatbot />
     </div>
   );
 }

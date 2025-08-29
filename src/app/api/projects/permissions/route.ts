@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
     // Get user's permissions for project creation
     const permissions = await ProjectPermissionService.getUserPermissions(userId);
     
+    console.log('API: User permissions for', authResult.user.email, '(', authResult.user.role, '):', permissions);
+    
     const response = NextResponse.json({
       permissions: {
         canCreateProject: permissions.canCreateProject,

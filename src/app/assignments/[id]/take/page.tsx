@@ -456,13 +456,13 @@ export default function TakeAssignment() {
 
   if (errorMessage) {
     return (
-      <div className="min-h-screen bg-zenith-section dark:bg-gray-900 flex items-center justify-center">
-        <div className="max-w-md w-full bg-card rounded-xl shadow-lg p-8 text-center">
+      <div className="min-h-screen bg-zenith-section flex items-center justify-center">
+        <div className="max-w-md w-full bg-zenith-card rounded-xl shadow-lg p-8 text-center">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-primary mb-2">
+          <h2 className="text-2xl font-bold text-zenith-primary mb-2">
             Assignment Unavailable
           </h2>
-          <p className="text-zenith-secondary dark:text-zenith-muted mb-6">
+          <p className="text-zenith-secondary mb-6">
             {errorMessage}
           </p>
           <button
@@ -534,7 +534,7 @@ export default function TakeAssignment() {
   // Pre-assignment information screen
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex flex-col items-center py-12 px-4">
-      <div className="w-full max-w-4xl bg-white/10 dark:bg-slate-900/80 rounded-3xl shadow-2xl border border-purple-500/20 backdrop-blur-xl p-8 md:p-12 relative">
+      <div className="w-full max-w-4xl bg-zenith-card rounded-3xl shadow-2xl border border-zenith-border backdrop-blur-xl p-8 md:p-12 relative">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
           <div className="flex items-center space-x-4 mb-4 md:mb-0">
@@ -545,7 +545,7 @@ export default function TakeAssignment() {
               {assignment.title}
             </h1>
           </div>
-          <div className="flex items-center space-x-6 text-sm text-slate-300">
+          <div className="flex items-center space-x-6 text-sm text-zenith-secondary">
             <div className="flex items-center">
               <User className="w-4 h-4 mr-2" />
               {user?.name || 'Student'}
@@ -563,7 +563,7 @@ export default function TakeAssignment() {
 
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-blue-900/80 rounded-2xl shadow-xl border border-purple-500/10 p-6">
+          <div className="bg-gradient-to-br from-purple-900/60 to-blue-900/80 rounded-2xl shadow-xl border border-zenith-border p-6">
             <div className="flex items-center mb-3">
               <Clock className="w-8 h-8 text-purple-400 mr-3" />
               <h3 className="text-lg font-semibold text-primary">Time Limit</h3>
@@ -571,9 +571,9 @@ export default function TakeAssignment() {
             <p className="text-2xl font-bold text-purple-300 mb-2">
               {formatTimeRemaining(assignment.timeLimit)}
             </p>
-            <p className="text-sm text-slate-300">Complete within time limit</p>
+            <p className="text-sm text-zenith-secondary">Complete within time limit</p>
           </div>
-          <div className="bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-blue-900/80 rounded-2xl shadow-xl border border-purple-500/10 p-6">
+          <div className="bg-gradient-to-br from-purple-900/60 to-blue-900/80 rounded-2xl shadow-xl border border-zenith-border p-6">
             <div className="flex items-center mb-3">
               <FileText className="w-8 h-8 text-green-400 mr-3" />
               <h3 className="text-lg font-semibold text-primary">Questions</h3>
@@ -581,9 +581,9 @@ export default function TakeAssignment() {
             <p className="text-2xl font-bold text-green-300 mb-2">
               {assignment.questions.length}
             </p>
-            <p className="text-sm text-slate-300">Mixed question types</p>
+            <p className="text-sm text-zenith-secondary">Mixed question types</p>
           </div>
-          <div className="bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-blue-900/80 rounded-2xl shadow-xl border border-purple-500/10 p-6">
+          <div className="bg-gradient-to-br from-purple-900/60 to-blue-900/80 rounded-2xl shadow-xl border border-zenith-border p-6">
             <div className="flex items-center mb-3">
               <CheckCircle className="w-8 h-8 text-blue-400 mr-3" />
               <h3 className="text-lg font-semibold text-primary">Attempts</h3>
@@ -591,65 +591,65 @@ export default function TakeAssignment() {
             <p className="text-2xl font-bold text-blue-300 mb-2">
               {previousAttempts.length} / {assignment.maxAttempts}
             </p>
-            <p className="text-sm text-slate-300">Attempts used</p>
+            <p className="text-sm text-zenith-secondary">Attempts used</p>
           </div>
         </div>
 
         {/* Description Card */}
-        <div className="bg-white/10 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-purple-500/10 p-8 mb-8">
+        <div className="bg-zenith-card rounded-2xl shadow-xl border border-zenith-border p-8 mb-8">
           <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
             Assignment Description
           </h2>
-          <div className="prose dark:prose-invert max-w-none text-slate-200" dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\n/g, '<br>') }} />
+          <div className="prose max-w-none text-zenith-primary" dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\n/g, '<br>') }} />
         </div>
 
         {/* Instructions Card */}
         {assignment.instructions && (
-          <div className="bg-yellow-100/10 dark:bg-yellow-900/20 border border-yellow-400/20 rounded-2xl p-6 mb-8">
-            <h3 className="text-lg font-semibold text-yellow-300 mb-3">Important Instructions</h3>
-            <div className="text-yellow-200" dangerouslySetInnerHTML={{ __html: assignment.instructions.replace(/\n/g, '<br>') }} />
+          <div className="bg-yellow-100 border border-yellow-400 rounded-2xl p-6 mb-8">
+            <h3 className="text-lg font-semibold text-yellow-700 mb-3">Important Instructions</h3>
+            <div className="text-yellow-800" dangerouslySetInnerHTML={{ __html: assignment.instructions.replace(/\n/g, '<br>') }} />
           </div>
         )}
 
         {/* Features Card */}
-        <div className="bg-white/10 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-purple-500/10 p-8 mb-8">
+        <div className="bg-zenith-card rounded-2xl shadow-xl border border-zenith-border p-8 mb-8">
           <h3 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-6">Assignment Features</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded mr-3 ${assignment.allowNavigation ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-slate-200">{assignment.allowNavigation ? 'Navigation between questions allowed' : 'Sequential question navigation'}</span>
+              <span className="text-zenith-primary">{assignment.allowNavigation ? 'Navigation between questions allowed' : 'Sequential question navigation'}</span>
             </div>
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded mr-3 ${assignment.allowCalculator ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-slate-200">{assignment.allowCalculator ? 'Calculator available' : 'No calculator allowed'}</span>
+              <span className="text-zenith-primary">{assignment.allowCalculator ? 'Calculator available' : 'No calculator allowed'}</span>
             </div>
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded mr-3 ${assignment.isProctored ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-              <span className="text-slate-200">{assignment.isProctored ? 'Proctored (monitored)' : 'Not proctored'}</span>
+              <span className="text-zenith-primary">{assignment.isProctored ? 'Proctored (monitored)' : 'Not proctored'}</span>
             </div>
             <div className="flex items-center">
               <div className={`w-4 h-4 rounded mr-3 ${assignment.showResults ? 'bg-green-500' : 'bg-slate-700'}`}></div>
-              <span className="text-slate-200">{assignment.showResults ? 'Results shown after submission' : 'Results not immediately shown'}</span>
+              <span className="text-zenith-primary">{assignment.showResults ? 'Results shown after submission' : 'Results not immediately shown'}</span>
             </div>
           </div>
         </div>
 
         {/* Previous Attempts */}
         {previousAttempts.length > 0 && (
-          <div className="bg-white/10 dark:bg-slate-900/80 rounded-2xl shadow-xl border border-purple-500/10 p-8 mb-8">
+          <div className="bg-zenith-card rounded-2xl shadow-xl border border-zenith-border p-8 mb-8">
             <h3 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">Previous Attempts</h3>
             <div className="space-y-3">
               {previousAttempts.map((attempt, index) => (
-                <div key={attempt.id} className="flex items-center justify-between p-4 bg-slate-900/60 rounded-lg">
+                <div key={attempt.id} className="flex items-center justify-between p-4 bg-zenith-accent rounded-lg">
                   <div>
                     <span className="font-medium text-primary">Attempt {index + 1}</span>
-                    <span className="text-sm text-slate-400 ml-2">{new Date(attempt.startTime).toLocaleDateString()}</span>
+                    <span className="text-sm text-zenith-secondary ml-2">{new Date(attempt.startTime).toLocaleDateString()}</span>
                   </div>
                   <div className="text-right">
                     {attempt.score !== undefined ? (
                       <span className="font-semibold text-green-400">{attempt.score}/{assignment.maxPoints}</span>
                     ) : (
-                      <span className="text-slate-500">In Progress</span>
+                      <span className="text-zenith-secondary">In Progress</span>
                     )}
                   </div>
                 </div>
@@ -665,7 +665,7 @@ export default function TakeAssignment() {
               <AlertTriangle className="w-6 h-6 text-red-400 mr-3 mt-1" />
               <div>
                 <h3 className="text-lg font-semibold text-red-300 mb-2">Proctoring Warning</h3>
-                <ul className="text-sm text-red-200 space-y-1">
+                <ul className="text-sm text-zenith-warning space-y-1">
                   <li>• This assignment is monitored for academic integrity</li>
                   <li>• Do not switch tabs or applications during the test</li>
                   <li>• Do not attempt to copy or paste content</li>
@@ -684,7 +684,7 @@ export default function TakeAssignment() {
               <Clock className="w-6 h-6 text-yellow-400 mr-3" />
               <div>
                 <h3 className="text-lg font-semibold text-yellow-300">Assignment Due Soon</h3>
-                <p className="text-yellow-200">This assignment is due in {formatTimeRemaining(getTimeUntilDue()!)}. Start now to ensure you have enough time.</p>
+                <p className="text-zenith-warning">This assignment is due in {formatTimeRemaining(getTimeUntilDue()!)}. Start now to ensure you have enough time.</p>
               </div>
             </div>
           </div>
@@ -709,10 +709,10 @@ export default function TakeAssignment() {
             </button>
           ) : (
             <div className="text-center">
-              <p className="text-lg text-slate-400 mb-4">You have used all your attempts for this assignment.</p>
+              <p className="text-lg text-zenith-secondary mb-4">You have used all your attempts for this assignment.</p>
               <button
                 onClick={() => router.push('/assignments')}
-                className="px-8 py-3 bg-slate-700 hover:bg-slate-800 text-primary font-semibold rounded-lg"
+                className="px-8 py-3 bg-zenith-accent hover:bg-zenith-accent-hover text-primary font-semibold rounded-lg"
               >
                 Back to Assignments
               </button>
@@ -721,7 +721,7 @@ export default function TakeAssignment() {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-12 text-center text-sm text-slate-400">
+        <div className="mt-12 text-center text-sm text-zenith-secondary">
           <p>
             Make sure you have a stable internet connection and enough time to complete the assignment.<br />
             Your progress will be automatically saved, but submit before the time limit expires.
@@ -732,13 +732,13 @@ export default function TakeAssignment() {
       {/* Warning Modal */}
       {showWarningModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/20 shadow-2xl">
+          <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-zenith-border shadow-2xl">
             <div className="p-8">
               <div className="flex items-center mb-6">
                 <AlertTriangle className="w-8 h-8 text-yellow-400 mr-3" />
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Assignment Guidelines & Rules</h2>
               </div>
-              <div className="space-y-4 text-slate-200">
+              <div className="space-y-4 text-zenith-primary">
                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
                   <h3 className="font-semibold text-yellow-300 mb-2">Important Guidelines:</h3>
                   <ul className="list-disc list-inside space-y-1 text-sm">
@@ -774,7 +774,7 @@ export default function TakeAssignment() {
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <button
                   onClick={() => setShowWarningModal(false)}
-                  className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-primary font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 bg-zenith-accent hover:bg-zenith-accent-hover text-primary font-semibold rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -794,13 +794,13 @@ export default function TakeAssignment() {
       {/* Success Modal */}
       {showSuccessModal && submissionResult && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 rounded-2xl max-w-md w-full border border-green-500/20 shadow-2xl">
+          <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl max-w-md w-full border border-green-500/20 shadow-2xl">
             <div className="p-8 text-center">
               <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent mb-4">Assignment Submitted Successfully!</h2>
-              <div className="bg-slate-900/60 rounded-lg p-4 mb-6">
+              <div className="bg-zenith-accent rounded-lg p-4 mb-6">
                 <div className="text-sm text-green-200 mb-2">Your Score</div>
                 <div className="text-3xl font-bold text-primary">{submissionResult.score}/{submissionResult.maxPoints}</div>
                 <div className="text-lg text-green-200">({submissionResult.percentage.toFixed(1)}%)</div>
@@ -818,7 +818,7 @@ export default function TakeAssignment() {
                 )}
                 <button
                   onClick={() => router.push('/assignments')}
-                  className="w-full px-6 py-3 bg-slate-800 hover:bg-slate-700 text-primary font-semibold rounded-lg transition-colors"
+                  className="w-full px-6 py-3 bg-zenith-accent hover:bg-zenith-accent-hover text-primary font-semibold rounded-lg transition-colors"
                 >
                   Back to Assignments
                 </button>

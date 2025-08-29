@@ -77,31 +77,31 @@ interface TaskFormData {
 const columnConfig = {
   todo: {
     title: 'To Do',
-    color: 'bg-gray-100 border-gray-300 dark:bg-gray-800 dark:border-gray-600',
-    headerColor: 'bg-gray-50 dark:bg-gray-700',
+    color: 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-300 dark:from-slate-800 dark:to-slate-900 dark:border-slate-600',
+    headerColor: 'bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800',
     icon: Circle,
-    iconColor: 'text-gray-500'
+    iconColor: 'text-slate-500'
   },
   in_progress: {
     title: 'In Progress', 
-    color: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-600',
-    headerColor: 'bg-blue-50 dark:bg-blue-900/50',
+    color: 'bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-300 dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-600',
+    headerColor: 'bg-gradient-to-r from-blue-100 to-indigo-200 dark:from-blue-900/50 dark:to-indigo-900/50',
     icon: PlayCircle,
     iconColor: 'text-blue-500'
   },
   in_review: {
     title: 'In Review',
-    color: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-600', 
-    headerColor: 'bg-yellow-50 dark:bg-yellow-900/50',
+    color: 'bg-gradient-to-br from-amber-50 to-yellow-100 border-amber-300 dark:from-amber-900/30 dark:to-yellow-900/30 dark:border-amber-600', 
+    headerColor: 'bg-gradient-to-r from-amber-100 to-yellow-200 dark:from-amber-900/50 dark:to-yellow-900/50',
     icon: Eye,
-    iconColor: 'text-yellow-500'
+    iconColor: 'text-amber-500'
   },
   done: {
     title: 'Done',
-    color: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-600',
-    headerColor: 'bg-green-50 dark:bg-green-900/50', 
+    color: 'bg-gradient-to-br from-emerald-50 to-green-100 border-emerald-300 dark:from-emerald-900/30 dark:to-green-900/30 dark:border-emerald-600',
+    headerColor: 'bg-gradient-to-r from-emerald-100 to-green-200 dark:from-emerald-900/50 dark:to-green-900/50', 
     icon: CheckCircle2,
-    iconColor: 'text-green-500'
+    iconColor: 'text-emerald-500'
   }
 };
 
@@ -446,49 +446,53 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                       onDragStart={(e: any) => handleDragStart(e, task)}
                     >
                       <Card 
-                        className={`bg-zenith-card shadow-sm hover:shadow-md transition-all duration-200 border group ${
+                        className={`bg-zenith-card shadow-lg hover:shadow-xl transition-all duration-300 border-2 group transform hover:scale-105 ${
                           isOverdue(task.due_date) 
-                            ? 'border-red-500 bg-red-50 dark:bg-red-950/30' 
-                            : 'border-zenith-border hover:border-zenith-brand'
+                            ? 'border-red-400 bg-red-50/80 dark:bg-red-950/40 shadow-red-200 dark:shadow-red-900/50' 
+                            : 'border-zenith-border hover:border-blue-400 shadow-blue-100 dark:shadow-blue-900/20'
                         }`}
                         onClick={() => handleTaskClick(task)}
                       >
-                        <CardHeader className="p-3 pb-2">
+                        <CardHeader className="p-4 pb-2">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <Badge 
-                                  variant="outline" 
-                                  className={getTypeColor(task.type)}
-                                >
-                                  {task.type}
-                                </Badge>
-                                <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`${getTypeColor(task.type)} font-medium px-2 py-1 text-xs`}
+                                  >
+                                    {task.type}
+                                  </Badge>
+                                  <div className={`w-3 h-3 rounded-full shadow-sm ${getPriorityColor(task.priority)}`} />
+                                </div>
+                                <span className="text-xs text-zenith-muted font-mono bg-zenith-accent px-2 py-1 rounded">
+                                  {task.task_key}
+                                </span>
                               </div>
-                              <h4 className="font-medium text-sm text-zenith-primary line-clamp-2 mb-1">
+                              <h4 className="font-semibold text-sm text-zenith-primary line-clamp-2 mb-2 leading-relaxed">
                                 {task.title}
                               </h4>
-                              <p className="text-xs text-zenith-muted">{task.task_key}</p>
                             </div>
                             
                             {/* Task Actions Dropdown */}
                             <div className="relative">
                               <details className="group/dropdown">
                                 <summary 
-                                  className="list-none cursor-pointer p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  className="list-none cursor-pointer p-2 opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg hover:bg-zenith-accent"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <MoreVertical className="w-4 h-4 text-zenith-muted hover:text-zenith-primary" />
                                 </summary>
-                                <div className="absolute right-0 top-6 w-40 bg-zenith-card border border-zenith-border rounded-md shadow-lg z-50">
+                                <div className="absolute right-0 top-8 w-44 bg-zenith-card border border-zenith-border rounded-xl shadow-xl z-50 overflow-hidden">
                                   <button 
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleTaskClick(task);
                                     }}
-                                    className="flex items-center w-full px-3 py-2 text-xs text-zenith-primary hover:bg-zenith-hover"
+                                    className="flex items-center w-full px-4 py-3 text-sm text-zenith-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                                   >
-                                    <FileText className="w-3 h-3 mr-2" />
+                                    <FileText className="w-4 h-4 mr-3 text-blue-500" />
                                     View Details
                                   </button>
                                   <button 
@@ -496,10 +500,10 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                                       e.stopPropagation();
                                       handleEditTask(task);
                                     }}
-                                    className="flex items-center w-full px-3 py-2 text-xs text-zenith-primary hover:bg-zenith-hover"
+                                    className="flex items-center w-full px-4 py-3 text-sm text-zenith-primary hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                                   >
-                                    <Edit className="w-3 h-3 mr-2" />
-                                    Edit
+                                    <Edit className="w-4 h-4 mr-3 text-green-500" />
+                                    Edit Task
                                   </button>
                                   {userPermissions?.canDeleteTasks && (
                                     <button 
@@ -507,10 +511,10 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                                         e.stopPropagation();
                                         handleDeleteClick(task);
                                       }}
-                                      className="flex items-center w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                      className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-zenith-border"
                                     >
-                                      <Trash2 className="w-3 h-3 mr-2" />
-                                      Delete
+                                      <Trash2 className="w-4 h-4 mr-3" />
+                                      Delete Task
                                     </button>
                                   )}
                                 </div>
@@ -519,24 +523,24 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                           </div>
                         </CardHeader>
                         
-                        <CardContent className="p-3 pt-0">
+                        <CardContent className="p-4 pt-0">
                           {/* Compact description - only show if short */}
-                          {task.description && task.description.length <= 60 && (
-                            <p className="text-xs text-zenith-secondary mb-3 line-clamp-2">
+                          {task.description && task.description.length <= 80 && (
+                            <p className="text-xs text-zenith-secondary mb-4 line-clamp-2 bg-zenith-accent/50 p-2 rounded-lg italic">
                               {task.description}
                             </p>
                           )}
                           
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             {/* Assignee */}
                             {task.assignee_name && (
-                              <div className="flex items-center space-x-2">
-                                <Avatar className="w-5 h-5">
-                                  <AvatarFallback className="text-xs bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                              <div className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg">
+                                <Avatar className="w-6 h-6 border-2 border-blue-200 dark:border-blue-700">
+                                  <AvatarFallback className="text-xs bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
                                     {task.assignee_name.substring(0, 2).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="text-xs text-zenith-secondary truncate">
+                                <span className="text-xs text-blue-700 dark:text-blue-300 font-medium truncate">
                                   {task.assignee_name}
                                 </span>
                               </div>
@@ -544,13 +548,17 @@ export default function KanbanBoard({ projectId, tasks = [], onTaskUpdate, userP
                             
                             {/* Due Date */}
                             {task.due_date && (
-                              <div className={`flex items-center space-x-1 ${isOverdue(task.due_date) ? 'text-red-600' : 'text-zenith-secondary'}`}>
+                              <div className={`flex items-center space-x-2 p-2 rounded-lg ${
+                                isOverdue(task.due_date) 
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' 
+                                  : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                              }`}>
                                 {isOverdue(task.due_date) ? (
-                                  <AlertTriangle className="w-3 h-3" />
+                                  <AlertTriangle className="w-4 h-4" />
                                 ) : (
-                                  <Calendar className="w-3 h-3" />
+                                  <Calendar className="w-4 h-4" />
                                 )}
-                                <span className="text-xs">
+                                <span className="text-xs font-medium">
                                   {formatDate(task.due_date)}
                                 </span>
                               </div>

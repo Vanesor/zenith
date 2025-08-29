@@ -1,0 +1,130 @@
+Database Update Results
+======================
+Date: Fri 29 Aug 2025 12:10:36 AM IST
+
+User Table Schema:
+                                                                                    Table "public.users"
+               Column                |            Type             | Collation | Nullable |                                             Default                                             
+-------------------------------------+-----------------------------+-----------+----------+-------------------------------------------------------------------------------------------------
+ id                                  | uuid                        |           | not null | uuid_generate_v4()
+ email                               | character varying           |           | not null | 
+ password_hash                       | character varying           |           | not null | 
+ name                                | character varying           |           | not null | 
+ username                            | character varying           |           |          | 
+ avatar                              | text                        |           |          | 
+ role                                | character varying           |           | not null | 'student'::character varying
+ club_id                             | character varying           |           |          | 
+ bio                                 | text                        |           |          | 
+ social_links                        | jsonb                       |           |          | '{}'::jsonb
+ preferences                         | jsonb                       |           |          | '{}'::jsonb
+ created_at                          | timestamp with time zone    |           |          | CURRENT_TIMESTAMP
+ updated_at                          | timestamp with time zone    |           |          | CURRENT_TIMESTAMP
+ profile_image_url                   | text                        |           |          | 
+ profile_images                      | jsonb                       |           |          | '[]'::jsonb
+ verification_photo_url              | text                        |           |          | 
+ phone_number                        | character varying           |           |          | 
+ date_of_birth                       | date                        |           |          | 
+ address                             | text                        |           |          | 
+ emergency_contact                   | jsonb                       |           |          | '{}'::jsonb
+ phone                               | character varying           |           |          | 
+ location                            | character varying           |           |          | 
+ website                             | character varying           |           |          | 
+ github                              | character varying           |           |          | 
+ linkedin                            | character varying           |           |          | 
+ twitter                             | character varying           |           |          | 
+ email_verified                      | boolean                     |           |          | false
+ email_verification_token            | character varying           |           |          | 
+ email_verification_token_expires_at | timestamp without time zone |           |          | 
+ password_reset_token                | character varying           |           |          | 
+ password_reset_token_expires_at     | timestamp without time zone |           |          | 
+ oauth_provider                      | character varying           |           |          | 
+ oauth_id                            | character varying           |           |          | 
+ oauth_data                          | jsonb                       |           |          | 
+ has_password                        | boolean                     |           |          | true
+ totp_secret                         | character varying           |           |          | 
+ totp_temp_secret                    | character varying           |           |          | 
+ totp_temp_secret_created_at         | timestamp without time zone |           |          | 
+ totp_enabled                        | boolean                     |           |          | false
+ totp_enabled_at                     | timestamp without time zone |           |          | 
+ totp_recovery_codes                 | jsonb                       |           |          | 
+ notification_preferences            | jsonb                       |           |          | '{"email": {"events": true, "results": true, "assignments": true, "discussions": true}}'::jsonb
+ email_otp_enabled                   | boolean                     |           |          | false
+ email_otp_verified                  | boolean                     |           |          | false
+ email_otp_secret                    | character varying           |           |          | 
+ email_otp_backup_codes              | jsonb                       |           |          | '[]'::jsonb
+ email_otp_last_used                 | timestamp with time zone    |           |          | 
+ email_otp_created_at                | timestamp with time zone    |           |          | 
+ email_otp                           | character(6)                |           |          | 
+ email_otp_expires_at                | timestamp with time zone    |           |          | 
+ last_activity                       | timestamp with time zone    |           |          | CURRENT_TIMESTAMP
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+    "idx_users_club_id" btree (club_id)
+    "idx_users_created_at" btree (created_at)
+    "idx_users_email" btree (email)
+    "idx_users_last_activity" btree (last_activity)
+    "idx_users_role" btree (role)
+    "users_email_key" UNIQUE CONSTRAINT, btree (email)
+Referenced by:
+    TABLE "carousel_slides" CONSTRAINT "carousel_slides_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+    TABLE "chat_attachments" CONSTRAINT "chat_attachments_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    TABLE "comment_likes" CONSTRAINT "comment_likes_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    TABLE "content_permissions" CONSTRAINT "content_permissions_granted_by_fkey" FOREIGN KEY (granted_by) REFERENCES users(id)
+    TABLE "content_permissions" CONSTRAINT "content_permissions_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+    TABLE "featured_events" CONSTRAINT "featured_events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+    TABLE "chat_messages" CONSTRAINT "fk_chat_messages_edited_by" FOREIGN KEY (edited_by) REFERENCES users(id)
+    TABLE "chat_rooms" CONSTRAINT "fk_chat_rooms_edited_by" FOREIGN KEY (edited_by) REFERENCES users(id)
+    TABLE "page_content" CONSTRAINT "page_content_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+    TABLE "task_activity" CONSTRAINT "task_activity_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+    TABLE "team_cards" CONSTRAINT "team_cards_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+Triggers:
+    update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+
+
+Finding innovation_head user before update:
+ id | name | email | role 
+----+------+-------+------
+(0 rows)
+
+
+Updating innovation_head email to naitamatharva14@gmail.com:
+ id | name | email | role 
+----+------+-------+------
+(0 rows)
+
+UPDATE 0
+
+Verifying update:
+ id | name | email | role 
+----+------+-------+------
+(0 rows)
+
+
+
+INNOVATION HEAD EMAIL UPDATE
+===========================
+
+Before Update:
+--------------
+                  id                  |      name      |           email           |      role       
+--------------------------------------+----------------+---------------------------+-----------------
+ 21a95efa-ccfa-4c4c-af7f-50cfa0a35053 | Atharva Naitam | atharva.naitam@zenith.edu | innovation_head
+(1 row)
+
+Update Operation:
+----------------
+UPDATE 1
+
+After Update:
+-------------
+                  id                  |      name      |           email           |      role       
+--------------------------------------+----------------+---------------------------+-----------------
+ 21a95efa-ccfa-4c4c-af7f-50cfa0a35053 | Atharva Naitam | naitamatharva14@gmail.com | innovation_head
+(1 row)
+
+Conclusion:
+-----------
+The email address for the innovation_head (Atharva Naitam) has been successfully updated from 
+atharva.naitam@zenith.edu to naitamatharva14@gmail.com.
+
+Update completed on: Fri 29 Aug 2025 12:21:31 AM IST

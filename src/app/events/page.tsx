@@ -31,7 +31,6 @@ import { Badge } from '@/components/ui/badge';
 
 import { UniversalLoader } from '@/components/UniversalLoader';
 import CreateEventModal from '@/components/events/CreateEventModal';
-import ZenChatbot from '@/components/ZenChatbot';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, isToday, parseISO, isAfter, isBefore } from 'date-fns';
 
 // Helper functions
@@ -794,23 +793,23 @@ export default function EventsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-lg z-50 flex items-center justify-center p-4"
           onClick={() => setShowDayDetails(false)}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border border-gray-200 dark:border-gray-700"
+            className="bg-zenith-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border border-zenith-border"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <div className="p-6 border-b border-zenith-border bg-zenith-accent">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-2xl font-bold text-zenith-primary">
                     {format(selectedDate, 'MMMM d, yyyy')}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-zenith-secondary">
                     {events.filter(event => {
                       try {
                         let eventDate: Date;
@@ -832,14 +831,14 @@ export default function EventsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowDayDetails(false)}
-                  className="rounded-full p-2 h-auto text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="rounded-full p-2 h-auto text-zenith-secondary hover:text-zenith-primary hover:bg-zenith-accent"
                 >
                   <X className="h-5 w-5" />
                 </Button>
               </div>
             </div>
             
-            <div className="p-6 max-h-[60vh] overflow-y-auto bg-white dark:bg-gray-900">
+            <div className="p-6 max-h-[60vh] overflow-y-auto bg-zenith-card">
               <div className="space-y-4">
                 {events
                   .filter(event => {
@@ -908,7 +907,6 @@ export default function EventsPage() {
       )}
       
       {/* ZenChatbot */}
-      <ZenChatbot />
     </div>
   );
 }

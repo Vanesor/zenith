@@ -66,28 +66,79 @@ export default function CreatePostPage() {
 
   // Fetch club info
   useEffect(() => {
+    // Create a session if needed
+    const createSession = async () => {
+      try {
+        // Try to get token from multiple sources
+        const zenithToken = localStorage.getItem('zenith-token');
+        const nextAuthToken = document.cookie.split('; ').find(row => row.startsWith('next-auth.session-token'))?.split('=')[1];
+        const token = zenithToken || nextAuthToken;
+        
+        const response = await fetch('/api/auth/create-session', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && {
+              Authorization: `Bearer ${token}`
+            })
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Session created or found:', data);
+          localStorage.setItem('session-created', 'true');
+          
+          // If a token was returned, store it
+          if (data.token) {
+            localStorage.setItem('zenith-token', data.token);
+          }
+          
+          // Now fetch the club data with the updated session
+          fetchClub();
+        } else {
+          console.error('Failed to create session:', response.status);
+          router.push('/login?redirectTo=' + encodeURIComponent(`/clubs/${clubId}/posts/create`));
+        }
+      } catch (error) {
+        console.error('Error creating session:', error);
+      }
+    };
+    
     const fetchClub = async () => {
       try {
-        const token = localStorage.getItem('zenith-token');
+        // Try to get token from multiple sources
+        const zenithToken = localStorage.getItem('zenith-token');
+        const nextAuthToken = document.cookie.split('; ').find(row => row.startsWith('next-auth.session-token'))?.split('=')[1];
+        const token = zenithToken || nextAuthToken;
+        
+        // Use credentials: 'include' to send cookies automatically
         const response = await fetch(`/api/clubs/${clubId}`, {
+          credentials: 'include',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+            ...(token && {
+              Authorization: `Bearer ${token}`
+            })
           },
         });
         
         if (response.ok) {
           const data = await response.json();
           setClub(data.club);
+        } else if (response.status === 401) {
+          console.error('Authentication failed');
+          router.push('/login?redirectTo=' + encodeURIComponent(`/clubs/${clubId}/posts/create`));
         }
       } catch (error) {
         console.error('Error fetching club:', error);
       }
     };
 
-    if (clubId) {
-      fetchClub();
-    }
-  }, [clubId]);
+    // First create/verify session, then fetch club data
+    createSession();
+  }, [clubId, router]);
 
   // Rich text formatting functions
   const insertText = (before: string, after = '', placeholder = '') => {
@@ -131,8 +182,23 @@ export default function CreatePostPage() {
     setUiState(prev => ({ ...prev, loading: true, error: '' }));
 
     try {
-      const token = localStorage.getItem('zenith-token');
+      // First, ensure we have a valid session
+      try {
+        const sessionResponse = await fetch('/api/auth/create-session', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        
+        if (!sessionResponse.ok) {
+          console.error('Failed to create session before post submission');
+        } else {
+          console.log('Session validated before post submission');
+        }
+      } catch (sessionError) {
+        console.error('Error creating session before submission:', sessionError);
+      }
       
+      // Now proceed with the post creation
       const slug = formData.title
         .toLowerCase()
         .replace(/[^\w\s-]/g, '')
@@ -150,14 +216,32 @@ export default function CreatePostPage() {
         category: formData.category
       };
 
+      console.log('Submitting post data:', { clubId, title: postData.title });
+
+      // Try to get token from localStorage
+      const zenithToken = localStorage.getItem('zenith-token');
+      
       const response = await fetch(`/api/clubs/${clubId}/posts`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          ...(zenithToken && { 'Authorization': `Bearer ${zenithToken}` }),
         },
         body: JSON.stringify(postData),
       });
+
+      if (response.status === 401) {
+        setUiState(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: 'Authentication failed. Please log in again.' 
+        }));
+        setTimeout(() => {
+          router.push('/login?redirectTo=' + encodeURIComponent(`/clubs/${clubId}/posts/create`));
+        }, 2000);
+        return;
+      }
 
       if (response.ok) {
         setUiState(prev => ({ ...prev, showSuccess: true }));
@@ -296,10 +380,10 @@ Please provide helpful, relevant content that enhances the blog post. If the use
               >
                 <Check className="w-8 h-8 text-white" />
               </motion.div>
-              <h3 className="text-xl font-bold text-center text-primary mb-2">
+              <h3 className="text-xl font-bold text-center text-zenith-primary mb-2">
                 Post Created Successfully!
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-center">
+              <p className="text-zenith-secondary text-center">
                 Redirecting to club page...
               </p>
             </motion.div>
@@ -419,7 +503,7 @@ Examples:
 • 'Help me explain complex technical concepts'
 • 'Generate ideas for engaging student activities'
 • 'Improve the title to be more catchy'"
-                    className="w-full px-4 py-3 text-sm border border-custom rounded-xl bg-card text-primary placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 text-sm border border-zenith-border rounded-xl bg-zenith-card text-zenith-primary placeholder-zenith-muted focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                     rows={4}
                   />
                   <div className="absolute bottom-3 right-3 text-xs text-muted">
@@ -544,9 +628,9 @@ Examples:
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
+              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl"
             >
-              <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <div className="flex items-center gap-2 text-red-600">
                 <X className="w-4 h-4" />
                 {uiState.error}
               </div>
@@ -705,7 +789,7 @@ Examples:
                       <span className="ml-3 text-sm font-medium text-muted">Preview Mode</span>
                     </div>
                     
-                    <div className="prose prose-lg prose-blue dark:prose-invert max-w-none">
+                    <div className="prose prose-lg prose-blue max-w-none">
                       <ReactMarkdown
                         components={{
                           code({ className, children, ...props }: any) {
@@ -721,7 +805,7 @@ Examples:
                                 {String(children).replace(/\n$/, '')}
                               </SyntaxHighlighter>
                             ) : (
-                              <code className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded text-sm font-mono" {...props}>
+                              <code className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-mono" {...props}>
                                 {children}
                               </code>
                             );

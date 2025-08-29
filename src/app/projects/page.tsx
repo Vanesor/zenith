@@ -103,6 +103,26 @@ export default function ProjectsPage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('User permissions received:', data.permissions);
+        
+        // Also check if the user is innovation_head (fallback)
+        const userResponse = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          console.log('User data:', userData);
+          
+          // If the user is innovation_head but permissions don't show it, override
+          if (userData.user?.role === 'innovation_head' && !data.permissions.canCreateProject) {
+            console.log('Overriding permissions for innovation_head');
+            data.permissions.canCreateProject = true;
+          }
+        }
+        
         setUserPermissions(data.permissions);
       }
     } catch (error) {
@@ -138,11 +158,11 @@ export default function ProjectsPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
       case 'high':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300';
       case 'medium':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300';
       case 'low':
         return 'bg-zenith-section text-zenith-muted border border-zenith-border';
       default:
@@ -188,10 +208,29 @@ export default function ProjectsPage() {
             
             <div className="flex gap-3">
               {/* Only show create button to users with permission */}
-              {userPermissions?.canCreateProjects && (
+              {userPermissions === null ? (
+                <Button
+                  disabled
+                  className="bg-gray-400 text-primary font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 opacity-70"
+                  size="lg"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Loading...
+                </Button>
+              ) : userPermissions?.canCreateProject ? (
                 <Button
                   onClick={() => setShowCreateModal(true)}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-primary font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  size="lg"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Project
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  title="You don't have permission to create projects"
+                  className="bg-gray-400 text-primary font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 opacity-70 cursor-not-allowed"
                   size="lg"
                 >
                   <Plus className="w-5 h-5 mr-2" />
@@ -288,12 +327,12 @@ export default function ProjectsPage() {
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zenith-secondary w-4 h-4" />
                     <Input
                       placeholder="Search projects..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 bg-zenith-input border-zenith-border text-zenith-primary"
                     />
                   </div>
                   

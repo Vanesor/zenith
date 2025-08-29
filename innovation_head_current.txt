@@ -1,0 +1,5 @@
+                  id                  |      name      |           email           |      role       
+--------------------------------------+----------------+---------------------------+-----------------
+ 21a95efa-ccfa-4c4c-af7f-50cfa0a35053 | Atharva Naitam | naitamatharva14@gmail.com | innovation_head
+(1 row)
+

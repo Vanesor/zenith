@@ -22,7 +22,6 @@ import { SectionLoader } from "@/components/UniversalLoader";
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight, oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import ZenChatbot from "@/components/ZenChatbot";
 
 interface PostData {
   id: string;
@@ -864,7 +863,6 @@ export default function PostPage() {
         )}
       </AnimatePresence>
       
-      <ZenChatbot />
     </div>
   );
 }

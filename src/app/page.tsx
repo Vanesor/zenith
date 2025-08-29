@@ -30,7 +30,6 @@ import {
   Github,
   User
 } from "lucide-react";
-import ZenChatbot from "@/components/ZenChatbot";
 import { ZenithLogo } from "@/components/ZenithLogo";
 import ClubLogo from "@/components/ClubLogo";
 import { UniversalLoader } from "@/components/UniversalLoader";
@@ -295,7 +294,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-zenith-main transition-colors duration-300">
       {/* ===== FLOATING COMPONENTS ===== */}
-      <ZenChatbot />
       
       {/* Theme Toggle Button - Fixed positioning for accessibility */}
       <div className="fixed top-6 right-6 z-50">
@@ -467,11 +465,7 @@ export default function HomePage() {
                 What is Zenith?
               </h2>
               <p className="text-lg text-zenith-secondary mb-6 leading-relaxed">
-                Zenith is more than just a college forum - it&apos;s a thriving
-                ecosystem where passionate students come together to learn,
-                grow, and excel. Our platform connects like-minded individuals
-                through specialized clubs, each designed to nurture specific
-                skills and interests.
+                Zenith Forum embodies excellence; it&apos;s a platform that fosters curiosity, nurtures talent, and inspires the pursuit of excellence. At Zenith, imagination finds its highest peak. Built for the students, by the students; it&apos;s where ideas spark, skills grow, and connections turn into opportunities. Here, you don&apos;t just attend college—you experience it. Join Zenith today, and be part of the journey.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="flex items-start space-x-3">

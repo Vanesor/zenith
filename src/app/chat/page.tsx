@@ -907,12 +907,12 @@ export default function ChatPage() {
           
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zenith-secondary" />
             <Input
               placeholder="Search chats..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-main border-custom focus:ring-2 focus:ring-blue-500 text-primary"
+              className="pl-10 bg-zenith-input border-zenith-border focus:ring-2 focus:ring-blue-500 text-zenith-primary"
             />
           </div>
         </div>
@@ -920,71 +920,91 @@ export default function ChatPage() {
         {/* Room List */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-4 text-center text-muted">Loading chats...</div>
+            <div className="p-4 text-center text-zenith-secondary">Loading chats...</div>
           ) : filteredRooms.length === 0 ? (
-            <div className="p-4 text-center text-muted">
+            <div className="p-4 text-center text-zenith-secondary">
               {searchTerm ? 'No chats found' : 'No chats available'}
             </div>
           ) : (
-            filteredRooms.map((room) => (
-              <motion.div
-                key={room.id}
-                onClick={() => setSelectedRoom(room)}
-                className={`p-4 border-b border-custom cursor-pointer hover:bg-hover transition-colors ${
-                  selectedRoom?.id === room.id ? 'bg-section border-r-2 border-accent' : ''
-                }`}
-                whileHover={{ x: 4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                      {room.profile_picture_url ? (
-                        <img
-                          src={room.profile_picture_url}
-                          alt={room.name}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-primary font-semibold text-lg">
-                          {room.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    {room.type === 'club' && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 dark:text-primary truncate">
-                        {room.name}
-                      </h3>
-                      {room.last_message && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatMessageTime(room.last_message.timestamp)}
-                        </span>
+            filteredRooms.map((room, index) => {
+              // Create diverse color combinations for chat rooms
+              const colorCombinations = [
+                'from-blue-500 to-purple-600',
+                'from-green-500 to-teal-600',
+                'from-orange-500 to-red-600',
+                'from-purple-500 to-pink-600',
+                'from-indigo-500 to-blue-600',
+                'from-emerald-500 to-cyan-600',
+                'from-yellow-500 to-orange-600',
+                'from-rose-500 to-pink-600',
+                'from-violet-500 to-purple-600',
+                'from-amber-500 to-yellow-600',
+                'from-teal-500 to-green-600',
+                'from-sky-500 to-blue-600'
+              ];
+              const colorIndex = room.id ? parseInt(room.id.slice(-1), 16) % colorCombinations.length : index % colorCombinations.length;
+              const gradientColors = colorCombinations[colorIndex];
+              
+              return (
+                <motion.div
+                  key={room.id}
+                  onClick={() => setSelectedRoom(room)}
+                  className={`p-4 border-b border-zenith-border cursor-pointer hover:bg-zenith-hover transition-colors ${
+                    selectedRoom?.id === room.id ? 'bg-zenith-section border-r-2 border-blue-500' : ''
+                  }`}
+                  whileHover={{ x: 4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className={`w-12 h-12 bg-gradient-to-br ${gradientColors} rounded-full flex items-center justify-center shadow-lg`}>
+                        {room.profile_picture_url ? (
+                          <img
+                            src={room.profile_picture_url}
+                            alt={room.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-white font-semibold text-lg">
+                            {room.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      {room.type === 'club' && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-zenith-card shadow-sm" />
                       )}
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                        {room.last_message
-                          ? `${room.last_message.sender_name}: ${room.last_message.content}`
-                          : room.description || 'No messages yet'
-                        }
-                      </p>
-                      {room.unread_count && room.unread_count > 0 && (
-                        <span className="bg-blue-500 text-primary text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                          {room.unread_count > 99 ? '99+' : room.unread_count}
-                        </span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-zenith-primary truncate">
+                          {room.name}
+                        </h3>
+                        {room.last_message && (
+                          <span className="text-xs text-zenith-secondary">
+                            {formatMessageTime(room.last_message.timestamp)}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-sm text-zenith-secondary truncate">
+                          {room.last_message
+                            ? `${room.last_message.sender_name}: ${room.last_message.content}`
+                            : room.description || 'No messages yet'
+                          }
+                        </p>
+                        {room.unread_count && room.unread_count > 0 && (
+                          <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center ml-2 shadow-sm">
+                            {room.unread_count > 99 ? '99+' : room.unread_count}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))
+                </motion.div>
+              );
+            })
           )}
         </div>
       </div>
@@ -994,7 +1014,7 @@ export default function ChatPage() {
         {selectedRoom ? (
           <>
             {/* Chat Header */}
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+            <div className="bg-white border-b border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -1038,12 +1058,12 @@ export default function ChatPage() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 p-3"
+                  className="bg-blue-50 border-b border-blue-200 p-3"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Reply className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm text-blue-600 dark:text-blue-400">
+                      <span className="text-sm text-blue-600">
                         Replying to {replyingTo.senderName}
                       </span>
                     </div>
@@ -1056,7 +1076,7 @@ export default function ChatPage() {
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
+                  <p className="text-sm text-gray-600 mt-1 truncate">
                     {replyingTo.content}
                   </p>
                 </motion.div>
@@ -1078,8 +1098,8 @@ export default function ChatPage() {
                       {/* Date Separator */}
                       {showDateSeparator && (
                         <div className="flex items-center justify-center my-4">
-                          <div className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">
-                            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                          <div className="bg-gray-200 px-3 py-1 rounded-full">
+                            <span className="text-xs font-medium text-primary">
                               {formatDateSeparator(message.timestamp)}
                             </span>
                           </div>
@@ -1113,7 +1133,7 @@ export default function ChatPage() {
                           
                           <div className={`${!showAvatar && !isOwn ? 'ml-10' : ''}`}>
                             {showName && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 px-3">
+                              <p className="text-xs text-primary mb-1 px-3">
                                 {message.senderName}
                               </p>
                             )}
@@ -1122,20 +1142,20 @@ export default function ChatPage() {
                               className={`relative px-4 py-2 rounded-2xl break-words ${
                                 isOwn
                                   ? 'bg-blue-600 text-primary'
-                                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-primary border border-gray-200 dark:border-gray-600'
+                                  : 'bg-white text-gray-900 text-primary border border-gray-200'
                               }`}
                             >
                               {message.replyTo && (
                                 <div
                                   className={`mb-2 pb-2 border-l-4 pl-3 cursor-pointer ${
-                                    isOwn ? 'border-blue-300' : 'border-gray-300 dark:border-gray-500'
+                                    isOwn ? 'border-blue-300' : 'border-gray-300'
                                   }`}
                                   onClick={() => scrollToMessage(message.replyTo!.id)}
                                 >
                                   <p className={`text-xs font-semibold ${isOwn ? 'text-blue-100' : 'text-blue-600 dark:text-blue-400'}`}>
                                     {message.replyTo.senderName}
                                   </p>
-                                  <p className={`text-xs ${isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'} truncate`}>
+                                  <p className={`text-xs ${isOwn ? 'text-blue-100' : 'text-gray-500'} truncate`}>
                                     {message.replyTo.content}
                                   </p>
                                 </div>

@@ -13,7 +13,6 @@ import {
   Eye,
   BookOpen,
 } from "lucide-react";
-import ZenChatbot from "@/components/ZenChatbot";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -701,7 +700,6 @@ export default function ManagementDashboard() {
         type="danger"
       />
 
-      <ZenChatbot />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { SessionProvider } from "next-auth/react";
 import GlobalAuthModal from "@/components/GlobalAuthModal";
 import GlobalAuthGuard from "@/components/GlobalAuthGuard";
 import { PaperpalLayoutWrapper } from "@/components/PaperpalLayoutWrapper";
+import ZenChatbot from "@/components/ZenChatbot";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export function Providers({ children }: ProvidersProps) {
               </GlobalAuthGuard>
               <GlobalAuthModal />
               <ToastProvider />
+              <ZenChatbot />
             </OldToastProvider>
           </AuthModalProvider>
         </AuthProvider>

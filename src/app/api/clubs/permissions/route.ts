@@ -11,6 +11,15 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = authResult.user.id;
+    const userEmail = authResult.user.email;
+    const userRole = authResult.user.role.toLowerCase();
+    
+    console.log('Auth user info:', {
+      userId,
+      userEmail,
+      userRole,
+      originalRole: authResult.user.role
+    });
 
     // Get user's permissions (reuse project permission service as it has similar logic)
     const permissions = await ProjectPermissionService.getUserPermissions(userId);
@@ -24,8 +33,19 @@ export async function GET(request: NextRequest) {
       canModerateComments: permissions.canEditProject,
       userRole: permissions.role,
       roleHierarchy: permissions.roleHierarchy,
-      isPrivilegedRole: permissions.roleHierarchy <= 9 // Committee members and above
+      isPrivilegedRole: permissions.roleHierarchy <= 9, // Committee members and above
+      
+      // Check specific roles for the Zenith committee
+      isZenithCommittee: ['president', 'vice_president', 'innovation_head', 
+                         'secretary', 'treasurer', 'outreach_coordinator', 
+                         'media_head', 'zenith_committee'].includes(userRole),
+      
+      // Check for club coordinator roles
+      isCoordinator: ['club_coordinator', 'coordinator'].includes(userRole),
+      isCoCoordinator: ['co_coordinator', 'co-coordinator'].includes(userRole)
     };
+
+    console.log(`API: Club permissions for user ${authResult.user.email} (${userRole}):`, clubPermissions);
 
     return NextResponse.json({
       permissions: clubPermissions

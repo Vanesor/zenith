@@ -108,12 +108,12 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
       icon: Calendar,
       description: "Upcoming activities"
     },
-    // { 
-    //   name: "Assignments", 
-    //   href: "/assignments", 
-    //   icon: BookOpen,
-    //   description: "Tasks & projects"
-    // },
+    { 
+      name: "Assignments", 
+      href: "/assignments", 
+      icon: BookOpen,
+      description: "Tasks & projects"
+    },
     // { 
     //   name: "Analytics", 
     //   href: "/analytics", 
@@ -125,7 +125,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
       name: "Chat", 
       href: "/chat", 
       icon: MessageSquare,
-      description: "Connect with peers"
+      description: "Connect with peers" 
     },
     { 
       name: "Playground", 

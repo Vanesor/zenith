@@ -18,7 +18,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { UniversalLoader } from '@/components/UniversalLoader';
-import ZenChatbot from '@/components/ZenChatbot';
 import SafeAvatar from '@/components/SafeAvatar';
 
 interface FoundingMember {
@@ -254,7 +253,6 @@ export default function FoundingTeamPage() {
       })}
 
       {/* ZenChatbot */}
-      <ZenChatbot />
     </div>
   );
 }

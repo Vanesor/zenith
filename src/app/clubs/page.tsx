@@ -9,7 +9,6 @@
 //   Filter
 // } from 'lucide-react';
 // import { useAuth } from '@/contexts/AuthContext';
-// import ZenChatbot from '@/components/ZenChatbot';
 // import { useRouter } from 'next/navigation';
 // import { getClubLogoUrl } from '@/lib/assetUtils';
 
@@ -252,7 +251,6 @@
 //           </motion.div>
 //         </div>
         
-//         <ZenChatbot />
 //       </div>
 //   );
 // }
@@ -268,7 +266,6 @@ import {
   Filter
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import ZenChatbot from '@/components/ZenChatbot';
 import { useRouter } from 'next/navigation';
 
 interface Club {
@@ -433,7 +430,7 @@ const getClubLogo = (clubName: string) => {
                   <div className="bg-card backdrop-blur-sm rounded-2xl p-6 border border-custom shadow-lg hover:shadow-xl transition-all duration-300 h-full">
                     {/* Club Header */}
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+                      <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden">
                         {/* Using hardcoded SVG logos from public/uploads/club-logos */}
                         {(() => {
                           const logoPath = getClubLogo(club.name);
@@ -441,7 +438,7 @@ const getClubLogo = (clubName: string) => {
                             <img 
                               src={logoPath}
                               alt={`${club.name} logo`}
-                              className="w-12 h-12 object-contain filter brightness-0 invert"
+                              className="w-12 h-12 object-contain"
                               onError={(e) => {
                                 // Fallback to first letter if logo not found
                                 const target = e.target as HTMLImageElement;
@@ -518,7 +515,6 @@ const getClubLogo = (clubName: string) => {
           </motion.div>
         </div>
         
-        <ZenChatbot />
       </div>
   );
 }

@@ -93,12 +93,14 @@ export class ProjectPermissionService {
                           this.PRIVILEGED_ROLES.includes(effectiveRole.toLowerCase()) ||
                           this.PRIVILEGED_ROLES.includes(userRole.toLowerCase());
       
-      console.log('Permission check:', { 
+      console.log('Permission check for user:', { 
         userId, 
         userRole, 
         effectiveRole, 
-        isPrivileged, 
-        privilegedRoles: this.PRIVILEGED_ROLES 
+        isPrivileged,
+        roleHierarchy: this.ROLE_HIERARCHY[effectiveRole as keyof typeof this.ROLE_HIERARCHY] || 10,
+        privilegedRoles: this.PRIVILEGED_ROLES,
+        matchesPrivileged: this.PRIVILEGED_ROLES.includes(userRole.toLowerCase())
       });
       
       // If checking project-specific permissions
@@ -120,16 +122,22 @@ export class ProjectPermissionService {
       
       const roleHierarchy = this.ROLE_HIERARCHY[effectiveRole as keyof typeof this.ROLE_HIERARCHY] || 10;
       
+      // Force permissions for innovation_head role regardless of other checks
+      const isInnovationHead = 
+        userRole === 'innovation_head' || 
+        effectiveRole === 'innovation_head' ||
+        userRole.toLowerCase() === 'innovation_head';
+      
       return {
-        canCreateProject: isPrivileged,
-        canEditProject: isPrivileged || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
-        canDeleteProject: isPrivileged && roleHierarchy <= 7, // Only top-level roles
-        canInviteMembers: isPrivileged || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
-        canManageAllProjects: isPrivileged && roleHierarchy <= 3, // President, VP, Secretary
-        canCreateTasks: isPrivileged || isProjectMember,
-        canEditTasks: isPrivileged || isProjectMember,
-        canDeleteTasks: isPrivileged || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
-        canAssignTasks: isPrivileged || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
+        canCreateProject: isPrivileged || isInnovationHead,
+        canEditProject: isPrivileged || isInnovationHead || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
+        canDeleteProject: (isPrivileged && roleHierarchy <= 7) || isInnovationHead, // Only top-level roles
+        canInviteMembers: isPrivileged || isInnovationHead || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
+        canManageAllProjects: (isPrivileged && roleHierarchy <= 3) || isInnovationHead, // President, VP, Secretary
+        canCreateTasks: isPrivileged || isInnovationHead || isProjectMember,
+        canEditTasks: isPrivileged || isInnovationHead || isProjectMember,
+        canDeleteTasks: isPrivileged || isInnovationHead || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
+        canAssignTasks: isPrivileged || isInnovationHead || (isProjectMember && ['admin', 'manager'].includes(projectRole)),
         role: effectiveRole,
         roleHierarchy
       };

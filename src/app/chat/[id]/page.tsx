@@ -101,7 +101,7 @@ export default function ChatRoomPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-zenith-section dark:bg-gray-900">
+    <div className="h-screen flex flex-col bg-zenith-section">
       <WhatsAppChatRoom
         roomId={room.id}
         roomName={room.name}
