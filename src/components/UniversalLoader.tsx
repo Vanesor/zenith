@@ -127,7 +127,7 @@ export function UniversalLoader({
         {variant === 'detailed' && (
           <div className="text-center mt-4">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Zenith - CS Student Portal
+              Zenith - CSE Student Portal
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               St. Vincent Pallotti College of Engineering and Technology

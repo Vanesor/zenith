@@ -159,7 +159,7 @@ export default function TermsPage() {
               <div className="bg-zenith-section dark:bg-gray-700 p-4 rounded-lg mt-4 transition-colors duration-200">
                 <p className="text-primary font-medium">
                   St. Vincent Pallotti College of Engineering & Technology<br />
-                  Department of Computer Engineering<br />
+                  Department of Computer Science & Engineering<br />
                   Nagpur, Maharashtra<br />
                   Email: zenith.forum@stvincentngp.edu.in
                 </p>

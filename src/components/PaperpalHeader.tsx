@@ -111,7 +111,7 @@ export function PaperpalHeader({
               />
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg font-bold text-white leading-tight hidden md:block">St. Vincent Pallotti College of Engineering and Technology</h1>
-                <p className="text-sm text-blue-100 hidden md:block">Nagpur • Department of Computer Engineering</p>
+                <p className="text-sm text-blue-100 hidden md:block">Nagpur • Department of Computer Science & Engineering</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
@@ -153,7 +153,7 @@ export function PaperpalHeader({
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-primary">Zenith</h1>
-                  <p className="text-sm text-muted">CS Department Forum</p>
+                  <p className="text-sm text-muted">Computer Science & Engineering Department Forum</p>
                 </div>
               </Link>
             )}

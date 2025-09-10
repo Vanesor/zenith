@@ -199,7 +199,7 @@ export function PaperpalLayoutWrapper({ children }: PaperpalLayoutWrapperProps) 
                 </div>  
                 <div>
                   <p className="text-sm font-medium text-primary">
-                    Zenith - CS Department Forum
+                    Zenith - Computer Science & Engineering Department Forum
                   </p>
                   <p className="text-xs text-muted">
                     St. Vincent Pallotti College Engineering and Technology, Nagpur

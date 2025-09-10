@@ -377,7 +377,7 @@ export default function ModernDashboard() {
               name: 'Computer Science Club',
               members: 45,
               description: 'Learn programming, algorithms, and latest tech trends',
-              image: 'CS',
+              image: 'CSE',
               color: 'from-blue-500 to-cyan-500'
             },
             {

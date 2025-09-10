@@ -210,7 +210,7 @@ export default function PrivacyPage() {
                 <p className="text-primary font-medium">
                   Privacy Officer<br />
                   St. Vincent Pallotti College of Engineering & Technology<br />
-                  Department of Computer Engineering<br />
+                  Department of Computer Science & Engineering<br />
                   Nagpur, Maharashtra<br />
                   Email: privacy@stvincentngp.edu.in<br />
                   Phone: +91-712-1234567

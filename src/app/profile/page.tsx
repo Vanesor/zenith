@@ -265,7 +265,7 @@ export default function ModernProfilePage() {
       type: 'achievement',
       title: 'Completed Web Development Workshop',
       time: '2 days ago',
-      club: 'CS Club',
+      club: 'CSE Club',
       icon: Award,
       color: 'text-yellow-600'
     },
@@ -300,7 +300,7 @@ export default function ModernProfilePage() {
       name: 'Computer Science Club',
       role: 'Member',
       joinDate: 'Aug 2024',
-      image: 'CS',
+      image: 'CSE',
       color: 'from-blue-500 to-cyan-500'
     },
     {

@@ -68,7 +68,7 @@ export function ModernHeader({ onMenuToggle, sidebarOpen }: ModernHeaderProps) {
               </div>
               <div className="hidden sm:block">
                 <h2 className="text-primary font-semibold text-lg">Zenith</h2>
-                <p className="text-muted text-xs">CS Department Forum</p>
+                <p className="text-muted text-xs">Computer Science & Engineering Department Forum</p>
               </div>
             </div>
           </div>
