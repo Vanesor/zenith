@@ -282,7 +282,7 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                       </div>
                       <div>
                         <h2 className="text-lg font-bold zenith-text-primary">Zenith</h2>
-                        <p className="text-xs zenith-text-muted">CS Department</p>
+                        <p className="text-xs zenith-text-muted">CSE Department</p>
                       </div>
                     </motion.div>
                   )}

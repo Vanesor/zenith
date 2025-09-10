@@ -122,7 +122,7 @@ export const Footer: React.FC = () => {
               ZENITH <span className="text-xs text-zenith-secondary dark:text-zenith-muted ml-1">Forum</span>
             </h4>
             <p className="text-sm text-zenith-secondary dark:text-zenith-muted mb-3">
-              Department of Computer Engineering's official student forum for academic collaboration, 
+              Department of Computer Science & Engineering's official student forum for academic collaboration, 
               knowledge sharing, and community building.
             </p>
             <ul className="space-y-2">
@@ -207,7 +207,7 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-zenith-secondary dark:text-zenith-muted flex items-center">
               <span className="mr-1">Zenith Forum</span>
               <Heart className="w-4 h-4 text-red-500 mx-1" />
-              <span className="ml-1">Department of Computer Engineering</span>
+              <span className="ml-1">Department of Computer Science & Engineering</span>
             </p>
           </div>
         </div>

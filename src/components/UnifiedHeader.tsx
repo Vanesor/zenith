@@ -144,7 +144,7 @@ export function UnifiedHeader({
                   St. Vincent Pallotti College of Engineering & Technology
                 </h1>
                 <p className="text-xs md:text-base text-primary font-semibold transition-colors duration-200">
-                  Department of Computer Engineering
+                  Department of Computer Science & Engineering
                 </p>
                 <p className="text-xs md:text-xs text-zenith-secondary mt-0.5 transition-colors duration-200">
                   Nagpur - An Autonomous Institution
