@@ -1,0 +1,7 @@
+                  id                  |          name           |                email                 | club_id 
+--------------------------------------+-------------------------+--------------------------------------+---------
+ 086ebbaa-f6dd-4ce4-a836-246833f9573c | Aditi Jain              | aditi.jain2025@example.com           | 
+ e4a347e9-92ea-4d76-8cb0-c59918f0f58c | Atharva Naitam          | atharvanaitam.22@stvincentngp.edu.in | 
+ 5aaf2cd5-eac6-4303-8c0c-d60e56576dc8 | Test User 1754509297076 | test.api.1754509297076@example.com   | ascend
+(3 rows)
+

@@ -355,12 +355,12 @@ const TeamShowcase: React.FC<TeamShowcaseProps> = ({
                     </div>
 
                     {/* Current Term Badge */}
-                    {member.is_current_term && (
+                    {/* {member.is_current_term && (
                       <div className="inline-flex items-center px-3 py-1 text-xs bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-full font-medium shadow-md">
                         <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
                         Active Term
                       </div>
-                    )}
+                    )} */}
 
                     {/* Hover Effect Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>

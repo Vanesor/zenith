@@ -1,0 +1,14 @@
+      role      | hierarchy 
+----------------+-----------
+ coordinator    |         1
+ co_coordinator |         2
+ secretary      |         3
+ active_member  |         5
+ core_member    |         5
+ event_incharge |         5
+ member         |         5
+ mentor         |         5
+ outreach       |         5
+ member         |          
+(10 rows)
+

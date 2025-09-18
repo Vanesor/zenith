@@ -10,10 +10,10 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Local database configuration (from your .env.local)
+# Local database configuration (updated for current setup)
 DB_NAME="zenith"
-DB_USER="zenithpostgres"
-DB_PASSWORD="AtharvaAyush"
+DB_USER="postgres"
+DB_PASSWORD="1234"
 DB_HOST="localhost"
 DB_PORT="5432"
 

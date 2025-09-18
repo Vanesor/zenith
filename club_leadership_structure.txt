@@ -1,0 +1,17 @@
+  club_id  |      role      | hierarchy | count 
+-----------+----------------+-----------+-------
+ achievers | coordinator    |         1 |     1
+ achievers | co_coordinator |         2 |     2
+ achievers | mentor         |         5 |     1
+ artovert  | coordinator    |         1 |     1
+ artovert  | co_coordinator |         2 |     1
+ artovert  | secretary      |         3 |     1
+ artovert  | event_incharge |         5 |     2
+ ascend    | coordinator    |         1 |     1
+ ascend    | co_coordinator |         2 |     2
+ ascend    | outreach       |         5 |     1
+ aster     | coordinator    |         1 |     1
+ aster     | co_coordinator |         2 |     2
+ aster     | outreach       |         5 |     1
+(13 rows)
+

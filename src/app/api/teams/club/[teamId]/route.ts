@@ -25,6 +25,7 @@ export async function GET(
       JOIN users u ON cm.user_id = u.id
       WHERE cm.club_id = $1 
         AND cm.hierarchy IS NOT NULL
+        AND cm.hierarchy <= 4
       ORDER BY cm.academic_year DESC, 
                cm.hierarchy ASC,
                u.name ASC

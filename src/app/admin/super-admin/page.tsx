@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import SafeAvatar from "@/components/SafeAvatar";
+import EnhancedUserEditModal from "@/components/admin/EnhancedUserEditModal";
 
 interface SystemStats {
   total_users: number;
@@ -1146,124 +1147,53 @@ export default function SuperAdminPage() {
         </div>
       </main>
 
-      {/* Edit User Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
-            <div 
-              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
-              aria-hidden="true"
-              onClick={closeEditModal}
-            ></div>
+      {/* Enhanced User Edit Modal */}
+      {editingUser && (
+        <EnhancedUserEditModal
+          user={editingUser}
+          isOpen={showEditModal && editingUser !== null}
+          onClose={closeEditModal}
+        onSave={async (userUpdates) => {
+          if (!editingUser) return;
 
-            {/* This element is to trick the browser into centering the modal contents. */}
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+          const token = localStorage.getItem('zenith-token');
+          const response = await fetch(`/api/admin/users/${editingUser.id}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userUpdates)
+          });
 
-            {/* Modal panel */}
-            <div className="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                      Edit User
-                    </h3>
-                    <div className="mt-4 space-y-4">
-                      {/* Name Field */}
-                      <div>
-                        <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          id="edit-name"
-                          value={editForm.name}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                          className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white ${
-                            formErrors.name ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                          placeholder="Enter full name (e.g., John Doe)"
-                        />
-                        {formErrors.name && (
-                          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.name}</p>
-                        )}
-                      </div>
+          const data = await response.json();
 
-                      {/* Email Field */}
-                      <div>
-                        <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          id="edit-email"
-                          value={editForm.email}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                          className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white ${
-                            formErrors.email ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                          placeholder="Enter email address"
-                        />
-                        {formErrors.email && (
-                          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.email}</p>
-                        )}
-                      </div>
+          if (data.success) {
+            // Update the user in the local state
+            setUsers(prevUsers => 
+              prevUsers.map(user => 
+                user.id === editingUser.id 
+                  ? { ...user, ...userUpdates }
+                  : user
+              )
+            );
 
-                      {/* Role Field */}
-                      <div>
-                        <label htmlFor="edit-role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Role *
-                        </label>
-                        <select
-                          id="edit-role"
-                          value={editForm.role}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, role: e.target.value }))}
-                          className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:text-white ${
-                            formErrors.role ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        >
-                          <option value="">Select a role</option>
-                          <option value="student">Student</option>
-                          <option value="coordinator">Coordinator</option>
-                          <option value="co_coordinator">Co-Coordinator</option>
-                          <option value="president">President</option>
-                          <option value="vice_president">Vice President</option>
-                          <option value="secretary">Secretary</option>
-                          <option value="treasurer">Treasurer</option>
-                          <option value="innovation_head">Innovation Head</option>
-                          <option value="media_coordinator">Media Coordinator</option>
-                          <option value="outreach_coordinator">Outreach Coordinator</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                        {formErrors.role && (
-                          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.role}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  onClick={saveUserChanges}
-                  disabled={editLoading}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {editLoading ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeEditModal}
-                  disabled={editLoading}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+            showToast({
+              type: 'success',
+              title: 'User Updated',
+              message: `${userUpdates.name || editingUser.name} has been updated successfully`
+            });
+          } else {
+            showToast({
+              type: 'error',
+              title: 'Update Failed',
+              message: data.error || 'Failed to update user'
+            });
+            throw new Error(data.error);
+          }
+        }}
+        onRefresh={fetchSystemData}
+      />
       )}
     </div>
   );
