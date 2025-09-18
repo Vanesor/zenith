@@ -18,7 +18,8 @@ import {
   X,
   ChevronRight,
   ChevronLeft,
-  Shield
+  Shield,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -42,9 +43,21 @@ export function ModernSidebar({ isOpen, onToggle }: ModernSidebarProps) {
   ];
 
   // Add admin access if user has proper role
-  const hasAdminAccess = user && ['admin', 'coordinator', 'co_coordinator'].includes(user.role);
+  const hasAdminAccess = user && ['admin', 'super_admin', 'coordinator', 'co_coordinator', 'president', 'vice_president', 'innovation_head', 'secretary', 'treasurer', 'outreach_coordinator', 'media_coordinator', 'zenith_committee'].includes(user.role);
   if (hasAdminAccess) {
     navigationItems.push({ name: "Admin", href: "/admin", icon: Shield });
+  }
+
+  // Add comprehensive admin dashboard for admin and super_admin only
+  const isSuperAdmin = user && ['admin', 'super_admin'].includes(user.role);
+  if (isSuperAdmin) {
+    navigationItems.push({ name: "Comprehensive Admin", href: "/admin/comprehensive", icon: Settings });
+  }
+
+  // Add content management for admin and committee members
+  const hasContentAccess = user && ['admin', 'super_admin', 'coordinator', 'co_coordinator', 'president', 'vice_president', 'innovation_head', 'secretary', 'treasurer', 'outreach_coordinator', 'media_coordinator', 'zenith_committee'].includes(user.role);
+  if (hasContentAccess) {
+    navigationItems.push({ name: "Content Management", href: "/admin/content-management", icon: FileText });
   }
 
   const isActive = (href: string) => {

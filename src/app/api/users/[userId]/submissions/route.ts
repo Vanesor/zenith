@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, executeRawSQL, queryRawSQL } from '@/lib/database';
+import db from "@/lib/database";
 import { verifyAuth } from "@/lib/auth-unified";
+import { RoleHierarchy } from "@/lib/roleHierarchy";
 
 export async function GET(
   request: NextRequest,
@@ -24,13 +25,29 @@ export async function GET(
       );
     }
     
-    // Check if the requester is the user or an admin
+    // Check if the requester is the user or has elevated access
     const isOwnProfile = authResult.user.id === userId;
-    const isAdmin = authResult.user.role === "admin";
+    const hasElevatedPermissions = await RoleHierarchy.canViewUserSubmissions(authResult.user.id, userId);
     
-    if (!isOwnProfile && !isAdmin) {
+    // Log for debugging
+    console.log('Submissions access check:', {
+      requestingUserId: authResult.user.id,
+      targetUserId: userId,
+      requestingUserRole: authResult.user.role,
+      isOwnProfile,
+      hasElevatedPermissions
+    });
+    
+    if (!isOwnProfile && !hasElevatedPermissions) {
       return NextResponse.json(
-        { error: "You don't have permission to view this user's submissions" },
+        { 
+          error: "You don't have permission to view this user's submissions",
+          debug: {
+            isOwnProfile,
+            hasElevatedPermissions,
+            requestingUserRole: authResult.user.role
+          }
+        },
         { status: 403 }
       );
     }
@@ -43,10 +60,10 @@ export async function GET(
         s.status, 
         s.submitted_at, 
         s.total_score,
-        s.percentage_score,
+        s.grade,
         s.feedback,
         a.title as assignment_title,
-        a.total_points as assignment_total_points,
+        a.max_points as assignment_total_points,
         a.due_date
       FROM assignment_submissions s
       JOIN assignments a ON s.assignment_id = a.id

@@ -180,6 +180,9 @@ class TokenManager {
     try {
       const accessToken = await this.getValidAccessToken();
       
+      console.log('Making authenticated request to:', url);
+      console.log('Using token:', accessToken ? 'YES (length: ' + accessToken.length + ')' : 'NO');
+      
       const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
@@ -191,6 +194,8 @@ class TokenManager {
         ...options,
         headers,
       });
+      
+      console.log('API response status:', response.status);
       
       // Handle 401 Unauthorized errors specifically
       if (response.status === 401) {
@@ -207,6 +212,7 @@ class TokenManager {
             ...options.headers,
           };
           
+          console.log('Retrying request with refreshed token...');
           return fetch(url, {
             ...options,
             headers: newHeaders,
@@ -227,12 +233,17 @@ class TokenManager {
     } catch (error) {
       // If token refresh fails, redirect to login
       console.error('Authentication failed:', error);
-      this.clearTokens();
       
-      // Only redirect to login if we're in the browser and this isn't a login-related request
-      if (typeof window !== 'undefined' && !url.includes('/api/auth/') && !window.location.pathname.includes('/login')) {
-        window.location.href = '/login?expired=true';
+      // Only clear tokens if this is a real authentication error
+      if (error instanceof Error && error.message.includes('token')) {
+        this.clearTokens();
+        
+        // Only redirect to login if we're in the browser and this isn't a login-related request
+        if (typeof window !== 'undefined' && !url.includes('/api/auth/') && !window.location.pathname.includes('/login')) {
+          window.location.href = '/login?expired=true';
+        }
       }
+      
       throw error;
     }
   }

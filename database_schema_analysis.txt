@@ -1,0 +1,61 @@
+# Database Schema Analysis for Club Management
+
+## Key Tables and Relationships:
+
+### 1. USERS table
+- Primary key: `id` (UUID)
+- Email: `email` (unique identifier)
+- Role: `role` (varchar) - stores user roles like admin, president, etc.
+- Academic info: `year`, `branch`, `academic_year`
+- Status: `is_verified`, `is_active`, `last_activity`
+
+### 2. CLUBS table
+- Primary key: `id` (varchar) - club identifier
+- Basic info: `name`, `description`, `type`, `color`, `icon`
+- Media: `logo_url`, `banner_image_url`
+- Stats: `member_count` (integer, default 0)
+- Timestamps: `created_at`, `updated_at`
+
+### 3. CLUB_MEMBERS table
+- Primary key: `id` (UUID)
+- Relationships: `club_id` → clubs.id, `user_id` → users.id
+- Role info: `role` (varchar), `hierarchy` (integer, default 5)
+- Status: `is_active` (boolean, default true)
+- Timestamps: `joined_at`, `left_at`
+
+### 4. COMMITTEES table
+- Primary key: `id` (UUID)
+- Basic info: `name`, `description`
+- Timestamps: `created_at`, `updated_at`
+
+### 5. COMMITTEE_MEMBERS table
+- Primary key: `id` (UUID)
+- Relationships: `committee_id` → committees.id, `user_id` → users.id
+- Academic info: `academic_year`
+- Role management: `role_id` → committee_roles.id
+- Status: `is_current_term` (boolean, default true)
+- Timestamps: `joined_at`, `created_at`, `updated_at`
+
+### 6. COMMITTEE_ROLES table
+- Primary key: `id` (UUID)
+- Relationships: `committee_id` → committees.id
+- Role info: `role_name`, `description`, `hierarchy` (integer)
+- Permissions: `is_privileged` (boolean, default false)
+- Timestamps: `created_at`, `updated_at`
+
+### 7. ALL_TEAM_MEMBERS view
+- Unified view combining committee and club members
+- Fields: team_type, team_id, team_name, user_id, user_email, role_name, hierarchy, is_active
+
+## Permission Structure:
+- Users have base roles stored in users.role
+- Club members have specific roles in club_members.role
+- Committee members have roles defined by committee_roles table
+- Hierarchy system: lower numbers = higher authority
+- Privileged roles marked with is_privileged flag
+
+## Access Levels Identified:
+1. **Club Management**: Club coordinators and committee members for specific clubs
+2. **Zenith Committee**: president, vice_president, innovation_head, secretary, etc.
+3. **System Admin**: admin role with full access
+4. **Super Admin**: Enhanced admin permissions (needs implementation)

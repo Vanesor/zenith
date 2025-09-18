@@ -4,7 +4,7 @@ import { RateLimiter } from "@/lib/RateLimiter";
 import { CacheManager, CacheKeys } from "@/lib/CacheManager";
 import EmailService from "@/lib/EmailService";
 import { TrustedDeviceService } from "@/lib/TrustedDeviceService";
-import db from "@/lib/database";
+import { db } from "@/lib/database";
 
 const authLimiter = RateLimiter.createAuthLimiter();
 

@@ -1,0 +1,31 @@
+                  id                  |                email                |          name           | user_table_role  |  committee_status  |  club_status  
+--------------------------------------+-------------------------------------+-------------------------+------------------+--------------------+---------------
+ 550e8400-e29b-41d4-a716-446655440000 | admin@zenith.com                    | Admin User              | admin            | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440001 | superadmin@zenith.com               | Super Admin             | admin            | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440031 | achievers.co-coordinator@zenith.com | Aayushi Asole           | co_coordinator   | No Committee Role  | Has Club Role
+ 550e8400-e29b-41d4-a716-446655440041 | artovert.co-coordinator@zenith.com  | ARTOVERT Co-Coordinator | co_coordinator   | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440011 | ascend.co-coordinator@zenith.com    | Ayush Kshirsagar        | co_coordinator   | No Committee Role  | Has Club Role
+ 550e8400-e29b-41d4-a716-446655440021 | aster.co-coordinator@zenith.com     | Gargi Udapure           | co_coordinator   | No Committee Role  | Has Club Role
+ 550e8400-e29b-41d4-a716-446655440040 | artovert.coordinator@zenith.com     | ARTOVERT Coordinator    | coordinator      | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440010 | ascend.coordinator@zenith.com       | Atharva Bhede           | coordinator      | No Committee Role  | Has Club Role
+ 550e8400-e29b-41d4-a716-446655440030 | achievers.coordinator@zenith.com    | Paritosh Magare         | coordinator      | No Committee Role  | Has Club Role
+ 550e8400-e29b-41d4-a716-446655440020 | aster.coordinator@zenith.com        | Radhika Salodkar        | coordinator      | No Committee Role  | Has Club Role
+ 21a95efa-ccfa-4c4c-af7f-50cfa0a35053 | naitamatharva14@gmail.com           | Atharva Naitam          | innovation_head  | Has Committee Role | No Club Role
+ 21a95efa-ccfa-4c4c-af7f-50cfa0a35053 | naitamatharva14@gmail.com           | Atharva Naitam          | innovation_head  | Has Committee Role | No Club Role
+ 550e8400-e29b-41d4-a716-446655440033 | achievers.media@zenith.com          | ACHIEVERS Media Head    | media            | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440013 | ascend.media@zenith.com             | Aditya Yelne            | media            | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440043 | artovert.media@zenith.com           | ARTOVERT Media Head     | media            | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440023 | aster.media@zenith.com              | ASTER Media Head        | media            | No Committee Role  | No Club Role
+ 9755eab9-39cb-443b-9cca-853d727afe40 | kaiwalya.pund@zenith.edu            | Kaiwalya Pund           | media            | Has Committee Role | No Club Role
+ 8694ff1f-1d1e-4a7b-8ecb-eebda2c937d3 | yash.siddhabhatti@zenith.edu        | Yash Siddhabhatti       | president        | Has Committee Role | No Club Role
+ 8694ff1f-1d1e-4a7b-8ecb-eebda2c937d3 | yash.siddhabhatti@zenith.edu        | Yash Siddhabhatti       | president        | Has Committee Role | No Club Role
+ 550e8400-e29b-41d4-a716-446655440042 | artovert.secretary@zenith.com       | ARTOVERT Secretary      | secretary        | No Committee Role  | No Club Role
+ 550e8400-e29b-41d4-a716-446655440032 | achievers.secretary@zenith.com      | Mayur Aglawe            | secretary        | No Committee Role  | Has Club Role
+ 550e8400-e29b-41d4-a716-446655440012 | ascend.secretary@zenith.com         | Mohit Telang            | secretary        | No Committee Role  | Has Club Role
+ 550e8400-e29b-41d4-a716-446655440022 | aster.secretary@zenith.com          | Sahil Shrivastava       | secretary        | No Committee Role  | Has Club Role
+ 7c36ecbe-44d3-40df-8b8b-886e5385e839 | yogeshvar.chaudhari@zenith.edu      | Yogeshvar Chaudhari     | treasurer        | Has Committee Role | No Club Role
+ 241f4f32-458e-410e-b2f2-6dcfda992455 | sarthak.thote@zenith.edu            | Sarthak Thote           | vice_president   | Has Committee Role | No Club Role
+ 241f4f32-458e-410e-b2f2-6dcfda992455 | sarthak.thote@zenith.edu            | Sarthak Thote           | vice_president   | Has Committee Role | No Club Role
+ 53cbed56-2bc7-4faf-bd6e-5f953de4dfa5 | manasvi.giradkar@zenith.edu         | Manasvi Giradkar        | zenith_secretary | Has Committee Role | No Club Role
+(27 rows)
+

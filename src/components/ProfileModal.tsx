@@ -16,7 +16,10 @@ import {
   AlertCircle,
   ExternalLink,
   Download,
-  FileBarChart
+  FileBarChart,
+  UserCog,
+  UserMinus,
+  Star
 } from 'lucide-react';
 import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,7 +47,7 @@ interface UserProfile {
   website_url: string | null;
   club_name: string;
   club_id: string;
-  stats: {
+  stats?: {
     totalSubmissions: number;
     gradedSubmissions: number;
     averageGrade: number | null;
@@ -81,7 +84,16 @@ function formatRole(role: string): string {
 }
 
 function formatDate(dateString: string): string {
+  if (!dateString) return 'N/A';
+  
   const date = new Date(dateString);
+  
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    console.warn('Invalid date string:', dateString);
+    return 'Invalid Date';
+  }
+  
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
@@ -90,9 +102,17 @@ function formatDate(dateString: string): string {
 }
 
 function timeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
+  if (!dateString) return 'N/A';
   
+  const date = new Date(dateString);
+  
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    console.warn('Invalid date string in timeAgo:', dateString);
+    return 'Invalid Date';
+  }
+  
+  const now = new Date();
   const secondsPast = (now.getTime() - date.getTime()) / 1000;
   
   if (secondsPast < 60) {
@@ -126,6 +146,12 @@ export default function ProfileModal({ userId, open, onClose }: ProfileModalProp
   const [submissionsError, setSubmissionsError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
+  const [canManageUser, setCanManageUser] = useState(false);
+  const [userClubId, setUserClubId] = useState<string | null>(null);
+  const [showManagementModal, setShowManagementModal] = useState(false);
+  const [managementAction, setManagementAction] = useState<'changeRole' | 'changeTag' | 'remove' | null>(null);
+  const [newRole, setNewRole] = useState<string>('member');
+  const [newTag, setNewTag] = useState<string>('student');
   const { showToast } = useToast();
   const { user, token, isAuthenticated, updateUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,7 +206,13 @@ export default function ProfileModal({ userId, open, onClose }: ProfileModalProp
       }
       
       const data = await response.json();
-      setProfile(data);
+      console.log('Profile API response:', data);
+      
+      const profileData = data.profile || data;
+      setProfile(profileData);
+      
+      // Check if current user can manage this profile
+      await checkManagementPermissions(id, profileData);
     } catch (err: any) {
       setError(err.message || 'An error occurred while fetching the profile');
       console.error('Error fetching user profile:', err);
@@ -202,17 +234,34 @@ export default function ProfileModal({ userId, open, onClose }: ProfileModalProp
         throw new Error("You must be logged in to view user submissions");
       }
       
+      console.log('Fetching submissions for user:', id);
+      console.log('Current user context:', { 
+        isAuthenticated, 
+        currentUserId: user?.id,
+        currentUserRole: user?.role,
+        targetUserId: id
+      });
+      
       const tokenManager = TokenManager.getInstance();
       const response = await tokenManager.authenticatedFetch(
         `/api/users/${id}/submissions?offset=${offset}&limit=${limit}`
       );
+      
+      console.log('Submissions API response status:', response.status);
       
       if (!response.ok) {
         // Handle specific HTTP status codes
         if (response.status === 401) {
           throw new Error("Authentication required. Please log in again.");
         } else if (response.status === 403) {
-          throw new Error("You don't have permission to view these submissions.");
+          // Try to get more detailed error information
+          try {
+            const errorData = await response.json();
+            console.error('403 Permission denied details:', errorData);
+            throw new Error(`You don't have permission to view these submissions. ${errorData.debug ? JSON.stringify(errorData.debug) : ''}`);
+          } catch (jsonError) {
+            throw new Error("You don't have permission to view these submissions.");
+          }
         } else if (response.status === 404) {
           throw new Error("User submissions not found.");
         } else if (response.status === 500) {
@@ -230,6 +279,7 @@ export default function ProfileModal({ userId, open, onClose }: ProfileModalProp
       }
       
       const data = await response.json();
+      console.log('Submissions API response data:', data);
       setSubmissions(data.submissions);
       setPagination(data.pagination);
     } catch (err: any) {
@@ -250,6 +300,170 @@ export default function ProfileModal({ userId, open, onClose }: ProfileModalProp
     setPagination(prev => ({ ...prev, limit: newLimit, offset: 0 }));
     if (userId) {
       fetchUserSubmissions(userId, 0, newLimit);
+    }
+  };
+
+  // Check if current user can manage the profile user
+  const checkManagementPermissions = async (targetUserId: string, profileData: any) => {
+    try {
+      if (!user || !isAuthenticated) {
+        setCanManageUser(false);
+        return;
+      }
+
+      // Reset management state
+      setCanManageUser(false);
+      setUserClubId(null);
+
+      // Don't allow self-management
+      if (user.id === targetUserId) {
+        return;
+      }
+
+      // Check permissions using the backend API
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch('/api/user/roles');
+      
+      if (!response.ok) {
+        console.error('Failed to get user roles');
+        return;
+      }
+
+      const userRoles = await response.json();
+      
+      // Super admin and admin can manage anyone
+      if (userRoles.baseRole === 'super_admin' || userRoles.baseRole === 'admin') {
+        setCanManageUser(true);
+        setUserClubId(profileData.club_id);
+        return;
+      }
+
+      // Zenith committee members with privileged roles can manage anyone
+      const hasZenithAccess = userRoles.committeeRoles?.some(
+        (role: any) => role.isCurrentTerm && role.isPrivileged
+      );
+
+      if (hasZenithAccess) {
+        setCanManageUser(true);
+        setUserClubId(profileData.club_id);
+        return;
+      }
+
+      // Club coordinators can manage members of their club
+      const currentUserClubRoles = userRoles.clubRoles?.filter(
+        (role: any) => role.isCurrentTerm && 
+                     (role.role === 'coordinator' || role.role === 'co_coordinator')
+      );
+
+      if (currentUserClubRoles && currentUserClubRoles.length > 0) {
+        // Check if target user is in any of the clubs the current user manages
+        for (const clubRole of currentUserClubRoles) {
+          if (profileData.club_id === clubRole.clubId) {
+            setCanManageUser(true);
+            setUserClubId(clubRole.clubId);
+            return;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking management permissions:', error);
+      setCanManageUser(false);
+    }
+  };
+
+  // Handle member role or tag change
+  const handleRoleChange = async () => {
+    if (!userClubId || !userId) return;
+
+    // If neither newRole nor newTag is set, exit early
+    if (managementAction === 'changeRole' && !newRole) return;
+    if (managementAction === 'changeTag' && !newTag) return;
+
+    try {
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch(
+        `/api/clubs/${userClubId}/members`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: userId,
+            ...(managementAction === 'changeRole' ? { newRole } : {}),
+            ...(managementAction === 'changeTag' ? { newTag } : {})
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update member');
+      }
+
+      const result = await response.json();
+      
+      const isTagUpdate = managementAction === 'changeTag';
+      
+      showToast({
+        type: "success",
+        title: isTagUpdate ? "Tag Updated" : "Role Updated",
+        message: result.message || (isTagUpdate ? 'Member tag updated successfully' : 'Member role updated successfully')
+      });
+
+      // Refresh profile to show updated role
+      if (userId) {
+        fetchUserProfile(userId);
+      }
+
+      setShowManagementModal(false);
+      setManagementAction(null);
+    } catch (error: any) {
+      console.error('Error updating member role:', error);
+      showToast({
+        type: "error",
+        title: "Update Failed",
+        message: error.message || 'Failed to update member role'
+      });
+    }
+  };
+
+  // Handle member removal
+  const handleRemoveMember = async () => {
+    if (!userClubId || !userId) return;
+
+    try {
+      const tokenManager = TokenManager.getInstance();
+      const response = await tokenManager.authenticatedFetch(
+        `/api/clubs/${userClubId}/members?userId=${userId}`,
+        {
+          method: 'DELETE'
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to remove member');
+      }
+
+      const result = await response.json();
+      
+      showToast({
+        type: "success",
+        title: "Member Removed",
+        message: result.message || 'Member removed successfully'
+      });
+
+      setShowManagementModal(false);
+      setManagementAction(null);
+      onClose(); // Close the profile modal since user is no longer a member
+    } catch (error: any) {
+      console.error('Error removing member:', error);
+      showToast({
+        type: "error",
+        title: "Removal Failed",
+        message: error.message || 'Failed to remove member'
+      });
     }
   };
   
@@ -377,9 +591,9 @@ ${profile.twitter_url ? `- **Twitter**: ${profile.twitter_url}` : ''}
 ${profile.website_url ? `- **Website**: ${profile.website_url}` : ''}
 
 ## Assignment Statistics
-- **Total Submissions**: ${profile.stats.totalSubmissions}
-- **Graded Submissions**: ${profile.stats.gradedSubmissions}
-- **Average Grade**: ${profile.stats.averageGrade !== null ? `${profile.stats.averageGrade}%` : 'N/A'}
+- **Total Submissions**: ${profile?.stats?.totalSubmissions || 0}
+- **Graded Submissions**: ${profile?.stats?.gradedSubmissions || 0}
+- **Average Grade**: ${profile?.stats?.averageGrade !== null && profile?.stats?.averageGrade !== undefined ? `${profile.stats.averageGrade}%` : 'N/A'}
 
 ## Recent Submissions
 `;
@@ -402,17 +616,17 @@ ${submission.feedback ? `- **Feedback**: ${submission.feedback}` : ''}
       
       reportContent += `
 ## Performance Summary
-${profile.stats.totalSubmissions > 0 
-  ? `The user has completed ${profile.stats.totalSubmissions} assignments with an average grade of ${profile.stats.averageGrade !== null ? `${profile.stats.averageGrade}%` : 'N/A'}.`
+${(profile?.stats?.totalSubmissions || 0) > 0 
+  ? `The user has completed ${profile?.stats?.totalSubmissions || 0} assignments with an average grade of ${profile?.stats?.averageGrade !== null && profile?.stats?.averageGrade !== undefined ? `${profile.stats.averageGrade}%` : 'N/A'}.`
   : 'The user has not submitted any assignments yet.'}
 
 ## Activity Overview
-- **Submission Rate**: ${profile.stats.totalSubmissions > 0 
-  ? `${Math.round((profile.stats.gradedSubmissions / profile.stats.totalSubmissions) * 100)}% of submissions have been graded.` 
+- **Submission Rate**: ${(profile?.stats?.totalSubmissions || 0) > 0 
+  ? `${Math.round(((profile?.stats?.gradedSubmissions || 0) / (profile?.stats?.totalSubmissions || 1)) * 100)}% of submissions have been graded.` 
   : 'No submissions yet.'}
-${profile.stats.averageGrade !== null && profile.stats.averageGrade >= 70 
+${profile?.stats?.averageGrade !== null && profile?.stats?.averageGrade !== undefined && profile.stats.averageGrade >= 70 
   ? '- **Performance Note**: User is performing well above the expected threshold.' 
-  : profile.stats.averageGrade !== null && profile.stats.averageGrade < 70 
+  : profile?.stats?.averageGrade !== null && profile?.stats?.averageGrade !== undefined && profile.stats.averageGrade < 70 
     ? '- **Performance Note**: User may need additional support or resources.' 
     : ''}
 
@@ -513,7 +727,7 @@ Report generated by Zenith Platform.
                       : 'text-zenith-secondary hover:text-primary'
                   }`}
                 >
-                  Submissions ({profile.stats.totalSubmissions})
+                  Submissions ({profile?.stats?.totalSubmissions || 0})
                 </button>
                 <button
                   onClick={() => setActiveTab('report')}
@@ -673,7 +887,7 @@ Report generated by Zenith Platform.
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div className="bg-card p-3 rounded-lg">
                           <div className="text-3xl font-bold text-primary mb-1">
-                            {profile.stats.totalSubmissions}
+                            {profile?.stats?.totalSubmissions || 0}
                           </div>
                           <div className="text-sm text-zenith-muted dark:text-zenith-muted">
                             Total Submissions
@@ -681,7 +895,7 @@ Report generated by Zenith Platform.
                         </div>
                         <div className="bg-card p-3 rounded-lg">
                           <div className="text-3xl font-bold text-green-600 mb-1">
-                            {profile.stats.gradedSubmissions}
+                            {profile?.stats?.gradedSubmissions || 0}
                           </div>
                           <div className="text-sm text-zenith-muted dark:text-zenith-muted">
                             Graded
@@ -689,7 +903,7 @@ Report generated by Zenith Platform.
                         </div>
                         <div className="bg-card p-3 rounded-lg">
                           <div className="text-3xl font-bold text-purple-600 mb-1">
-                            {profile.stats.averageGrade !== null 
+                            {profile?.stats?.averageGrade !== null && profile?.stats?.averageGrade !== undefined
                               ? `${profile.stats.averageGrade}%` 
                               : 'N/A'}
                           </div>
@@ -699,6 +913,56 @@ Report generated by Zenith Platform.
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Club Management Actions */}
+                    {canManageUser && (
+                      <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
+                        <h4 className="text-lg font-medium mb-3 text-orange-800 dark:text-orange-200">
+                          Club Management
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => {
+                              setManagementAction('changeRole');
+                              setShowManagementModal(true);
+                            }}
+                            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center text-sm"
+                          >
+                            <UserCog className="w-4 h-4 mr-2" />
+                            Change Role
+                          </button>
+                          <button
+                            onClick={() => {
+                              setManagementAction('changeTag');
+                              setShowManagementModal(true);
+                              // Set initial tag based on current profile
+                              if (profile?.role?.startsWith('student')) {
+                                setNewTag(profile.role);
+                              } else {
+                                setNewTag('student');
+                              }
+                            }}
+                            className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center text-sm"
+                          >
+                            <Star className="w-4 h-4 mr-2" />
+                            Change Tag
+                          </button>
+                          <button
+                            onClick={() => {
+                              setManagementAction('remove');
+                              setShowManagementModal(true);
+                            }}
+                            className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center text-sm"
+                          >
+                            <UserMinus className="w-4 h-4 mr-2" />
+                            Remove from Club
+                          </button>
+                        </div>
+                        <p className="text-xs text-orange-600 dark:text-orange-300 mt-2">
+                          You have permission to manage this club member as a {user?.role}.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -707,11 +971,18 @@ Report generated by Zenith Platform.
               {activeTab === 'submissions' && (
                 <div>
                   {submissionsError ? (
-                    <div className="bg-red-100 text-red-700 p-4 rounded-md mb-4 flex items-center">
-                      <AlertCircle className="mr-2 w-5 h-5" />
-                      {submissionsError}
+                    <div className="text-center py-12">
+                      <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
+                      <h3 className="text-lg font-medium text-red-700 mb-2">Unable to load submissions</h3>
+                      <p className="text-red-600 mb-4">{submissionsError}</p>
+                      <button
+                        onClick={() => userId && fetchUserSubmissions(userId)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        Try Again
+                      </button>
                     </div>
-                  ) : profile.stats.totalSubmissions > 0 ? (
+                  ) : submissions.length > 0 ? (
                     <>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -870,10 +1141,18 @@ Report generated by Zenith Platform.
                   ) : (
                     <div className="text-center py-12">
                       <FileText className="w-12 h-12 mx-auto text-zenith-muted mb-4" />
-                      <h3 className="text-lg font-medium text-primary mb-1">No submissions yet</h3>
+                      <h3 className="text-lg font-medium text-primary mb-1">No submissions found</h3>
                       <p className="text-zenith-muted dark:text-zenith-muted">
-                        This user hasn't submitted any assignments yet.
+                        {isCurrentUser 
+                          ? "You haven't submitted any assignments yet." 
+                          : "This user hasn't submitted any assignments yet."}
                       </p>
+                      <div className="mt-4">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-zenith-section text-zenith-secondary">
+                          <FileText className="w-4 h-4 mr-2" />
+                          0 submissions
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -911,11 +1190,11 @@ Report generated by Zenith Platform.
                         <div className="bg-zenith-section dark:bg-gray-700 p-4 rounded-md">
                           <h4 className="font-medium text-zenith-secondary dark:text-gray-300 mb-2">Statistics Included</h4>
                           <ul className="list-disc pl-5 text-sm text-zenith-secondary dark:text-zenith-muted space-y-1">
-                            <li>Total submissions: {profile.stats.totalSubmissions}</li>
-                            <li>Graded submissions: {profile.stats.gradedSubmissions}</li>
-                            <li>Average grade: {profile.stats.averageGrade !== null ? `${profile.stats.averageGrade}%` : 'N/A'}</li>
-                            <li>Submission rate: {profile.stats.totalSubmissions > 0 
-                              ? `${Math.round((profile.stats.gradedSubmissions / profile.stats.totalSubmissions) * 100)}%` 
+                            <li>Total submissions: {profile?.stats?.totalSubmissions || 0}</li>
+                            <li>Graded submissions: {profile?.stats?.gradedSubmissions || 0}</li>
+                            <li>Average grade: {profile?.stats?.averageGrade !== null && profile?.stats?.averageGrade !== undefined ? `${profile.stats.averageGrade}%` : 'N/A'}</li>
+                            <li>Submission rate: {(profile?.stats?.totalSubmissions || 0) > 0 
+                              ? `${Math.round(((profile?.stats?.gradedSubmissions || 0) / (profile?.stats?.totalSubmissions || 1)) * 100)}%` 
                               : 'N/A'}</li>
                           </ul>
                         </div>
@@ -937,6 +1216,113 @@ Report generated by Zenith Platform.
         ) : (
           <div className="p-6 text-center text-zenith-muted dark:text-zenith-muted">
             No profile data available
+          </div>
+        )}
+        
+        {/* Club Management Modal */}
+        {showManagementModal && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4 border border-custom">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold mb-4">
+                  {managementAction === 'changeRole' ? 'Change Member Role' : 
+                   managementAction === 'changeTag' ? 'Change Member Tag' : 
+                   'Remove Member'}
+                </h3>
+                
+                {managementAction === 'changeRole' ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-zenith-secondary">
+                      Select a new role for {profile?.name}:
+                    </p>
+                    <select
+                      value={newRole}
+                      onChange={(e) => setNewRole(e.target.value)}
+                      className="w-full p-2 border border-custom rounded-md bg-card text-primary"
+                    >
+                      <option value="member">Member</option>
+                      <option value="co_coordinator">Co-Coordinator</option>
+                      <option value="coordinator">Coordinator</option>
+                    </select>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => {
+                          setShowManagementModal(false);
+                          setManagementAction(null);
+                        }}
+                        className="px-4 py-2 text-zenith-secondary hover:bg-zenith-hover rounded-md transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleRoleChange}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Update Role
+                      </button>
+                    </div>
+                  </div>
+                ) : managementAction === 'changeTag' ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-zenith-secondary">
+                      Select a new tag for {profile?.name}:
+                    </p>
+                    <select
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      className="w-full p-2 border border-custom rounded-md bg-card text-primary"
+                    >
+                      <option value="student">Student</option>
+                      <option value="student media">Student Media</option>
+                      <option value="student developer">Student Developer</option>
+                      <option value="student designer">Student Designer</option>
+                      <option value="student coordinator">Student Coordinator</option>
+                      <option value="student ambassador">Student Ambassador</option>
+                    </select>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => {
+                          setShowManagementModal(false);
+                          setManagementAction(null);
+                        }}
+                        className="px-4 py-2 text-zenith-secondary hover:bg-zenith-hover rounded-md transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleRoleChange}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Update Tag
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-zenith-secondary">
+                      Are you sure you want to remove {profile?.name} from the club? This action cannot be undone.
+                    </p>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => {
+                          setShowManagementModal(false);
+                          setManagementAction(null);
+                        }}
+                        className="px-4 py-2 text-zenith-secondary hover:bg-zenith-hover rounded-md transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleRemoveMember}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        Remove Member
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
         

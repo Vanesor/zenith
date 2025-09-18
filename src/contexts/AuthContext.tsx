@@ -66,6 +66,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Priority 1: Check NextAuth session (OAuth users)
         if (sessionStatus === 'authenticated' && session?.user) {
           console.log('AuthContext: Found NextAuth session, setting OAuth user');
+          
+          // Check if we have a JWT token for this OAuth user
+          const storedToken = localStorage.getItem("zenith-token");
+          const isValidJWTToken = storedToken && storedToken !== 'nextauth-session' && isValidJWTFormat(storedToken);
+          
+          let jwtToken = storedToken;
+          
+          // If no valid JWT token exists, generate one for the OAuth user
+          if (!isValidJWTToken) {
+            try {
+              console.log('AuthContext: Generating JWT token for OAuth user...');
+              const tokenResponse = await fetch('/api/auth/oauth-tokens', {
+                method: 'POST',
+                credentials: 'include'
+              });
+              
+              if (tokenResponse.ok) {
+                const tokenData = await tokenResponse.json();
+                if (tokenData.success && tokenData.accessToken) {
+                  jwtToken = tokenData.accessToken;
+                  localStorage.setItem("zenith-token", tokenData.accessToken);
+                  if (tokenData.refreshToken) {
+                    localStorage.setItem("zenith-refresh-token", tokenData.refreshToken);
+                  }
+                  console.log('AuthContext: JWT token generated successfully for OAuth user');
+                }
+              } else {
+                console.warn('AuthContext: Failed to generate JWT token for OAuth user, using session auth');
+                jwtToken = 'nextauth-session';
+              }
+            } catch (error) {
+              console.error('AuthContext: Error generating JWT token for OAuth user:', error);
+              jwtToken = 'nextauth-session';
+            }
+          }
+          
           setUser({
             id: session.user.id!,
             email: session.user.email!,
@@ -76,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             profile_image_url: session.user.image || undefined,
             has_password: false // OAuth users can set passwords later
           });
-          setToken('nextauth-session'); // Placeholder token for OAuth users
+          setToken(jwtToken);
           setIsLoading(false);
           return;
         }

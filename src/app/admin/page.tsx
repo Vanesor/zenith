@@ -14,8 +14,8 @@ export default function AdminPage() {
       // Determine user role and redirect accordingly
       const userRole = user.role?.toLowerCase() || '';
       
-      // Zenith Committee Members - can see all clubs
-      const isZenithCommittee = [
+      // Zenith Committee Members - can see committee management page
+      const zenithRoles = [
         'president',
         'vice_president', 
         'innovation_head',
@@ -23,19 +23,28 @@ export default function AdminPage() {
         'treasurer',
         'outreach_coordinator',
         'media_coordinator',
-        'zenith_committee'
-      ].includes(userRole);
+        'zenith_committee',
+        'joint_secretary',
+        'joint_treasurer', 
+        'outreach_head', 
+        'media_head',
+        'secretary_committee'
+      ];
+      // Case-insensitive check
+      const isZenithCommittee = zenithRoles.some(role => role.toLowerCase() === userRole.toLowerCase());
 
       // Club Coordinators - can only see their club management
-      const isClubCoordinator = [
+      const coordinatorRoles = [
         'coordinator',
         'co_coordinator',
         'club_coordinator',
         'co-coordinator'
-      ].includes(userRole);
+      ];
+      // Case-insensitive check
+      const isClubCoordinator = coordinatorRoles.some(role => role.toLowerCase() === userRole.toLowerCase());
 
       // System Admin - full access
-      const isSystemAdmin = userRole === 'admin';
+      const isSystemAdmin = ['admin', 'super_admin'].includes(userRole);
 
       console.log('Admin redirect logic:', {
         userRole,
@@ -45,13 +54,27 @@ export default function AdminPage() {
         clubId: user.club_id
       });
 
-      if (isZenithCommittee || isSystemAdmin) {
-        // Zenith committee members and admins can see all clubs
-        router.push('/admin/club-management');
+      console.log('🔍 ADMIN PAGE ACCESS CHECK:');
+      console.log('   - isZenithCommittee:', isZenithCommittee);
+      console.log('   - isClubCoordinator:', isClubCoordinator);
+      console.log('   - isSystemAdmin:', isSystemAdmin);
+
+      // Direct users based on their role
+      if (isSystemAdmin) {
+        console.log('✅ ADMIN PAGE: Redirecting system admin to /admin/super-admin');
+        router.push('/admin/super-admin');
+      } else if (isZenithCommittee) {
+        console.log('✅ ADMIN PAGE: Redirecting zenith committee to /admin/committee-management');
+        router.push('/admin/committee-management');
       } else if (isClubCoordinator) {
-        // Club coordinators go to their club management (existing page)
-        router.push('/club-management');
+        console.log('✅ ADMIN PAGE: Redirecting club coordinator to /admin/club-management');
+        router.push('/admin/club-management');
       } else {
+        console.log('❌ ADMIN PAGE: Redirecting to /dashboard - NO ACCESS');
+        console.log('   - Reason: No valid role found');
+        console.log('   - isZenithCommittee:', isZenithCommittee);
+        console.log('   - isClubCoordinator:', isClubCoordinator);
+        console.log('   - isSystemAdmin:', isSystemAdmin);
         // No admin access, redirect to dashboard
         router.push('/dashboard');
       }

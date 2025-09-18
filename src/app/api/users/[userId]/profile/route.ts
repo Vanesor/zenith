@@ -3,6 +3,67 @@ import { verifyAuth } from '@/lib/auth-unified';
 import db from '@/lib/database';
 import { MediaService } from '@/lib/MediaService';
 
+// Helper function to check if user has elevated access permissions
+async function hasElevatedAccess(requestingUserId: string, targetUserId: string, role: string): Promise<boolean> {
+  if (!role) return false;
+  
+  const userRole = role.toLowerCase();
+  
+  // Super admin access
+  if (userRole === 'super_admin') return true;
+  
+  // System admin access
+  if (userRole === 'admin') return true;
+  
+  // Zenith committee access
+  const zenithRoles = [
+    'president',
+    'vice_president', 
+    'innovation_head',
+    'secretary',
+    'treasurer',
+    'outreach_coordinator',
+    'media_coordinator',
+    'zenith_committee'
+  ];
+  
+  if (zenithRoles.includes(userRole)) return true;
+  
+  // Club coordinator/co_coordinator access - check if they're in the same club
+  if (userRole === 'coordinator' || userRole === 'co_coordinator') {
+    try {
+      // Get the requesting user's club
+      const requestingUserClubQuery = `
+        SELECT cm.club_id 
+        FROM club_members cm 
+        WHERE cm.user_id = $1 AND cm.is_current_term = true
+        AND cm.role IN ('coordinator', 'co_coordinator')
+      `;
+      const requestingUserResult = await db.query(requestingUserClubQuery, [requestingUserId]);
+      
+      if (requestingUserResult.rows.length === 0) return false;
+      
+      // Get the target user's club
+      const targetUserClubQuery = `
+        SELECT cm.club_id 
+        FROM club_members cm 
+        WHERE cm.user_id = $1 AND cm.is_current_term = true
+      `;
+      const targetUserResult = await db.query(targetUserClubQuery, [targetUserId]);
+      
+      if (targetUserResult.rows.length === 0) return false;
+      
+      // Check if they're in the same club
+      return requestingUserResult.rows[0].club_id === targetUserResult.rows[0].club_id;
+    } catch (error) {
+      console.error('Error checking club membership:', error);
+      return false;
+    }
+  }
+  
+  return false;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -64,7 +125,8 @@ export async function GET(
     let includePrivateInfo = false;
     const authResult = await verifyAuth(request);
     if (authResult.success && authResult.user) {
-      if (authResult.user.id === userId || authResult.user.role === 'admin') {
+      const hasElevated = await hasElevatedAccess(authResult.user.id, userId, authResult.user.role);
+      if (authResult.user.id === userId || hasElevated) {
         includePrivateInfo = true;
       }
     }

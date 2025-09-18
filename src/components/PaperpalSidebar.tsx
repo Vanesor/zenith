@@ -403,40 +403,80 @@ export function PaperpalSidebar({ isOpen, onToggle, onCollapseChange }: Paperpal
                         Administration
                       </h3>
                       <div className="space-y-1">
-                        {(isZenithCommittee || isSystemAdmin) ? (
-                          // Zenith committee members and system admins see "Admin Panel" (all clubs)
+                        {/* All admin users see the main Admin Dashboard */}
+                        <Link
+                          href="/admin/dashboard"
+                          className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                            isActive('/admin/dashboard')
+                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                              : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
+                          }`}
+                        >
+                          <Shield className={`w-5 h-5 mr-3 ${
+                            isActive('/admin/dashboard') ? 'text-purple-600' : 'zenith-text-muted'
+                          }`} />
+                          <div className="flex-1">
+                            <div className="font-medium">Admin Dashboard</div>
+                            <div className="text-xs zenith-text-muted">Management portal</div>
+                          </div>
+                        </Link>
+                        
+                        {/* Club Management - For all admin users */}
+                        <Link
+                          href="/admin/club-management"
+                          className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                            isActive('/admin/club-management')
+                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                              : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
+                          }`}
+                        >
+                          <Users className={`w-5 h-5 mr-3 ${
+                            isActive('/admin/club-management') ? 'text-blue-600' : 'zenith-text-muted'
+                          }`} />
+                          <div className="flex-1">
+                            <div className="font-medium">Club Management</div>
+                            <div className="text-xs zenith-text-muted">
+                              {isSystemAdmin || isZenithCommittee ? "Manage all clubs" : "Manage your club"}
+                            </div>
+                          </div>
+                        </Link>
+                        
+                        {/* Committee Management - Only for Committee & System Admin */}
+                        {(isZenithCommittee || isSystemAdmin) && (
                           <Link
-                            href="/admin"
+                            href="/admin/committee-management"
                             className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                              isActive('/admin')
-                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                              isActive('/admin/committee-management')
+                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                                 : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
                             }`}
                           >
-                            <Shield className={`w-5 h-5 mr-3 ${
-                              isActive('/admin') ? 'text-purple-600' : 'zenith-text-muted'
+                            <Users className={`w-5 h-5 mr-3 ${
+                              isActive('/admin/committee-management') ? 'text-green-600' : 'zenith-text-muted'
                             }`} />
                             <div className="flex-1">
-                              <div className="font-medium">Admin Panel</div>
-                              <div className="text-xs zenith-text-muted">Manage all clubs</div>
+                              <div className="font-medium">Committee Management</div>
+                              <div className="text-xs zenith-text-muted">Manage committees</div>
                             </div>
                           </Link>
-                        ) : (
-                          // Club coordinators see "Club Management" (their specific club)
+                        )}
+                        
+                        {/* System Administration - Only for System Admin */}
+                        {isSystemAdmin && (
                           <Link
-                            href="/club-management"
+                            href="/admin/super-admin"
                             className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                              isActive('/club-management')
-                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                              isActive('/admin/super-admin')
+                                ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
                                 : 'zenith-text-secondary hover:zenith-bg-hover hover:zenith-text-primary'
                             }`}
                           >
-                            <Shield className={`w-5 h-5 mr-3 ${
-                              isActive('/club-management') ? 'text-purple-600' : 'zenith-text-muted'
+                            <Settings className={`w-5 h-5 mr-3 ${
+                              isActive('/admin/super-admin') ? 'text-red-600' : 'zenith-text-muted'
                             }`} />
                             <div className="flex-1">
-                              <div className="font-medium">Club Management</div>
-                              <div className="text-xs zenith-text-muted">Manage your club</div>
+                              <div className="font-medium">System Admin</div>
+                              <div className="text-xs zenith-text-muted">Advanced settings</div>
                             </div>
                           </Link>
                         )}

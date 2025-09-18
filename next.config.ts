@@ -27,6 +27,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  
+  // External packages for server components
+  serverExternalPackages: ['pg'],
 
   // Compiler optimizations
   compiler: {

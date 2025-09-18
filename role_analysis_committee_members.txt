@@ -1,0 +1,19 @@
+               user_id                |              email              |        name         | user_table_role | committee_role_name | is_privileged | is_current_term 
+--------------------------------------+---------------------------------+---------------------+-----------------+---------------------+---------------+-----------------
+ 571ebb33-aeb5-4861-87a0-0c442bae3a6b | rahul.sharma2025@example.com    | Rahul Sharma        | student         | President           | t             | f
+ 8694ff1f-1d1e-4a7b-8ecb-eebda2c937d3 | yash.siddhabhatti@zenith.edu    | Yash Siddhabhatti   | president       | President           | t             | t
+ e624fa3f-bb9f-4da6-b569-c6a22904b389 | priya.patel2025@example.com     | Priya Patel         | student         | Vice President      | t             | f
+ 241f4f32-458e-410e-b2f2-6dcfda992455 | sarthak.thote@zenith.edu        | Sarthak Thote       | vice_president  | Vice President      | t             | t
+ 21a95efa-ccfa-4c4c-af7f-50cfa0a35053 | naitamatharva14@gmail.com       | Atharva Naitam      | innovation_head | Innovation Head     | t             | t
+ 70672185-25b9-41b5-bae0-e74ea1a26db9 | vikram.singh2025@example.com    | Vikram Singh        | student         | Innovation Head     | t             | f
+ 6e11229a-a444-4e8b-8b56-e8b6536302d5 | sneha.agarwal2025@example.com   | Sneha Agarwal       | student         | Treasurer           | t             | f
+ 1351d77c-38fe-4dd3-84bd-7d9aff156a82 | yagneshwar.chaudhari@zenith.edu | Yogeshvar Chaudhari | student         | Treasurer           | t             | t
+ bca6518e-d6ec-4489-9422-1898f5086ba4 | anita.gupta2025@example.com     | Anita Gupta         | student         | Secretary           | t             | f
+ 17254128-6271-484c-bec9-756ff7f7a043 | mansavi.giradkar@zenith.edu     | Mansavi Giradkar    | student         | Secretary           | t             | t
+ 924ede2a-5fd4-4e9d-9a28-95438e5b4898 | kaivalya.pund@zenith.edu        | Kaiwalya Pund       | student         | Media Head          | t             | t
+ 63fd6cb0-d546-448b-9fdc-5cb407f61d6a | kavya.reddy2025@example.com     | Kavya Reddy         | student         | Media Head          | t             | f
+ b9f1d273-57c1-4ba4-9411-5495254ff797 | karan.mehta2025@example.com     | Karan Mehta         | student         | Joint Secretary     | t             | f
+ 19124f5e-a896-4728-bb75-701f616c7716 | rohan.kumar2025@example.com     | Rohan Kumar         | student         | Joint Treasurer     | t             | f
+ ec962745-fe2f-4079-b859-7d86bf711c20 | arjun.nair2025@example.com      | Arjun Nair          | student         | Outreach Head       | t             | f
+(15 rows)
+

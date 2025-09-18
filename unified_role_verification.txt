@@ -1,0 +1,49 @@
+id,email,name,new_role,committee_status,club_status
+550e8400-e29b-41d4-a716-446655440000,admin@zenith.com,Admin User,admin,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440001,superadmin@zenith.com,Super Admin,admin,No Committee Role,No Club Role
+550e8400-e29b-41d4-a716-446655440031,achievers.co-coordinator@zenith.com,Aayushi Asole,co_coordinator,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440041,artovert.co-coordinator@zenith.com,ARTOVERT Co-Coordinator,co_coordinator,No Committee Role,No Club Role
+550e8400-e29b-41d4-a716-446655440011,ascend.co-coordinator@zenith.com,Ayush Kshirsagar,co_coordinator,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440021,aster.co-coordinator@zenith.com,Gargi Udapure ,co_coordinator,No Committee Role,Has Club Role
+8397062d-0b15-4115-9ee3-3e2f4bef0e36,isha.bansal2025@example.com,Isha Bansal,co_coordinator,No Committee Role,Has Club Role
+85831284-34d0-4724-90c2-26e6204c1428,nikhil.verma2025@example.com,Nikhil Verma,co_coordinator,No Committee Role,Has Club Role
+1ac23e35-54f9-4e34-8ff3-bfff79885d88,riya.shah2025@example.com,Riya Shah,co_coordinator,No Committee Role,Has Club Role
+19124f5e-a896-4728-bb75-701f616c7716,rohan.kumar2025@example.com,Rohan Kumar,co_coordinator,No Committee Role,Has Club Role
+c088cdf3-11ff-408d-b95a-1f50bb794c27,sanjeed.kabarle@zenith.edu,Sanved Kabade,co_coordinator,No Committee Role,Has Club Role
+59c443c7-2e5e-41ec-96bb-0b33ca557948,shubham.kaut@zenith.edu,Sharawari Raut,co_coordinator,No Committee Role,Has Club Role
+8eb864a5-a99b-4d3b-94f9-4619ed66c5e3,shreya.borde@example.com,Shreya Borde,co_coordinator,No Committee Role,Has Club Role
+6e11229a-a444-4e8b-8b56-e8b6536302d5,sneha.agarwal2025@example.com,Sneha Agarwal,co_coordinator,No Committee Role,Has Club Role
+a758760c-468e-4185-b84c-374ec2168a4a,uday.bhoyar@example.com,Uday Bhoyar,co_coordinator,No Committee Role,Has Club Role
+bca6518e-d6ec-4489-9422-1898f5086ba4,anita.gupta2025@example.com,Anita Gupta,coordinator,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440040,artovert.coordinator@zenith.com,ARTOVERT Coordinator,coordinator,No Committee Role,No Club Role
+550e8400-e29b-41d4-a716-446655440010,ascend.coordinator@zenith.com,Atharva Bhede,coordinator,No Committee Role,Has Club Role
+204a06d7-e042-4c19-8e97-b0f2d8ad1271,dev.joshi2025@example.com,Dev Joshi,coordinator,No Committee Role,Has Club Role
+9e494d57-59b3-48d0-a140-f131099a0a11,harsh.pandey2025@example.com,Harsh Pandey,coordinator,No Committee Role,Has Club Role
+b9f1d273-57c1-4ba4-9411-5495254ff797,karan.mehta2025@example.com,Karan Mehta,coordinator,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440030,achievers.coordinator@zenith.com,Paritosh Magare,coordinator,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440020,aster.coordinator@zenith.com,Radhika Salodkar,coordinator,No Committee Role,Has Club Role
+e75ebfdc-b1e8-440c-a987-c77306ab8348,tejasri.rinait@zenith.edu,Tejasi Rinait,coordinator,No Committee Role,Has Club Role
+21a95efa-ccfa-4c4c-af7f-50cfa0a35053,naitamatharva14@gmail.com,Atharva Naitam,innovation_head,Has Committee Role,No Club Role
+21a95efa-ccfa-4c4c-af7f-50cfa0a35053,naitamatharva14@gmail.com,Atharva Naitam,innovation_head,Has Committee Role,No Club Role
+550e8400-e29b-41d4-a716-446655440033,achievers.media@zenith.com,ACHIEVERS Media Head,media,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440013,ascend.media@zenith.com,Aditya Yelne ,media,No Committee Role,Has Club Role
+ec962745-fe2f-4079-b859-7d86bf711c20,arjun.nair2025@example.com,Arjun Nair,media,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440043,artovert.media@zenith.com,ARTOVERT Media Head,media,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440023,aster.media@zenith.com,ASTER Media Head,media,No Committee Role,Has Club Role
+9755eab9-39cb-443b-9cca-853d727afe40,kaiwalya.pund@zenith.edu,Kaiwalya Pund,media_head,Has Committee Role,No Club Role
+924ede2a-5fd4-4e9d-9a28-95438e5b4898,kaivalya.pund@zenith.edu,Kaiwalya Pund,media_head,Has Committee Role,No Club Role
+8694ff1f-1d1e-4a7b-8ecb-eebda2c937d3,yash.siddhabhatti@zenith.edu,Yash Siddhabhatti,president,Has Committee Role,No Club Role
+8694ff1f-1d1e-4a7b-8ecb-eebda2c937d3,yash.siddhabhatti@zenith.edu,Yash Siddhabhatti,president,Has Committee Role,No Club Role
+550e8400-e29b-41d4-a716-446655440042,artovert.secretary@zenith.com,ARTOVERT Secretary,secretary,No Committee Role,No Club Role
+63fd6cb0-d546-448b-9fdc-5cb407f61d6a,kavya.reddy2025@example.com,Kavya Reddy,secretary,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440032,achievers.secretary@zenith.com,Mayur Aglawe ,secretary,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440012,ascend.secretary@zenith.com,Mohit Telang,secretary,No Committee Role,Has Club Role
+550e8400-e29b-41d4-a716-446655440022,aster.secretary@zenith.com,Sahil Shrivastava ,secretary,No Committee Role,Has Club Role
+febf3dd5-655c-4e18-86a9-2abbf245cb16,vedant.wardhana@zenith.edu,Vedanti Wandhare,secretary,No Committee Role,Has Club Role
+70672185-25b9-41b5-bae0-e74ea1a26db9,vikram.singh2025@example.com,Vikram Singh,secretary,No Committee Role,Has Club Role
+53cbed56-2bc7-4faf-bd6e-5f953de4dfa5,manasvi.giradkar@zenith.edu,Manasvi Giradkar,secretary_committee,Has Committee Role,No Club Role
+17254128-6271-484c-bec9-756ff7f7a043,mansavi.giradkar@zenith.edu,Mansavi Giradkar,secretary_committee,Has Committee Role,No Club Role
+7c36ecbe-44d3-40df-8b8b-886e5385e839,yogeshvar.chaudhari@zenith.edu,Yogeshvar Chaudhari,treasurer,Has Committee Role,No Club Role
+1351d77c-38fe-4dd3-84bd-7d9aff156a82,yagneshwar.chaudhari@zenith.edu,Yogeshvar Chaudhari,treasurer,Has Committee Role,No Club Role
+241f4f32-458e-410e-b2f2-6dcfda992455,sarthak.thote@zenith.edu,Sarthak Thote,vice_president,Has Committee Role,No Club Role
+241f4f32-458e-410e-b2f2-6dcfda992455,sarthak.thote@zenith.edu,Sarthak Thote,vice_president,Has Committee Role,No Club Role

@@ -69,29 +69,62 @@ export default function ModernDashboard() {
 
     const fetchActivities = async () => {
       try {
+        console.log('📊 DASHBOARD: Fetching activities, auth state:', {
+          userLoaded: !!auth.user,
+          tokenExists: !!localStorage.getItem("zenith-token")
+        });
+        
+        // Check if token exists before making the API call
+        const token = localStorage.getItem("zenith-token");
+        if (!token) {
+          console.log('⚠️ DASHBOARD: No token found, skipping activities fetch');
+          return;
+        }
+        
         const response = await fetch('/api/dashboard/activities', {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            ...(auth.user && localStorage.getItem("zenith-token") && {
-              Authorization: `Bearer ${localStorage.getItem("zenith-token")}`
-            })
+            Authorization: `Bearer ${token}`
           }
         });
+        console.log('📊 DASHBOARD: Activities API response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('📊 DASHBOARD: Activities data received:', {
+            activitiesCount: (data.recentActivities || []).length
+          });
           setRecentActivities(data.recentActivities || []);
+        } else if (response.status === 401) {
+          console.log('⚠️ DASHBOARD: Authentication failed for activities API');
+          // Silent failure for 401 during redirects
+        } else {
+          console.error('❌ DASHBOARD: Failed to fetch activities:', response.status);
         }
       } catch (error) {
-        console.error('Error fetching recent activities:', error);
+        console.error('❌ DASHBOARD: Error fetching recent activities:', error);
       } finally {
         setLoadingActivities(false);
       }
     };
 
+    console.log('📊 DASHBOARD: User state changed', {
+      userPresent: !!auth.user,
+      tokenExists: !!localStorage.getItem("zenith-token")
+    });
+    
     if (auth.user) {
-      fetchStats();
-      fetchActivities();
+      // Give time for token to be properly set in localStorage
+      setTimeout(() => {
+        if (localStorage.getItem("zenith-token")) {
+          console.log('📊 DASHBOARD: User authenticated, fetching data');
+          fetchStats();
+          fetchActivities();
+        } else {
+          console.log('⚠️ DASHBOARD: User present but no token found');
+        }
+      }, 500);
     }
   }, [auth.user]);
 

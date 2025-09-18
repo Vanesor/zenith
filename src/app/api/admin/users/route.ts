@@ -3,20 +3,32 @@ import { db } from '@/lib/database';
 
 export async function GET() {
   try {
-    // SQL query to fetch users with their primary club
+    // Enhanced SQL query to fetch users with more details
     const rawUsers = await db.query(`
       SELECT 
         u.id, 
         u.name, 
         u.email, 
         u.role,
-        c.name as club_name
+        u.created_at,
+        u.updated_at,
+        u.phone_number,
+        u.avatar,
+        u.profile_image_url,
+        u.last_activity,
+        c.name as club_name,
+        c.id as club_id,
+        -- Calculate user status based on activity and account state
+        CASE 
+          WHEN u.created_at > NOW() - INTERVAL '7 days' AND cm.id IS NULL THEN 'pending'
+          WHEN u.last_activity < NOW() - INTERVAL '90 days' THEN 'inactive'
+          ELSE 'active'
+        END as status
       FROM users u
       LEFT JOIN 
         club_members cm ON u.id = cm.user_id
       LEFT JOIN 
         clubs c ON cm.club_id = c.id
-      WHERE u.deleted_at IS NULL
       ORDER BY 
         u.name ASC
     `);
@@ -27,10 +39,15 @@ export async function GET() {
       name: user.name || 'Unnamed User',
       email: user.email || 'No Email',
       role: user.role || 'student',
-      status: 'active', // Assuming default status is active
+      status: user.status || 'active',
       club_name: user.club_name || 'No Club',
-      created_at: user.created_at || new Date().toISOString(),
-      updated_at: user.updated_at || new Date().toISOString()
+      club_id: user.club_id || null,
+      created_at: user.created_at ? user.created_at.toISOString() : new Date().toISOString(),
+      updated_at: user.updated_at ? user.updated_at.toISOString() : new Date().toISOString(),
+      last_login: user.last_activity ? user.last_activity.toISOString() : undefined,
+      avatar: user.avatar || user.profile_image_url || null,
+      profile_image_url: user.profile_image_url || user.avatar || null,
+      phone: user.phone_number || null
     }));
 
     return NextResponse.json({

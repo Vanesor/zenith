@@ -1,0 +1,336 @@
+'use server';
+
+import { NextRequest, NextResponse } from "next/server";
+import { db } from '@/lib/database';
+import { verifyAuth } from '@/lib/auth-unified';
+import { RoleHierarchy } from '@/lib/roleHierarchy';
+
+// Helper function to check if user has club management access
+async function hasClubManagementAccess(userEmail: string, clubId?: string): Promise<{
+  hasAccess: boolean;
+  accessLevel: 'club' | 'zenith' | 'admin' | 'super_admin';
+  managedClubs?: string[];
+}> {
+  try {
+    // Get user details
+    const userResult = await db.query(
+      'SELECT id, email, role FROM users WHERE email = $1',
+      [userEmail]
+    );
+
+    if (userResult.rows.length === 0) {
+      return { hasAccess: false, accessLevel: 'club' };
+    }
+
+    const user = userResult.rows[0];
+    const userRole = user.role?.toLowerCase() || '';
+
+    // Check for super admin access
+    if (userRole === 'super_admin') {
+      return { hasAccess: true, accessLevel: 'super_admin' };
+    }
+
+    // Check for system admin access
+    if (userRole === 'admin') {
+      return { hasAccess: true, accessLevel: 'admin' };
+    }
+
+    // Check for Zenith committee access
+    const zenithRoles = [
+      'president',
+      'vice_president', 
+      'innovation_head',
+      'secretary',
+      'treasurer',
+      'outreach_coordinator',
+      'media_coordinator',
+      'zenith_committee'
+    ];
+
+    if (zenithRoles.includes(userRole)) {
+      return { hasAccess: true, accessLevel: 'zenith' };
+    }
+
+    // Check for club-level access
+    if (clubId) {
+      const clubAccessResult = await db.query(`
+        SELECT cm.club_id 
+        FROM club_members cm 
+        WHERE cm.user_id = $1 
+        AND cm.club_id = $2
+        AND cm.role IN ('coordinator', 'co_coordinator', 'secretary')
+        AND cm.is_current_term = true
+      `, [user.id, clubId]);
+
+      if (clubAccessResult.rows.length > 0) {
+        return { hasAccess: true, accessLevel: 'club', managedClubs: [clubId] };
+      }
+    }
+
+    // Get all clubs user can manage
+    const managedClubsResult = await db.query(`
+      SELECT cm.club_id 
+      FROM club_members cm 
+      WHERE cm.user_id = $1 
+      AND cm.role IN ('coordinator', 'co_coordinator', 'secretary')
+      AND cm.is_current_term = true
+    `, [user.id]);
+
+    const managedClubs = managedClubsResult.rows.map(row => row.club_id);
+
+    if (managedClubs.length > 0) {
+      return { hasAccess: true, accessLevel: 'club', managedClubs };
+    }
+
+    return { hasAccess: false, accessLevel: 'club' };
+  } catch (error) {
+    console.error('Error checking club management access:', error);
+    return { hasAccess: false, accessLevel: 'club' };
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Verify user authentication
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = authResult.user;
+    const { searchParams } = new URL(request.url);
+    const clubId = searchParams.get('clubId');
+
+    // Check access permissions
+    const accessCheck = await hasClubManagementAccess(user.email, clubId || undefined);
+    
+    if (!accessCheck.hasAccess) {
+      return NextResponse.json({ 
+        error: "Access denied. You don't have permission to access club management features." 
+      }, { status: 403 });
+    }
+
+    // Based on access level, return appropriate data
+    let clubsData = [];
+    let membersData = [];
+    let systemStats = null;
+
+    if (accessCheck.accessLevel === 'club') {
+      // Club-level access: only return data for clubs they manage
+      const clubsQuery = `
+        SELECT 
+          c.id,
+          c.name,
+          c.description,
+          c.type,
+          c.color,
+          c.member_count,
+          c.created_at,
+          c.updated_at,
+          (
+            SELECT COUNT(*) FROM events e 
+            WHERE e.club_id = c.id AND e.end_date > NOW()
+          ) as events_count,
+          (
+            SELECT COUNT(*) FROM assignments a 
+            WHERE a.club_id = c.id AND a.due_date > NOW()
+          ) as assignments_count,
+          (
+            SELECT json_build_object(
+              'id', u.id,
+              'name', u.name,
+              'email', u.email
+            )
+            FROM club_members cm 
+            JOIN users u ON cm.user_id = u.id
+            WHERE cm.club_id = c.id 
+            AND cm.role = 'coordinator'
+            AND cm.is_active = true
+            LIMIT 1
+          ) as coordinator
+        FROM clubs c
+        WHERE c.id = ANY($1)
+        ORDER BY c.name ASC
+      `;
+      
+      const clubsResult = await db.query(clubsQuery, [accessCheck.managedClubs]);
+      clubsData = clubsResult.rows;
+
+      // If a specific club is selected, get its members
+      if (clubId) {
+        const membersQuery = `
+          SELECT 
+            cm.id, 
+            cm.club_id,
+            cm.user_id,
+            u.name, 
+            u.email, 
+            cm.role,
+            cm.hierarchy,
+            cm.is_active,
+            cm.joined_at,
+            cm.left_at,
+            u.year,
+            u.branch,
+            cm.academic_year,
+            u.avatar,
+            u.profile_image_url
+          FROM club_members cm
+          JOIN users u ON cm.user_id = u.id
+          WHERE cm.club_id = $1
+          ORDER BY cm.hierarchy ASC, u.name ASC
+        `;
+        
+        const membersResult = await db.query(membersQuery, [clubId]);
+        membersData = membersResult.rows;
+      }
+    } else {
+      // Admin/Zenith access: return all clubs
+      const clubsQuery = `
+        SELECT 
+          c.id,
+          c.name,
+          c.description,
+          c.type,
+          c.color,
+          c.member_count,
+          c.created_at,
+          c.updated_at,
+          (
+            SELECT COUNT(*) FROM events e 
+            WHERE e.club_id = c.id AND e.end_date > NOW()
+          ) as events_count,
+          (
+            SELECT COUNT(*) FROM assignments a 
+            WHERE a.club_id = c.id AND a.due_date > NOW()
+          ) as assignments_count,
+          (
+            SELECT json_build_object(
+              'id', u.id,
+              'name', u.name,
+              'email', u.email
+            )
+            FROM club_members cm 
+            JOIN users u ON cm.user_id = u.id
+            WHERE cm.club_id = c.id 
+            AND cm.role = 'coordinator'
+            AND cm.is_active = true
+            LIMIT 1
+          ) as coordinator
+        FROM clubs c
+        ORDER BY c.name ASC
+      `;
+      
+      const clubsResult = await db.query(clubsQuery);
+      clubsData = clubsResult.rows;
+
+      // If a specific club is selected, get its members
+      if (clubId) {
+        const membersQuery = `
+          SELECT 
+            cm.id, 
+            cm.club_id,
+            cm.user_id,
+            u.name, 
+            u.email, 
+            cm.role,
+            cm.hierarchy,
+            cm.is_active,
+            cm.joined_at,
+            cm.left_at,
+            u.year,
+            u.branch,
+            cm.academic_year,
+            u.avatar,
+            u.profile_image_url
+          FROM club_members cm
+          JOIN users u ON cm.user_id = u.id
+          WHERE cm.club_id = $1
+          ORDER BY cm.hierarchy ASC, u.name ASC
+        `;
+        
+        const membersResult = await db.query(membersQuery, [clubId]);
+        membersData = membersResult.rows;
+      }
+
+      // System stats for admins
+      const statsQuery = `
+        SELECT 
+          (SELECT COUNT(*) FROM users) as total_users,
+          (SELECT COUNT(*) FROM clubs) as total_clubs,
+          (SELECT COUNT(*) FROM events WHERE end_date > NOW()) as upcoming_events,
+          (SELECT COUNT(*) FROM assignments WHERE due_date > NOW()) as active_assignments,
+          (SELECT COUNT(*) FROM club_members WHERE is_active = true) as total_club_memberships
+      `;
+      
+      const statsResult = await db.query(statsQuery);
+      systemStats = statsResult.rows[0];
+    }
+
+    return NextResponse.json({
+      success: true,
+      clubs: clubsData,
+      members: membersData,
+      systemStats,
+      userAccess: {
+        level: accessCheck.accessLevel,
+        managedClubs: accessCheck.managedClubs || []
+      }
+    });
+  } catch (error) {
+    console.error("Error in club management API:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// PUT endpoint for editing club member info
+export async function PUT(request: NextRequest) {
+  try {
+    const authResult = await verifyAuth(request);
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = authResult.user;
+    const body = await request.json();
+    const { memberId, name, email, role, academic_year, clubId } = body;
+
+    if (!memberId || !clubId) {
+      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
+    }
+
+    // Check access permissions for this specific club
+    const accessCheck = await hasClubManagementAccess(user.email, clubId);
+    if (!accessCheck.hasAccess) {
+      return NextResponse.json({ error: "Access denied. You don't have permission to manage this club." }, { status: 403 });
+    }
+
+    // Check if email is unique (if changed)
+    if (email) {
+      const emailCheck = await db.query('SELECT id FROM users WHERE email = $1 AND id != (SELECT user_id FROM club_members WHERE id = $2)', [email, memberId]);
+      if (emailCheck.rows.length > 0) {
+        return NextResponse.json({ error: "Email already exists. Please use a unique email." }, { status: 400 });
+      }
+    }
+
+    // Update user info (name, email)
+    if (name || email) {
+      const memberUserIdResult = await db.query('SELECT user_id FROM club_members WHERE id = $1', [memberId]);
+      if (memberUserIdResult.rows.length === 0) {
+        return NextResponse.json({ error: "Member not found." }, { status: 404 });
+      }
+      const memberUserId = memberUserIdResult.rows[0].user_id;
+      await db.query('UPDATE users SET name = $1, email = $2 WHERE id = $3', [name, email, memberUserId]);
+    }
+
+    // Update club_members info (role, academic_year)
+    await db.query('UPDATE club_members SET role = $1, academic_year = $2 WHERE id = $3', [role, academic_year, memberId]);
+
+    return NextResponse.json({ success: true, message: "Member info updated successfully." });
+  } catch (error) {
+    console.error("Error updating club member info:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// Additional endpoints (POST, DELETE) should also be included here

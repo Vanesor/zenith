@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users,
@@ -8,7 +8,6 @@ import {
   UserMinus,
   Settings,
   Calendar,
-  MessageSquare,
   FileText,
   Shield,
   Plus,
@@ -18,846 +17,933 @@ import {
   Trash2,
   Search,
   Filter,
-  Download,
-  Upload,
   CheckCircle,
   XCircle,
   Clock,
   AlertTriangle,
-  MoreVertical
+  MoreVertical,
+  Mail,
+  Crown,
+  User,
+  Star
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useToast } from "@/contexts/ToastContext";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import ProfileModal from "@/components/ProfileModal";
 import SafeAvatar from "@/components/SafeAvatar";
+import { Dialog, Transition } from '@headlessui/react';
 
+// Interfaces
 interface Club {
   id: string;
   name: string;
   description: string;
   type: string;
   color: string;
-  status: "active" | "inactive" | "pending";
   member_count: number;
-  coordinator_id: string;
-  coordinator_name: string;
+  coordinator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  events_count?: number;
+  assignments_count?: number;
   created_at: string;
   updated_at: string;
 }
 
 interface ClubMember {
   id: string;
+  club_id: string;
+  user_id: string;
   name: string;
   email: string;
   role: string;
-  club_id: string;
-  club_name: string;
+  hierarchy: number;
+  is_active: boolean;
   joined_at: string;
+  left_at?: string;
+  year?: string;
+  branch?: string;
+  academic_year?: string;
   avatar?: string;
+  profile_image_url?: string;
 }
 
-interface AdminStats {
-  totalClubs: number;
-  activeClubs: number;
-  pendingClubs: number;
-  totalMembers: number;
-  totalEvents: number;
-  totalAssignments: number;
+interface SystemStats {
+  total_users: number;
+  total_clubs: number;
+  upcoming_events: number;
+  active_assignments: number;
+  total_club_memberships: number;
 }
 
-export default function AdminClubManagementPage() {
-  const { user, isLoading } = useAuth();
-  const { isAuthenticated } = useAuthGuard({ 
-    redirectReason: "Please sign in to access admin features",
-    redirectOnClose: true,
-    redirectPath: "/login"
-  });
+interface UserAccess {
+  level: 'club' | 'zenith' | 'admin' | 'super_admin';
+  managedClubs: string[];
+}
+
+interface ClubManagementData {
+  success: boolean;
+  clubs: Club[];
+  members: ClubMember[];
+  systemStats?: SystemStats;
+  userAccess: UserAccess;
+}
+
+// UserEditModal for editing club member info
+interface UserEditModalProps {
+  open: boolean;
+  onClose: () => void;
+  member: ClubMember | null;
+  onSave: (data: Partial<ClubMember>) => Promise<void>;
+  roles: string[];
+  years: string[];
+}
+
+function UserEditModal({ open, onClose, member, onSave, roles, years }: UserEditModalProps) {
+  const [name, setName] = useState(member?.name || "");
+  const [email, setEmail] = useState(member?.email || "");
+  const [role, setRole] = useState(member?.role || "");
+  const [academicYear, setAcademicYear] = useState(member?.academic_year || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (member) {
+      setName(member.name || "");
+      setEmail(member.email || "");
+      setRole(member.role || "");
+      setAcademicYear(member.academic_year || "");
+    }
+  }, [member]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError("");
+    // Validate email uniqueness (API call can be added here)
+    if (!email || !name) {
+      setError("Name and email are required.");
+      setSaving(false);
+      return;
+    }
+    await onSave({ name, email, role, academic_year: academicYear });
+    setSaving(false);
+  };
+
+  return (
+    <Transition.Root show={open} as={Fragment}>
+      <Dialog as="div" className="relative z-10" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        </Transition.Child>
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                  Edit Club Member
+                </Dialog.Title>
+                <div className="mt-2 space-y-4">
+                  <input
+                    type="text"
+                    className="w-full rounded border px-3 py-2"
+                    placeholder="Name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                  />
+                  <input
+                    type="email"
+                    className="w-full rounded border px-3 py-2"
+                    placeholder="Email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                  <select
+                    className="w-full rounded border px-3 py-2"
+                    value={role}
+                    onChange={e => setRole(e.target.value)}
+                  >
+                    <option value="">Select Role</option>
+                    {roles.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="w-full rounded border px-3 py-2"
+                    value={academicYear}
+                    onChange={e => setAcademicYear(e.target.value)}
+                  >
+                    <option value="">Select Academic Year</option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  {error && <div className="text-red-500 text-sm">{error}</div>}
+                </div>
+                <div className="mt-4 flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-gray-200 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-300"
+                    onClick={onClose}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
+  );
+}
+
+const ClubManagementPage = () => {
+  const { user, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
   const router = useRouter();
 
-  const [clubs, setClubs] = useState<Club[]>([]);
-  const [members, setMembers] = useState<ClubMember[]>([]);
-  const [stats, setStats] = useState<AdminStats>({
-    totalClubs: 0,
-    activeClubs: 0,
-    pendingClubs: 0,
-    totalMembers: 0,
-    totalEvents: 0,
-    totalAssignments: 0
-  });
-  
+  // State management
+  const [data, setData] = useState<ClubManagementData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedClub, setSelectedClub] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive" | "pending">("all");
-  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
-  const [showCreateClub, setShowCreateClub] = useState(false);
-  const [showEditClub, setShowEditClub] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState<{
-    show: boolean;
-    type: string;
-    id: string;
-    name: string;
-  }>({ show: false, type: "", id: "", name: "" });
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<ClubMember | null>(null);
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState("member");
+  const [addingMember, setAddingMember] = useState(false);
+  const [removingMember, setRemovingMember] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showEditMemberModal, setShowEditMemberModal] = useState(false);
 
-  // Enhanced role checking for admin access
-  const userRole = user?.role?.toLowerCase() || '';
-  
-  // Zenith Committee Members - can see all clubs
-  const isZenithCommittee = [
-    'president',
-    'vice_president', 
-    'innovation_head',
-    'secretary',
-    'treasurer',
-    'outreach_coordinator',
-    'media_coordinator',
-    'zenith_committee'
-  ].includes(userRole);
+  // Role hierarchy and labels
+  const roleHierarchy: Record<string, { level: number, label: string, icon: any }> = {
+    coordinator: { level: 1, label: "Coordinator", icon: Crown },
+    co_coordinator: { level: 2, label: "Co-Coordinator", icon: Star },
+    secretary: { level: 3, label: "Secretary", icon: Edit },
+    treasurer: { level: 4, label: "Treasurer", icon: Settings },
+    member: { level: 5, label: "Member", icon: User }
+  };
 
-  // Club Coordinators - should be redirected to their specific club management
-  const isClubCoordinator = [
-    'coordinator',
-    'co_coordinator',
-    'club_coordinator',
-    'co-coordinator'
-  ].includes(userRole);
+  const accessLevelLabels: Record<string, string> = {
+    club: "Club Manager",
+    zenith: "Zenith Committee",
+    admin: "System Admin",
+    super_admin: "Super Admin"
+  };
 
-  // System Admin - full access
-  const isSystemAdmin = userRole === 'admin';
-
-  // Only Zenith committee and system admins should access this page
-  const hasMultiClubAccess = isZenithCommittee || isSystemAdmin;
-
-  // Redirect club coordinators to their specific club management page
+  // Redirect if not authenticated
   useEffect(() => {
-    if (!isLoading && user && !hasMultiClubAccess) {
-      if (isClubCoordinator) {
-        console.log('Club coordinator detected, redirecting to club-management');
-        router.push('/club-management');
-        return;
-      } else {
-        console.log('User does not have admin access, redirecting to dashboard');
-        router.push('/dashboard');
-        return;
-      }
+    if (!authLoading && !user) {
+      router.push('/login');
     }
-  }, [user, isLoading, hasMultiClubAccess, isClubCoordinator, router]);
+  }, [user, authLoading, router]);
 
-  useEffect(() => {
-    if (hasMultiClubAccess && isAuthenticated) {
-      console.log('🔍 Admin Club Management - useEffect triggered for Zenith committee/admin');
-      console.log('📊 Current state:', { 
-        isLoading, 
-        user: user?.name, 
-        userRole: user?.role, 
-        hasMultiClubAccess,
-        isZenithCommittee,
-        isSystemAdmin
-      });
-      
-      // Fetch data immediately when component mounts
-      fetchAdminData();
-    }
-  }, [hasMultiClubAccess, isAuthenticated]); // Only fetch when user has proper access
-
-  const fetchAdminData = async () => {
+  // Fetch club management data
+  const fetchData = async (clubId?: string) => {
     try {
       setLoading(true);
-      console.log('🔄 Starting to fetch admin data...');
       
-      // Fetch admin clubs data with authentication
-      const adminResponse = await fetch('/api/admin/clubs', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'Content-Type': 'application/json'
-        }
+      const url = clubId 
+        ? `/api/club-management?clubId=${clubId}`
+        : `/api/club-management`;
+
+      // Prepare headers with authentication
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add authorization header if we have a token
+      const storedToken = localStorage.getItem('zenith-token');
+      console.log('🔐 CLUB MANAGEMENT: Token from localStorage:', storedToken ? `${storedToken.substring(0, 15)}...` : 'None');
+      
+      if (storedToken && storedToken !== 'nextauth-session') {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+        console.log('🔐 CLUB MANAGEMENT: Adding auth header to request');
+      } else {
+        console.log('⚠️ CLUB MANAGEMENT: No valid token found');
+      }
+      
+      console.log('📡 CLUB MANAGEMENT: Fetching data from:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include', // This will include cookies for session-based auth
+        headers,
       });
+
+      console.log('📡 CLUB MANAGEMENT: Response status:', response.status);
       
-      console.log('📊 Admin Clubs API response status:', adminResponse.status);
-      
-      if (adminResponse.ok) {
-        const adminData = await adminResponse.json();
-        console.log('📋 Admin data received:', adminData);
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ CLUB MANAGEMENT: Data received:', {
+          success: result.success,
+          accessLevel: result.userAccess?.level,
+          clubsCount: result.clubs?.length,
+          membersCount: result.members?.length
+        });
         
-        if (adminData.success) {
-          const { clubs: clubsList, members: membersList, stats: systemStats } = adminData;
+        if (result.success) {
+          setData(result);
           
-          console.log('🏛️ Processing', clubsList.length, 'clubs for admin view');
-          
-          // Set clubs data directly since it's already formatted for admin view
-          setClubs(clubsList);
-          
-          // Set members data
-          setMembers(membersList || []);
-          
-          // Set system stats
-          setStats(systemStats);
-          
-          console.log('✅ Admin data processed:', {
-            clubs: clubsList.length,
-            members: membersList?.length || 0,
-            stats: systemStats
-          });
+          // Auto-select first club if user is club-level manager
+          if (result.userAccess.level === 'club' && 
+              result.userAccess.managedClubs.length === 1 && 
+              !selectedClub) {
+            setSelectedClub(result.userAccess.managedClubs[0]);
+            console.log('🔍 CLUB MANAGEMENT: Auto-selecting club:', result.userAccess.managedClubs[0]);
+          }
         } else {
-          throw new Error('Invalid response format');
+          console.error('❌ CLUB MANAGEMENT: API returned error:', result.error);
+          throw new Error(result.error || 'Failed to fetch data');
         }
-      } else if (adminResponse.status === 403) {
-        // User doesn't have admin access, redirect them
-        console.log('❌ Access denied to admin endpoint');
+      } else if (response.status === 401) {
+        console.error('❌ CLUB MANAGEMENT: Authentication failed (401)');
+        showToast({
+          type: "error",
+          title: "Authentication Required",
+          message: "Please log in to access this page"
+        });
+        router.push('/login');
+      } else if (response.status === 403) {
+        console.error('❌ CLUB MANAGEMENT: Access denied (403)');
         showToast({
           type: "error",
           title: "Access Denied",
-          message: "You don't have permission to access admin features"
+          message: "You don't have permission to access club management features"
         });
         router.push('/dashboard');
-        return;
       } else {
-        throw new Error(`Failed to fetch admin data: ${adminResponse.status}`);
+        console.error(`❌ CLUB MANAGEMENT: Request failed with status ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
     } catch (error) {
-      console.error("❌ Error fetching admin data:", error);
+      console.error("Error fetching club management data:", error);
       showToast({
         type: "error",
         title: "Error",
-        message: "Failed to load admin data"
+        message: "Failed to load club management data"
       });
     } finally {
       setLoading(false);
-      console.log('🏁 Finished fetching admin data');
     }
   };
 
-  const handleClubStatusChange = async (clubId: string, newStatus: string) => {
-    try {
-      // For now, we'll just update the local state since we don't have a status update API
-      // This would need to be implemented in the backend
-      showToast({
-        type: "info",
-        title: "Feature Coming Soon",
-        message: "Club status updates will be available in a future update"
+  useEffect(() => {
+    console.log('🔄 CLUB MANAGEMENT: User state changed', {
+      userPresent: !!user,
+      authLoading,
+      userRole: user?.role,
+    });
+    
+    if (user && !authLoading) {
+      console.log('🚀 CLUB MANAGEMENT: Starting data fetch with user:', {
+        id: user.id,
+        email: user.email,
+        role: user.role
       });
       
-      // Update local state optimistically
-      setClubs(prev => prev.map(club => 
-        club.id === clubId ? { ...club, status: newStatus as any } : club
-      ));
-    } catch (error) {
-      console.error("Error updating club status:", error);
-      showToast({
-        type: "error",
-        title: "Error",
-        message: "Failed to update club status"
-      });
+      // Small delay to ensure token is properly set in localStorage
+      setTimeout(() => {
+        fetchData();
+      }, 500);
     }
-  };
+  }, [user, authLoading]);
 
-  const handleDeleteClub = async (clubId: string) => {
+  // Fetch members when club is selected
+  useEffect(() => {
+    if (selectedClub && data) {
+      fetchData(selectedClub);
+    }
+  }, [selectedClub]);
+
+  // Add member function
+  const handleAddMember = async () => {
+    if (!newMemberEmail.trim() || !selectedClub) return;
+
     try {
-      const response = await fetch(`/api/clubs/${clubId}`, {
-        method: "DELETE",
-        headers: {
-          'Content-Type': 'application/json',
-        }
+      setAddingMember(true);
+      
+      // Prepare headers with authentication
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add authorization header if we have a token
+      const storedToken = localStorage.getItem('zenith-token');
+      if (storedToken && storedToken !== 'nextauth-session') {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+      }
+      
+      const response = await fetch('/api/club-management', {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({
+          action: 'add_member',
+          clubId: selectedClub,
+          userEmail: newMemberEmail.trim(),
+          role: newMemberRole,
+          hierarchy: roleHierarchy[newMemberRole as keyof typeof roleHierarchy]?.level || 5
+        })
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         showToast({
           type: "success",
-          title: "Success",
-          message: "Club deleted successfully"
+          title: "Member Added",
+          message: result.message
         });
-        fetchAdminData();
-        setShowDeleteModal({ show: false, type: "", id: "", name: "" });
+        setShowAddMemberModal(false);
+        setNewMemberEmail("");
+        setNewMemberRole("member");
+        if (selectedClub) {
+          fetchData(selectedClub); // Refresh data
+        }
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete club");
+        throw new Error(result.error || 'Failed to add member');
       }
     } catch (error) {
-      console.error("Error deleting club:", error);
+      console.error("Error adding member:", error);
       showToast({
         type: "error",
         title: "Error",
-        message: "Failed to delete club"
+        message: error instanceof Error ? error.message : "Failed to add member"
       });
+    } finally {
+      setAddingMember(false);
     }
   };
 
-  const filteredClubs = clubs.filter(club => {
-    const matchesSearch = club.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         club.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         club.coordinator_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === "all" || club.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  // Remove member function
+  const handleRemoveMember = async () => {
+    if (!selectedMember || !selectedClub) return;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active": return "text-green-600 bg-green-100";
-      case "inactive": return "text-red-600 bg-red-100";
-      case "pending": return "text-yellow-600 bg-yellow-100";
-      default: return "text-gray-600 bg-gray-100";
+    try {
+      setRemovingMember(true);
+      
+      // Prepare headers with authentication
+      const headers: Record<string, string> = {};
+
+      // Add authorization header if we have a token
+      const storedToken = localStorage.getItem('zenith-token');
+      if (storedToken && storedToken !== 'nextauth-session') {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+      }
+      
+      const response = await fetch(
+        `/api/club-management?memberId=${selectedMember.id}&clubId=${selectedClub}`,
+        {
+          method: 'DELETE',
+          headers,
+          credentials: 'include'
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        showToast({
+          type: "success",
+          title: "Member Removed",
+          message: result.message
+        });
+        setShowRemoveMemberModal(false);
+        setSelectedMember(null);
+        if (selectedClub) {
+          fetchData(selectedClub); // Refresh data
+        }
+      } else {
+        throw new Error(result.error || 'Failed to remove member');
+      }
+    } catch (error) {
+      console.error("Error removing member:", error);
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error instanceof Error ? error.message : "Failed to remove member"
+      });
+    } finally {
+      setRemovingMember(false);
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "active": return <CheckCircle className="w-4 h-4" />;
-      case "inactive": return <XCircle className="w-4 h-4" />;
-      case "pending": return <Clock className="w-4 h-4" />;
-      default: return <AlertTriangle className="w-4 h-4" />;
-    }
-  };
+  // Filter members based on search
+  const filteredMembers = data?.members.filter(member =>
+    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.role.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
-  // Authentication check moved to the top of component with useEffect
-  if (!isAuthenticated) {
-    return null; // The auth modal will be shown by useAuthGuard
-  }
+  // Get selected club data
+  const selectedClubData = data?.clubs.find(club => club.id === selectedClub);
 
-  // Runtime check for export
-  if (typeof AdminClubManagementPage !== 'function') {
+  if (authLoading || loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Component Error</h2>
-        <p className="text-gray-600 mb-4">The default export is not a valid React component.</p>
-      </div>
-    );
-  }
-
-  if (isLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-college-primary"></div>
-          <p className="mt-4 text-gray-600">Loading admin panel...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading Club Management...</h2>
         </div>
       </div>
     );
   }
 
-  if (!hasMultiClubAccess) {
+  if (!data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600">You don't have permission to access this page.</p>
+          <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">No Data Available</h2>
+          <p className="text-gray-500">Failed to load club management data.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Club Management Admin</h1>
-              <p className="text-gray-600 mt-2">Manage all clubs, members, and activities</p>
+              <h1 className="text-3xl font-bold text-gray-900">Club Management</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Access Level: <span className="font-medium text-blue-600">
+                  {accessLevelLabels[data.userAccess.level]}
+                </span>
+              </p>
             </div>
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowCreateClub(true)}
-                className="bg-college-primary text-primary px-4 py-2 rounded-lg hover:bg-college-primary/90 transition-colors flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create Club</span>
-              </button>
+              {data.userAccess.level !== 'club' && data.systemStats && (
+                <div className="bg-blue-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{data.systemStats.total_clubs}</div>
+                  <div className="text-sm text-blue-500">Total Clubs</div>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Total Clubs</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalClubs}</p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Active Clubs</p>
-                <p className="text-3xl font-bold text-green-600">{stats.activeClubs}</p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Total Members</p>
-                <p className="text-3xl font-bold text-purple-600">{stats.totalMembers}</p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-full">
-                <UserPlus className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-lg mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6 overflow-x-auto">
-              {[
-                { id: "overview", label: "Club Overview", icon: Users },
-                { id: "members", label: "All Members", icon: UserPlus },
-                { id: "content", label: "Content Management", icon: FileText },
-                { id: "settings", label: "Settings", icon: Settings }
-              ].map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                      activeTab === tab.id
-                        ? "border-college-primary text-college-primary"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            {activeTab === "overview" && (
-              <div>
-                {/* Search and Filter */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                  <div className="flex-1 max-w-lg">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        placeholder="Search clubs..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-college-primary focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value as any)}
-                      className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-college-primary focus:border-transparent"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Clubs Table */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Club
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Coordinator
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Members
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Created
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredClubs.map((club) => (
-                        <tr key={club.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-primary font-bold`} style={{ backgroundColor: club.color }}>
-                                {club.name.substring(0, 2).toUpperCase()}
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">{club.name}</div>
-                                <div className="text-sm text-gray-500">{club.type}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{club.coordinator_name}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{club.member_count}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(club.status)}`}>
-                              {getStatusIcon(club.status)}
-                              <span className="capitalize">{club.status}</span>
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(club.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => router.push(`/admin/clubs/${club.id}`)}
-                                className="text-college-primary hover:text-college-primary/80"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedClub(club);
-                                  setShowEditClub(true);
-                                }}
-                                className="text-blue-600 hover:text-blue-800"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setShowDeleteModal({
-                                  show: true,
-                                  type: "club",
-                                  id: club.id,
-                                  name: club.name
-                                })}
-                                className="text-red-600 hover:text-red-800"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                              <select
-                                value={club.status}
-                                onChange={(e) => handleClubStatusChange(club.id, e.target.value)}
-                                className="text-xs border border-gray-300 rounded px-2 py-1"
-                              >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="pending">Pending</option>
-                              </select>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {filteredClubs.length === 0 && (
-                  <div className="text-center py-12">
-                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No clubs found</h3>
-                    <p className="text-gray-500">Try adjusting your search or filter criteria.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "members" && (
-              <div>
-                <div className="mb-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">All Club Members</h3>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Member
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Club
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Role
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Joined
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {members.map((member) => (
-                          <tr key={`${member.id}-${member.club_id}`} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <SafeAvatar
-                                  src={member.avatar}
-                                  fallbackName={member.name}
-                                  size="sm"
-                                />
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                                  <div className="text-sm text-gray-500">{member.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{member.club_name}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {member.role}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(member.joined_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button
-                                onClick={() => {
-                                  setSelectedMemberId(member.id);
-                                  setShowProfileModal(true);
-                                }}
-                                className="text-college-primary hover:text-college-primary/80"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "content" && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-6">Content Management</h3>
-                
-                {/* Content Management Options */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  
-                  {/* Landing Page Management */}
-                  {(isZenithCommittee || isSystemAdmin) && (
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200">
-                      <div className="flex items-center mb-4">
-                        <div className="bg-blue-100 p-3 rounded-full mr-4">
-                          <FileText className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900">Landing Page</h4>
-                          <p className="text-sm text-gray-600">Manage homepage content</p>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <button
-                          onClick={() => router.push('/admin/content/landing/carousel')}
-                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          Manage Carousel
-                        </button>
-                        <button
-                          onClick={() => router.push('/admin/content/landing/team')}
-                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          Manage Team Cards
-                        </button>
-                        <button
-                          onClick={() => router.push('/admin/content/landing/events')}
-                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          Featured Events
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Club Pages Management */}
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
-                    <div className="flex items-center mb-4">
-                      <div className="bg-green-100 p-3 rounded-full mr-4">
-                        <Users className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">Club Pages</h4>
-                        <p className="text-sm text-gray-600">Manage club-specific content</p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      {isZenithCommittee || isSystemAdmin ? (
-                        <>
-                          <button
-                            onClick={() => router.push('/admin/content/clubs')}
-                            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                          >
-                            Manage All Clubs
-                          </button>
-                          <p className="text-xs text-gray-500 mt-2">
-                            You can manage content for all club pages
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => router.push(`/admin/content/club/${user?.club_id || 'my-club'}`)}
-                            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                          >
-                            Manage My Club
-                          </button>
-                          <p className="text-xs text-gray-500 mt-2">
-                            You can only manage your club's content
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Quick Content Stats */}
-                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 p-6 rounded-xl border border-purple-200">
-                    <div className="flex items-center mb-4">
-                      <div className="bg-purple-100 p-3 rounded-full mr-4">
-                        <Calendar className="w-6 h-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">Content Stats</h4>
-                        <p className="text-sm text-gray-600">Overview of content</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Carousel Slides:</span>
-                        <span className="font-medium">--</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Team Members:</span>
-                        <span className="font-medium">--</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Featured Events:</span>
-                        <span className="font-medium">--</span>
-                      </div>
-                      <button className="w-full mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                        View Analytics
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Content Updates */}
-                <div className="mt-8 bg-white border border-gray-200 rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Recent Content Updates</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm text-gray-600">Landing page carousel updated</span>
-                      </div>
-                      <span className="text-xs text-gray-400">2 hours ago</span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm text-gray-600">New team member added</span>
-                      </div>
-                      <span className="text-xs text-gray-400">1 day ago</span>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-gray-600">Featured event modified</span>
-                      </div>
-                      <span className="text-xs text-gray-400">3 days ago</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "settings" && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Admin Settings</h3>
-                <div className="space-y-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Export Data</h4>
-                    <p className="text-gray-600 mb-4">Download club and member data for reporting.</p>
-                    <div className="space-x-2">
-                      <button className="bg-college-primary text-primary px-4 py-2 rounded-lg hover:bg-college-primary/90 transition-colors flex items-center space-x-2">
-                        <Download className="w-4 h-4" />
-                        <span>Export Clubs</span>
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Bulk Operations</h4>
-                    <p className="text-gray-600 mb-4">Perform bulk operations on clubs and members.</p>
-                    <div className="space-x-2">
-                      <button className="bg-blue-600 text-primary px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                        <Upload className="w-4 h-4" />
-                        <span>Import Data</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={showDeleteModal.show}
-        onClose={() => setShowDeleteModal({ show: false, type: "", id: "", name: "" })}
-        onConfirm={() => {
-          if (showDeleteModal.type === "club") {
-            handleDeleteClub(showDeleteModal.id);
-          }
-        }}
-        title={`Delete ${showDeleteModal.type}`}
-        message={`Are you sure you want to delete "${showDeleteModal.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        type="danger"
-      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Clubs List */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6 border-b">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {data.userAccess.level === 'club' ? 'Your Clubs' : 'All Clubs'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {data.clubs.length} club{data.clubs.length !== 1 ? 's' : ''} available
+                </p>
+              </div>
+              <div className="divide-y">
+                {data.clubs.map((club) => (
+                  <div
+                    key={club.id}
+                    className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                      selectedClub === club.id ? 'bg-blue-50 border-r-4 border-blue-500' : ''
+                    }`}
+                    onClick={() => setSelectedClub(club.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{club.name}</h3>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {club.description}
+                        </p>
+                        <div className="flex items-center mt-2 space-x-4">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Users className="h-4 w-4 mr-1" />
+                            {club.member_count}
+                          </div>
+                          {club.events_count !== undefined && (
+                            <div className="flex items-center text-sm text-gray-500">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              {club.events_count}
+                            </div>
+                          )}
+                          {club.assignments_count !== undefined && (
+                            <div className="flex items-center text-sm text-gray-500">
+                              <FileText className="h-4 w-4 mr-1" />
+                              {club.assignments_count}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className={`w-3 h-3 rounded-full ${club.color || 'bg-gray-400'}`}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Club Details and Members */}
+          <div className="lg:col-span-2">
+            {selectedClub && selectedClubData ? (
+              <div className="space-y-6">
+                
+                {/* Club Header */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">{selectedClubData.name}</h2>
+                      <p className="text-gray-600 mt-1">{selectedClubData.description}</p>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      {selectedClubData.coordinator && (
+                        <div className="text-sm text-gray-500">
+                          <p className="font-medium">Coordinator</p>
+                          <p>{selectedClubData.coordinator.name}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Club Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <div className="text-xl font-bold text-gray-900">{selectedClubData.member_count}</div>
+                      <div className="text-sm text-gray-500">Members</div>
+                    </div>
+                    {selectedClubData.events_count !== undefined && (
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="text-xl font-bold text-gray-900">{selectedClubData.events_count}</div>
+                        <div className="text-sm text-gray-500">Events</div>
+                      </div>
+                    )}
+                    {selectedClubData.assignments_count !== undefined && (
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="text-xl font-bold text-gray-900">{selectedClubData.assignments_count}</div>
+                        <div className="text-sm text-gray-500">Assignments</div>
+                      </div>
+                    )}
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <div className="text-xl font-bold text-gray-900">{selectedClubData.type}</div>
+                      <div className="text-sm text-gray-500">Type</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Members Section */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="p-6 border-b">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Club Members</h3>
+                        <p className="text-sm text-gray-500 mt-1">{filteredMembers.length} members</p>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="relative">
+                          <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search members..."
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          onClick={() => setShowAddMemberModal(true)}
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Add Member
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Members List */}
+                  <div className="divide-y">
+                    {filteredMembers.map((member) => {
+                      const roleInfo = roleHierarchy[member.role as keyof typeof roleHierarchy];
+                      const RoleIcon = roleInfo?.icon || User;
+                      
+                      return (
+                        <div key={member.id} className="p-4 hover:bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <SafeAvatar
+                                src={member.profile_image_url || member.avatar}
+                                alt={member.name}
+                                size="md"
+                              />
+                              <div>
+                                <h4 className="font-medium text-gray-900">{member.name}</h4>
+                                <p className="text-sm text-gray-500">{member.email}</p>
+                                <div className="flex items-center mt-1 space-x-4">
+                                  <div className="flex items-center text-sm text-gray-500">
+                                    <RoleIcon className="h-4 w-4 mr-1" />
+                                    {roleInfo?.label || member.role}
+                                  </div>
+                                  {member.year && (
+                                    <span className="text-sm text-gray-500">
+                                      {member.year} Year
+                                    </span>
+                                  )}
+                                  {member.branch && (
+                                    <span className="text-sm text-gray-500">
+                                      {member.branch}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                member.is_active 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {member.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setSelectedMember(member);
+                                  setShowEditMemberModal(true);
+                                }}
+                                className="text-blue-600 hover:text-blue-800 p-1"
+                                title="Edit member info"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedMember(member);
+                                  setShowRemoveMemberModal(true);
+                                }}
+                                className="text-red-600 hover:text-red-800 p-1"
+                                title="Remove member"
+                              >
+                                <UserMinus className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {filteredMembers.length === 0 && (
+                      <div className="p-8 text-center">
+                        <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">
+                          {searchTerm ? 'No members found matching your search.' : 'No members in this club yet.'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-8 text-center">
+                <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Select a Club</h3>
+                <p className="text-gray-500">Choose a club from the list to view and manage its members.</p>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      {/* Add Member Modal */}
+      {showAddMemberModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <UserPlus className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Add New Member
+                    </h3>
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Enter user's email address"
+                          value={newMemberEmail}
+                          onChange={(e) => setNewMemberEmail(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                          Role
+                        </label>
+                        <select
+                          id="role"
+                          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                          value={newMemberRole}
+                          onChange={(e) => setNewMemberRole(e.target.value)}
+                        >
+                          <option value="member">Member</option>
+                          <option value="secretary">Secretary</option>
+                          <option value="treasurer">Treasurer</option>
+                          {data?.userAccess.level !== 'club' && (
+                            <>
+                              <option value="co_coordinator">Co-Coordinator</option>
+                              <option value="coordinator">Coordinator</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                  onClick={handleAddMember}
+                  disabled={addingMember || !newMemberEmail.trim()}
+                >
+                  {addingMember ? 'Adding...' : 'Add Member'}
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={() => {
+                    setShowAddMemberModal(false);
+                    setNewMemberEmail("");
+                    setNewMemberRole("member");
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Member Modal */}
+      {showRemoveMemberModal && selectedMember && (
+        <ConfirmationModal
+          isOpen={showRemoveMemberModal}
+          onClose={() => {
+            setShowRemoveMemberModal(false);
+            setSelectedMember(null);
+          }}
+          onConfirm={handleRemoveMember}
+          title="Remove Member"
+          message={`Are you sure you want to remove ${selectedMember.name} from the club? This action cannot be undone.`}
+          confirmText="Remove"
+          cancelText="Cancel"
+          type="danger"
+          isLoading={removingMember}
+        />
+      )}
+
+      {/* Edit Member Modal */}
+      {showEditMemberModal && selectedMember && (
+        <UserEditModal
+          open={showEditMemberModal}
+          onClose={() => {
+            setShowEditMemberModal(false);
+            setSelectedMember(null);
+          }}
+          member={selectedMember}
+          onSave={async (data) => {
+            if (!selectedMember) return;
+            try {
+              const res = await fetch("/api/club-management", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  memberId: selectedMember.id,
+                  clubId: selectedMember.club_id,
+                  name: data.name,
+                  email: data.email,
+                  role: data.role,
+                  academic_year: data.academic_year
+                })
+              });
+              const result = await res.json();
+              if (!res.ok) {
+                showToast({ type: "error", title: "Error", message: result.error || "Failed to update member." });
+                return;
+              }
+              showToast({ type: "success", title: "Member updated", message: "Member info updated successfully." });
+              setShowEditMemberModal(false);
+              setSelectedMember(null);
+              // Refresh data after update
+              if (selectedClub) {
+                fetchData(selectedClub);
+              }
+            } catch (err) {
+              showToast({ type: "error", title: "Error", message: "Failed to update member." });
+            }
+          }}
+          roles={["member", "coordinator", "secretary", "treasurer"]}
+          years={["2022-23", "2023-24", "2024-25", "2025-26"]}
+        />
+      )}
 
       {/* Profile Modal */}
-      {showProfileModal && selectedMemberId && (
-        <ProfileModal
-          userId={selectedMemberId}
+      {showProfileModal && selectedUserId && (
+        <ProfileModal 
+          userId={selectedUserId}
           open={showProfileModal}
           onClose={() => {
             setShowProfileModal(false);
-            setSelectedMemberId(null);
+            setSelectedUserId(null);
           }}
         />
       )}
     </div>
   );
-}
+};
+
+export default ClubManagementPage;

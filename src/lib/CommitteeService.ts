@@ -1,7 +1,5 @@
 // Committee Database Service - uses consolidated database
-import DatabaseClient from "./database";
-
-const db = DatabaseClient;
+import { db } from "./database";
 
 export interface CommitteeData {
   id: string;

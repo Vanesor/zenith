@@ -3,11 +3,8 @@
  * Works with the unified auth system and database client
  */
 
-import { createSession, getSession, deleteSession } from './database';
+import { createSession, getSession, deleteSession, db } from './database';
 import { generateToken } from './auth-unified';
-import DatabaseClient from './database';
-
-const db = DatabaseClient;
 
 export interface Session {
   id: string;
@@ -201,7 +198,7 @@ export class SessionManager {
         `UPDATE sessions SET 
          ip_address = $2, 
          user_agent = $3, 
-         updated_at = NOW() 
+         last_active_at = NOW() 
          WHERE token = $1`,
         [sessionToken, metadata.ip, metadata.userAgent]
       );

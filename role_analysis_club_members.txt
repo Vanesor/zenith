@@ -1,0 +1,31 @@
+               user_id                |                email                |        name        | user_table_role |   club_role    | club_name 
+--------------------------------------+-------------------------------------+--------------------+-----------------+----------------+-----------
+ 550e8400-e29b-41d4-a716-446655440031 | achievers.co-coordinator@zenith.com | Aayushi Asole      | co_coordinator  | co_coordinator | ACHIEVERS
+ 8eb864a5-a99b-4d3b-94f9-4619ed66c5e3 | shreya.borde@example.com            | Shreya Borde       | student         | co_coordinator | ACHIEVERS
+ 19124f5e-a896-4728-bb75-701f616c7716 | rohan.kumar2025@example.com         | Rohan Kumar        | student         | co_coordinator | ARTOVERT
+ c088cdf3-11ff-408d-b95a-1f50bb794c27 | sanjeed.kabarle@zenith.edu          | Sanved Kabade      | student         | co_coordinator | ARTOVERT
+ 550e8400-e29b-41d4-a716-446655440011 | ascend.co-coordinator@zenith.com    | Ayush Kshirsagar   | co_coordinator  | co_coordinator | ASCEND
+ 8397062d-0b15-4115-9ee3-3e2f4bef0e36 | isha.bansal2025@example.com         | Isha Bansal        | student         | co_coordinator | ASCEND
+ 85831284-34d0-4724-90c2-26e6204c1428 | nikhil.verma2025@example.com        | Nikhil Verma       | student         | co_coordinator | ASCEND
+ a758760c-468e-4185-b84c-374ec2168a4a | uday.bhoyar@example.com             | Uday Bhoyar        | student         | co_coordinator | ASCEND
+ 550e8400-e29b-41d4-a716-446655440021 | aster.co-coordinator@zenith.com     | Gargi Udapure      | co_coordinator  | co_coordinator | ASTER
+ 1ac23e35-54f9-4e34-8ff3-bfff79885d88 | riya.shah2025@example.com           | Riya Shah          | student         | co_coordinator | ASTER
+ 59c443c7-2e5e-41ec-96bb-0b33ca557948 | shubham.kaut@zenith.edu             | Sharawari Raut     | student         | co_coordinator | ASTER
+ 6e11229a-a444-4e8b-8b56-e8b6536302d5 | sneha.agarwal2025@example.com       | Sneha Agarwal      | student         | co_coordinator | ASTER
+ bca6518e-d6ec-4489-9422-1898f5086ba4 | anita.gupta2025@example.com         | Anita Gupta        | student         | coordinator    | ACHIEVERS
+ 550e8400-e29b-41d4-a716-446655440030 | achievers.coordinator@zenith.com    | Paritosh Magare    | coordinator     | coordinator    | ACHIEVERS
+ b9f1d273-57c1-4ba4-9411-5495254ff797 | karan.mehta2025@example.com         | Karan Mehta        | student         | coordinator    | ARTOVERT
+ e75ebfdc-b1e8-440c-a987-c77306ab8348 | tejasri.rinait@zenith.edu           | Tejasi Rinait      | student         | coordinator    | ARTOVERT
+ 550e8400-e29b-41d4-a716-446655440010 | ascend.coordinator@zenith.com       | Atharva Bhede      | coordinator     | coordinator    | ASCEND
+ 204a06d7-e042-4c19-8e97-b0f2d8ad1271 | dev.joshi2025@example.com           | Dev Joshi          | student         | coordinator    | ASCEND
+ 9e494d57-59b3-48d0-a140-f131099a0a11 | harsh.pandey2025@example.com        | Harsh Pandey       | student         | coordinator    | ASTER
+ 550e8400-e29b-41d4-a716-446655440020 | aster.coordinator@zenith.com        | Radhika Salodkar   | coordinator     | coordinator    | ASTER
+ ec962745-fe2f-4079-b859-7d86bf711c20 | arjun.nair2025@example.com          | Arjun Nair         | student         | media          | ASTER
+ 550e8400-e29b-41d4-a716-446655440032 | achievers.secretary@zenith.com      | Mayur Aglawe       | secretary       | secretary      | ACHIEVERS
+ febf3dd5-655c-4e18-86a9-2abbf245cb16 | vedant.wardhana@zenith.edu          | Vedanti Wandhare   | student         | secretary      | ARTOVERT
+ 70672185-25b9-41b5-bae0-e74ea1a26db9 | vikram.singh2025@example.com        | Vikram Singh       | student         | secretary      | ARTOVERT
+ 550e8400-e29b-41d4-a716-446655440012 | ascend.secretary@zenith.com         | Mohit Telang       | secretary       | secretary      | ASCEND
+ 63fd6cb0-d546-448b-9fdc-5cb407f61d6a | kavya.reddy2025@example.com         | Kavya Reddy        | student         | secretary      | ASTER
+ 550e8400-e29b-41d4-a716-446655440022 | aster.secretary@zenith.com          | Sahil Shrivastava  | secretary       | secretary      | ASTER
+(27 rows)
+

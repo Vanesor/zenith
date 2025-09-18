@@ -1,0 +1,28 @@
+                  id                  |                email                |       role       |          name           
+--------------------------------------+-------------------------------------+------------------+-------------------------
+ 550e8400-e29b-41d4-a716-446655440000 | admin@zenith.com                    | admin            | Admin User
+ 550e8400-e29b-41d4-a716-446655440001 | superadmin@zenith.com               | admin            | Super Admin
+ 550e8400-e29b-41d4-a716-446655440031 | achievers.co-coordinator@zenith.com | co_coordinator   | Aayushi Asole
+ 550e8400-e29b-41d4-a716-446655440041 | artovert.co-coordinator@zenith.com  | co_coordinator   | ARTOVERT Co-Coordinator
+ 550e8400-e29b-41d4-a716-446655440011 | ascend.co-coordinator@zenith.com    | co_coordinator   | Ayush Kshirsagar
+ 550e8400-e29b-41d4-a716-446655440021 | aster.co-coordinator@zenith.com     | co_coordinator   | Gargi Udapure 
+ 550e8400-e29b-41d4-a716-446655440040 | artovert.coordinator@zenith.com     | coordinator      | ARTOVERT Coordinator
+ 550e8400-e29b-41d4-a716-446655440010 | ascend.coordinator@zenith.com       | coordinator      | Atharva Bhede
+ 550e8400-e29b-41d4-a716-446655440030 | achievers.coordinator@zenith.com    | coordinator      | Paritosh Magare
+ 550e8400-e29b-41d4-a716-446655440020 | aster.coordinator@zenith.com        | coordinator      | Radhika Salodkar
+ 21a95efa-ccfa-4c4c-af7f-50cfa0a35053 | naitamatharva14@gmail.com           | innovation_head  | Atharva Naitam
+ 550e8400-e29b-41d4-a716-446655440033 | achievers.media@zenith.com          | media            | ACHIEVERS Media Head
+ 550e8400-e29b-41d4-a716-446655440013 | ascend.media@zenith.com             | media            | Aditya Yelne 
+ 550e8400-e29b-41d4-a716-446655440043 | artovert.media@zenith.com           | media            | ARTOVERT Media Head
+ 550e8400-e29b-41d4-a716-446655440023 | aster.media@zenith.com              | media            | ASTER Media Head
+ 9755eab9-39cb-443b-9cca-853d727afe40 | kaiwalya.pund@zenith.edu            | media            | Kaiwalya Pund
+ 8694ff1f-1d1e-4a7b-8ecb-eebda2c937d3 | yash.siddhabhatti@zenith.edu        | president        | Yash Siddhabhatti
+ 550e8400-e29b-41d4-a716-446655440042 | artovert.secretary@zenith.com       | secretary        | ARTOVERT Secretary
+ 550e8400-e29b-41d4-a716-446655440032 | achievers.secretary@zenith.com      | secretary        | Mayur Aglawe 
+ 550e8400-e29b-41d4-a716-446655440012 | ascend.secretary@zenith.com         | secretary        | Mohit Telang
+ 550e8400-e29b-41d4-a716-446655440022 | aster.secretary@zenith.com          | secretary        | Sahil Shrivastava 
+ 7c36ecbe-44d3-40df-8b8b-886e5385e839 | yogeshvar.chaudhari@zenith.edu      | treasurer        | Yogeshvar Chaudhari
+ 241f4f32-458e-410e-b2f2-6dcfda992455 | sarthak.thote@zenith.edu            | vice_president   | Sarthak Thote
+ 53cbed56-2bc7-4faf-bd6e-5f953de4dfa5 | manasvi.giradkar@zenith.edu         | zenith_secretary | Manasvi Giradkar
+(24 rows)
+

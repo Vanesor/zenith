@@ -1,0 +1,115 @@
+# Role-Based Access Control System Design
+
+## Permission Levels and Capabilities
+
+### 1. Club Management Level
+**Target Users**: Club coordinators, co-coordinators, secretaries for specific clubs
+**Access Scope**: Single club they manage
+**Capabilities**:
+- View their club's member list
+- Add new members by email (if user exists in system)
+- Remove members from their club
+- View club statistics (events, assignments, member count)
+- Manage club posts and announcements
+- View club activity logs
+
+### 2. Zenith Committee Level
+**Target Users**: president, vice_president, innovation_head, secretary, treasurer, outreach_coordinator, media_coordinator
+**Access Scope**: All clubs and committee operations
+**Capabilities**:
+- View all clubs and their statistics
+- Manage any club's membership
+- Create new clubs
+- Deactivate/activate clubs
+- View system-wide analytics
+- Manage committee memberships
+- Access to all club management features
+- Bulk operations across clubs
+
+### 3. System Admin Level
+**Target Users**: Technical administrators
+**Access Scope**: Full system access
+**Capabilities**:
+- All Zenith Committee capabilities
+- User role management
+- System configuration
+- Database operations
+- Security settings
+- Advanced analytics and reporting
+
+### 4. Super Admin Level
+**Target Users**: Highest level administrators
+**Access Scope**: Complete system control
+**Capabilities**:
+- All System Admin capabilities
+- Create/modify admin accounts
+- System-wide configuration changes
+- Emergency access controls
+- Audit log management
+
+## API Endpoint Structure
+
+### Club Management APIs:
+```
+/api/club-management/
+├── my-clubs/                    # Club-level access
+├── members/                     # Member management
+├── stats/                       # Club statistics
+└── activities/                  # Activity logs
+
+/api/admin/
+├── clubs/                       # Zenith Committee+ access
+├── users/                       # Admin+ access
+├── system/                      # Admin+ access
+└── permissions/                 # Super Admin access
+```
+
+## Permission Checking Functions:
+
+### 1. hasClubAccess(userId, clubId)
+- Check if user is coordinator/co-coordinator of specific club
+- Check committee membership for Zenith members
+
+### 2. hasZenithAccess(userId)
+- Check if user has Zenith committee role
+- Includes: president, vice_president, innovation_head, etc.
+
+### 3. hasAdminAccess(userId)
+- Check if user has admin role
+- Includes system admin capabilities
+
+### 4. hasSuperAdminAccess(userId)
+- Check if user has super admin role
+- Highest level permissions
+
+## Database Permission Enhancement
+
+### New permission checking function:
+```sql
+CREATE FUNCTION has_club_management_access(user_email text, club_id text) 
+RETURNS boolean AS $$
+DECLARE
+    has_access BOOLEAN := false;
+    user_uuid UUID;
+BEGIN
+    -- Get user UUID
+    SELECT id INTO user_uuid FROM users WHERE email = user_email;
+    
+    -- Check if user is club coordinator/co-coordinator
+    SELECT EXISTS(
+        SELECT 1 FROM club_members 
+        WHERE user_id = user_uuid 
+        AND club_id = club_id 
+        AND role IN ('coordinator', 'co_coordinator', 'secretary')
+        AND is_active = true
+    ) INTO has_access;
+    
+    -- If not club level access, check committee access
+    IF NOT has_access THEN
+        SELECT has_privileged_permissions(user_email, 'committee', '') INTO has_access;
+    END IF;
+    
+    RETURN has_access;
+END;
+$$ LANGUAGE plpgsql;
+```

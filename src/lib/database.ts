@@ -1128,5 +1128,5 @@ export const queryRawSQL = query;
 export const checkDatabaseHealth = healthCheck;
 export const findAllEvents = databaseClient.getAllEvents.bind(databaseClient);
 
-// Type exports
+// Export the database interfaces to avoid "is not defined" errors
 export type { User, Club, Post, Project, Task };

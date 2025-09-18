@@ -8,10 +8,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import DatabaseClient from './database';
+import { db } from './database';
 import crypto from 'crypto';
-
-const db = DatabaseClient;
 
 // Environment variables - fail fast if not set in production
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -120,8 +118,24 @@ export function generateRefreshToken(payload: object): string {
 
 export function verifyToken(token: string): any {
   try {
-    return jwt.verify(token, getJwtSecret());
+    console.log('🔍 TOKEN VERIFICATION: Attempting to verify token');
+    const decoded = jwt.verify(token, getJwtSecret());
+    
+    // Safe access to properties using type assertion
+    const decodedObj = typeof decoded === 'object' ? decoded as jwt.JwtPayload : null;
+    
+    console.log('✅ TOKEN VERIFICATION: Token verified successfully:', { 
+      id: decodedObj?.id || 'unknown',
+      role: decodedObj?.role || 'unknown',
+      exp: decodedObj?.exp 
+        ? new Date(decodedObj.exp * 1000).toISOString() 
+        : 'unknown'
+    });
+    
+    return decoded;
   } catch (error) {
+    console.error('❌ TOKEN VERIFICATION: Failed to verify token:', 
+      error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
 }
