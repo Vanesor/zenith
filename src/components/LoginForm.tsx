@@ -13,7 +13,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
+  useEffect(() => { 
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
